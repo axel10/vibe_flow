@@ -227,16 +227,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     try {
       await AppLog.flush();
 
+      final bytes = await logFile.readAsBytes();
       final suggestedName = 'vynody_${DateTime.now().millisecondsSinceEpoch}.log';
       final path = await FileSelectorHelper.saveFile(
         suggestedName: suggestedName,
         label: 'Log',
         extensions: const ['log'],
         dialogTitle: 'Export Logs',
+        bytes: bytes,
       );
 
       if (path != null) {
-        await logFile.copy(path);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1042,15 +1043,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Future<String?> _pickSaveJsonPath() async {
-    return FileSelectorHelper.saveFile(
-      suggestedName: 'vynody_lyrics_backup.json',
-      label: 'JSON',
-      extensions: const ['json'],
-      dialogTitle: 'Export Lyrics',
-    );
-  }
-
   Future<String?> _pickOpenJsonPath() async {
     return FileSelectorHelper.pickFile(
       label: 'JSON',
@@ -1062,15 +1054,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _exportLyrics(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      final path = await _pickSaveJsonPath();
-      if (path == null) return;
-
       final service = const LyricsImportExportService();
       final repository = LyricsCacheRepository();
 
       final jsonStr = await service.exportLyrics(repository);
-      final file = File(path);
-      await file.writeAsString(jsonStr);
+      final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+
+      final path = await FileSelectorHelper.saveFile(
+        suggestedName: 'vynody_lyrics_backup.json',
+        label: 'JSON',
+        extensions: const ['json'],
+        dialogTitle: 'Export Lyrics',
+        bytes: bytes,
+      );
+      if (path == null) return;
 
       final count = (jsonDecode(jsonStr)['lyricsCaches'] as List).length;
 

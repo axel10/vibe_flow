@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart' as file_selector;
 
@@ -88,11 +89,14 @@ class FileSelectorHelper {
   /// Saves a file at a selected location with a suggested name.
   ///
   /// Uses [file_selector] on Windows, Linux, and macOS, and [file_picker] on other platforms.
+  /// Note: [bytes] is required on Android & iOS by `file_picker`. On Desktop, if [bytes] is provided,
+  /// it will automatically be written to the selected file location.
   static Future<String?> saveFile({
     required String suggestedName,
     String? label,
     List<String>? extensions,
     String? dialogTitle,
+    Uint8List? bytes,
   }) async {
     if (_useFileSelector) {
       final typeGroup = file_selector.XTypeGroup(
@@ -103,14 +107,20 @@ class FileSelectorHelper {
         suggestedName: suggestedName,
         acceptedTypeGroups: extensions != null ? [typeGroup] : const [],
       );
-      return fileSaveLocation?.path;
+      if (fileSaveLocation == null) return null;
+      if (bytes != null) {
+        await File(fileSaveLocation.path).writeAsBytes(bytes);
+      }
+      return fileSaveLocation.path;
     } else {
       return FilePicker.saveFile(
         dialogTitle: dialogTitle,
         fileName: suggestedName,
         type: extensions != null ? FileType.custom : FileType.any,
         allowedExtensions: extensions,
+        bytes: bytes,
       );
     }
   }
 }
+
