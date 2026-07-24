@@ -1003,6 +1003,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
 
     bool shouldScroll = true;
 
+    final isInitialScroll = _lastActiveIndex == -1;
     final lyricsStyle = ref.read(settingsServiceProvider).lyricsStyle;
     if (lyricsStyle == LyricsStyle.apple) {
       if (!force) {
@@ -1093,6 +1094,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         activeIndex,
         animate: animate,
         itemCenters: itemCenters,
+        isInitialScroll: isInitialScroll,
       );
     });
   }
@@ -1346,6 +1348,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     int index, {
     required bool animate,
     required List<double> itemCenters,
+    bool isInitialScroll = false,
   }) {
     if (!_scrollController.hasClients) return;
     if (index < 0 || index >= itemCenters.length) return;
@@ -1410,7 +1413,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         final firstVisible = _findClosestLineIndex(target, itemCenters);
         if (mounted) {
           setState(() {
-            if (widget.isTransitioning) {
+            if (widget.isTransitioning || isInitialScroll) {
               _lastScrollDelta = 0.0;
               _scrollTriggerTime = 0;
             } else {

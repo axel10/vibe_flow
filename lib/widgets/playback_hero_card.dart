@@ -624,10 +624,10 @@ class PlaybackHeroCard extends ConsumerWidget {
                                         return const SizedBox.shrink();
                                       }
                                       if (isTransitioningNotifier.value !=
-                                          isTransitioning) {
+                                          optimize) {
                                         Future.microtask(() {
                                           isTransitioningNotifier.value =
-                                              isTransitioning;
+                                              optimize;
                                         });
                                       }
                                       if (lyricsKey != null) {
