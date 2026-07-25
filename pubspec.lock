@@ -582,7 +582,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "06d354cddfb8cee0c60b575d09fa4dfae17e3233"
+      resolved-ref: "0a784a78cb0b9644d6adee6d1a77b8280ad430b7"
       url: "https://github.com/axel10/flutter_taglib"
     source: git
     version: "1.5.1"
