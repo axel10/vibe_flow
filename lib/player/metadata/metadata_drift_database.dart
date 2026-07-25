@@ -918,20 +918,32 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       return {};
     }
 
-    final rows = await customSelect(
-      '''
-      SELECT *
-      FROM songs
-      WHERE path IN (${List.filled(normalizedPaths.length, '?').join(', ')})
-        AND deletedAt IS NULL
-      ''',
-      variables: normalizedPaths.map(Variable.new).toList(growable: false),
-      readsFrom: {songs},
-    ).get();
-    return {
-      for (final row in rows)
-        _pathLookupKey(row.read<String>('path')): _songFromQueryRow(row),
-    };
+    final result = <String, SongMetadata>{};
+    const batchSize = 500;
+    for (var i = 0; i < normalizedPaths.length; i += batchSize) {
+      final chunk = normalizedPaths.sublist(
+        i,
+        i + batchSize > normalizedPaths.length
+            ? normalizedPaths.length
+            : i + batchSize,
+      );
+      final rows = await customSelect(
+        '''
+        SELECT *
+        FROM songs
+        WHERE path IN (${List.filled(chunk.length, '?').join(', ')})
+          AND deletedAt IS NULL
+        ''',
+        variables: chunk.map(Variable.new).toList(growable: false),
+        readsFrom: {songs},
+      ).get();
+
+      for (final row in rows) {
+        result[_pathLookupKey(row.read<String>('path'))] =
+            _songFromQueryRow(row);
+      }
+    }
+    return result;
   }
 
   Future<void> insertOrUpdateSong(

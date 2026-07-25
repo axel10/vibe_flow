@@ -453,16 +453,16 @@ class MetadataHelper {
         'folder.jpg',
         'folder.png',
       ];
-      bool candidateFound = false;
       for (final name in candidateNames) {
-        if (File(p.join(dirPath, name)).existsSync()) {
-          candidateFound = true;
+        final file = File(p.join(dirPath, name));
+        if (file.existsSync()) {
+          result = file.path;
           break;
         }
       }
 
-      // 2. Only list directory if candidate check found a potential cover file or as a fallback
-      if (candidateFound) {
+      // 2. Fallback: list directory to check for case-insensitive matches or other supported extensions
+      if (result == null) {
         final dir = Directory(dirPath);
         if (dir.existsSync()) {
           final entries = dir.listSync(followLinks: false);
