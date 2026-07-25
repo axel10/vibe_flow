@@ -1016,6 +1016,7 @@ class MetadataHelper {
         final batchResults = await taglib.TagLibFile.readBatchAsync(
           pathsToScan,
           isolateCount: isolateCount ?? 0,
+          readCover: getImage,
         );
 
         final results = <Map<String, dynamic>>[];
@@ -1030,40 +1031,7 @@ class MetadataHelper {
           int? trackNumber = item.track > 0 ? item.track : null;
           bool hasArtwork = item.hasCover;
           bool isSuccess = item.success;
-          Uint8List? artworkBytes;
-
-          if (!isSuccess && Platform.isAndroid) {
-            try {
-              final tagFile = await taglib.TagLibFile.openAsync(item.path);
-              if (tagFile != null) {
-                try {
-                  title = tagFile.title.trim().isNotEmpty ? tagFile.title.trim() : null;
-                  album = tagFile.album.trim().isNotEmpty ? tagFile.album.trim() : null;
-                  artist = tagFile.artist.trim().isNotEmpty ? tagFile.artist.trim() : null;
-                  duration = tagFile.duration.inMilliseconds > 0 ? tagFile.duration.inMilliseconds : null;
-                  trackNumber = tagFile.track > 0 ? tagFile.track : null;
-                  hasArtwork = tagFile.hasCover;
-                  if (getImage && hasArtwork) {
-                    artworkBytes = tagFile.coverData;
-                  }
-                  isSuccess = true;
-                } finally {
-                  tagFile.close();
-                }
-              }
-            } catch (_) {}
-          } else if (getImage && hasArtwork) {
-            try {
-              final tagFile = await taglib.TagLibFile.openAsync(item.path);
-              if (tagFile != null) {
-                try {
-                  artworkBytes = tagFile.coverData;
-                } finally {
-                  tagFile.close();
-                }
-              }
-            } catch (_) {}
-          }
+          Uint8List? artworkBytes = item.coverData;
 
           if (isSuccess) {
             successCount++;
