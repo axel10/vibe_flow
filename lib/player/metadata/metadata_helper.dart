@@ -983,9 +983,62 @@ class MetadataHelper {
   static Future<List<Map<String, dynamic>>> readMetadataBatch(
     List<String> filePaths, {
     bool getImage = false,
-  }) {
+    int? isolateCount,
+  }) async {
     if (filePaths.isEmpty) {
-      return SynchronousFuture<List<Map<String, dynamic>>>(const []);
+      return const [];
+    }
+
+    final effectiveIsolates =
+        (isolateCount ?? Platform.numberOfProcessors).clamp(1, filePaths.length);
+
+    try {
+      if (taglib.TagLibFile.isSupported) {
+        final batchResults = await taglib.TagLibFile.readBatchAsync(
+          filePaths,
+          isolateCount: effectiveIsolates,
+        );
+
+        final results = <Map<String, dynamic>>[];
+        for (final item in batchResults) {
+          final file = File(item.path);
+          final lastModified = _safeLastModifiedMillis(file);
+
+          Uint8List? artworkBytes;
+          if (getImage && item.hasCover) {
+            try {
+              final tagFile = await taglib.TagLibFile.openAsync(item.path);
+              if (tagFile != null) {
+                try {
+                  artworkBytes = tagFile.coverData;
+                } finally {
+                  tagFile.close();
+                }
+              }
+            } catch (_) {}
+          }
+
+          results.add(<String, dynamic>{
+            'path': item.path,
+            'title': item.title.trim().isNotEmpty ? item.title.trim() : null,
+            'album': item.album.trim().isNotEmpty ? item.album.trim() : null,
+            'artist': item.artist.trim().isNotEmpty ? item.artist.trim() : null,
+            'duration':
+                item.duration.inMilliseconds > 0
+                    ? item.duration.inMilliseconds
+                    : null,
+            'trackNumber': item.track > 0 ? item.track : null,
+            'lastModifiedTime': lastModified,
+            'hasArtwork': item.hasCover,
+            'artworkBytes': artworkBytes,
+            'error':
+                item.success ? null : (item.error ?? 'Failed to read metadata'),
+          });
+        }
+        return results;
+      }
+    } catch (e, stackTrace) {
+      debugPrint('[MetadataHelper] TagLib readBatchAsync failed: $e\n$stackTrace');
     }
 
     return compute(_readMetadataBatchIsolate, <String, dynamic>{
