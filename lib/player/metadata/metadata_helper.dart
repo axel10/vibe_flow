@@ -989,14 +989,11 @@ class MetadataHelper {
       return const [];
     }
 
-    final effectiveIsolates =
-        (isolateCount ?? Platform.numberOfProcessors).clamp(1, filePaths.length);
-
     try {
       if (taglib.TagLibFile.isSupported) {
         final batchResults = await taglib.TagLibFile.readBatchAsync(
           filePaths,
-          isolateCount: effectiveIsolates,
+          isolateCount: isolateCount ?? 0,
         );
 
         final results = <Map<String, dynamic>>[];
