@@ -991,30 +991,8 @@ class MetadataHelper {
 
     try {
       if (taglib.TagLibFile.isSupported) {
-        final isAndroid = Platform.isAndroid;
-        final safMappings = isAndroid ? await AndroidSafStorageHelper.getMappings() : const <String, String>{};
-        final useSafTranslation = isAndroid && safMappings.isNotEmpty && !(await taglib.TagLibFile.checkStoragePermission());
-
-        final List<String> pathsToScan;
-        final Map<String, String> safToPhysical = {};
-
-        if (useSafTranslation) {
-          pathsToScan = [];
-          for (final path in filePaths) {
-            final safUri = AndroidSafStorageHelper.resolvePhysicalPathToSafUri(path, safMappings);
-            if (safUri != null) {
-              pathsToScan.add(safUri);
-              safToPhysical[safUri] = path;
-            } else {
-              pathsToScan.add(path);
-            }
-          }
-        } else {
-          pathsToScan = filePaths;
-        }
-
         final batchResults = await taglib.TagLibFile.readBatchAsync(
-          pathsToScan,
+          filePaths,
           isolateCount: isolateCount ?? 0,
           readCover: getImage,
         );
@@ -1023,7 +1001,7 @@ class MetadataHelper {
         int successCount = 0;
         int failCount = 0;
         for (final item in batchResults) {
-          final originalPath = safToPhysical[item.path] ?? item.path;
+          final originalPath = item.path;
           String? title = item.title.trim().isNotEmpty ? item.title.trim() : null;
           String? album = item.album.trim().isNotEmpty ? item.album.trim() : null;
           String? artist = item.artist.trim().isNotEmpty ? item.artist.trim() : null;
