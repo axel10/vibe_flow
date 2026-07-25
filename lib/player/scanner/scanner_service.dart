@@ -76,6 +76,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   final Set<String> _activeScopedRootPaths = <String>{};
   final Map<String, _DirectoryRescanMode> _pendingDirectoryRescanPaths = {};
   final Set<String> _failedThumbnailPaths = <String>{};
+  final Map<String, int> _watchedFileMtimes = {};
 
   MusicFolder? _systemMediaFolder;
   bool _hasPermission = false;
@@ -2177,6 +2178,23 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
+    try {
+      final stat = FileStat.statSync(normalizedPath);
+      if (stat.type == FileSystemEntityType.file ||
+          stat.type == FileSystemEntityType.directory) {
+        final mtime = stat.modified.millisecondsSinceEpoch;
+        final cachedMtime = _watchedFileMtimes[normalizedPath];
+        if (cachedMtime == mtime) {
+          return;
+        }
+        _watchedFileMtimes[normalizedPath] = mtime;
+      } else if (stat.type == FileSystemEntityType.notFound) {
+        _watchedFileMtimes.remove(normalizedPath);
+      }
+    } catch (_) {
+      // If we fail to read stats, let it proceed to rescan
+    }
+
     final rescanMode = _determineRescanMode(normalizedPath);
     if (rescanMode == _DirectoryRescanMode.recursive) {
       _queueDirectoryRescan(normalizedPath, _DirectoryRescanMode.recursive);
@@ -2187,6 +2205,43 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       _normalizePath(p.dirname(normalizedPath)),
       _DirectoryRescanMode.nonRecursive,
     );
+  }
+
+  Future<void> _populateWatchedMtimesFromLibrary() async {
+    for (final entry in _metadataStore.metadataMap.entries) {
+      final songPath = entry.key;
+      final mtime = entry.value.lastModifiedTime;
+      if (mtime != null) {
+        _watchedFileMtimes[songPath] = mtime;
+      }
+    }
+
+    final directoriesToStat = <String>{};
+    for (final songPath in _metadataStore.metadataMap.keys) {
+      directoriesToStat.add(_normalizePath(p.dirname(songPath)));
+    }
+    for (final root in _roots.rootPaths) {
+      directoriesToStat.add(_normalizePath(root));
+    }
+
+    final pathList = directoriesToStat.toList(growable: false);
+    const batchSize = 50;
+    for (var i = 0; i < pathList.length; i += batchSize) {
+      final end = i + batchSize < pathList.length ? i + batchSize : pathList.length;
+      final chunk = pathList.sublist(i, end);
+      await Future.wait(
+        chunk.map((path) async {
+          try {
+            final stat = await FileStat.stat(path);
+            if (stat.type != FileSystemEntityType.notFound) {
+              _watchedFileMtimes[path] = stat.modified.millisecondsSinceEpoch;
+            }
+          } catch (_) {
+            // ignore
+          }
+        }),
+      );
+    }
   }
 
   _DirectoryRescanMode _determineRescanMode(String path) {
@@ -3058,6 +3113,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> scan({bool clearScannedRoots = true}) async {
     _failedThumbnailPaths.clear();
+    _watchedFileMtimes.clear();
     await _scanRootsWithFullFlow(
       _roots.rootPaths,
       clearScannedRoots: clearScannedRoots,
@@ -3076,6 +3132,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         return (flags & SongSourceFlags.external) == 0;
       });
       _failedThumbnailPaths.clear();
+      _watchedFileMtimes.clear();
       _markMetadataMutated();
       _markAlbumLibraryMutated();
 
@@ -3287,6 +3344,14 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('Scan error: $e');
     } finally {
+      try {
+        await _timeScanStep(
+          'populate watched mtimes from library',
+          () async => _populateWatchedMtimesFromLibrary(),
+        );
+      } catch (e) {
+        debugPrint('[ScannerService] Failed to populate watched mtimes: $e');
+      }
       _flushScanNotifications();
       _scanCoordinator.setActiveRootPath(null);
       await _timeScanStep(
@@ -3891,6 +3956,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     _directoryRescanTimer?.cancel();
     _directoryRescanTimer = null;
     _pendingDirectoryRescanPaths.clear();
+    _watchedFileMtimes.clear();
     _scanNotifyTimer?.cancel();
     _rootAvailabilityRefreshTimer?.cancel();
     _scanProgressController.close();
