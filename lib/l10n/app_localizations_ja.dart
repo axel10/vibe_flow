@@ -2888,30 +2888,29 @@ class AppLocalizationsJa extends AppLocalizations {
       '現在の状態：制限なし（推奨、バックグラウンド再生保護済み）';
 
   @override
-  String get onboardingAndroidMediaTitle => '音频库与极速扫描设置';
+  String get onboardingAndroidMediaTitle => '访问手机音乐库';
 
   @override
   String get onboardingAndroidMediaDescription =>
-      '授权音频库权限后，Vynody 可开启硬件级极速扫描与全盘音乐自动识别。如不授权，您仍可通过 SAF 选择特定文件夹导入音乐。';
+      '授权后，Vynody 可直接读取系统媒体库中的所有音乐，无需手动选择文件夹。不授权也可以手动导入指定文件夹中的音乐。';
 
   @override
-  String get onboardingAndroidMediaStep1 => '1. 极速读取：实现毫秒级音乐文件与标签信息解析';
+  String get onboardingAndroidMediaStep1 => '1. 即开即用：直接显示手机里已有的全部音乐';
 
   @override
-  String get onboardingAndroidMediaStep2 => '2. 全盘搜歌：自动检索设备上的音乐文件建立乐库';
+  String get onboardingAndroidMediaStep2 => '2. 自动发现：新下载或传入的音乐自动出现在乐库中';
 
   @override
-  String get onboardingAndroidMediaStep3 => '3. 隐私安全：仅用于读取与播放本地音频，绝不出网';
+  String get onboardingAndroidMediaStep3 => '3. 隐私安全：仅读取本地音频文件，不会上传任何数据';
 
   @override
-  String get onboardingAndroidMediaButton => '开启极速扫描通道';
+  String get onboardingAndroidMediaButton => '授权访问音乐库';
 
   @override
-  String get onboardingAndroidMediaStatusGranted => '当前状态：已开启极速通道（推荐）';
+  String get onboardingAndroidMediaStatusGranted => '当前状态：已授权（推荐）';
 
   @override
-  String get onboardingAndroidMediaStatusNotGranted =>
-      '当前状态：使用 SAF 兼容模式（不授权亦可正常使用）';
+  String get onboardingAndroidMediaStatusNotGranted => '当前状态：未授权（可稍后手动导入文件夹）';
 
   @override
   String get exitApp => '終了';

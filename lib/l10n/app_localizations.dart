@@ -5392,49 +5392,49 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingAndroidMediaTitle.
   ///
   /// In zh, this message translates to:
-  /// **'音频库与极速扫描设置'**
+  /// **'访问手机音乐库'**
   String get onboardingAndroidMediaTitle;
 
   /// No description provided for @onboardingAndroidMediaDescription.
   ///
   /// In zh, this message translates to:
-  /// **'授权音频库权限后，Vynody 可开启硬件级极速扫描与全盘音乐自动识别。如不授权，您仍可通过 SAF 选择特定文件夹导入音乐。'**
+  /// **'授权后，Vynody 可直接读取系统媒体库中的所有音乐，无需手动选择文件夹。不授权也可以手动导入指定文件夹中的音乐。'**
   String get onboardingAndroidMediaDescription;
 
   /// No description provided for @onboardingAndroidMediaStep1.
   ///
   /// In zh, this message translates to:
-  /// **'1. 极速读取：实现毫秒级音乐文件与标签信息解析'**
+  /// **'1. 即开即用：直接显示手机里已有的全部音乐'**
   String get onboardingAndroidMediaStep1;
 
   /// No description provided for @onboardingAndroidMediaStep2.
   ///
   /// In zh, this message translates to:
-  /// **'2. 全盘搜歌：自动检索设备上的音乐文件建立乐库'**
+  /// **'2. 自动发现：新下载或传入的音乐自动出现在乐库中'**
   String get onboardingAndroidMediaStep2;
 
   /// No description provided for @onboardingAndroidMediaStep3.
   ///
   /// In zh, this message translates to:
-  /// **'3. 隐私安全：仅用于读取与播放本地音频，绝不出网'**
+  /// **'3. 隐私安全：仅读取本地音频文件，不会上传任何数据'**
   String get onboardingAndroidMediaStep3;
 
   /// No description provided for @onboardingAndroidMediaButton.
   ///
   /// In zh, this message translates to:
-  /// **'开启极速扫描通道'**
+  /// **'授权访问音乐库'**
   String get onboardingAndroidMediaButton;
 
   /// No description provided for @onboardingAndroidMediaStatusGranted.
   ///
   /// In zh, this message translates to:
-  /// **'当前状态：已开启极速通道（推荐）'**
+  /// **'当前状态：已授权（推荐）'**
   String get onboardingAndroidMediaStatusGranted;
 
   /// No description provided for @onboardingAndroidMediaStatusNotGranted.
   ///
   /// In zh, this message translates to:
-  /// **'当前状态：使用 SAF 兼容模式（不授权亦可正常使用）'**
+  /// **'当前状态：未授权（可稍后手动导入文件夹）'**
   String get onboardingAndroidMediaStatusNotGranted;
 
   /// No description provided for @exitApp.

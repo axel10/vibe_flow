@@ -2985,34 +2985,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Status: Unrestricted (recommended, playback protected)';
 
   @override
-  String get onboardingAndroidMediaTitle => 'Audio Library & Fast Scan Setup';
+  String get onboardingAndroidMediaTitle => 'Access Your Music Library';
 
   @override
   String get onboardingAndroidMediaDescription =>
-      'Granting audio library permission enables hardware-level fast scanning and automatic music discovery. If not granted, you can still select specific folders via SAF.';
+      'Once granted, Vynody can directly read all music from your system media library — no need to pick folders manually. You can still import music from specific folders without granting permission.';
 
   @override
   String get onboardingAndroidMediaStep1 =>
-      '1. Fast Scan: Millisecond-level music indexing and tag parsing';
+      '1. Ready to go: Instantly shows all music already on your phone';
 
   @override
   String get onboardingAndroidMediaStep2 =>
-      '2. Full Library: Automatically discover music files across device';
+      '2. Auto-discover: Newly downloaded or transferred music appears automatically';
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. Privacy Safe: Strictly used for local audio playback, no network upload';
+      '3. Privacy safe: Only reads local audio files, never uploads any data';
 
   @override
-  String get onboardingAndroidMediaButton => 'Enable Fast Scan Mode';
+  String get onboardingAndroidMediaButton => 'Grant Music Library Access';
 
   @override
   String get onboardingAndroidMediaStatusGranted =>
-      'Status: Fast Scan Enabled (Recommended)';
+      'Status: Granted (Recommended)';
 
   @override
   String get onboardingAndroidMediaStatusNotGranted =>
-      'Status: SAF Compatibility Mode (Optional)';
+      'Status: Not granted (you can import folders manually later)';
 
   @override
   String get exitApp => 'Exit';
