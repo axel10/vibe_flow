@@ -2084,7 +2084,7 @@ class PlaybackHeroCard extends ConsumerWidget {
           ),
         ),
         AppTooltip(
-          message: l10n.visualizer,
+          message: getPlaylistModeName(playbackMode, l10n),
           child: IconButton(
             padding: EdgeInsets.zero,
             constraints: BoxConstraints.tightFor(
@@ -2095,17 +2095,14 @@ class PlaybackHeroCard extends ConsumerWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             icon: Icon(
-              showVisualizerToggle
-                  ? Icons.analytics
-                  : Icons.analytics_outlined,
+              getPlaylistModeIcon(playbackMode),
               size:
                   PlaybackHeroCardUiTuning.topButtonsIconSize *
                   controlsScale,
-              color: showVisualizerToggle
-                  ? Colors.white70
-                  : Colors.white70.withValues(alpha: 0.6),
+              color: Colors.white70,
             ),
-            onPressed: onToggleVisualizer,
+            onPressed: onCyclePlaylistMode,
+            onLongPress: onShowPlaylistModeSelector,
           ),
         ),
         AppTooltip(
@@ -2343,13 +2340,16 @@ class PlaybackHeroCard extends ConsumerWidget {
         buildSecondaryControl(
           circleSize: (useOverlayStyle ? 42 : 40),
           iconBuilder: (color, isWhiteBg) => Icon(
-            getPlaylistModeIcon(playbackMode),
+            showVisualizerToggle
+                ? Icons.analytics
+                : Icons.analytics_outlined,
             size: (isWhiteBg ? 22 : 24) * controlsScale,
-            color: color,
+            color: showVisualizerToggle
+                ? color
+                : color.withValues(alpha: 0.6),
           ),
-          onPressed: onCyclePlaylistMode,
-          onLongPress: onShowPlaylistModeSelector,
-          tooltip: getPlaylistModeName(playbackMode, l10n),
+          onPressed: onToggleVisualizer,
+          tooltip: l10n.visualizer,
         ),
         buildSecondaryControl(
           circleSize: (useOverlayStyle ? 56 : 60),
