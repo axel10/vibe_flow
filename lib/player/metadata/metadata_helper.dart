@@ -991,18 +991,68 @@ class MetadataHelper {
 
     try {
       if (taglib.TagLibFile.isSupported) {
+        final isAndroid = Platform.isAndroid;
+        final safMappings = isAndroid ? await AndroidSafStorageHelper.getMappings() : const <String, String>{};
+        final useSafTranslation = isAndroid && safMappings.isNotEmpty && !(await taglib.TagLibFile.checkStoragePermission());
+
+        final List<String> pathsToScan;
+        final Map<String, String> safToPhysical = {};
+
+        if (useSafTranslation) {
+          pathsToScan = [];
+          for (final path in filePaths) {
+            final safUri = AndroidSafStorageHelper.resolvePhysicalPathToSafUri(path, safMappings);
+            if (safUri != null) {
+              pathsToScan.add(safUri);
+              safToPhysical[safUri] = path;
+            } else {
+              pathsToScan.add(path);
+            }
+          }
+        } else {
+          pathsToScan = filePaths;
+        }
+
         final batchResults = await taglib.TagLibFile.readBatchAsync(
-          filePaths,
+          pathsToScan,
           isolateCount: isolateCount ?? 0,
         );
 
         final results = <Map<String, dynamic>>[];
+        int successCount = 0;
+        int failCount = 0;
         for (final item in batchResults) {
-          final file = File(item.path);
-          final lastModified = _safeLastModifiedMillis(file);
-
+          final originalPath = safToPhysical[item.path] ?? item.path;
+          String? title = item.title.trim().isNotEmpty ? item.title.trim() : null;
+          String? album = item.album.trim().isNotEmpty ? item.album.trim() : null;
+          String? artist = item.artist.trim().isNotEmpty ? item.artist.trim() : null;
+          int? duration = item.duration.inMilliseconds > 0 ? item.duration.inMilliseconds : null;
+          int? trackNumber = item.track > 0 ? item.track : null;
+          bool hasArtwork = item.hasCover;
+          bool isSuccess = item.success;
           Uint8List? artworkBytes;
-          if (getImage && item.hasCover) {
+
+          if (!isSuccess && Platform.isAndroid) {
+            try {
+              final tagFile = await taglib.TagLibFile.openAsync(item.path);
+              if (tagFile != null) {
+                try {
+                  title = tagFile.title.trim().isNotEmpty ? tagFile.title.trim() : null;
+                  album = tagFile.album.trim().isNotEmpty ? tagFile.album.trim() : null;
+                  artist = tagFile.artist.trim().isNotEmpty ? tagFile.artist.trim() : null;
+                  duration = tagFile.duration.inMilliseconds > 0 ? tagFile.duration.inMilliseconds : null;
+                  trackNumber = tagFile.track > 0 ? tagFile.track : null;
+                  hasArtwork = tagFile.hasCover;
+                  if (getImage && hasArtwork) {
+                    artworkBytes = tagFile.coverData;
+                  }
+                  isSuccess = true;
+                } finally {
+                  tagFile.close();
+                }
+              }
+            } catch (_) {}
+          } else if (getImage && hasArtwork) {
             try {
               final tagFile = await taglib.TagLibFile.openAsync(item.path);
               if (tagFile != null) {
@@ -1015,23 +1065,29 @@ class MetadataHelper {
             } catch (_) {}
           }
 
+          if (isSuccess) {
+            successCount++;
+          } else {
+            failCount++;
+            if (failCount <= 5) {
+              debugPrint('[MetadataHelper] batch item failed: path=${item.path}, error=${item.error}');
+            }
+          }
+
           results.add(<String, dynamic>{
-            'path': item.path,
-            'title': item.title.trim().isNotEmpty ? item.title.trim() : null,
-            'album': item.album.trim().isNotEmpty ? item.album.trim() : null,
-            'artist': item.artist.trim().isNotEmpty ? item.artist.trim() : null,
-            'duration':
-                item.duration.inMilliseconds > 0
-                    ? item.duration.inMilliseconds
-                    : null,
-            'trackNumber': item.track > 0 ? item.track : null,
-            'lastModifiedTime': lastModified,
-            'hasArtwork': item.hasCover,
+            'path': originalPath,
+            'title': title,
+            'album': album,
+            'artist': artist,
+            'duration': duration,
+            'trackNumber': trackNumber,
+            'lastModifiedTime': null,
+            'hasArtwork': hasArtwork,
             'artworkBytes': artworkBytes,
-            'error':
-                item.success ? null : (item.error ?? 'Failed to read metadata'),
+            'error': isSuccess ? null : (item.error ?? 'Failed to read metadata'),
           });
         }
+        debugPrint('[MetadataHelper] readMetadataBatch completed: total=${filePaths.length}, success=$successCount, fail=$failCount');
         return results;
       }
     } catch (e, stackTrace) {
@@ -1460,6 +1516,41 @@ class AndroidSafStorageHelper {
       }
     }
     return bestMatch;
+  }
+
+  static String? resolvePhysicalPathToSafUri(String physicalPath, Map<String, String> mappings) {
+    final normalizedFile = p.normalize(physicalPath).toLowerCase();
+    String? bestRoot;
+    String? bestTreeUriStr;
+
+    for (final entry in mappings.entries) {
+      final normalizedRoot = p.normalize(entry.key).toLowerCase();
+      if (normalizedFile.startsWith(normalizedRoot)) {
+        if (bestRoot == null || entry.key.length > bestRoot.length) {
+          bestRoot = entry.key;
+          bestTreeUriStr = entry.value;
+        }
+      }
+    }
+
+    if (bestRoot != null && bestTreeUriStr != null) {
+      final relativePath = physicalPath.substring(bestRoot.length).replaceFirst(RegExp(r'^[/\\]+'), '');
+      final normalizedRelativePath = relativePath.replaceAll('\\', '/');
+
+      final treeUri = Uri.parse(bestTreeUriStr);
+      if (treeUri.pathSegments.length >= 2 && treeUri.pathSegments[0] == 'tree') {
+        final treeId = treeUri.pathSegments[1];
+        final childDocumentId = normalizedRelativePath.isEmpty
+            ? treeId
+            : '$treeId/$normalizedRelativePath';
+
+        final authority = treeUri.authority;
+        final encodedTreeId = Uri.encodeComponent(treeId);
+        final encodedChildDocId = Uri.encodeComponent(childDocumentId);
+        return 'content://$authority/tree/$encodedTreeId/document/$encodedChildDocId';
+      }
+    }
+    return null;
   }
 
   static Future<bool> fileExists(String treeUri, String relativePath) async {
