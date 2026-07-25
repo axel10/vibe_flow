@@ -2957,169 +2957,118 @@ class PlaybackOverlayProgressTimeLayer extends ConsumerWidget {
             );
           },
         ),
-        // 2. 时间文字单独平移，避免拉伸 (Time text translated separately to avoid stretching)
+        // 2. 时间文字与5按钮行保持完全一致的宽度和居中对齐，确保完美对齐且同步缩放
         Builder(
           builder: (context) {
-            final size = MediaQuery.of(context).size;
-            final settings = ref.watch(settingsServiceProvider);
-            final bool isSmallWindow = PlaybackPageUiTuning.isSmallWindow(
-              size,
-              isWaveformEnabled: settings.isWaveformProgressBarEnabled,
-              isSmallWindowMode: settings.isSmallWindowMode,
-            );
-            final double overflowScale = isSmallWindow
-                ? 1.0
-                : PlaybackHeroCardUiTuning.portraitWaveformOverflowScale;
-
-            final screenWidth = MediaQuery.of(context).size.width;
-            final pagePadding =
-                PlaybackPageUiTuning.normalPortraitHorizontalPadding;
-            const minScreenMargin = 32.0;
-
-            final cardWidth = screenWidth - (pagePadding * 2);
-            final fittedScale = cardWidth / totalWidth;
-
-            final double limitWidth = isLandscape
-                ? totalWidth
-                : ((playButtonRowWidth ?? totalWidth) + 60.0 * controlsScale);
-            final double timeTextRowWidth = math.min(totalWidth, limitWidth);
-            final double leftOffset = (totalWidth - timeTextRowWidth) / 2;
-
-            final rawShift =
-                (PlaybackHeroCardUiTuning.waveformOverlayTimeSide -
-                    timeTextRowWidth / 2) *
-                (overflowScale - 1) *
-                0.8;
-
-            final safeFittedScale = (fittedScale.isFinite && fittedScale > 0)
-                ? fittedScale
-                : 1.0;
-            final minAllowedShift =
-                (minScreenMargin - pagePadding) / safeFittedScale -
-                PlaybackHeroCardUiTuning.waveformOverlayTimeSide;
-
-            final lowerBound = math.min(
-              minAllowedShift.isFinite ? minAllowedShift : 0.0,
-              0.0,
-            );
-            final safeShift = rawShift.isFinite
-                ? rawShift.clamp(lowerBound, 0.0)
-                : 0.0;
+            final double mainControlsOverflowOffset = 12.0 * controlsScale;
+            final double buttonRowActualWidth =
+                (playButtonRowWidth ?? totalWidth) +
+                mainControlsOverflowOffset * 2;
 
             return SizedBox(
-              width: totalWidth,
+              width: buttonRowActualWidth,
               height:
                   PlaybackHeroCardUiTuning.waveformOverlayHeight *
                   controlsScale,
               child: Stack(
                 children: [
                   Positioned(
-                    left:
-                        leftOffset +
-                        PlaybackHeroCardUiTuning.waveformOverlayTimeSide,
+                    left: 0,
                     bottom: PlaybackHeroCardUiTuning.waveformOverlayTimeBottom,
-                    child: Transform.translate(
-                      offset: Offset(safeShift, 0),
-                      child: isLandscape
-                          ? Text(
+                    child: isLandscape
+                        ? Text(
+                            formatDuration(overridePosition ?? position),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: math.max(
+                                PlaybackHeroCardUiTuning
+                                    .minProgressTimeFontSize,
+                                12 * controlsScale,
+                              ),
+                              fontWeight: FontWeight.bold,
+                              shadows: const [
+                                Shadow(color: Colors.black45, blurRadius: 4),
+                              ],
+                            ),
+                          )
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
                               formatDuration(overridePosition ?? position),
                               style: TextStyle(
-                                color: Colors.white,
+                                color: controlIconColor,
                                 fontSize: math.max(
                                   PlaybackHeroCardUiTuning
                                       .minProgressTimeFontSize,
-                                  12 * controlsScale,
+                                  11 * controlsScale,
                                 ),
                                 fontWeight: FontWeight.bold,
-                                shadows: const [
-                                  Shadow(color: Colors.black45, blurRadius: 4),
-                                ],
-                              ),
-                            )
-                          : Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(100),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                formatDuration(overridePosition ?? position),
-                                style: TextStyle(
-                                  color: controlIconColor,
-                                  fontSize: math.max(
-                                    PlaybackHeroCardUiTuning
-                                        .minProgressTimeFontSize,
-                                    11 * controlsScale,
-                                  ),
-                                  fontWeight: FontWeight.bold,
-                                ),
                               ),
                             ),
-                    ),
+                          ),
                   ),
                   Positioned(
-                    right:
-                        leftOffset +
-                        PlaybackHeroCardUiTuning.waveformOverlayTimeSide,
+                    right: 0,
                     bottom: PlaybackHeroCardUiTuning.waveformOverlayTimeBottom,
-                    child: Transform.translate(
-                      offset: Offset(-safeShift, 0),
-                      child: isLandscape
-                          ? Text(
+                    child: isLandscape
+                        ? Text(
+                            formatDuration(duration),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: math.max(
+                                PlaybackHeroCardUiTuning
+                                    .minProgressTimeFontSize,
+                                12 * controlsScale,
+                              ),
+                              fontWeight: FontWeight.bold,
+                              shadows: const [
+                                Shadow(color: Colors.black45, blurRadius: 4),
+                              ],
+                            ),
+                          )
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
                               formatDuration(duration),
                               style: TextStyle(
-                                color: Colors.white,
+                                color: controlIconColor,
                                 fontSize: math.max(
                                   PlaybackHeroCardUiTuning
                                       .minProgressTimeFontSize,
-                                  12 * controlsScale,
+                                  11 * controlsScale,
                                 ),
                                 fontWeight: FontWeight.bold,
-                                shadows: const [
-                                  Shadow(color: Colors.black45, blurRadius: 4),
-                                ],
-                              ),
-                            )
-                          : Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(100),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                formatDuration(duration),
-                                style: TextStyle(
-                                  color: controlIconColor,
-                                  fontSize: math.max(
-                                    PlaybackHeroCardUiTuning
-                                        .minProgressTimeFontSize,
-                                    11 * controlsScale,
-                                  ),
-                                  fontWeight: FontWeight.bold,
-                                ),
                               ),
                             ),
-                    ),
+                          ),
                   ),
                 ],
               ),
