@@ -39,9 +39,11 @@ void main() {
     });
 
     tearDownAll(() async {
-      if (await supportDirectory.exists()) {
-        await supportDirectory.delete(recursive: true);
-      }
+      try {
+        if (await supportDirectory.exists()) {
+          await supportDirectory.delete(recursive: true);
+        }
+      } catch (_) {}
     });
 
     test(

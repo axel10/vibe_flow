@@ -182,14 +182,8 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void unloadAllRootFolders() {
-    if (Platform.isAndroid) return;
-    if (_loadedRootPaths.isEmpty) return;
-    _scannedRootFolders.clear();
-    _systemMediaFolder = null;
-    _loadedRootPaths.clear();
-    _rebuildDisplayedRootFolders();
-    _syncNavigationStateToLatestTree();
-    notifyListeners();
+    // Keep scanned root folders in memory so root directory covers remain stable.
+    return;
   }
 
   int getSongCountForFolder(MusicFolder folder) {
@@ -1786,28 +1780,23 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
           .toList(growable: false);
       if (availableRoots.isEmpty) return;
 
-      if (Platform.isAndroid) {
-        for (final root in availableRoots) {
-          await loadRootFolderSongs(root);
-        }
-      } else {
-        for (final root in availableRoots) {
-          final count = await _repository.getSongCountUnderPath(root);
-          final duration = await _repository.getSongDurationUnderPath(root);
-          final sortSettings = _resolveSortSettingsForFolder(root);
-          final repSong = await _repository.getRepresentativeSongUnderPath(
-            root,
-            criteria: sortSettings.criteria,
-            order: sortSettings.order,
-          );
+      for (final root in availableRoots) {
+        await loadRootFolderSongs(root);
+        final count = await _repository.getSongCountUnderPath(root);
+        final duration = await _repository.getSongDurationUnderPath(root);
+        final sortSettings = _resolveSortSettingsForFolder(root);
+        final repSong = await _repository.getRepresentativeSongUnderPath(
+          root,
+          criteria: sortSettings.criteria,
+          order: sortSettings.order,
+        );
 
-          _rootSongCounts[root] = count;
-          _rootSongDurations[root] = duration;
-          _rootRepresentativeSongs[root] = repSong;
+        _rootSongCounts[root] = count;
+        _rootSongDurations[root] = duration;
+        _rootRepresentativeSongs[root] = repSong;
 
-          if (repSong != null && seedMetadataCache) {
-            _metadataStore.cacheMetadata(repSong);
-          }
+        if (repSong != null && seedMetadataCache) {
+          _metadataStore.cacheMetadata(repSong);
         }
       }
     } catch (e) {
@@ -3162,7 +3151,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  Future<void> scan({bool clearScannedRoots = true}) async {
+  Future<void> scan({bool clearScannedRoots = false}) async {
     _failedThumbnailPaths.clear();
     _watchedFileMtimes.clear();
     await _scanRootsWithFullFlow(

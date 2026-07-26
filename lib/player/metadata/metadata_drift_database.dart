@@ -643,7 +643,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
         WHERE (sourceFlags & ?) != 0
           AND (path = ? OR path LIKE ? OR path = ? OR path LIKE ?)
           AND deletedAt IS NULL
-          AND (artworkPath IS NOT NULL OR thumbnailPath IS NOT NULL OR mediaId IS NOT NULL)
+          AND (NULLIF(artworkPath, '') IS NOT NULL OR NULLIF(thumbnailPath, '') IS NOT NULL)
         ORDER BY $depthOrder
         LIMIT 1
         ''',
@@ -688,7 +688,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       FROM songs
       WHERE (path = ? OR path LIKE ?)
         AND deletedAt IS NULL
-        AND (artworkPath IS NOT NULL OR thumbnailPath IS NOT NULL OR mediaId IS NOT NULL)
+        AND (NULLIF(artworkPath, '') IS NOT NULL OR NULLIF(thumbnailPath, '') IS NOT NULL)
       ORDER BY $depthOrder
       LIMIT 1
       ''',

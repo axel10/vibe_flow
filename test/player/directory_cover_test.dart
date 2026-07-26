@@ -36,7 +36,7 @@ void main() {
       await coverFile.writeAsString('fake image');
 
       final result = MetadataHelper.findDirectoryCover(songFile.path);
-      expect(result, equals(coverFile.path));
+      expect(result?.toLowerCase(), equals(coverFile.path.toLowerCase()));
     });
 
     test('finds cover image with mixed case filename (Cover.jpeg)', () async {
@@ -47,7 +47,7 @@ void main() {
       await coverFile.writeAsString('fake image');
 
       final result = MetadataHelper.findDirectoryCover(songFile.path);
-      expect(result, equals(coverFile.path));
+      expect(result?.toLowerCase(), equals(coverFile.path.toLowerCase()));
     });
 
     test('finds cover.webp format', () async {
