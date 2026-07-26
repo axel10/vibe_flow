@@ -1905,7 +1905,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     if (_isDisposed) return;
     _rebuildScannedRootFolderFromCache(rootPath);
     _rebuildDisplayedRootFolders();
-    _syncNavigationStateToLatestTree();
+    _syncNavigationStateToLatestTree(affectedRootPath: rootPath);
     notifyListeners();
   }
 
@@ -2785,6 +2785,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         rootName: _displayNameForPath(rootPath),
       ),
     );
+    _folderSorter.sortFolderRecursiveForTree(
+      rootFolder,
+      resolveSettings: _resolveSortSettingsForFolder,
+    );
     _upsertScannedRootFolder(rootFolder);
   }
 
@@ -2977,7 +2981,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       _timeScanStepSync('stage 3.2 rebuild visible root tree', () {
         _rebuildScannedRootFolderFromMetadata(rootPath, visiblePaths);
         _rebuildDisplayedRootFolders();
-        _syncNavigationStateToLatestTree();
+        _syncNavigationStateToLatestTree(affectedRootPath: rootPath);
       });
       scanState.pendingMetadataPaths.addAll(visiblePaths);
       notifyListeners();
@@ -3774,7 +3778,20 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       ..addAll(displayedRoots);
   }
 
-  void _syncNavigationStateToLatestTree() {
+  void _syncNavigationStateToLatestTree({String? affectedRootPath}) {
+    final currentFolder = _navigationState.currentFolder;
+    if (currentFolder != null && affectedRootPath != null) {
+      final normCurrent = _normalizePath(currentFolder.path);
+      final normAffected = _normalizePath(affectedRootPath);
+      final isAffected =
+          normCurrent == normAffected ||
+          _pathContains(normAffected, normCurrent) ||
+          _pathContains(normCurrent, normAffected);
+      if (!isAffected) {
+        return;
+      }
+    }
+
     MusicFolder? resolveFolder(MusicFolder? folder) {
       if (folder == null) return null;
       if (folder.path == 'system') {
@@ -3787,7 +3804,6 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       );
     }
 
-    final currentFolder = _navigationState.currentFolder;
     final resolvedCurrentFolder = resolveFolder(currentFolder);
 
     final resolvedHistory = <MusicFolder>[];
