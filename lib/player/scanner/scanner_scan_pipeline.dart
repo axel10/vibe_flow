@@ -194,8 +194,16 @@ class ScannerScanPipeline {
     int? fallbackTrackNumber,
   }) {
     final now = DateTime.now().millisecondsSinceEpoch;
+    int? fileLastModified;
+    try {
+      fileLastModified = File(filePath).lastModifiedSync().millisecondsSinceEpoch;
+    } catch (_) {}
+
     final lastModified =
-        result['lastModifiedTime'] as int? ?? existing?.lastModifiedTime ?? now;
+        result['lastModifiedTime'] as int? ??
+        fileLastModified ??
+        existing?.lastModifiedTime ??
+        now;
     final resolvedFallbackTitle =
         _cleanText(fallbackTitle) ?? p.basenameWithoutExtension(filePath);
 
