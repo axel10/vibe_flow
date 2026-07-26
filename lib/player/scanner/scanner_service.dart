@@ -1315,7 +1315,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       _scanCoordinator.requestRescan();
       if (!_scanCoordinator.isScanning) {
         unawaited(
-          _scanRootsWithFullFlow(restoredRoots, clearScannedRoots: false),
+          _scanRootsWithFullFlow(
+            () => restoredRoots,
+            clearScannedRoots: false,
+          ),
         );
       }
     }
@@ -2390,7 +2393,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       if (recursiveRoots.isNotEmpty) {
-        await _scanRootsWithFullFlow(recursiveRoots, clearScannedRoots: false);
+        await _scanRootsWithFullFlow(
+          () => recursiveRoots,
+          clearScannedRoots: false,
+        );
       }
 
       for (final entry in directoryPaths) {
@@ -3250,7 +3256,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     _failedThumbnailPaths.clear();
     _watchedFileMtimes.clear();
     await _scanRootsWithFullFlow(
-      _roots.rootPaths,
+      () => _roots.rootPaths,
       clearScannedRoots: clearScannedRoots,
     );
   }
@@ -3290,25 +3296,14 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _scanRootsWithFullFlow(
-    Iterable<String> rootsToScan, {
+    Iterable<String> Function() rootsProvider, {
     required bool clearScannedRoots,
   }) async {
     await _loadScanSettings();
-    final requestedRoots = _computeScanRoots(rootsToScan);
-    if (requestedRoots.isEmpty) {
-      if (clearScannedRoots) {
-        _scannedRootFolders.clear();
-        _rebuildDisplayedRootFolders();
-        _syncNavigationStateToLatestTree();
-        notifyListeners();
-      }
-      return;
-    }
-
     await _scanCoordinator.runFullScan(
       (scanToken) => _runFullScanSession(
         scanToken,
-        requestedRoots: requestedRoots,
+        rootsProvider: rootsProvider,
         clearScannedRoots: clearScannedRoots,
       ),
     );
@@ -3316,7 +3311,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _runFullScanSession(
     int scanToken, {
-    required List<String> requestedRoots,
+    required Iterable<String> Function() rootsProvider,
     required bool clearScannedRoots,
   }) async {
     final artworkJobs = <_RootArtworkScanJob>[];
@@ -3341,6 +3336,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         comparePaths: _compareNaturally,
       );
       final scanRoots = _timeScanStepSync('stage 1 root discovery', () {
+        final requestedRoots = _computeScanRoots(rootsProvider());
         final roots = requestedRoots.toList(growable: false);
         roots.sort(_compareNaturally);
         debugPrint(
@@ -3349,6 +3345,16 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         );
         return roots;
       });
+
+      if (scanRoots.isEmpty) {
+        if (clearScannedRoots) {
+          _scannedRootFolders.clear();
+          _rebuildDisplayedRootFolders();
+          _syncNavigationStateToLatestTree();
+          notifyListeners();
+        }
+        return;
+      }
 
       if (clearScannedRoots) {
         _scannedRootFolders.clear();
