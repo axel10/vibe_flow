@@ -921,29 +921,34 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
 
     final result = <String, SongMetadata>{};
     const batchSize = 500;
-    for (var i = 0; i < normalizedPaths.length; i += batchSize) {
-      final chunk = normalizedPaths.sublist(
-        i,
-        i + batchSize > normalizedPaths.length
-            ? normalizedPaths.length
-            : i + batchSize,
-      );
-      final rows = await customSelect(
-        '''
-        SELECT *
-        FROM songs
-        WHERE path IN (${List.filled(chunk.length, '?').join(', ')})
-          AND deletedAt IS NULL
-        ''',
-        variables: chunk.map(Variable.new).toList(growable: false),
-        readsFrom: {songs},
-      ).get();
+    await transaction(() async {
+      for (var i = 0; i < normalizedPaths.length; i += batchSize) {
+        if (i > 0 && i % 5000 == 0) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        final chunk = normalizedPaths.sublist(
+          i,
+          i + batchSize > normalizedPaths.length
+              ? normalizedPaths.length
+              : i + batchSize,
+        );
+        final rows = await customSelect(
+          '''
+          SELECT *
+          FROM songs
+          WHERE path IN (${List.filled(chunk.length, '?').join(', ')})
+            AND deletedAt IS NULL
+          ''',
+          variables: chunk.map(Variable.new).toList(growable: false),
+          readsFrom: {songs},
+        ).get();
 
-      for (final row in rows) {
-        result[_pathLookupKey(row.read<String>('path'))] =
-            _songFromQueryRow(row);
+        for (final row in rows) {
+          result[_pathLookupKey(row.read<String>('path'))] =
+              _songFromQueryRow(row);
+        }
       }
-    }
+    });
     return result;
   }
 
@@ -1230,25 +1235,27 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     }
 
     const batchSize = 200;
-    for (var start = 0; start < normalizedPaths.length; start += batchSize) {
-      final end = start + batchSize < normalizedPaths.length
-          ? start + batchSize
-          : normalizedPaths.length;
-      final chunk = normalizedPaths.sublist(start, end);
-      await customStatement(
-        '''
-        UPDATE songs
-        SET sourceFlags = CASE
-              WHEN sourceFlags IS NULL OR sourceFlags = 0 THEN ?
-              ELSE sourceFlags | ?
-            END,
-            lastSeenRootScanSessionId = ?,
-            deletedAt = NULL
-        WHERE path IN (${List.filled(chunk.length, '?').join(', ')})
-        ''',
-        <Object>[sourceMask, sourceMask, scanToken, ...chunk],
-      );
-    }
+    await transaction(() async {
+      for (var start = 0; start < normalizedPaths.length; start += batchSize) {
+        final end = start + batchSize < normalizedPaths.length
+            ? start + batchSize
+            : normalizedPaths.length;
+        final chunk = normalizedPaths.sublist(start, end);
+        await customStatement(
+          '''
+          UPDATE songs
+          SET sourceFlags = CASE
+                WHEN sourceFlags IS NULL OR sourceFlags = 0 THEN ?
+                ELSE sourceFlags | ?
+              END,
+              lastSeenRootScanSessionId = ?,
+              deletedAt = NULL
+          WHERE path IN (${List.filled(chunk.length, '?').join(', ')})
+          ''',
+          <Object>[sourceMask, sourceMask, scanToken, ...chunk],
+        );
+      }
+    });
   }
 
   Future<int> syncSongSourcePresence({

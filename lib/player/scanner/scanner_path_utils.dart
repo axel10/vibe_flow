@@ -14,16 +14,44 @@ class ScannerPathUtils {
   }
 
   static String normalizePath(String path) {
-    var normalized = p.normalize(path.trim());
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) return trimmed;
+
     if (Platform.isWindows) {
-      normalized = normalized.replaceAll('/', r'\');
+      if (!trimmed.contains('/') &&
+          !trimmed.contains(r'\.\') &&
+          !trimmed.contains(r'\..\') &&
+          !trimmed.startsWith(r'.\') &&
+          !trimmed.startsWith(r'..\')) {
+        var s = trimmed;
+        if (s.length > 3 && s.endsWith(r'\')) {
+          s = s.substring(0, s.length - 1);
+        }
+        return s;
+      }
+      var normalized = p.normalize(trimmed).replaceAll('/', r'\');
       if (normalized.length > 3 && normalized.endsWith(r'\')) {
         normalized = normalized.substring(0, normalized.length - 1);
       }
-    } else if (normalized.length > 1 && normalized.endsWith('/')) {
-      normalized = normalized.substring(0, normalized.length - 1);
+      return normalized;
+    } else {
+      if (!trimmed.contains('//') &&
+          !trimmed.contains('/./') &&
+          !trimmed.contains('/../') &&
+          !trimmed.startsWith('./') &&
+          !trimmed.startsWith('../')) {
+        var s = trimmed;
+        if (s.length > 1 && s.endsWith('/')) {
+          s = s.substring(0, s.length - 1);
+        }
+        return s;
+      }
+      var normalized = p.normalize(trimmed);
+      if (normalized.length > 1 && normalized.endsWith('/')) {
+        normalized = normalized.substring(0, normalized.length - 1);
+      }
+      return normalized;
     }
-    return normalized;
   }
 
   static String pathLookupKey(String path) {

@@ -103,7 +103,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   static const String _keyGlobalSortOrder = 'folder_sort_global_order';
   static const String _keyFolderSortOverrides = 'folder_sort_overrides';
   static const int _defaultShortAudioThresholdSeconds = 30;
-  static const bool _scanTimingEnabled = kDebugMode;
+  static const bool _scanTimingEnabled = true;
   static const Duration _defaultDirectoryRescanBatchWindow = Duration(
     milliseconds: 900,
   );
@@ -2715,10 +2715,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  bool _isScanRootStillActive(String rootPath) {
+  bool _isScanRootStillActive(String rootPath, {bool checkDisk = false}) {
     final currentScanRoots = _computeScanRoots(_roots.rootPaths);
     if (!currentScanRoots.any((current) => _pathsEqual(current, rootPath))) {
       return false;
+    }
+    if (!checkDisk) {
+      return true;
     }
     try {
       final exists = Directory(rootPath).existsSync();
@@ -2918,34 +2921,29 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
     final skippedKnownPaths = <String>[];
     final fullPaths = <String>[];
-    for (final path in classification.pathsFor(ScanFileStage.full)) {
-      final existing =
-          classification.existingMetadataByPath[_pathLookupKey(path)];
-      if (_shouldSkipShortAudioDuration(existing?.duration)) {
-        skippedKnownPaths.add(path);
-        continue;
-      }
-      fullPaths.add(path);
-    }
     final imageOnlyPaths = <String>[];
-    for (final path in classification.pathsFor(ScanFileStage.imageOnly)) {
-      final existing =
-          classification.existingMetadataByPath[_pathLookupKey(path)];
-      if (_shouldSkipShortAudioDuration(existing?.duration)) {
-        skippedKnownPaths.add(path);
-        continue;
-      }
-      imageOnlyPaths.add(path);
-    }
     final unchangedPaths = <String>[];
-    for (final path in classification.pathsFor(ScanFileStage.unchanged)) {
+
+    for (final entry in classification.stageByPath.entries) {
+      final path = entry.key;
+      final stage = entry.value;
       final existing =
           classification.existingMetadataByPath[_pathLookupKey(path)];
       if (_shouldSkipShortAudioDuration(existing?.duration)) {
         skippedKnownPaths.add(path);
         continue;
       }
-      unchangedPaths.add(path);
+      switch (stage) {
+        case ScanFileStage.full:
+          fullPaths.add(path);
+          break;
+        case ScanFileStage.imageOnly:
+          imageOnlyPaths.add(path);
+          break;
+        case ScanFileStage.unchanged:
+          unchangedPaths.add(path);
+          break;
+      }
     }
     if (skippedKnownPaths.isNotEmpty) {
       for (final path in skippedKnownPaths) {
@@ -3021,6 +3019,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         return null;
       }
 
+      await Future<void>.delayed(Duration.zero);
       _timeScanStepSync('stage 3.2 rebuild visible root tree', () {
         _rebuildScannedRootFolderFromMetadata(rootPath, visiblePaths);
         _rebuildDisplayedRootFolders();

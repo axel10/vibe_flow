@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:vynody/player/metadata/metadata_database.dart';
-import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/scanner/scanner_metadata_store.dart';
 import 'package:vynody/player/scanner/scanner_scan_support.dart';
 
@@ -21,10 +22,9 @@ class ScannerScanPipeline {
   final ScannerMetadataStore _metadataStore;
 
   void _logTiming(String label, Stopwatch stopwatch) {
-    // if (!kDebugMode) return;
-    // debugPrint(
-    //   '[ScannerScanPipeline] $label took ${stopwatch.elapsedMilliseconds} ms',
-    // );
+    debugPrint(
+      '[ScannerScanPipeline] $label took ${stopwatch.elapsedMilliseconds} ms',
+    );
   }
 
   Future<Map<String, int?>> loadLastModifiedTimes(
@@ -141,11 +141,15 @@ class ScannerScanPipeline {
     final stageByPath = <String, ScanFileStage>{};
     final seen = <String>{};
     final classifyStopwatch = Stopwatch()..start();
-    final dirCache = <String, String?>{};
 
+    var count = 0;
     for (final path in filePaths) {
       if (shouldCancel?.call() ?? false) {
         break;
+      }
+      count++;
+      if (count % 5000 == 0) {
+        await Future<void>.delayed(Duration.zero);
       }
       final lookupKey = _pathLookupKey(path);
       if (!seen.add(lookupKey)) {
@@ -155,41 +159,13 @@ class ScannerScanPipeline {
       final existing = existingMetadataByPath[lookupKey];
       final currentLastModified = lastModifiedByPath[lookupKey];
       final textScanned = existing?.metadataTextScanned;
-      final imgScanned = existing?.metadataImgScanned;
-
-      var thumbnailMissing = false;
-      if (existing != null &&
-          existing.thumbnailPath != null &&
-          existing.thumbnailPath!.trim().isNotEmpty) {
-        try {
-          if (!File(existing.thumbnailPath!).existsSync()) {
-            thumbnailMissing = true;
-          }
-        } catch (_) {
-          thumbnailMissing = true;
-        }
-      }
-
-      final hasArtwork =
-          (existing?.artworkPath?.isNotEmpty ?? false) ||
-          (existing?.thumbnailPath?.isNotEmpty ?? false);
-      final dirCover = MetadataHelper.findDirectoryCover(path, dirCache: dirCache);
-      final hasDirCover = dirCover != null;
 
       if (existing != null && existing.isModified) {
         stageByPath[path] = ScanFileStage.unchanged;
       } else if (existing != null &&
           currentLastModified != null &&
-          textScanned == currentLastModified &&
-          imgScanned == currentLastModified &&
-          !thumbnailMissing &&
-          (hasArtwork || !hasDirCover)) {
+          textScanned == currentLastModified) {
         stageByPath[path] = ScanFileStage.unchanged;
-      } else if (existing != null &&
-          currentLastModified != null &&
-          textScanned == currentLastModified &&
-          (imgScanned != currentLastModified || thumbnailMissing || (!hasArtwork && hasDirCover))) {
-        stageByPath[path] = ScanFileStage.imageOnly;
       } else {
         stageByPath[path] = ScanFileStage.full;
       }
@@ -267,9 +243,7 @@ class ScannerScanPipeline {
   void seedMetadataFromDatabase(
     Map<String, SongMetadata> existingMetadataByPath,
   ) {
-    for (final metadata in existingMetadataByPath.values) {
-      _metadataStore.cacheMetadata(metadata);
-    }
+    _metadataStore.cacheMetadataBatch(existingMetadataByPath.values);
   }
 
   String? cleanText(String? value) {

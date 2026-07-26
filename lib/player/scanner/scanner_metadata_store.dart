@@ -99,6 +99,28 @@ class ScannerMetadataStore {
     }
   }
 
+  void cacheMetadataBatch(Iterable<SongMetadata> items) {
+    if (items.isEmpty) return;
+    var anyAlbumChanged = false;
+    for (final metadata in items) {
+      final existing = _metadataMap[metadata.path];
+      if (!anyAlbumChanged && _albumRelevantMetadataChanged(existing, metadata)) {
+        anyAlbumChanged = true;
+      }
+      _metadataMap[metadata.path] = metadata.copyWith(
+        waveformBlob: null,
+        sourceFlags: _mergeSourceFlags(
+          existing?.sourceFlags,
+          metadata.sourceFlags,
+        ),
+      );
+    }
+    _onMetadataMutated();
+    if (anyAlbumChanged) {
+      _onAlbumMetadataMutated();
+    }
+  }
+
   void clear() {
     _metadataMap.clear();
     _onMetadataMutated();
