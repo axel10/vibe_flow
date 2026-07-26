@@ -78,6 +78,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   final Map<String, _DirectoryRescanMode> _pendingDirectoryRescanPaths = {};
   final Set<String> _failedThumbnailPaths = <String>{};
   final Map<String, int> _watchedFileMtimes = {};
+  int _lastScanProgressEmitMs = 0;
 
   MusicFolder? _systemMediaFolder;
   bool _hasPermission = false;
@@ -189,10 +190,11 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
   int getSongCountForFolder(MusicFolder folder) {
     if (folder.path == 'system') {
-      return _systemMediaFolder?.allSongs.length ?? 0;
+      return _systemMediaFolder?.songCount ?? 0;
     }
-    if (folder.allSongs.isNotEmpty) {
-      return folder.allSongs.length;
+    final count = folder.songCount;
+    if (count > 0) {
+      return count;
     }
     final normalized = _normalizePath(folder.path);
     return _rootSongCounts[normalized] ?? 0;
@@ -200,16 +202,11 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
   int getSongDurationForFolder(MusicFolder folder) {
     if (folder.path == 'system') {
-      return _systemMediaFolder?.allSongs.fold<int>(
-        0,
-        (sum, song) => sum + (song.durationMillis ?? 0),
-      ) ?? 0;
+      return _systemMediaFolder?.totalDurationMs ?? 0;
     }
-    if (folder.allSongs.isNotEmpty) {
-      return folder.allSongs.fold<int>(
-        0,
-        (sum, song) => sum + (song.durationMillis ?? 0),
-      );
+    final duration = folder.totalDurationMs;
+    if (duration > 0) {
+      return duration;
     }
     final normalized = _normalizePath(folder.path);
     return _rootSongDurations[normalized] ?? 0;
@@ -1929,10 +1926,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     if (modifiedFolders.isNotEmpty) {
-      _folderSorter.sortSpecificFolders(
-        modifiedFolders,
-        resolveSettings: _resolveSortSettingsForFolder,
-      );
+      final smallFolders = modifiedFolders.where((f) => f.files.length < 2000);
+      if (smallFolders.isNotEmpty) {
+        _folderSorter.sortSpecificFolders(
+          smallFolders,
+          resolveSettings: _resolveSortSettingsForFolder,
+        );
+      }
       _rebuildDisplayedRootFolders();
       _syncNavigationStateToLatestTree(affectedRootPath: rootPath);
       notifyListeners();
@@ -2583,9 +2583,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       );
       batchStopwatch.stop();
       _logScanTiming('stage 3 batch ${start + 1}-$end total', batchStopwatch);
+      await Future.delayed(const Duration(milliseconds: 1));
     }
 
     flushSkippedPaths();
+    if (keptPaths.isNotEmpty) {
+      _emitScanProgress(scanState, keptPaths.last, force: true);
+    }
     totalStopwatch.stop();
     _logScanTiming('stage 3 preprocess text tags total', totalStopwatch);
     return ScanPreprocessResult(
@@ -2679,6 +2683,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       if (metadataBatch.isNotEmpty) {
         await db.insertOrUpdateSongsMerged(metadataBatch);
       }
+      await Future.delayed(const Duration(milliseconds: 1));
     }
 
     return artworkPendingPaths;
@@ -3595,7 +3600,16 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     _metadataStore.updateMetadataForPath(metadata, artworkBytes: artworkBytes);
   }
 
-  void _emitScanProgress(ScanProgressState scanState, String filePath) {
+  void _emitScanProgress(
+    ScanProgressState scanState,
+    String filePath, {
+    bool force = false,
+  }) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (!force && (now - _lastScanProgressEmitMs < 1000)) {
+      return;
+    }
+    _lastScanProgressEmitMs = now;
     _scanProgressController.add(
       ScanProgress(
         filePath: filePath,

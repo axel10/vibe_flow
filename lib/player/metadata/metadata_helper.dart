@@ -1020,11 +1020,6 @@ class MetadataHelper {
             }
           }
 
-          int? lastModified;
-          try {
-            lastModified = File(originalPath).lastModifiedSync().millisecondsSinceEpoch;
-          } catch (_) {}
-
           results.add(<String, dynamic>{
             'path': originalPath,
             'title': title,
@@ -1032,7 +1027,6 @@ class MetadataHelper {
             'artist': artist,
             'duration': duration,
             'trackNumber': trackNumber,
-            'lastModifiedTime': lastModified,
             'hasArtwork': hasArtwork,
             'artworkBytes': artworkBytes,
             'error': isSuccess ? null : (item.error ?? 'Failed to read metadata'),

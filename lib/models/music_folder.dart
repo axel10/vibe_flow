@@ -16,6 +16,25 @@ class MusicFolder {
 
   bool get isEmpty => subFolders.isEmpty && files.isEmpty;
 
+  int get songCount {
+    int count = files.length;
+    for (final sub in subFolders) {
+      count += sub.songCount;
+    }
+    return count;
+  }
+
+  int get totalDurationMs {
+    int total = 0;
+    for (final f in files) {
+      total += f.durationMillis ?? 0;
+    }
+    for (final sub in subFolders) {
+      total += sub.totalDurationMs;
+    }
+    return total;
+  }
+
   List<MusicFile> get allSongs {
     final list = <MusicFile>[];
     list.addAll(files);

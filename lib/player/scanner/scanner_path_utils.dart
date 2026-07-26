@@ -92,6 +92,12 @@ class ScannerPathUtils {
   }
 
   static bool pathsEqual(String left, String right) {
+    if (identical(left, right) || left == right) return true;
+    if (Platform.isWindows &&
+        left.length == right.length &&
+        left.toLowerCase() == right.toLowerCase()) {
+      return true;
+    }
     final normalizedLeft = normalizePath(left);
     final normalizedRight = normalizePath(right);
     if (Platform.isWindows) {
