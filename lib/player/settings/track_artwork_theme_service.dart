@@ -121,6 +121,7 @@ class TrackArtworkThemeService {
     String? cacheRootPath,
     bool saveLargeArtwork = false,
     int thumbnailSize = vynodyArtworkThumbnailSize,
+    bool saveToDatabase = true,
   }) async {
     final normalizedPath = path.trim();
     if (normalizedPath.isEmpty) return null;
@@ -168,6 +169,7 @@ class TrackArtworkThemeService {
       saveLargeArtwork: saveLargeArtwork,
       thumbnailSize: thumbnailSize,
       cached: cached,
+      saveToDatabase: saveToDatabase,
     );
 
     _inFlight[normalizedPath] = future;
@@ -187,6 +189,7 @@ class TrackArtworkThemeService {
     required bool saveLargeArtwork,
     required int thumbnailSize,
     required SongMetadata? cached,
+    bool saveToDatabase = true,
   }) async {
     final baseMetadata =
         cached ??
@@ -235,7 +238,9 @@ class TrackArtworkThemeService {
         final resolvedMetadata = baseMetadata.copyWith(
           metadataImgScanned: lastModified,
         );
-        await _db.insertOrUpdateSong(resolvedMetadata);
+        if (saveToDatabase) {
+          await _db.insertOrUpdateSong(resolvedMetadata);
+        }
         return TrackArtworkThemeResult.fromMetadata(path, resolvedMetadata);
       }
 
@@ -249,7 +254,9 @@ class TrackArtworkThemeService {
         metadataImgScanned: lastModified,
       );
 
-      await _db.insertOrUpdateSong(resolvedMetadata);
+      if (saveToDatabase) {
+        await _db.insertOrUpdateSong(resolvedMetadata);
+      }
 
       return TrackArtworkThemeResult.fromMetadata(path, resolvedMetadata) ??
           TrackArtworkThemeResult(
