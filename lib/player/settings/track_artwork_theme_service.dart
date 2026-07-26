@@ -122,11 +122,12 @@ class TrackArtworkThemeService {
     bool saveLargeArtwork = false,
     int thumbnailSize = vynodyArtworkThumbnailSize,
     bool saveToDatabase = true,
+    SongMetadata? existingMetadata,
   }) async {
     final normalizedPath = path.trim();
     if (normalizedPath.isEmpty) return null;
 
-    final cached = await _db.getSongMetadata(normalizedPath);
+    final cached = existingMetadata ?? await _db.getSongMetadata(normalizedPath);
     final cachedResult = TrackArtworkThemeResult.fromMetadata(
       normalizedPath,
       cached,

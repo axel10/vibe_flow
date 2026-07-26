@@ -3062,6 +3062,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     final db = MetadataDatabase();
+    final artworkThemeService = TrackArtworkThemeService(db: db);
     final metadataBatch = <SongMetadata>[];
     final progressStopwatch = Stopwatch()..start();
     String? lastProcessedPath;
@@ -3081,45 +3082,37 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
 
+    final concurrency = (Platform.numberOfProcessors * 0.75).round().clamp(4, 16);
+
     try {
-      final batchSize = Platform.isWindows ? 4 : 6;
-      for (var start = 0; start < sortedPaths.length; start += batchSize) {
-        if (shouldCancel?.call() ?? false) {
-          await flushMetadataBatch();
-          return;
-        }
-        final end = start + batchSize < sortedPaths.length
-            ? start + batchSize
-            : sortedPaths.length;
-        final batch = sortedPaths.sublist(start, end);
-        final batchStopwatch = Stopwatch()..start();
+      var nextIndex = 0;
+      Future<void> worker() async {
+        while (nextIndex < sortedPaths.length) {
+          if (shouldCancel?.call() ?? false) return;
+          final currentIndex = nextIndex++;
+          final filePath = sortedPaths[currentIndex];
 
-        final results = await Future.wait(
-          batch.map(
-            (filePath) => _processArtworkAndThemeWithAudioCore(
-              filePath: filePath,
-              controller: controller,
-              supportDirPath: supportDir.path,
-              scanState: scanState,
-              shouldCancel: shouldCancel,
-            ),
-          ),
-        );
+          final metadata = await _processArtworkAndThemeWithAudioCore(
+            filePath: filePath,
+            controller: controller,
+            supportDirPath: supportDir.path,
+            scanState: scanState,
+            db: db,
+            artworkThemeService: artworkThemeService,
+            shouldCancel: shouldCancel,
+          );
 
-        for (final metadata in results) {
           if (metadata != null) {
             metadataBatch.add(metadata);
             tryEmitThrottledProgress(metadata.path);
+            if (metadataBatch.length >= 100) {
+              await flushMetadataBatch();
+            }
           }
         }
-
-        if (metadataBatch.length >= 100) {
-          await flushMetadataBatch();
-        }
-
-        batchStopwatch.stop();
-        _logScanTiming('stage 4 batch ${start + 1}-$end total', batchStopwatch);
       }
+
+      await Future.wait(List.generate(concurrency, (_) => worker()));
 
       await flushMetadataBatch();
       if (lastProcessedPath != null) {
@@ -3140,6 +3133,8 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
           controller: controller,
           supportDirPath: supportDir.path,
           scanState: scanState,
+          db: db,
+          artworkThemeService: artworkThemeService,
           shouldCancel: shouldCancel,
         );
         if (metadata != null) {
@@ -3167,10 +3162,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     required AudioCoreController controller,
     required String supportDirPath,
     required ScanProgressState scanState,
+    required MetadataDatabase db,
+    required TrackArtworkThemeService artworkThemeService,
     bool Function()? shouldCancel,
   }) async {
-    final db = MetadataDatabase();
-    final artworkThemeService = TrackArtworkThemeService(db: db);
     final totalStopwatch = Stopwatch()..start();
 
     try {
@@ -3196,6 +3191,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         saveLargeArtwork: false,
         thumbnailSize: vynodyArtworkThumbnailSize,
         saveToDatabase: false,
+        existingMetadata: baseMetadata,
       );
       nativeStopwatch.stop();
       _logScanTiming('stage 4 native artwork $filePath', nativeStopwatch);
