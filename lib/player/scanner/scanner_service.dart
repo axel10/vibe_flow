@@ -355,12 +355,44 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
 
+  bool isPathInActiveRoots(String path) {
+    final normalized = _normalizePath(path);
+    if (normalized.isEmpty) return false;
+
+    for (final rootPath in _roots.rootPaths) {
+      if (_pathContains(rootPath, normalized)) {
+        return true;
+      }
+    }
+
+    if (_systemMediaFolder != null) {
+      if (normalized == 'system' ||
+          normalized.startsWith('system/') ||
+          normalized.startsWith('system\\') ||
+          _pathContains(_systemMediaFolder!.path, normalized)) {
+        return true;
+      }
+      if (_systemMediaFolder!.allSongs.any(
+        (s) => _pathsEqual(s.path, normalized),
+      )) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   Future<List<MusicFile>> searchSongs(
     String query, {
     String? folderPath,
   }) async {
     final songs = await _repository.searchSongs(query, folderPath: folderPath);
-    return songs.map(_treeBuilder.musicFileFromSongMetadata).toList();
+    final musicFiles =
+        songs.map(_treeBuilder.musicFileFromSongMetadata).toList();
+    if (folderPath != null && folderPath.isNotEmpty) {
+      return musicFiles;
+    }
+    return musicFiles.where((file) => isPathInActiveRoots(file.path)).toList();
   }
 
   Future<SongMetadata?> getSongMetadata(String path) =>
@@ -384,6 +416,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     for (final path in matchingPaths) {
+      if (!isPathInActiveRoots(path)) continue;
       if (seenPaths.add(path)) {
         final count = await _repository.getSongCountUnderPath(path);
         final sortSettings = _resolveSortSettingsForFolder(path);
