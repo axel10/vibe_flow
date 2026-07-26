@@ -397,6 +397,12 @@ class _SongListItem extends ConsumerWidget {
     final theme = Theme.of(context);
     final song = entry.song;
 
+    final maxDigits = items.length.toString().length;
+    final double indexWidth = isSelectionMode
+        ? 24.0
+        : (maxDigits >= 3 ? (maxDigits * 9.5 + 6.0).clamp(24.0, 56.0) : 24.0);
+    final double leadingWidth = indexWidth + 8.0 + 40.0;
+
     return RepaintBoundary(
       child: Card(
         margin: EdgeInsets.zero,
@@ -424,23 +430,30 @@ class _SongListItem extends ConsumerWidget {
               selected: isSelectionMode ? isSelected : false,
               selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
               leading: SizedBox(
-                width: 72,
+                width: leadingWidth,
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 24,
+                      width: indexWidth,
                       child: isSelectionMode
                           ? Checkbox(
                               value: isSelected,
                               onChanged: (_) => onTap(),
                             )
-                          : Text(
-                              '${index + 1}',
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w700,
+                          : Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  '${index + 1}',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  softWrap: false,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
                             ),
                     ),
                     const SizedBox(width: 8),

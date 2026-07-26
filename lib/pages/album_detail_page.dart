@@ -229,13 +229,20 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                               onChanged: (_) => _toggleSelection(song.path),
                             )
                           : SizedBox(
-                              width: 32,
-                              child: Text(
-                                trackLabel,
-                                textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: isCurrent ? theme.colorScheme.primary : null,
-                                  fontWeight: isCurrent ? FontWeight.w700 : null,
+                              width: widget.album.songs.length >= 100 ? 40 : 32,
+                              child: Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    trackLabel,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    softWrap: false,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: isCurrent ? theme.colorScheme.primary : null,
+                                      fontWeight: isCurrent ? FontWeight.w700 : null,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
