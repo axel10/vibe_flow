@@ -41,18 +41,26 @@ class LibraryInsightsService {
   }
 
   Stream<List<LibraryInsightSongEntry>> watchRecentlyAdded(
-    LibraryTimeRange range,
-  ) {
+    LibraryTimeRange range, {
+    int? limit = 500,
+  }) {
     return _database
-        .watchRecentlyAddedSongs(startAtMillis: _startAtMillis(range))
+        .watchRecentlyAddedSongs(
+          startAtMillis: _startAtMillis(range),
+          limit: limit,
+        )
         .map(_mapRecords);
   }
 
   Stream<List<LibraryInsightSongEntry>> watchMostPlayed(
-    LibraryTimeRange range,
-  ) {
+    LibraryTimeRange range, {
+    int? limit = 500,
+  }) {
     return _database
-        .watchMostPlayedSongs(startAtMillis: _startAtMillis(range))
+        .watchMostPlayedSongs(
+          startAtMillis: _startAtMillis(range),
+          limit: limit,
+        )
         .map(_mapRecords);
   }
 

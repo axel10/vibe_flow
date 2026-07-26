@@ -1058,6 +1058,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
 
   Stream<List<LibraryInsightSongRecord>> watchRecentlyAddedSongs({
     int? startAtMillis,
+    int? limit = 500,
   }) {
     final buffer = StringBuffer()
       ..writeln('SELECT')
@@ -1098,6 +1099,11 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       ..writeln("LOWER(COALESCE(s.title, '')) ASC,")
       ..writeln('LOWER(s.path) ASC');
 
+    if (limit != null && limit > 0) {
+      buffer.writeln('LIMIT ?');
+      variables.add(Variable.withInt(limit));
+    }
+
     return customSelect(
       buffer.toString(),
       variables: variables,
@@ -1111,6 +1117,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
 
   Stream<List<LibraryInsightSongRecord>> watchMostPlayedSongs({
     int? startAtMillis,
+    int? limit = 500,
   }) {
     final buffer = StringBuffer()
       ..writeln('SELECT')
@@ -1152,6 +1159,11 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       ..writeln('lastPlayedAt DESC,')
       ..writeln("LOWER(COALESCE(s.title, '')) ASC,")
       ..writeln('LOWER(s.path) ASC');
+
+    if (limit != null && limit > 0) {
+      buffer.writeln('LIMIT ?');
+      variables.add(Variable.withInt(limit));
+    }
 
     return customSelect(
       buffer.toString(),

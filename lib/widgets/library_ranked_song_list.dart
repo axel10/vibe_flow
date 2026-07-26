@@ -99,22 +99,25 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
     final audio = ref.read(audioServiceProvider);
     final playlistService = ref.read(playlistServiceProvider);
 
-    final allSongs = widget.items.map((entry) => entry.song).toList();
-    final selectedSongs = allSongs.where((song) => _selectedSongPaths.contains(song.path)).toList();
+    final selectedSongs = _isSelectionMode
+        ? widget.items
+            .where((entry) => _selectedSongPaths.contains(entry.song.path))
+            .map((entry) => entry.song)
+            .toList()
+        : const <MusicFile>[];
 
     void toggleSelectAll() {
       setState(() {
-        if (_selectedSongPaths.length == allSongs.length) {
+        if (_selectedSongPaths.length == widget.items.length) {
           _selectedSongPaths.clear();
         } else {
-          _selectedSongPaths.addAll(allSongs.map((s) => s.path));
+          _selectedSongPaths.addAll(widget.items.map((s) => s.song.path));
         }
       });
     }
 
     Widget currentBody = CustomScrollView(
       controller: _scrollController,
-      cacheExtent: 1000,
       slivers: [
         SliverToBoxAdapter(
           child: LayoutBuilder(
@@ -159,7 +162,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                           if (widget.items.isNotEmpty) ...[
                             FilledButton.icon(
                               onPressed: () {
-                                audio.playPlaylist(allSongs);
+                                audio.playPlaylist(widget.items.map((e) => e.song).toList());
                               },
                               icon: const Icon(Icons.play_arrow_rounded),
                               label: Text(l10n.playAll),
@@ -167,7 +170,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                             const SizedBox(width: 12),
                             OutlinedButton.icon(
                               onPressed: () {
-                                final songs = List<MusicFile>.from(allSongs)..shuffle();
+                                final songs = widget.items.map((e) => e.song).toList()..shuffle();
                                 audio.playPlaylist(songs);
                               },
                               icon: const Icon(Icons.shuffle_rounded),
@@ -200,7 +203,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                                 Expanded(
                                   child: FilledButton.icon(
                                     onPressed: () {
-                                      audio.playPlaylist(allSongs);
+                                      audio.playPlaylist(widget.items.map((e) => e.song).toList());
                                     },
                                     icon: const Icon(Icons.play_arrow_rounded),
                                     label: Text(l10n.playAll),
@@ -210,7 +213,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () {
-                                      final songs = List<MusicFile>.from(allSongs)..shuffle();
+                                      final songs = widget.items.map((e) => e.song).toList()..shuffle();
                                       audio.playPlaylist(songs);
                                     },
                                     icon: const Icon(Icons.shuffle_rounded),
@@ -270,6 +273,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                   final entry = widget.items[index];
                   final isSelected = _selectedSongPaths.contains(entry.song.path);
                   return Padding(
+                    key: ValueKey(entry.song.path),
                     padding: const EdgeInsets.only(bottom: 8),
                     child: _SongListItem(
                       entry: entry,
@@ -286,7 +290,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                           _toggleSelection(entry.song.path);
                         } else {
                           audio.playPlaylist(
-                            allSongs,
+                            widget.items.map((e) => e.song).toList(),
                             initialIndex: index,
                           );
                         }
@@ -299,6 +303,12 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                       },
                     ),
                   );
+                },
+                findChildIndexCallback: (Key key) {
+                  final valueKey = key as ValueKey<String>?;
+                  if (valueKey == null) return null;
+                  final index = widget.items.indexWhere((e) => e.song.path == valueKey.value);
+                  return index >= 0 ? index : null;
                 },
                 childCount: widget.items.length,
               ),
@@ -333,7 +343,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                 ? LibrarySelectionPanel(
                     key: const ValueKey('library-selection-panel'),
                     selectedSongs: selectedSongs,
-                    allSongs: allSongs,
+                    allSongs: widget.items.map((e) => e.song).toList(),
                     onToggleSelectAll: toggleSelectAll,
                     onCancel: _cancelSelection,
                   )
