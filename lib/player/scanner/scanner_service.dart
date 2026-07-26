@@ -1632,9 +1632,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
             .whereType<String>()
             .toList(growable: false);
         if (skippedEntryPaths.isNotEmpty) {
-          for (final path in skippedEntryPaths) {
-            _metadataStore.removeMetadataForPath(path);
-          }
+          _metadataStore.deleteMissingFromCache(skippedEntryPaths);
         }
         if (keptEntries.isEmpty) {
           _systemMediaFolder = null;
@@ -1704,9 +1702,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
             .where((path) => path.isNotEmpty)
             .toList(growable: false);
         if (skippedSongPaths.isNotEmpty) {
-          for (final path in skippedSongPaths) {
-            _metadataStore.removeMetadataForPath(path);
-          }
+          _metadataStore.deleteMissingFromCache(skippedSongPaths);
         }
         if (keptSongs.isEmpty) {
           _systemMediaFolder = null;
@@ -2230,9 +2226,8 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     final affectedPaths = _metadataStore.metadataMap.keys
         .where((path) => _pathContains(normalizedPath, path))
         .toList(growable: false);
-    for (final path in affectedPaths) {
-      await _metadataStore.purgeMissingSongPath(path);
-    }
+    if (affectedPaths.isEmpty) return;
+    await _metadataStore.purgeMissingSongPaths(affectedPaths);
   }
 
   void _enqueueWatchedPath(String path) {
@@ -2946,9 +2941,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       }
     }
     if (skippedKnownPaths.isNotEmpty) {
-      for (final path in skippedKnownPaths) {
-        _metadataStore.removeMetadataForPath(path);
-      }
+      _metadataStore.deleteMissingFromCache(skippedKnownPaths);
     }
 
     Timer? stage3UiSyncTimer;
@@ -3474,7 +3467,12 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
           }
           for (final path in sweepResult.softDeletedPaths) {
             _notifySongMissingState(path, true);
-            _metadataStore.removeMetadataForPath(path);
+          }
+          if (sweepResult.softDeletedPaths.isNotEmpty) {
+            _metadataStore.deleteMissingFromCache(
+              sweepResult.softDeletedPaths,
+              updateVisibleTrees: true,
+            );
           }
         });
       }

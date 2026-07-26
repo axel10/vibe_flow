@@ -271,15 +271,28 @@ class ScannerMetadataStore {
     }
   }
 
-  Future<void> purgeMissingSongPath(String path) async {
-    final normalizedPath = _normalizePath(path);
-    if (normalizedPath.isEmpty) return;
+  String _pathLookupKey(String path) {
+    final normalized = _normalizePath(path);
+    return Platform.isWindows ? normalized.toLowerCase() : normalized;
+  }
 
-    _notifySongMissingState(normalizedPath, true);
+  Future<void> purgeMissingSongPaths(Iterable<String> paths) async {
+    final normalizedTargets = paths
+        .map(_normalizePath)
+        .where((path) => path.isNotEmpty)
+        .toList(growable: false);
+    if (normalizedTargets.isEmpty) return;
 
-    await MetadataDatabase().deleteSongByPath(normalizedPath);
-    _removeMetadataForPaths([normalizedPath]);
+    for (final path in normalizedTargets) {
+      _notifySongMissingState(path, true);
+      await MetadataDatabase().deleteSongByPath(path);
+    }
+    _removeMetadataForPaths(normalizedTargets);
     _notifyListeners();
+  }
+
+  Future<void> purgeMissingSongPath(String path) async {
+    await purgeMissingSongPaths([path]);
   }
 
   void deleteMissingFromCache(
@@ -326,16 +339,10 @@ class ScannerMetadataStore {
       _removePathsFromVisibleTrees(normalizedTargets);
     }
 
-    final targetLookup = normalizedTargets
-        .map((path) => Platform.isWindows ? path.toLowerCase() : path)
-        .toSet();
+    final targetLookup = normalizedTargets.map(_pathLookupKey).toSet();
     final beforeLength = _metadataMap.length;
     _metadataMap.removeWhere((key, _) {
-      final normalizedKey = _normalizePath(key);
-      final lookupKey = Platform.isWindows
-          ? normalizedKey.toLowerCase()
-          : normalizedKey;
-      return targetLookup.contains(lookupKey);
+      return targetLookup.contains(_pathLookupKey(key));
     });
 
     if (_metadataMap.length != beforeLength) {
@@ -345,16 +352,15 @@ class ScannerMetadataStore {
   }
 
   void _removePathsFromVisibleTrees(Iterable<String> paths) {
+    final targetLookup = paths.map(_pathLookupKey).toSet();
+    if (targetLookup.isEmpty) return;
+
     for (final root in _rootFolders()) {
-      for (final path in paths) {
-        _removeSongFromFolder(root, path);
-      }
+      _removeSongsFromFolder(root, targetLookup);
     }
     final systemFolder = _systemMediaFolder();
     if (systemFolder != null) {
-      for (final path in paths) {
-        _removeSongFromFolder(systemFolder, path);
-      }
+      _removeSongsFromFolder(systemFolder, targetLookup);
     }
   }
 
@@ -388,14 +394,11 @@ class ScannerMetadataStore {
     }
   }
 
-  bool _removeSongFromFolder(MusicFolder folder, String path) {
-    folder.files.removeWhere((file) => _pathsEqual(file.path, path));
-
-    folder.subFolders.removeWhere((subFolder) {
-      final shouldRemove = _removeSongFromFolder(subFolder, path);
-      return shouldRemove;
-    });
-
+  bool _removeSongsFromFolder(MusicFolder folder, Set<String> targetLookup) {
+    folder.files.removeWhere((file) => targetLookup.contains(_pathLookupKey(file.path)));
+    folder.subFolders.removeWhere(
+      (subFolder) => _removeSongsFromFolder(subFolder, targetLookup),
+    );
     return folder.isEmpty;
   }
 }
