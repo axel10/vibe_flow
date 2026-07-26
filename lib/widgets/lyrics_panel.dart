@@ -1832,8 +1832,18 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
           } else {
             final bool transitionEnded =
                 _lastBuiltIsTransitioning == true && widget.isTransitioning == false;
+            final bool generationJustFinished =
+                _lastBuiltIsGenerating == true && !isGenerating;
+            final bool displayLinesChanged =
+                _lastBuiltDisplayLines != null && !listEquals(_lastBuiltDisplayLines, displayLines);
+
+            final bool forceScroll = transitionEnded || generationJustFinished || (displayLinesChanged && !isGenerating);
+            if (generationJustFinished || (displayLinesChanged && !isGenerating)) {
+              _lastActiveIndex = -1;
+            }
+
             _scheduleScrollIfNeeded(
-              force: transitionEnded,
+              force: forceScroll,
               animate: !transitionEnded,
               displayLines: displayLines,
               itemCenters: itemCenters,
