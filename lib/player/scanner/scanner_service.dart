@@ -104,7 +104,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   static const String _keyGlobalSortOrder = 'folder_sort_global_order';
   static const String _keyFolderSortOverrides = 'folder_sort_overrides';
   static const int _defaultShortAudioThresholdSeconds = 30;
-  static const bool _scanTimingEnabled = true;
+  static const bool _scanTimingEnabled = false;
   static const Duration _defaultDirectoryRescanBatchWindow = Duration(
     milliseconds: 900,
   );
