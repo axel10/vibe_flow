@@ -2058,10 +2058,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         return;
       }
 
-      final discoveredPaths = await _directoryScanner
+      final discoveredFiles = await _directoryScanner
           .discoverMusicFilesInDirectory(normalizedDirectory, scanState);
-      final normalizedDiscoveredPaths = discoveredPaths
-          .map(_normalizePath)
+      final normalizedDiscoveredPaths = discoveredFiles
+          .map((f) => _normalizePath(f.path))
           .where((path) => path.isNotEmpty)
           .toSet();
 
@@ -2105,7 +2105,9 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       return null;
     }
 
-    final classification = await _classifyDiscoveredFiles([normalizedPath]);
+    final classification = await _classifyDiscoveredFiles([
+      ScanDiscoveredFile(path: normalizedPath),
+    ]);
     final existingMetadataByPath = Map<String, SongMetadata>.from(
       classification.existingMetadataByPath,
     );
@@ -2365,11 +2367,11 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<ScanFileClassification> _classifyDiscoveredFiles(
-    List<String> filePaths, {
+    List<ScanDiscoveredFile> discoveredFiles, {
     bool Function()? shouldCancel,
   }) async {
     return _scanPipeline.classifyDiscoveredFiles(
-      filePaths,
+      discoveredFiles,
       shouldCancel: shouldCancel,
     );
   }
@@ -2662,7 +2664,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<List<String>> _discoverRootFilePaths(
+  Future<List<ScanDiscoveredFile>> _discoverRootFilePaths(
     String rootPath,
     ScanProgressState scanState,
     int scanToken,
@@ -2672,13 +2674,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         '[ScannerService] skip directory traversal for stale root '
         'path=$rootPath',
       );
-      return const <String>[];
+      return const <ScanDiscoveredFile>[];
     }
     debugPrint(
       '[ScannerService] begin directory traversal path=$rootPath '
       'scanToken=$scanToken',
     );
-    final discoveredPaths = await _directoryScanner.discoverMusicFiles(
+    final discoveredFiles = await _directoryScanner.discoverMusicFiles(
       rootPath,
       scanState,
       shouldCancel: () =>
@@ -2686,7 +2688,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     );
     debugPrint(
       '[ScannerService] directory traversal finished path=$rootPath '
-      'count=${discoveredPaths.length}',
+      'count=${discoveredFiles.length}',
     );
     if (!_isScanTokenCurrent(scanToken) || !_isScanRootStillActive(rootPath)) {
       _scannedRootFolders.removeWhere(
@@ -2696,18 +2698,18 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         '[ScannerService] discard traversal result for stale root '
         'path=$rootPath',
       );
-      return const <String>[];
+      return const <ScanDiscoveredFile>[];
     }
-    if (discoveredPaths.isEmpty) {
+    if (discoveredFiles.isEmpty) {
       _scannedRootFolders.removeWhere(
         (existing) => _pathsEqual(existing.path, rootPath),
       );
       debugPrint(
         '[ScannerService] traversal found no music files path=$rootPath',
       );
-      return const <String>[];
+      return const <ScanDiscoveredFile>[];
     }
-    return discoveredPaths;
+    return discoveredFiles;
   }
 
   void _rebuildScannedRootFolderFromMetadata(
@@ -2802,12 +2804,12 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<_RootArtworkScanJob?> _processDiscoveredPaths(
-    List<String> discoveredPaths,
+    List<ScanDiscoveredFile> discoveredFiles,
     ScanProgressState scanState,
     int scanToken, {
     required String rootPath,
   }) async {
-    if (discoveredPaths.isEmpty) {
+    if (discoveredFiles.isEmpty) {
       return null;
     }
     if (!_isScanTokenCurrent(scanToken) || !_isScanRootStillActive(rootPath)) {
@@ -2817,7 +2819,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     final classification = await _timeScanStep(
       'stage 2 classify discovered files batch',
       () => _classifyDiscoveredFiles(
-        discoveredPaths,
+        discoveredFiles,
         shouldCancel: () =>
             !_isScanTokenCurrent(scanToken) ||
             !_isScanRootStillActive(rootPath),

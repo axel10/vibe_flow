@@ -93,11 +93,11 @@ class ScannerScanPipeline {
   }
 
   Future<ScanFileClassification> classifyDiscoveredFiles(
-    List<String> filePaths, {
+    List<ScanDiscoveredFile> discoveredFiles, {
     bool Function()? shouldCancel,
   }) async {
     final totalStopwatch = Stopwatch()..start();
-    if (filePaths.isEmpty) {
+    if (discoveredFiles.isEmpty) {
       totalStopwatch.stop();
       _logTiming('classifyDiscoveredFiles empty', totalStopwatch);
       return ScanFileClassification(
@@ -106,6 +106,9 @@ class ScannerScanPipeline {
       );
     }
 
+    final filePaths =
+        discoveredFiles.map((f) => f.path).toList(growable: false);
+
     final dbStopwatch = Stopwatch()..start();
     final existingMetadataByPath = await MetadataDatabase()
         .getSongMetadataByPaths(filePaths);
@@ -113,10 +116,25 @@ class ScannerScanPipeline {
     _logTiming('classifyDiscoveredFiles database lookup', dbStopwatch);
 
     final statStopwatch = Stopwatch()..start();
-    final lastModifiedByPath = await loadLastModifiedTimes(
-      filePaths,
-      shouldCancel: shouldCancel,
-    );
+    final lastModifiedByPath = <String, int?>{};
+    final missingPaths = <String>[];
+
+    for (final file in discoveredFiles) {
+      final lookupKey = _pathLookupKey(file.path);
+      if (file.lastModifiedTime != null) {
+        lastModifiedByPath[lookupKey] = file.lastModifiedTime;
+      } else {
+        missingPaths.add(file.path);
+      }
+    }
+
+    if (missingPaths.isNotEmpty) {
+      final loadedTimes = await loadLastModifiedTimes(
+        missingPaths,
+        shouldCancel: shouldCancel,
+      );
+      lastModifiedByPath.addAll(loadedTimes);
+    }
     statStopwatch.stop();
     _logTiming('classifyDiscoveredFiles file stat lookup', statStopwatch);
 

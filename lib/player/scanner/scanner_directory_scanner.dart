@@ -47,7 +47,7 @@ class ScannerDirectoryScanner {
     }
   }
 
-  Future<List<String>> discoverMusicFiles(
+  Future<List<ScanDiscoveredFile>> discoverMusicFiles(
     String path,
     ScanProgressState scanState, {
     bool Function()? shouldCancel,
@@ -78,10 +78,12 @@ class ScannerDirectoryScanner {
           );
           
           scanState.discoveredCount += absolutePaths.length;
+          final discoveredFiles = <ScanDiscoveredFile>[];
           for (final file in absolutePaths) {
             _emitScanProgress(scanState, file);
+            discoveredFiles.add(ScanDiscoveredFile(path: file));
           }
-          return absolutePaths;
+          return discoveredFiles;
         } else {
           debugPrint('[ScannerDirectoryScanner] No SAF mapping found for path=$path');
         }
@@ -90,46 +92,46 @@ class ScannerDirectoryScanner {
 
     if (_useInlineDiscovery) {
       debugPrint('[ScannerDirectoryScanner] using inline discovery path=$path');
-      final discoveredPaths = await _discoverMusicFilesInline(
+      final discoveredFiles = await _discoverMusicFilesInline(
         path,
         scanState,
         shouldCancel: shouldCancel,
       );
       debugPrint(
         '[ScannerDirectoryScanner] discoverMusicFiles finished via inline '
-        'path=$path count=${discoveredPaths.length}',
+        'path=$path count=${discoveredFiles.length}',
       );
-      return discoveredPaths;
+      return discoveredFiles;
     }
     try {
-      final discoveredPaths = await _discoverMusicFilesWithIsolate(
+      final discoveredFiles = await _discoverMusicFilesWithIsolate(
         path,
         scanState,
         shouldCancel: shouldCancel,
       );
       debugPrint(
         '[ScannerDirectoryScanner] discoverMusicFiles finished via isolate '
-        'path=$path count=${discoveredPaths.length}',
+        'path=$path count=${discoveredFiles.length}',
       );
-      return discoveredPaths;
+      return discoveredFiles;
     } catch (e, st) {
       debugPrint(
         '[ScannerDirectoryScanner] isolate discovery failed for $path: $e\n$st',
       );
-      final discoveredPaths = await _discoverMusicFilesInline(
+      final discoveredFiles = await _discoverMusicFilesInline(
         path,
         scanState,
         shouldCancel: shouldCancel,
       );
       debugPrint(
         '[ScannerDirectoryScanner] discoverMusicFiles finished via inline '
-        'path=$path count=${discoveredPaths.length}',
+        'path=$path count=${discoveredFiles.length}',
       );
-      return discoveredPaths;
+      return discoveredFiles;
     }
   }
 
-  Future<List<String>> discoverMusicFilesInDirectory(
+  Future<List<ScanDiscoveredFile>> discoverMusicFilesInDirectory(
     String path,
     ScanProgressState scanState, {
     bool Function()? shouldCancel,
@@ -144,25 +146,31 @@ class ScannerDirectoryScanner {
         '[ScannerDirectoryScanner] non-recursive discovery skipped missing '
         'path=$path',
       );
-      return const <String>[];
+      return const <ScanDiscoveredFile>[];
     }
 
-    final discoveredPaths = <String>[];
+    final discoveredFiles = <ScanDiscoveredFile>[];
     try {
       await for (final entity in directory.list(followLinks: false)) {
         if (shouldCancel?.call() ?? false) {
           debugPrint(
             '[ScannerDirectoryScanner] non-recursive discovery cancelled '
-            'path=$path discovered=${discoveredPaths.length}',
+            'path=$path discovered=${discoveredFiles.length}',
           );
-          return discoveredPaths;
+          return discoveredFiles;
         }
 
         if (entity is File &&
             !_shouldSkipAppleDoubleFile(entity.path) &&
             MusicFileUtils.isMusicFilePath(entity.path)) {
           final filePath = entity.path;
-          discoveredPaths.add(filePath);
+          int? lastModified;
+          try {
+            lastModified = entity.lastModifiedSync().millisecondsSinceEpoch;
+          } catch (_) {}
+          discoveredFiles.add(
+            ScanDiscoveredFile(path: filePath, lastModifiedTime: lastModified),
+          );
           scanState.discoveredCount++;
           _emitScanProgress(scanState, filePath);
         }
@@ -176,12 +184,12 @@ class ScannerDirectoryScanner {
 
     debugPrint(
       '[ScannerDirectoryScanner] discoverMusicFilesInDirectory finished '
-      'path=$path count=${discoveredPaths.length}',
+      'path=$path count=${discoveredFiles.length}',
     );
-    return discoveredPaths;
+    return discoveredFiles;
   }
 
-  Future<List<String>> _discoverMusicFilesWithIsolate(
+  Future<List<ScanDiscoveredFile>> _discoverMusicFilesWithIsolate(
     String path,
     ScanProgressState scanState, {
     bool Function()? shouldCancel,
@@ -193,7 +201,7 @@ class ScannerDirectoryScanner {
     final errorPort = ReceivePort();
     final exitPort = ReceivePort();
     final cancelPort = ReceivePort();
-    final discoveredPaths = <String>[];
+    final discoveredFiles = <ScanDiscoveredFile>[];
 
     Isolate? isolate;
     Timer? cancelTimer;
@@ -210,7 +218,7 @@ class ScannerDirectoryScanner {
         errorsAreFatal: true,
       );
 
-      final completer = Completer<List<String>>();
+      final completer = Completer<List<ScanDiscoveredFile>>();
       late final StreamSubscription receiveSub;
       late final StreamSubscription errorSub;
       late final StreamSubscription exitSub;
@@ -242,7 +250,7 @@ class ScannerDirectoryScanner {
       void completeSuccess() {
         if (finished) return;
         finished = true;
-        completer.complete(discoveredPaths);
+        completer.complete(discoveredFiles);
       }
 
       void completeError(Object error, [StackTrace? st]) {
@@ -277,17 +285,28 @@ class ScannerDirectoryScanner {
         }
         final type = message['type'];
         if (type == _DirectoryDiscoveryMessage.batchType) {
-          final rawPaths = message['paths'];
-          if (rawPaths is! List) {
+          final rawFiles = message['files'];
+          if (rawFiles is! List) {
             return;
           }
-          final batch = rawPaths.whereType<String>().toList(growable: false);
+          final batch = <ScanDiscoveredFile>[];
+          for (final item in rawFiles) {
+            if (item is Map) {
+              final filePath = item['path'] as String?;
+              final mtime = item['mtime'] as int?;
+              if (filePath != null) {
+                batch.add(
+                  ScanDiscoveredFile(path: filePath, lastModifiedTime: mtime),
+                );
+              }
+            }
+          }
           if (batch.isEmpty) {
             return;
           }
-          discoveredPaths.addAll(batch);
+          discoveredFiles.addAll(batch);
           scanState.discoveredCount += batch.length;
-          _emitScanProgress(scanState, batch.last);
+          _emitScanProgress(scanState, batch.last.path);
           return;
         }
         if (type == _DirectoryDiscoveryMessage.doneType) {
@@ -345,7 +364,7 @@ class ScannerDirectoryScanner {
     }
   }
 
-  Future<List<String>> _discoverMusicFilesInline(
+  Future<List<ScanDiscoveredFile>> _discoverMusicFilesInline(
     String path,
     ScanProgressState scanState, {
     bool Function()? shouldCancel,
@@ -355,7 +374,7 @@ class ScannerDirectoryScanner {
       debugPrint(
         '[ScannerDirectoryScanner] inline discovery skipped missing path=$path',
       );
-      return const <String>[];
+      return const <ScanDiscoveredFile>[];
     }
 
     if (Platform.isMacOS || Platform.isIOS) {
@@ -368,7 +387,7 @@ class ScannerDirectoryScanner {
 
     const yieldEvery = 256;
     final pendingDirectories = ListQueue<(String, int)>()..add((path, 0));
-    final discoveredPaths = <String>[];
+    final discoveredFiles = <ScanDiscoveredFile>[];
     var processedEntries = 0;
     final visited = <String>{};
     String rootCanonical;
@@ -383,7 +402,7 @@ class ScannerDirectoryScanner {
       if (shouldCancel?.call() ?? false) {
         debugPrint(
           '[ScannerDirectoryScanner] inline discovery cancelled before next '
-          'directory path=$path discovered=${discoveredPaths.length}',
+          'directory path=$path discovered=${discoveredFiles.length}',
         );
         break;
       }
@@ -401,9 +420,9 @@ class ScannerDirectoryScanner {
             debugPrint(
               '[ScannerDirectoryScanner] inline discovery cancelled during '
               'listing root=$path current=$currentPath '
-              'discovered=${discoveredPaths.length}',
+              'discovered=${discoveredFiles.length}',
             );
-            return discoveredPaths;
+            return discoveredFiles;
           }
           if (entity is Directory) {
             if (_shouldSkipDirectory(entity.path)) {
@@ -422,7 +441,13 @@ class ScannerDirectoryScanner {
               !_shouldSkipAppleDoubleFile(entity.path) &&
               MusicFileUtils.isMusicFilePath(entity.path)) {
             final filePath = entity.path;
-            discoveredPaths.add(filePath);
+            int? lastModified;
+            try {
+              lastModified = entity.lastModifiedSync().millisecondsSinceEpoch;
+            } catch (_) {}
+            discoveredFiles.add(
+              ScanDiscoveredFile(path: filePath, lastModifiedTime: lastModified),
+            );
             scanState.discoveredCount++;
             _emitScanProgress(scanState, filePath);
           }
@@ -440,15 +465,15 @@ class ScannerDirectoryScanner {
       }
     }
 
-    return discoveredPaths;
+    return discoveredFiles;
   }
 
-  Future<List<String>> _discoverMusicFilesInlineForApple(
+  Future<List<ScanDiscoveredFile>> _discoverMusicFilesInlineForApple(
     Directory rootDir,
     ScanProgressState scanState, {
     bool Function()? shouldCancel,
   }) async {
-    final discoveredPaths = <String>[];
+    final discoveredFiles = <ScanDiscoveredFile>[];
     var processedEntries = 0;
 
     await for (final entity in rootDir.list(
@@ -458,16 +483,22 @@ class ScannerDirectoryScanner {
       if (shouldCancel?.call() ?? false) {
         debugPrint(
           '[ScannerDirectoryScanner] apple inline discovery cancelled '
-          'root=${rootDir.path} discovered=${discoveredPaths.length}',
+          'root=${rootDir.path} discovered=${discoveredFiles.length}',
         );
-        return discoveredPaths;
+        return discoveredFiles;
       }
 
       if (entity is File &&
           !_shouldSkipAppleDoubleFile(entity.path) &&
           MusicFileUtils.isMusicFilePath(entity.path)) {
         final filePath = entity.path;
-        discoveredPaths.add(filePath);
+        int? lastModified;
+        try {
+          lastModified = entity.lastModifiedSync().millisecondsSinceEpoch;
+        } catch (_) {}
+        discoveredFiles.add(
+          ScanDiscoveredFile(path: filePath, lastModifiedTime: lastModified),
+        );
         scanState.discoveredCount++;
         _emitScanProgress(scanState, filePath);
       }
@@ -478,7 +509,7 @@ class ScannerDirectoryScanner {
       }
     }
 
-    return discoveredPaths;
+    return discoveredFiles;
   }
 }
 
@@ -527,7 +558,7 @@ Future<void> _discoverMusicFilesIsolateEntry(
 
   const batchSize = 128;
   final pendingDirectories = ListQueue<(String, int)>()..add((request.rootPath, 0));
-  final batch = <String>[];
+  final batch = <Map<String, dynamic>>[];
   final visited = <String>{};
   String rootCanonical;
   try {
@@ -567,11 +598,15 @@ Future<void> _discoverMusicFilesIsolateEntry(
         } else if (entity is File &&
             !_shouldSkipAppleDoubleFile(entity.path) &&
             MusicFileUtils.isMusicFilePath(entity.path)) {
-          batch.add(entity.path);
+          int? lastModified;
+          try {
+            lastModified = entity.lastModifiedSync().millisecondsSinceEpoch;
+          } catch (_) {}
+          batch.add({'path': entity.path, 'mtime': lastModified});
           if (batch.length >= batchSize) {
             request.replyPort.send({
               'type': _DirectoryDiscoveryMessage.batchType,
-              'paths': List<String>.from(batch),
+              'files': List<Map<String, dynamic>>.from(batch),
             });
             batch.clear();
           }
@@ -588,9 +623,10 @@ Future<void> _discoverMusicFilesIsolateEntry(
   if (batch.isNotEmpty) {
     request.replyPort.send({
       'type': _DirectoryDiscoveryMessage.batchType,
-      'paths': List<String>.from(batch),
+      'files': List<Map<String, dynamic>>.from(batch),
     });
   }
+
   await cancelSub.cancel();
   cancelReceivePort.close();
   if (cancelled) {

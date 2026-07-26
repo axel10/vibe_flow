@@ -141,3 +141,14 @@ class ScanPreprocessResult {
   final List<String> keptPaths;
   final List<String> artworkPendingPaths;
 }
+
+class ScanDiscoveredFile {
+  const ScanDiscoveredFile({
+    required this.path,
+    this.lastModifiedTime,
+  });
+
+  final String path;
+  final int? lastModifiedTime;
+}
+

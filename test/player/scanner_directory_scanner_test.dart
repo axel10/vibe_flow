@@ -35,8 +35,10 @@ void main() {
             scanState,
           );
 
-          expect(discovered, contains(rootSong.path));
-          expect(discovered, isNot(contains(nestedSong.path)));
+          final discoveredPaths = discovered.map((f) => f.path).toList();
+          expect(discoveredPaths, contains(rootSong.path));
+          expect(discoveredPaths, isNot(contains(nestedSong.path)));
+          expect(discovered.first.lastModifiedTime, isNotNull);
         } finally {
           if (await tempDirectory.exists()) {
             await tempDirectory.delete(recursive: true);
@@ -90,7 +92,9 @@ void main() {
             scanState,
           );
 
-          expect(discovered, contains(rootSong.path));
+          final discoveredPaths = discovered.map((f) => f.path).toList();
+          expect(discoveredPaths, contains(rootSong.path));
+          expect(discovered.first.lastModifiedTime, isNotNull);
         } finally {
           // Cleanup Windows junctions correctly first so recursive deletion doesn't delete target files
           final loopDir = Directory(p.join(tempDirectory.path, 'nested', 'loop'));
