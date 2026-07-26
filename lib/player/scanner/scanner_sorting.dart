@@ -118,6 +118,23 @@ class ScannerFolderSorter {
     }
   }
 
+  void sortSpecificFolders(
+    Iterable<MusicFolder> folders, {
+    required FolderSortSettings Function(String path) resolveSettings,
+  }) {
+    for (final folder in folders) {
+      final settings = resolveSettings(folder.path);
+      folder.subFolders.sort(
+        _folderComparator(criteria: settings.criteria, order: settings.order),
+      );
+      final comparator = _comparatorFor(
+        criteria: settings.criteria,
+        order: settings.order,
+      );
+      folder.files.sort(comparator);
+    }
+  }
+
   void sortFolderRecursive(
     MusicFolder folder, {
     required SortCriteria criteria,

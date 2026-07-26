@@ -63,6 +63,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   final List<MusicFolder> _scannedRootFolders = [];
   final List<MusicFolder> _rootFolders = [];
   final Map<String, bool> _rootAvailability = {};
+  final List<SongMetadata> _pendingStage3IncrementalMetadata = [];
   Timer? _metadataNotifyTimer;
   Timer? _scanNotifyTimer;
   Timer? _rootAvailabilityRefreshTimer;
@@ -1909,6 +1910,39 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  void _syncScannedRootUiIncrementally(String rootPath) {
+    if (_isDisposed) return;
+    if (_pendingStage3IncrementalMetadata.isEmpty) return;
+
+    final pending = List<SongMetadata>.from(_pendingStage3IncrementalMetadata);
+    _pendingStage3IncrementalMetadata.clear();
+
+    final rootFolder = _scannedRootFolders.firstWhereOrNull(
+      (f) => _pathsEqual(f.path, rootPath),
+    );
+
+    if (rootFolder == null) {
+      _syncScannedRootUiFromCache(rootPath);
+      return;
+    }
+
+    final modifiedFolders = _treeBuilder.insertSongsToFolderTree(
+      rootFolder,
+      pending,
+      rootPath: rootPath,
+    );
+
+    if (modifiedFolders.isNotEmpty) {
+      _folderSorter.sortSpecificFolders(
+        modifiedFolders,
+        resolveSettings: _resolveSortSettingsForFolder,
+      );
+      _rebuildDisplayedRootFolders();
+      _syncNavigationStateToLatestTree(affectedRootPath: rootPath);
+      notifyListeners();
+    }
+  }
+
   void pauseBackgroundTasks() {
     if (!_scanCoordinator.isBackgroundPaused) {
       _scanCoordinator.setBackgroundPaused(true);
@@ -2533,6 +2567,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
           metadataBatch.add(metadata);
           keptPaths.add(filePath);
           _metadataStore.cacheMetadata(metadata);
+          _pendingStage3IncrementalMetadata.add(metadata);
           scanState.preprocessedCount++;
         } catch (e) {
           debugPrint('Metadata batch scan error for $filePath: $e');
@@ -2919,12 +2954,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
     Timer? stage3UiSyncTimer;
     try {
+      _pendingStage3IncrementalMetadata.clear();
       stage3UiSyncTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (!_isScanTokenCurrent(scanToken) ||
             !_isScanRootStillActive(rootPath)) {
           return;
         }
-        _syncScannedRootUiFromCache(rootPath);
+        _syncScannedRootUiIncrementally(rootPath);
       });
 
       final preprocessResult = await _timeScanStep(
@@ -2996,6 +3032,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       );
     } finally {
       stage3UiSyncTimer?.cancel();
+      _pendingStage3IncrementalMetadata.clear();
     }
   }
 

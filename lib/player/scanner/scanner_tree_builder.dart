@@ -63,6 +63,93 @@ class ScannerTreeBuilder {
     );
   }
 
+  /// Incremental insert or update a list of [songs] into an existing [root] tree.
+  /// Returns the set of [MusicFolder] nodes that were modified.
+  Set<MusicFolder> insertSongsToFolderTree(
+    MusicFolder root,
+    Iterable<SongMetadata> songs, {
+    required String rootPath,
+  }) {
+    final modifiedFolders = <MusicFolder>{};
+    final isSystem = rootPath == 'system';
+
+    final folderMap = <String, MusicFolder>{'': root};
+
+    void populateFolderMap(MusicFolder folder, String relativePath) {
+      folderMap[relativePath] = folder;
+      for (final sub in folder.subFolders) {
+        final subRel = relativePath.isEmpty
+            ? sub.name
+            : '$relativePath/${sub.name}';
+        populateFolderMap(sub, subRel);
+      }
+    }
+
+    populateFolderMap(root, '');
+
+    for (final song in songs) {
+      final normalizedPath = _normalizePath(song.path);
+      if (normalizedPath.isEmpty) continue;
+
+      final folderPath = _folderPathFromMetadataPath(
+        normalizedPath,
+        rootPath: rootPath,
+        isSystem: isSystem,
+      );
+
+      final musicFile = musicFileFromSongMetadata(
+        song.copyWith(path: normalizedPath),
+      );
+
+      if (folderPath.isEmpty) {
+        _upsertFileInList(root.files, musicFile);
+        modifiedFolders.add(root);
+        continue;
+      }
+
+      var currentRelativePath = '';
+      var currentFolder = root;
+      for (final segment in folderPath.split('/').where((s) => s.isNotEmpty)) {
+        currentRelativePath = currentRelativePath.isEmpty
+            ? segment
+            : '$currentRelativePath/$segment';
+        final nextFolder = folderMap.putIfAbsent(currentRelativePath, () {
+          final fullPath = isSystem
+              ? 'system/$currentRelativePath'
+              : p.join(
+                  rootPath,
+                  currentRelativePath.replaceAll('/', p.separator),
+                );
+          final created = MusicFolder(path: fullPath, name: segment);
+          currentFolder.subFolders.add(created);
+          modifiedFolders.add(currentFolder);
+          return created;
+        });
+        if (!currentFolder.subFolders.contains(nextFolder)) {
+          currentFolder.subFolders.add(nextFolder);
+          modifiedFolders.add(currentFolder);
+        }
+        currentFolder = nextFolder;
+      }
+
+      _upsertFileInList(currentFolder.files, musicFile);
+      modifiedFolders.add(currentFolder);
+    }
+
+    return modifiedFolders;
+  }
+
+  void _upsertFileInList(List<MusicFile> files, MusicFile newFile) {
+    final existingIndex = files.indexWhere(
+      (f) => _pathsEqual(f.path, newFile.path),
+    );
+    if (existingIndex >= 0) {
+      files[existingIndex] = newFile;
+    } else {
+      files.add(newFile);
+    }
+  }
+
   MusicFolder buildFolderTreeFromFilePaths(
     Iterable<String> filePaths,
     int Function(String a, String b) compareNaturally, {
