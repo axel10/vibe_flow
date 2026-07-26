@@ -46,6 +46,7 @@ class FolderListTile extends StatelessWidget {
       coverWidget = SongThumbnail(
         path: representativeSong!.path,
         id: representativeSong!.id,
+        thumbnailPath: representativeSong!.thumbnailPath,
         size: 56.0,
         borderRadius: BorderRadius.zero,
       );

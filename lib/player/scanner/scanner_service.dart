@@ -224,14 +224,27 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
   MusicFile? getRepresentativeSongForFolder(MusicFolder folder) {
     final memoryRep = findRepresentativeSong(folder);
-    if (memoryRep != null) {
+    final normalized = _normalizePath(folder.path);
+    final cached = _rootRepresentativeSongs[normalized];
+
+    bool hasArtwork(MusicFile file) =>
+        (file.artworkPath != null && file.artworkPath!.isNotEmpty) ||
+        (file.thumbnailPath != null && file.thumbnailPath!.isNotEmpty) ||
+        (file.artworkBytes != null && file.artworkBytes!.isNotEmpty);
+
+    if (memoryRep != null && hasArtwork(memoryRep)) {
       return memoryRep;
     }
 
-    final normalized = _normalizePath(folder.path);
-    final cached = _rootRepresentativeSongs[normalized];
     if (cached != null) {
-      return _treeBuilder.musicFileFromSongMetadata(cached);
+      final cachedMusicFile = _treeBuilder.musicFileFromSongMetadata(cached);
+      if (hasArtwork(cachedMusicFile) || memoryRep == null) {
+        return cachedMusicFile;
+      }
+    }
+
+    if (memoryRep != null) {
+      return memoryRep;
     }
 
     if (!_pendingRepresentativeSongFetches.contains(normalized)) {
@@ -737,7 +750,6 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       _timeScanStepSync('stage sortAndNotify sync navigation state', () {
         _syncNavigationStateToLatestTree();
       });
-      _rootRepresentativeSongs.clear();
       unawaited(_refreshRootRepresentativeSongs());
       _timeScanStepSync('stage sortAndNotify notify listeners', () {
         notifyListeners();
@@ -749,12 +761,14 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> _refreshRootRepresentativeSongs() async {
+    final nextCache = <String, SongMetadata?>{};
+
     if (_systemMediaFolder != null) {
       final repFile = findRepresentativeSong(_systemMediaFolder!);
       if (repFile != null) {
         final songMeta = await _repository.getSongMetadata(repFile.path);
         if (songMeta != null) {
-          _rootRepresentativeSongs['system'] = songMeta;
+          nextCache['system'] = songMeta;
         }
       }
     }
@@ -770,8 +784,11 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         final repFile = findRepresentativeSong(scanned);
         if (repFile != null) {
           final songMeta = await _repository.getSongMetadata(repFile.path);
-          if (songMeta != null) {
-            _rootRepresentativeSongs[normalized] = songMeta;
+          final hasArtwork = songMeta != null &&
+              ((songMeta.artworkPath != null && songMeta.artworkPath!.isNotEmpty) ||
+               (songMeta.thumbnailPath != null && songMeta.thumbnailPath!.isNotEmpty));
+          if (hasArtwork) {
+            nextCache[normalized] = songMeta;
             continue;
           }
         }
@@ -783,9 +800,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         order: sortSettings.order,
       );
       if (repSong != null) {
-        _rootRepresentativeSongs[normalized] = repSong;
+        nextCache[normalized] = repSong;
       }
     }
+
+    _rootRepresentativeSongs
+      ..clear()
+      ..addAll(nextCache);
     notifyListeners();
   }
 
@@ -1891,17 +1912,12 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     super.notifyListeners();
   }
 
-  void _notifyListenersImmediately() {
-    if (_isDisposed) return;
-    super.notifyListeners();
-  }
-
   void _syncScannedRootUiFromCache(String rootPath) {
     if (_isDisposed) return;
     _rebuildScannedRootFolderFromCache(rootPath);
     _rebuildDisplayedRootFolders();
     _syncNavigationStateToLatestTree();
-    _notifyListenersImmediately();
+    notifyListeners();
   }
 
   void pauseBackgroundTasks() {
@@ -2975,7 +2991,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         _syncNavigationStateToLatestTree();
       });
       scanState.pendingMetadataPaths.addAll(visiblePaths);
-      _notifyListenersImmediately();
+      notifyListeners();
 
       return _RootArtworkScanJob(
         rootPath: rootPath,

@@ -12,6 +12,7 @@ import 'package:vynody/utils/memory_trace.dart';
 class SongThumbnail extends ConsumerStatefulWidget {
   final String path;
   final int? id;
+  final String? thumbnailPath;
   final double size;
   final double? width;
   final double? height;
@@ -22,6 +23,7 @@ class SongThumbnail extends ConsumerStatefulWidget {
     super.key,
     required this.path,
     this.id,
+    this.thumbnailPath,
     this.size = 40.0,
     this.width,
     this.height,
@@ -214,7 +216,12 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
         (scanner) => scanner.metadataMap[widget.path],
       ),
     );
-    final imagePath = metadata?.thumbnailPath;
+    final rawImagePath = (widget.thumbnailPath != null && widget.thumbnailPath!.isNotEmpty)
+        ? widget.thumbnailPath
+        : metadata?.thumbnailPath;
+    final imagePath = (rawImagePath != null && rawImagePath.isNotEmpty && File(rawImagePath).existsSync())
+        ? rawImagePath
+        : null;
 
     final double dpr = MediaQuery.of(context).devicePixelRatio;
     final double adjustedSize = (widget.size * dpr).round() / dpr;
