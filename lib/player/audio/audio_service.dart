@@ -936,6 +936,11 @@ class AudioService extends Notifier<AudioSnapshot> {
     _isPlaying = _player.player.isPlaying;
     _duration = _player.player.duration;
 
+    if (_player.player.currentState == PlayerState.error) {
+      final err = _player.player.error;
+      debugPrint('[AudioService] Playback error state detected for track ${currentMusic?.title} (${currentMusic?.path}): $err');
+    }
+
     final realPosition = _player.player.position;
     if (_isSeeking) {
       final target = _seekTargetPosition ?? Duration.zero;
