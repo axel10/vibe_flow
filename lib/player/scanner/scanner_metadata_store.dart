@@ -260,8 +260,11 @@ class ScannerMetadataStore {
     _notifyListeners();
   }
 
-  void deleteMissingFromCache(Iterable<String> paths) {
-    _removeMetadataForPaths(paths);
+  void deleteMissingFromCache(
+    Iterable<String> paths, {
+    bool updateVisibleTrees = true,
+  }) {
+    _removeMetadataForPaths(paths, updateVisibleTrees: updateVisibleTrees);
   }
 
   void removeMetadataForPath(String path) {
@@ -285,7 +288,10 @@ class ScannerMetadataStore {
     return existing | incoming;
   }
 
-  void _removeMetadataForPaths(Iterable<String> paths) {
+  void _removeMetadataForPaths(
+    Iterable<String> paths, {
+    bool updateVisibleTrees = true,
+  }) {
     final normalizedTargets = paths
         .map(_normalizePath)
         .where((path) => path.isNotEmpty)
@@ -294,7 +300,9 @@ class ScannerMetadataStore {
       return;
     }
 
-    _removePathsFromVisibleTrees(normalizedTargets);
+    if (updateVisibleTrees) {
+      _removePathsFromVisibleTrees(normalizedTargets);
+    }
 
     final targetLookup = normalizedTargets
         .map((path) => Platform.isWindows ? path.toLowerCase() : path)

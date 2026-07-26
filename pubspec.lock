@@ -1452,13 +1452,13 @@ packages:
     source: hosted
     version: "3.5.0"
   sqlparser:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: sqlparser
-      sha256: d5edca6c3e5d04cb621463051b86b0a9df5dfecce13b975a2810126eca0cc78b
+      sha256: ecdc06d4a7d79dcbc928d99afd2f7f5b0f98a637c46f89be83d911617f759978
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.44.6"
+    version: "0.44.4"
   stack_trace:
     dependency: transitive
     description:

@@ -1100,7 +1100,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       await _syncActiveScopedRootAccess();
     }
     _removeRootsFromScannedTree(normalizedTargets);
-    _purgeRemovedRootsFromMetadataCache(normalizedTargets);
+    await _purgeRemovedRootsFromMetadataCache(normalizedTargets);
     _rebuildDisplayedRootFolders();
     _syncNavigationStateToLatestTree();
     notifyListeners();
@@ -2697,19 +2697,20 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  void _purgeRemovedRootsFromMetadataCache(Iterable<String> roots) {
+  Future<void> _purgeRemovedRootsFromMetadataCache(Iterable<String> roots) async {
     final normalizedRoots = _normalizeDeclaredRootPaths(roots);
     if (normalizedRoots.isEmpty) return;
 
-    final pathsToRemove = _metadataStore.metadataMap.keys
-        .where(
-          (path) => normalizedRoots.any((root) => _pathContains(root, path)),
-        )
-        .toList(growable: false);
-    if (pathsToRemove.isEmpty) return;
+    await _repository.unbindRootPaths(normalizedRoots);
 
-    _metadataStore.deleteMissingFromCache(pathsToRemove);
-    for (final path in pathsToRemove) {
+    final sweepResult = await _repository.sweepOrphanSongs();
+    if (sweepResult.deletedPaths.isEmpty) return;
+
+    _metadataStore.deleteMissingFromCache(
+      sweepResult.deletedPaths,
+      updateVisibleTrees: false,
+    );
+    for (final path in sweepResult.deletedPaths) {
       _notifySongMissingState(path, true);
     }
   }
@@ -3003,11 +3004,17 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
 
       await _timeScanStep(
         'stage 3.1 mark root scan token batch',
-        () => MetadataDatabase().markRootScanSeenWithToken(
-          visiblePaths,
-          scanToken: scanToken,
-          sourceMask: SongSourceFlags.rootScan,
-        ),
+        () async {
+          await MetadataDatabase().markRootScanSeenWithToken(
+            visiblePaths,
+            scanToken: scanToken,
+            sourceMask: SongSourceFlags.rootScan,
+          );
+          await MetadataDatabase().bindSongsToRootBatch(
+            visiblePaths,
+            rootPath,
+          );
+        },
       );
       if (!_isScanTokenCurrent(scanToken) ||
           !_isScanRootStillActive(rootPath)) {

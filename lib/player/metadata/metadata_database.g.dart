@@ -1331,6 +1331,223 @@ class SongsCompanion extends UpdateCompanion<Song> {
   }
 }
 
+class $SongRootsTable extends SongRoots
+    with TableInfo<$SongRootsTable, SongRoot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SongRootsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _songPathMeta = const VerificationMeta(
+    'songPath',
+  );
+  @override
+  late final GeneratedColumn<String> songPath = GeneratedColumn<String>(
+    'song_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rootPathMeta = const VerificationMeta(
+    'rootPath',
+  );
+  @override
+  late final GeneratedColumn<String> rootPath = GeneratedColumn<String>(
+    'root_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [songPath, rootPath];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'song_roots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SongRoot> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('song_path')) {
+      context.handle(
+        _songPathMeta,
+        songPath.isAcceptableOrUnknown(data['song_path']!, _songPathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_songPathMeta);
+    }
+    if (data.containsKey('root_path')) {
+      context.handle(
+        _rootPathMeta,
+        rootPath.isAcceptableOrUnknown(data['root_path']!, _rootPathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rootPathMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {songPath, rootPath};
+  @override
+  SongRoot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SongRoot(
+      songPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}song_path'],
+      )!,
+      rootPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}root_path'],
+      )!,
+    );
+  }
+
+  @override
+  $SongRootsTable createAlias(String alias) {
+    return $SongRootsTable(attachedDatabase, alias);
+  }
+}
+
+class SongRoot extends DataClass implements Insertable<SongRoot> {
+  final String songPath;
+  final String rootPath;
+  const SongRoot({required this.songPath, required this.rootPath});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['song_path'] = Variable<String>(songPath);
+    map['root_path'] = Variable<String>(rootPath);
+    return map;
+  }
+
+  SongRootsCompanion toCompanion(bool nullToAbsent) {
+    return SongRootsCompanion(
+      songPath: Value(songPath),
+      rootPath: Value(rootPath),
+    );
+  }
+
+  factory SongRoot.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SongRoot(
+      songPath: serializer.fromJson<String>(json['songPath']),
+      rootPath: serializer.fromJson<String>(json['rootPath']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'songPath': serializer.toJson<String>(songPath),
+      'rootPath': serializer.toJson<String>(rootPath),
+    };
+  }
+
+  SongRoot copyWith({String? songPath, String? rootPath}) => SongRoot(
+    songPath: songPath ?? this.songPath,
+    rootPath: rootPath ?? this.rootPath,
+  );
+  SongRoot copyWithCompanion(SongRootsCompanion data) {
+    return SongRoot(
+      songPath: data.songPath.present ? data.songPath.value : this.songPath,
+      rootPath: data.rootPath.present ? data.rootPath.value : this.rootPath,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SongRoot(')
+          ..write('songPath: $songPath, ')
+          ..write('rootPath: $rootPath')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(songPath, rootPath);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SongRoot &&
+          other.songPath == this.songPath &&
+          other.rootPath == this.rootPath);
+}
+
+class SongRootsCompanion extends UpdateCompanion<SongRoot> {
+  final Value<String> songPath;
+  final Value<String> rootPath;
+  final Value<int> rowid;
+  const SongRootsCompanion({
+    this.songPath = const Value.absent(),
+    this.rootPath = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SongRootsCompanion.insert({
+    required String songPath,
+    required String rootPath,
+    this.rowid = const Value.absent(),
+  }) : songPath = Value(songPath),
+       rootPath = Value(rootPath);
+  static Insertable<SongRoot> custom({
+    Expression<String>? songPath,
+    Expression<String>? rootPath,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (songPath != null) 'song_path': songPath,
+      if (rootPath != null) 'root_path': rootPath,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SongRootsCompanion copyWith({
+    Value<String>? songPath,
+    Value<String>? rootPath,
+    Value<int>? rowid,
+  }) {
+    return SongRootsCompanion(
+      songPath: songPath ?? this.songPath,
+      rootPath: rootPath ?? this.rootPath,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (songPath.present) {
+      map['song_path'] = Variable<String>(songPath.value);
+    }
+    if (rootPath.present) {
+      map['root_path'] = Variable<String>(rootPath.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SongRootsCompanion(')
+          ..write('songPath: $songPath, ')
+          ..write('rootPath: $rootPath, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SongPlayHistoriesTable extends SongPlayHistories
     with TableInfo<$SongPlayHistoriesTable, SongPlayHistory> {
   @override
@@ -5660,6 +5877,7 @@ abstract class _$MetadataDriftDatabase extends GeneratedDatabase {
   $MetadataDriftDatabaseManager get managers =>
       $MetadataDriftDatabaseManager(this);
   late final $SongsTable songs = $SongsTable(this);
+  late final $SongRootsTable songRoots = $SongRootsTable(this);
   late final $SongPlayHistoriesTable songPlayHistories =
       $SongPlayHistoriesTable(this);
   late final $LyricsCachesTable lyricsCaches = $LyricsCachesTable(this);
@@ -5678,6 +5896,7 @@ abstract class _$MetadataDriftDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     songs,
+    songRoots,
     songPlayHistories,
     lyricsCaches,
     acoustidCaches,
@@ -6243,6 +6462,151 @@ typedef $$SongsTableProcessedTableManager =
       $$SongsTableUpdateCompanionBuilder,
       (Song, BaseReferences<_$MetadataDriftDatabase, $SongsTable, Song>),
       Song,
+      PrefetchHooks Function()
+    >;
+typedef $$SongRootsTableCreateCompanionBuilder =
+    SongRootsCompanion Function({
+      required String songPath,
+      required String rootPath,
+      Value<int> rowid,
+    });
+typedef $$SongRootsTableUpdateCompanionBuilder =
+    SongRootsCompanion Function({
+      Value<String> songPath,
+      Value<String> rootPath,
+      Value<int> rowid,
+    });
+
+class $$SongRootsTableFilterComposer
+    extends Composer<_$MetadataDriftDatabase, $SongRootsTable> {
+  $$SongRootsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get songPath => $composableBuilder(
+    column: $table.songPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rootPath => $composableBuilder(
+    column: $table.rootPath,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SongRootsTableOrderingComposer
+    extends Composer<_$MetadataDriftDatabase, $SongRootsTable> {
+  $$SongRootsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get songPath => $composableBuilder(
+    column: $table.songPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rootPath => $composableBuilder(
+    column: $table.rootPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SongRootsTableAnnotationComposer
+    extends Composer<_$MetadataDriftDatabase, $SongRootsTable> {
+  $$SongRootsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get songPath =>
+      $composableBuilder(column: $table.songPath, builder: (column) => column);
+
+  GeneratedColumn<String> get rootPath =>
+      $composableBuilder(column: $table.rootPath, builder: (column) => column);
+}
+
+class $$SongRootsTableTableManager
+    extends
+        RootTableManager<
+          _$MetadataDriftDatabase,
+          $SongRootsTable,
+          SongRoot,
+          $$SongRootsTableFilterComposer,
+          $$SongRootsTableOrderingComposer,
+          $$SongRootsTableAnnotationComposer,
+          $$SongRootsTableCreateCompanionBuilder,
+          $$SongRootsTableUpdateCompanionBuilder,
+          (
+            SongRoot,
+            BaseReferences<_$MetadataDriftDatabase, $SongRootsTable, SongRoot>,
+          ),
+          SongRoot,
+          PrefetchHooks Function()
+        > {
+  $$SongRootsTableTableManager(
+    _$MetadataDriftDatabase db,
+    $SongRootsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SongRootsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SongRootsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SongRootsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> songPath = const Value.absent(),
+                Value<String> rootPath = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SongRootsCompanion(
+                songPath: songPath,
+                rootPath: rootPath,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String songPath,
+                required String rootPath,
+                Value<int> rowid = const Value.absent(),
+              }) => SongRootsCompanion.insert(
+                songPath: songPath,
+                rootPath: rootPath,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SongRootsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MetadataDriftDatabase,
+      $SongRootsTable,
+      SongRoot,
+      $$SongRootsTableFilterComposer,
+      $$SongRootsTableOrderingComposer,
+      $$SongRootsTableAnnotationComposer,
+      $$SongRootsTableCreateCompanionBuilder,
+      $$SongRootsTableUpdateCompanionBuilder,
+      (
+        SongRoot,
+        BaseReferences<_$MetadataDriftDatabase, $SongRootsTable, SongRoot>,
+      ),
+      SongRoot,
       PrefetchHooks Function()
     >;
 typedef $$SongPlayHistoriesTableCreateCompanionBuilder =
@@ -8459,6 +8823,8 @@ class $MetadataDriftDatabaseManager {
   $MetadataDriftDatabaseManager(this._db);
   $$SongsTableTableManager get songs =>
       $$SongsTableTableManager(_db, _db.songs);
+  $$SongRootsTableTableManager get songRoots =>
+      $$SongRootsTableTableManager(_db, _db.songRoots);
   $$SongPlayHistoriesTableTableManager get songPlayHistories =>
       $$SongPlayHistoriesTableTableManager(_db, _db.songPlayHistories);
   $$LyricsCachesTableTableManager get lyricsCaches =>

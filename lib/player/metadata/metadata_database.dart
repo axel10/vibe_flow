@@ -633,6 +633,20 @@ class MetadataDatabase {
     activeRoots: activeRoots,
   );
 
+  Future<void> bindSongToRoot(String songPath, String rootPath) =>
+      _db.bindSongToRoot(songPath, rootPath);
+
+  Future<void> bindSongsToRootBatch(
+    Iterable<String> songPaths,
+    String rootPath,
+  ) => _db.bindSongsToRootBatch(songPaths, rootPath);
+
+  Future<void> unbindRootPaths(Iterable<String> rootPaths) =>
+      _db.unbindRootPaths(rootPaths);
+
+  Future<RootScanSweepResult> sweepOrphanSongs({int chunkSize = 2000}) =>
+      _db.sweepOrphanSongs(chunkSize: chunkSize);
+
   Future<void> deleteSongByPath(String path) => _db.deleteSongByPath(path);
 
   Future<void> clearAll() => _db.clearAllSongs();

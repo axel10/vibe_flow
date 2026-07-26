@@ -3,6 +3,7 @@ part of 'metadata_database.dart';
 @DriftDatabase(
   tables: [
     Songs,
+    SongRoots,
     SongPlayHistories,
     LyricsCaches,
     AcoustidCaches,
@@ -19,7 +20,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
   static final MetadataDriftDatabase instance = MetadataDriftDatabase._();
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1399,6 +1400,108 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     );
   }
 
+  Future<void> bindSongToRoot(String songPath, String rootPath) async {
+    final normSong = _normalizePath(songPath);
+    final normRoot = _normalizePath(rootPath);
+    if (normSong.isEmpty || normRoot.isEmpty) return;
+    await into(songRoots).insert(
+      SongRootsCompanion.insert(
+        songPath: normSong,
+        rootPath: normRoot,
+      ),
+      mode: InsertMode.insertOrIgnore,
+    );
+  }
+
+  Future<void> bindSongsToRootBatch(
+    Iterable<String> songPaths,
+    String rootPath,
+  ) async {
+    final normRoot = _normalizePath(rootPath);
+    if (normRoot.isEmpty) return;
+    final normalizedSongPaths = songPaths
+        .map(_normalizePath)
+        .where((p) => p.isNotEmpty)
+        .toList(growable: false);
+    if (normalizedSongPaths.isEmpty) return;
+
+    await batch((b) {
+      b.insertAll(
+        songRoots,
+        normalizedSongPaths.map(
+          (p) => SongRootsCompanion.insert(songPath: p, rootPath: normRoot),
+        ),
+        mode: InsertMode.insertOrIgnore,
+      );
+    });
+  }
+
+  Future<void> unbindRootPaths(Iterable<String> rootPaths) async {
+    final normalizedRoots = rootPaths
+        .map(_normalizePath)
+        .where((p) => p.isNotEmpty)
+        .toList(growable: false);
+    if (normalizedRoots.isEmpty) return;
+
+    await (delete(songRoots)
+          ..where((t) => t.rootPath.isIn(normalizedRoots)))
+        .go();
+  }
+
+  Future<RootScanSweepResult> sweepOrphanSongs({int chunkSize = 2000}) async {
+    final candidateRows = await customSelect(
+      '''
+      SELECT s.path, s.sourceFlags, s.thumbnailPath
+      FROM songs s
+      LEFT JOIN song_roots r ON s.path = r.song_path
+      WHERE r.song_path IS NULL
+        AND (s.sourceFlags IS NULL OR (s.sourceFlags & ?) = 0)
+        AND s.deletedAt IS NULL
+      ''',
+      variables: [Variable(SongSourceFlags.external)],
+      readsFrom: {songs, songRoots},
+    ).get();
+
+    if (candidateRows.isEmpty) {
+      return const RootScanSweepResult(
+        deletedPaths: <String>[],
+        softDeletedPaths: <String>[],
+      );
+    }
+
+    final deletedPaths = <String>[];
+    final thumbnailPathsToDelete = <String?>[];
+
+    for (var i = 0; i < candidateRows.length; i += chunkSize) {
+      final end = (i + chunkSize < candidateRows.length)
+          ? i + chunkSize
+          : candidateRows.length;
+      final chunk = candidateRows.sublist(i, end);
+
+      await transaction(() async {
+        for (final row in chunk) {
+          final path = row.read<String>('path');
+          final thumbnailPath = row.read<String?>('thumbnailPath');
+
+          await (delete(songs)..where((t) => t.path.equals(path))).go();
+          deletedPaths.add(path);
+          if (thumbnailPath != null) {
+            thumbnailPathsToDelete.add(thumbnailPath);
+          }
+        }
+      });
+
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    _deleteThumbnailFiles(thumbnailPathsToDelete).ignore();
+
+    return RootScanSweepResult(
+      deletedPaths: deletedPaths,
+      softDeletedPaths: const <String>[],
+    );
+  }
+
   Future<void> insertOrUpdateLyricsCache(LyricsCacheRecord record) async {
     final normalizedCacheKey = record.cacheKey.trim();
     if (normalizedCacheKey.isEmpty) return;
@@ -2288,6 +2391,17 @@ class Songs extends Table {
 
   @override
   List<String> get customConstraints => const ['UNIQUE(path)'];
+}
+
+class SongRoots extends Table {
+  @override
+  String get tableName => 'song_roots';
+
+  TextColumn get songPath => text().named('song_path')();
+  TextColumn get rootPath => text().named('root_path')();
+
+  @override
+  Set<Column> get primaryKey => {songPath, rootPath};
 }
 
 class SongPlayHistories extends Table {

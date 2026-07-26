@@ -125,6 +125,21 @@ class ScannerRepository {
     );
   }
 
+  Future<void> bindSongsToRootBatch(
+    Iterable<String> songPaths,
+    String rootPath,
+  ) {
+    return _database.bindSongsToRootBatch(songPaths, rootPath);
+  }
+
+  Future<void> unbindRootPaths(Iterable<String> rootPaths) {
+    return _database.unbindRootPaths(rootPaths);
+  }
+
+  Future<RootScanSweepResult> sweepOrphanSongs({int chunkSize = 2000}) {
+    return _database.sweepOrphanSongs(chunkSize: chunkSize);
+  }
+
   Future<void> clearAll() {
     return _database.clearAll();
   }
