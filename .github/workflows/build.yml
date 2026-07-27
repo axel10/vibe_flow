@@ -15,8 +15,44 @@ on:
       - 'v*'
 
 jobs:
+  check-version:
+    name: Check Version Assertion
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify pubspec version matches tag
+        run: |
+          TAG_INPUT="${{ github.event.inputs.tag_name }}"
+          if [ -z "$TAG_INPUT" ] && [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_INPUT="${{ github.ref_name }}"
+          fi
+
+          if [ -n "$TAG_INPUT" ]; then
+            CLEAN_TAG="${TAG_INPUT#v}"
+            CLEAN_TAG="${CLEAN_TAG#V}"
+
+            PUBSPEC_VERSION=$(grep '^version: ' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+            PUBSPEC_BASE="${PUBSPEC_VERSION%%+*}"
+
+            echo "Input / Tag: $TAG_INPUT"
+            echo "Clean Tag: $CLEAN_TAG"
+            echo "Pubspec Version: $PUBSPEC_VERSION"
+            echo "Pubspec Base Version: $PUBSPEC_BASE"
+
+            if [ "$CLEAN_TAG" != "$PUBSPEC_VERSION" ] && [ "$CLEAN_TAG" != "$PUBSPEC_BASE" ]; then
+              echo "::error::Version mismatch! Provided tag/input '$TAG_INPUT' ($CLEAN_TAG) does not match pubspec.yaml version '$PUBSPEC_VERSION'."
+              exit 1
+            fi
+            echo "Version assertion passed: '$CLEAN_TAG' matches pubspec.yaml version '$PUBSPEC_VERSION'."
+          else
+            echo "No tag_name input or tag trigger found. Skipping version assertion."
+          fi
+
   android:
     name: Build Android APK
+    needs: [check-version]
     runs-on: ubuntu-22.04
 
     steps:
@@ -86,6 +122,7 @@ jobs:
 
   windows:
     name: Build Windows Package
+    needs: [check-version]
     runs-on: windows-2025-vs2026
     env:
       PUB_CACHE: C:\p
@@ -222,6 +259,7 @@ jobs:
 
   linux:
     name: Build Linux Package
+    needs: [check-version]
     runs-on: ubuntu-22.04
 
     steps:
@@ -315,6 +353,7 @@ jobs:
 
   macos:
     name: Build macOS Package (Xcode ${{ matrix.xcode }})
+    needs: [check-version]
     runs-on: macos-15
     strategy:
       fail-fast: false
@@ -493,6 +532,7 @@ jobs:
 
   ios:
     name: Build iOS App
+    needs: [check-version]
     runs-on: macos-15
     strategy:
       fail-fast: false
