@@ -225,6 +225,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     });
 
     try {
+      await AppLog.logDeviceInfo();
       await AppLog.flush();
 
       final bytes = await logFile.readAsBytes();

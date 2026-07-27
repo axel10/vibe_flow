@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -22,6 +25,8 @@ class AppLog {
     if (_sink != null) {
       return;
     }
+
+    WidgetsFlutterBinding.ensureInitialized();
 
     final supportDir = await getApplicationSupportDirectory();
     final logDir = Directory(p.join(supportDir.path, 'logs'));
@@ -51,6 +56,62 @@ class AppLog {
       mirrorToConsole: true,
     );
     log('log file path=$_logFilePath', mirrorToConsole: true);
+    await logDeviceInfo();
+  }
+
+  static Future<void> logDeviceInfo() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final appInfoStr =
+          'App: ${packageInfo.appName} v${packageInfo.version}+${packageInfo.buildNumber} (${packageInfo.packageName})';
+
+      final deviceInfoPlugin = DeviceInfoPlugin();
+      String deviceStr = '';
+
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfoPlugin.androidInfo;
+        deviceStr =
+            'Device: ${androidInfo.manufacturer} ${androidInfo.model} (${androidInfo.brand}/${androidInfo.product}), '
+            'OS: Android ${androidInfo.version.release} (SDK ${androidInfo.version.sdkInt}), '
+            'Arch: ${androidInfo.supportedAbis.join(",")}, '
+            'Physical: ${androidInfo.isPhysicalDevice}';
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfoPlugin.iosInfo;
+        deviceStr =
+            'Device: ${iosInfo.name} (${iosInfo.model} / ${iosInfo.utsname.machine}), '
+            'OS: ${iosInfo.systemName} ${iosInfo.systemVersion}, '
+            'Physical: ${iosInfo.isPhysicalDevice}';
+      } else if (Platform.isWindows) {
+        final winInfo = await deviceInfoPlugin.windowsInfo;
+        deviceStr =
+            'Device: ${winInfo.computerName}, '
+            'OS: Windows (Build ${winInfo.buildNumber}, Major ${winInfo.majorVersion}.${winInfo.minorVersion}), '
+            'Cores: ${winInfo.numberOfCores}, Memory: ${winInfo.systemMemoryInMegabytes} MB';
+      } else if (Platform.isMacOS) {
+        final macInfo = await deviceInfoPlugin.macOsInfo;
+        deviceStr =
+            'Device: ${macInfo.computerName} (${macInfo.model}), '
+            'OS: macOS ${macInfo.majorVersion}.${macInfo.minorVersion}.${macInfo.patchVersion} (${macInfo.osRelease}), '
+            'Arch: ${macInfo.arch}, Cores: ${macInfo.activeCPUs}, Memory: ${(macInfo.memorySize / (1024 * 1024)).round()} MB';
+      } else if (Platform.isLinux) {
+        final linuxInfo = await deviceInfoPlugin.linuxInfo;
+        deviceStr =
+            'Device: ${linuxInfo.name}, '
+            'OS: ${linuxInfo.prettyName} (${linuxInfo.versionId ?? "unknown"})';
+      } else {
+        deviceStr =
+            'OS: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}';
+      }
+
+      log('=== App Info: $appInfoStr ===', mirrorToConsole: true);
+      log('=== Device Info: $deviceStr ===', mirrorToConsole: true);
+    } catch (e, st) {
+      log(
+        'Failed to retrieve device/package info: $e',
+        mirrorToConsole: true,
+        stackTrace: st,
+      );
+    }
   }
 
   static void install() {
