@@ -40,11 +40,11 @@ The project currently targets the following platforms:
 - **Platform-Specific Native Audio Engines**: Integrates native audio backends optimized for each platform.
 - **Local Media Library**: Supports scanning local folders, incremental library updates, and song management.
 - **Online Tag Metadata Completion**: Supports fetching missing track metadata via audio fingerprinting.
-- **Online Lyrics Fetching**: Integrates with LRCLIB to search and fetch lyrics.
+- **Lyrics Search, AI Generation & Translation**: Fetch lyrics from LRCLIB, generate synced lyrics or timelines with AI, and translate lyrics into a selected language.
 - **Song Recognition**: Identifies songs using audio fingerprinting.
 - **Local LAN Sharing**: Easily share lyrics and music files across devices on the same local network.
 - **Sleep Timer**: Built-in countdown timer for automatic playback stop.
-- **Enhanced Lyric Features**: Supports online search, local caching, and lyric timeline adjustments.
+- **Enhanced Lyric Features**: Supports online search, local caching, AI-powered generation and translation, and lyric timeline adjustments.
 - **Visual Enhancements**: Features audio spectrum, waveform display, cover art color extraction, and more.
 
 ## Platform Audio Engines
@@ -79,7 +79,7 @@ For audio files with incomplete tags or missing metadata, Vynody supports online
 - Fills in missing details like title, artist, album, and covers.
 - Perfect for organizing local music libraries with mixed sources and poor metadata quality.
 
-### 3. Online Lyrics Fetching
+### 3. Lyrics Search, AI Generation & Translation
 
 The player includes built-in lyrics search and retrieval, currently integrated with:
 
@@ -90,6 +90,11 @@ Features include:
 - Fetching plain text or synced (timestamped) lyrics.
 - Associating and caching fetched lyrics with local songs.
 - Editing and aligning lyric timelines.
+- Generating synced lyrics from an audio file with a configured AI provider.
+- Generating or correcting a timeline for existing plain-text lyrics.
+- Translating lyrics into a selected target language and caching the result.
+
+AI lyric generation and translation require an API key for a supported provider, configured in the app settings. Generated results may need review and manual adjustment.
 
 ### 4. Song Recognition
 
@@ -130,6 +135,7 @@ The project follows a "Flutter UI + Platform Native Audio Backend" architecture:
 
 Online services and libraries used:
 - **LRCLIB**: Online lyrics source.
+- **Configurable AI Providers**: Lyric generation, timeline generation, and lyric translation.
 - **AcoustID**: Audio fingerprinting.
 - **MusicBrainz**: Metadata matching.
 
@@ -175,6 +181,7 @@ The player supports various user settings, including:
 
 - Playback behaviors.
 - Lyrics sources and processing adjustments.
+- AI provider API keys, lyric generation models, translation models, and target language.
 - AcoustID API Key.
 - Visual themes, skins, and spectrum visualizers.
 - Hotkeys and shortcuts.
@@ -228,11 +235,11 @@ Vynody 是一款以本地音乐播放为核心的跨平台播放器，使用 Flu
 - 多平台原生播放内核接入，按平台选择更合适的实现
 - 本地媒体库扫描、增量更新与歌曲管理
 - 歌曲标签在线补全，支持通过音频指纹补全元数据
-- 在线歌词获取，支持从 LRCLIB 拉取歌词
+- 歌词搜索、AI 生成与翻译，支持 LRCLIB 获取、AI 生成时间轴歌词和多语言翻译
 - 听歌识曲能力，基于音频指纹进行歌曲识别
 - 本地局域网歌词与音乐文件共享
 - 睡眠定时器
-- 歌词相关增强能力，包括在线搜索、缓存与时间轴处理
+- 歌词相关增强能力，包括在线搜索、缓存、AI 生成、翻译与时间轴处理
 - 频谱、波形、封面取色等播放界面增强体验
 
 ## 平台播放内核
@@ -269,7 +276,7 @@ Vynody 并不是所有平台都共用同一套播放器内核，而是按平台�
 
 这部分能力尤其适合整理来源较杂、标签质量不一致的本地曲库。
 
-### 3. 在线歌词获取
+### 3. 歌词搜索、AI 生成与翻译
 
 项目内置在线歌词搜索与获取能力，当前可接入：
 
@@ -281,6 +288,11 @@ Vynody 并不是所有平台都共用同一套播放器内核，而是按平台�
 - 获取纯文本歌词或带时间轴歌词
 - 将歌词与本地歌曲关联并缓存
 - 对已有歌词做进一步整理和时间轴处理
+- 通过已配置的 AI 服务商，根据音频生成带时间轴歌词
+- 为已有的纯文本歌词生成或校正时间轴
+- 将歌词翻译为指定目标语言，并缓存翻译结果
+
+AI 歌词生成和翻译需要在应用设置中配置受支持服务商的 API Key。生成结果可能需要人工检查和微调。
 
 ### 4. 听歌识曲
 
@@ -322,6 +334,7 @@ Vynody 内置局域网共享能力，可在同一网络下与其他设备交换�
 在线相关能力主要包括：
 
 - LRCLIB：在线歌词获取
+- 可配置 AI 服务商：歌词生成、时间轴生成与歌词翻译
 - AcoustID：音频指纹识别
 - MusicBrainz：标签与元数据补全
 
@@ -369,6 +382,7 @@ flutter run -d <device-id>
 
 - 播放相关设置
 - 歌词来源与歌词处理相关设置
+- AI 服务商 API Key、歌词生成模型、翻译模型与翻译目标语言
 - AcoustID API Key
 - 外观、主题、可视化效果
 - 快捷键与交互行为
