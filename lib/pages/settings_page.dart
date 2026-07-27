@@ -630,6 +630,163 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Widget _buildUiScaleSection(
+    BuildContext context,
+    SettingsService settings,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentPercent = (settings.uiScale * 100).round();
+
+    return ListTile(
+      leading: const Icon(Icons.aspect_ratio_rounded),
+      title: Text(l10n.uiDisplayScale),
+      subtitle: Text(l10n.uiDisplayScaleDescription),
+      trailing: FilledButton.tonal(
+        onPressed: () => _showUiScaleDialog(context, settings),
+        child: Text('$currentPercent%'),
+      ),
+      onTap: () => _showUiScaleDialog(context, settings),
+    );
+  }
+
+  Future<void> _showUiScaleDialog(
+    BuildContext context,
+    SettingsService settings,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    double tempScale = settings.uiScale;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final percent = (tempScale * 100).round();
+            return AlertDialog(
+              title: Text(l10n.uiDisplayScaleDialogTitle),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.uiDisplayScaleCurrent(percent),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Text('80%'),
+                        Expanded(
+                          child: Slider(
+                            value: tempScale.clamp(
+                              SettingsService.minUiScale,
+                              SettingsService.maxUiScale,
+                            ),
+                            min: SettingsService.minUiScale,
+                            max: SettingsService.maxUiScale,
+                            divisions: 24,
+                            label: '$percent%',
+                            onChanged: (value) {
+                              setDialogState(() {
+                                tempScale = (value * 20).round() / 20.0;
+                              });
+                              settings.uiScale = tempScale;
+                            },
+                          ),
+                        ),
+                        const Text('200%'),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '快捷预设 / Presets',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('100% 标准'),
+                          selected: (tempScale - 1.0).abs() < 0.01,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setDialogState(() => tempScale = 1.0);
+                              settings.uiScale = 1.0;
+                            }
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('125% 适中'),
+                          selected: (tempScale - 1.25).abs() < 0.01,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setDialogState(() => tempScale = 1.25);
+                              settings.uiScale = 1.25;
+                            }
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('135% 车机推荐'),
+                          selected: (tempScale - 1.35).abs() < 0.01,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setDialogState(() => tempScale = 1.35);
+                              settings.uiScale = 1.35;
+                            }
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('150% 大号'),
+                          selected: (tempScale - 1.50).abs() < 0.01,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setDialogState(() => tempScale = 1.50);
+                              settings.uiScale = 1.50;
+                            }
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Text('175% 特大'),
+                          selected: (tempScale - 1.75).abs() < 0.01,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setDialogState(() => tempScale = 1.75);
+                              settings.uiScale = 1.75;
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setDialogState(() => tempScale = SettingsService.defaultUiScale);
+                    settings.uiScale = SettingsService.defaultUiScale;
+                  },
+                  child: Text(l10n.reset),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.confirm),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildScanSection(BuildContext context, SettingsService settings) {
     final l10n = AppLocalizations.of(context)!;
     const minSeconds = 5;
@@ -1555,6 +1712,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         _buildThemeModeSection(context, settings),
         _buildLanguageSection(context, settings),
+        _buildUiScaleSection(context, settings),
         SwitchListTile(
           title: Text(l10n.immersiveTabBar),
           subtitle: Text(l10n.immersiveTabBarDescription),

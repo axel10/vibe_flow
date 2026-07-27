@@ -1306,6 +1306,18 @@
   "exportLogs": "Export Logs",
   "exportLogsSuccess": "Logs exported successfully",
   "exportLogsFailed": "Failed to export logs",
-  "noLogFileFound": "No log file found"
+  "noLogFileFound": "No log file found",
+  "uiDisplayScale": "UI Display Scale",
+  "uiDisplayScaleDescription": "Globally adjust size of all UI components and text for car displays",
+  "uiDisplayScaleDialogTitle": "UI Display Scale / Car Mode",
+  "uiDisplayScaleCurrent": "Current scale: {percent}%",
+  "@uiDisplayScaleCurrent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "confirm": "OK"
 }
 

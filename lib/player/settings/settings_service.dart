@@ -380,6 +380,10 @@ class SettingsService extends ChangeNotifier {
   static const String _keyLanSharingEnabled = 'lan_sharing_enabled';
   static const String _keyLanSharingFolderPath = 'lan_sharing_folder_path';
   static const String _keyFolderViewMode = 'folder_view_mode';
+  static const String _keyUiScale = 'ui_scale';
+  static const double defaultUiScale = 1.0;
+  static const double minUiScale = 0.8;
+  static const double maxUiScale = 2.0;
 
   final SharedPreferences _prefs;
   bool _isUserInactive = false;
@@ -451,6 +455,17 @@ class SettingsService extends ChangeNotifier {
     customRead: (prefs, key, def) =>
         FolderViewModeX.fromStorageValue(prefs.getString(key), def),
     customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
+  );
+
+  late final _uiScaleProperty = SettingProperty<double>(
+    key: _keyUiScale,
+    defaultValue: defaultUiScale,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        (prefs.getDouble(key) ?? def).clamp(minUiScale, maxUiScale),
+    customWrite: (prefs, key, val) =>
+        prefs.setDouble(key, val.clamp(minUiScale, maxUiScale)),
   );
 
   late final _themeModeProperty = SettingProperty<ThemeMode>(
@@ -1226,6 +1241,10 @@ class SettingsService extends ChangeNotifier {
 
   ThemeMode get themeMode => _themeModeProperty.value;
   set themeMode(ThemeMode value) => _themeModeProperty.value = value;
+
+  double get uiScale => _uiScaleProperty.value;
+  set uiScale(double value) =>
+      _uiScaleProperty.value = value.clamp(minUiScale, maxUiScale);
 
   String get appLocale => _localeProperty.value;
   set appLocale(String value) => _localeProperty.value = value;

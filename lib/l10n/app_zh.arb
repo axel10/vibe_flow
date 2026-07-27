@@ -1754,6 +1754,18 @@
   "exportLogs": "导出日志",
   "exportLogsSuccess": "日志已成功导出",
   "exportLogsFailed": "导出日志失败",
-  "noLogFileFound": "未找到日志文件"
+  "noLogFileFound": "未找到日志文件",
+  "uiDisplayScale": "界面显示缩放",
+  "uiDisplayScaleDescription": "全局调整所有界面组件与文字大小，适配车机大屏",
+  "uiDisplayScaleDialogTitle": "界面显示缩放 / 车机模式",
+  "uiDisplayScaleCurrent": "当前缩放: {percent}%",
+  "@uiDisplayScaleCurrent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "confirm": "确定"
 }
 

@@ -5688,6 +5688,30 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'未找到日志文件'**
   String get noLogFileFound;
+
+  /// No description provided for @uiDisplayScale.
+  ///
+  /// In zh, this message translates to:
+  /// **'界面显示缩放'**
+  String get uiDisplayScale;
+
+  /// No description provided for @uiDisplayScaleDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'全局调整所有界面组件与文字大小，适配车机大屏'**
+  String get uiDisplayScaleDescription;
+
+  /// No description provided for @uiDisplayScaleDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'界面显示缩放 / 车机模式'**
+  String get uiDisplayScaleDialogTitle;
+
+  /// No description provided for @uiDisplayScaleCurrent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前缩放: {percent}%'**
+  String uiDisplayScaleCurrent(int percent);
 }
 
 class _AppLocalizationsDelegate

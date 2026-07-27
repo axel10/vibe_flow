@@ -77,7 +77,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
-  String get confirm => 'Confirm';
+  String get confirm => 'OK';
 
   @override
   String get rebuildingDatabase => 'Rebuilding song tag database...';
@@ -3164,4 +3164,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noLogFileFound => 'No log file found';
+
+  @override
+  String get uiDisplayScale => 'UI Display Scale';
+
+  @override
+  String get uiDisplayScaleDescription =>
+      'Globally adjust size of all UI components and text for car displays';
+
+  @override
+  String get uiDisplayScaleDialogTitle => 'UI Display Scale / Car Mode';
+
+  @override
+  String uiDisplayScaleCurrent(int percent) {
+    return 'Current scale: $percent%';
+  }
 }

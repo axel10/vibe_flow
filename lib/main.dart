@@ -466,6 +466,37 @@ class _MyAppState extends ConsumerState<MyApp>
         builder: (context, child) {
           final theme = Theme.of(context);
           final isDark = theme.brightness == Brightness.dark;
+          final scale = settings.uiScale;
+          Widget content = child ?? const SizedBox.shrink();
+
+          if (scale != 1.0) {
+            final mediaQuery = MediaQuery.of(context);
+            final scaledSize = mediaQuery.size / scale;
+            content = MediaQuery(
+              data: mediaQuery.copyWith(
+                size: scaledSize,
+                devicePixelRatio: mediaQuery.devicePixelRatio * scale,
+                textScaler: TextScaler.linear(scale),
+              ),
+              child: Transform.scale(
+                scale: scale,
+                alignment: Alignment.topLeft,
+                child: OverflowBox(
+                  alignment: Alignment.topLeft,
+                  minWidth: 0.0,
+                  maxWidth: double.infinity,
+                  minHeight: 0.0,
+                  maxHeight: double.infinity,
+                  child: SizedBox(
+                    width: scaledSize.width,
+                    height: scaledSize.height,
+                    child: content,
+                  ),
+                ),
+              ),
+            );
+          }
+
           return AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
@@ -481,7 +512,7 @@ class _MyAppState extends ConsumerState<MyApp>
             ),
             child: ColoredBox(
               color: theme.colorScheme.surface,
-              child: child ?? const SizedBox.shrink(),
+              child: content,
             ),
           );
         },

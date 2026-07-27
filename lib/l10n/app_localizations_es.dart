@@ -3203,4 +3203,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noLogFileFound => 'No se encontró el archivo de registro';
+
+  @override
+  String get uiDisplayScale => '界面显示缩放';
+
+  @override
+  String get uiDisplayScaleDescription => '全局调整所有界面组件与文字大小，适配车机大屏';
+
+  @override
+  String get uiDisplayScaleDialogTitle => '界面显示缩放 / 车机模式';
+
+  @override
+  String uiDisplayScaleCurrent(int percent) {
+    return '当前缩放: $percent%';
+  }
 }
