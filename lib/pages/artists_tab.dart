@@ -34,6 +34,12 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
   final Set<String> _selectedArtistKeys = {};
   late final ArtistSongSelectionController _songSelectionController;
 
+  List<ArtistSummary>? _lastRawArtists;
+  String? _lastSearchQuery;
+  _ArtistSortField? _lastSortField;
+  bool? _lastSortAscending;
+  List<ArtistSummary>? _cachedFilteredArtists;
+
   @override
   void initState() {
     super.initState();
@@ -136,28 +142,46 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
         ),
       ),
       data: (artists) {
-        final visibleArtists = _filterAndSortArtists(artists);
+        if (!identical(_lastRawArtists, artists) ||
+            _lastSearchQuery != _searchQuery ||
+            _lastSortField != _sortField ||
+            _lastSortAscending != _sortAscending) {
+          _lastRawArtists = artists;
+          _lastSearchQuery = _searchQuery;
+          _lastSortField = _sortField;
+          _lastSortAscending = _sortAscending;
+          _cachedFilteredArtists = _filterAndSortArtists(artists);
+        }
+        final visibleArtists = _cachedFilteredArtists!;
 
-        final selectedSongs = <MusicFile>[];
-        final seenSelectedPaths = <String>{};
-        for (final artist in visibleArtists) {
-          if (_selectedArtistKeys.contains(artist.queryKey)) {
-            for (final song in artist.songs) {
-              if (seenSelectedPaths.add(song.path)) {
-                selectedSongs.add(song);
+        final List<MusicFile> selectedSongs;
+        final List<MusicFile> allSongs;
+
+        if (isSelectionMode || isSongSelectionMode) {
+          selectedSongs = <MusicFile>[];
+          final seenSelectedPaths = <String>{};
+          for (final artist in visibleArtists) {
+            if (_selectedArtistKeys.contains(artist.queryKey)) {
+              for (final song in artist.songs) {
+                if (seenSelectedPaths.add(song.path)) {
+                  selectedSongs.add(song);
+                }
               }
             }
           }
-        }
 
-        final allSongs = <MusicFile>[];
-        final seenAllPaths = <String>{};
-        for (final artist in visibleArtists) {
-          for (final song in artist.songs) {
-            if (seenAllPaths.add(song.path)) {
-              allSongs.add(song);
+          allSongs = <MusicFile>[];
+          final seenAllPaths = <String>{};
+          for (final artist in visibleArtists) {
+            for (final song in artist.songs) {
+              if (seenAllPaths.add(song.path)) {
+                allSongs.add(song);
+              }
             }
           }
+        } else {
+          selectedSongs = const [];
+          allSongs = const [];
         }
 
         return LayoutBuilder(

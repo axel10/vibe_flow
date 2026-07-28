@@ -9,217 +9,99 @@ import 'package:vynody/player/metadata/metadata_database.dart';
 final albumLibraryProvider = StreamProvider<List<AlbumSummary>>((ref) async* {
   final db = MetadataDatabase();
   await for (final songs in db.watchAllSongMetadata()) {
-    final filteredSongs = songs.where((song) {
-      final flags = song.sourceFlags ?? 0;
-      return (flags & SongSourceFlags.external) == 0;
-    }).toList(growable: false);
-    final payload = filteredSongs.map(_metadataToPayload).toList(growable: false);
-    final albumPayloads = await compute(_buildAlbumSummaryPayloads, payload);
-    yield _hydrateAlbumSummaries(albumPayloads);
+    yield buildAlbumSummaries(songs);
   }
 });
 
 List<AlbumSummary> buildAlbumSummaries(Iterable<SongMetadata> songs) {
-  final filteredSongs = songs.where((song) {
-    final flags = song.sourceFlags ?? 0;
-    return (flags & SongSourceFlags.external) == 0;
-  });
-  return _hydrateAlbumSummaries(
-    _buildAlbumSummaryPayloads(
-      filteredSongs.map(_metadataToPayload).toList(growable: false),
-    ),
-  );
-}
-
-Map<String, Object?> _metadataToPayload(SongMetadata metadata) {
-  return {
-    'path': metadata.path,
-    'title': metadata.title,
-    'artist': metadata.artist,
-    'album': metadata.album,
-    'trackNumber': metadata.trackNumber,
-    'id': metadata.id,
-    'thumbnailPath': metadata.thumbnailPath,
-    'artworkPath': metadata.artworkPath,
-    'artworkWidth': metadata.artworkWidth,
-    'artworkHeight': metadata.artworkHeight,
-    'duration': metadata.duration,
-    'lastModifiedTime': metadata.lastModifiedTime,
-  };
-}
-
-List<Map<String, Object?>> _buildAlbumSummaryPayloads(
-  List<Map<String, Object?>> songs,
-) {
-  final groups = <String, List<Map<String, Object?>>>{};
+  final groups = <String, List<MusicFile>>{};
 
   for (final metadata in songs) {
-    final path = metadata['path'] as String? ?? '';
-    if (path.isEmpty) {
-      continue;
-    }
+    final flags = metadata.sourceFlags ?? 0;
+    if ((flags & SongSourceFlags.external) != 0) continue;
+    final path = metadata.path;
+    if (path.isEmpty) continue;
+
     final title = _cleanMetadataText(
-      metadata['album'] as String?,
+      metadata.album,
       fallback: 'Unknown Album',
     );
     final artist = _cleanMetadataText(
-      metadata['artist'] as String?,
+      metadata.artist,
       fallback: 'Unknown Artist',
     );
-    final song = _musicFileToPayload(
-      MusicFile(
-        path: path,
-        name: p.basename(path),
-        title: _cleanMetadataText(
-          metadata['title'] as String?,
-          fallback: 'Unknown',
-        ),
-        artist: artist,
-        album: title,
-        trackNumber: metadata['trackNumber'] as int?,
-        id: metadata['id'] as int?,
-        artworkPath: metadata['artworkPath'] as String?,
-        thumbnailPath: metadata['thumbnailPath'] as String?,
-        artworkWidth: metadata['artworkWidth'] as int?,
-        artworkHeight: metadata['artworkHeight'] as int?,
-        durationMillis: metadata['duration'] as int?,
-        lastModifiedTime: metadata['lastModifiedTime'] as int?,
+    final song = MusicFile(
+      path: path,
+      name: p.basename(path),
+      title: _cleanMetadataText(
+        metadata.title,
+        fallback: 'Unknown',
       ),
+      artist: artist,
+      album: title,
+      trackNumber: metadata.trackNumber,
+      id: metadata.id,
+      artworkPath: metadata.artworkPath,
+      thumbnailPath: metadata.thumbnailPath,
+      artworkWidth: metadata.artworkWidth,
+      artworkHeight: metadata.artworkHeight,
+      durationMillis: metadata.duration,
+      lastModifiedTime: metadata.lastModifiedTime,
     );
 
     final key = '${title.toLowerCase()}::${artist.toLowerCase()}';
-    groups.putIfAbsent(key, () => <Map<String, Object?>>[]).add(song);
+    (groups[key] ??= []).add(song);
   }
 
-  final albums =
-      groups.entries
-          .map((entry) {
-            final sortedSongs = List<Map<String, Object?>>.from(entry.value)
-              ..sort(_compareAlbumSongs);
-            final representativeSong = sortedSongs.firstWhere(
-              (song) => _hasArtwork(song),
-              orElse: () => sortedSongs.first,
-            );
-            final totalDurationMillis = sortedSongs.fold<int>(
-              0,
-              (sum, song) => sum + (_songDuration(song) ?? 0),
-            );
+  final albums = groups.entries.map((entry) {
+    final sortedSongs = List<MusicFile>.from(entry.value)..sort(_compareAlbumMusicFiles);
+    final representativeSong = sortedSongs.firstWhere(
+      (song) => _hasMusicFileArtwork(song),
+      orElse: () => sortedSongs.first,
+    );
+    final totalDurationMillis = sortedSongs.fold<int>(
+      0,
+      (sum, song) => sum + (song.durationMillis ?? 0),
+    );
 
-            return <String, Object?>{
-              'id': entry.key,
-              'title': _songAlbum(sortedSongs.first),
-              'artist': _songArtist(sortedSongs.first),
-              'songs': sortedSongs,
-              'representativeSong': representativeSong,
-              'totalDurationMillis': totalDurationMillis,
-            };
-          })
-          .toList(growable: false)
-        ..sort((a, b) {
-          final leftArtist = a['artist'] as String? ?? 'Unknown Artist';
-          final rightArtist = b['artist'] as String? ?? 'Unknown Artist';
-          final artistCompare = leftArtist.toLowerCase().compareTo(
-            rightArtist.toLowerCase(),
-          );
-          if (artistCompare != 0) return artistCompare;
-          final leftTitle = a['title'] as String? ?? 'Unknown Album';
-          final rightTitle = b['title'] as String? ?? 'Unknown Album';
-          return leftTitle.toLowerCase().compareTo(rightTitle.toLowerCase());
-        });
+    return AlbumSummary(
+      id: entry.key,
+      title: sortedSongs.first.album ?? 'Unknown Album',
+      artist: sortedSongs.first.artist ?? 'Unknown Artist',
+      songs: sortedSongs,
+      representativeSong: representativeSong,
+      totalDurationMillis: totalDurationMillis,
+    );
+  }).toList(growable: false)
+    ..sort((a, b) {
+      final artistCompare = a.artist.toLowerCase().compareTo(b.artist.toLowerCase());
+      if (artistCompare != 0) return artistCompare;
+      return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+    });
 
   return albums;
 }
 
-List<AlbumSummary> _hydrateAlbumSummaries(List<Map<String, Object?>> payloads) {
-  return payloads.map(_albumSummaryFromPayload).toList(growable: false);
-}
-
-AlbumSummary _albumSummaryFromPayload(Map<String, Object?> payload) {
-  final songs = (payload['songs'] as List)
-      .cast<Map<String, Object?>>()
-      .map(_musicFileFromPayload)
-      .toList(growable: false);
-  return AlbumSummary(
-    id: payload['id'] as String? ?? '',
-    title: payload['title'] as String? ?? 'Unknown Album',
-    artist: payload['artist'] as String? ?? 'Unknown Artist',
-    songs: songs,
-    representativeSong: _musicFileFromPayload(
-      payload['representativeSong'] as Map<String, Object?>,
-    ),
-    totalDurationMillis: payload['totalDurationMillis'] as int? ?? 0,
-  );
-}
-
-Map<String, Object?> _musicFileToPayload(MusicFile song) {
-  return {
-    'path': song.path,
-    'name': song.name,
-    'title': song.title,
-    'artist': song.artist,
-    'album': song.album,
-    'trackNumber': song.trackNumber,
-    'id': song.id,
-    'artworkPath': song.artworkPath,
-    'thumbnailPath': song.thumbnailPath,
-    'artworkWidth': song.artworkWidth,
-    'artworkHeight': song.artworkHeight,
-    'durationMillis': song.durationMillis,
-    'lastModifiedTime': song.lastModifiedTime,
-  };
-}
-
-MusicFile _musicFileFromPayload(Map<String, Object?> payload) {
-  return MusicFile(
-    path: payload['path'] as String? ?? '',
-    name: payload['name'] as String? ?? '',
-    title: payload['title'] as String?,
-    artist: payload['artist'] as String?,
-    album: payload['album'] as String?,
-    trackNumber: payload['trackNumber'] as int?,
-    id: payload['id'] as int?,
-    artworkPath: payload['artworkPath'] as String?,
-    thumbnailPath: payload['thumbnailPath'] as String?,
-    artworkWidth: payload['artworkWidth'] as int?,
-    artworkHeight: payload['artworkHeight'] as int?,
-    durationMillis: payload['durationMillis'] as int?,
-    lastModifiedTime: payload['lastModifiedTime'] as int?,
-  );
-}
-
-String _songAlbum(Map<String, Object?> payload) {
-  return payload['album'] as String? ?? 'Unknown Album';
-}
-
-String _songArtist(Map<String, Object?> payload) {
-  return payload['artist'] as String? ?? 'Unknown Artist';
-}
-
-int? _songDuration(Map<String, Object?> payload) {
-  return payload['durationMillis'] as int?;
-}
-
-bool _hasArtwork(Map<String, Object?> payload) {
-  final hasThumbnail =
-      (payload['thumbnailPath'] as String?)?.isNotEmpty ?? false;
-  final hasArtwork = (payload['artworkPath'] as String?)?.isNotEmpty ?? false;
+bool _hasMusicFileArtwork(MusicFile song) {
+  final hasThumbnail = song.thumbnailPath?.isNotEmpty ?? false;
+  final hasArtwork = song.artworkPath?.isNotEmpty ?? false;
   return hasThumbnail || hasArtwork;
 }
 
-int _compareAlbumSongs(Map<String, Object?> a, Map<String, Object?> b) {
-  final leftTrack = a['trackNumber'] as int?;
-  final rightTrack = b['trackNumber'] as int?;
+int _compareAlbumMusicFiles(MusicFile a, MusicFile b) {
+  final leftTrack = a.trackNumber;
+  final rightTrack = b.trackNumber;
   if (leftTrack != null && rightTrack != null && leftTrack != rightTrack) {
     return leftTrack.compareTo(rightTrack);
   }
   if (leftTrack != null && rightTrack == null) return -1;
   if (leftTrack == null && rightTrack != null) return 1;
 
-  final titleCompare = _songDisplayName(
-    a,
-  ).toLowerCase().compareTo(_songDisplayName(b).toLowerCase());
+  final titleCompare = (a.title ?? p.basenameWithoutExtension(a.path))
+      .toLowerCase()
+      .compareTo((b.title ?? p.basenameWithoutExtension(b.path)).toLowerCase());
   if (titleCompare != 0) return titleCompare;
-  return (_songPath(a)).toLowerCase().compareTo(_songPath(b).toLowerCase());
+  return a.path.toLowerCase().compareTo(b.path.toLowerCase());
 }
 
 String _cleanMetadataText(String? value, {required String fallback}) {
@@ -230,14 +112,3 @@ String _cleanMetadataText(String? value, {required String fallback}) {
   return trimmed;
 }
 
-String _songDisplayName(Map<String, Object?> payload) {
-  final title = payload['title'] as String?;
-  if (title != null && title.trim().isNotEmpty) {
-    return title;
-  }
-  return p.basenameWithoutExtension(_songPath(payload));
-}
-
-String _songPath(Map<String, Object?> payload) {
-  return payload['path'] as String? ?? '';
-}

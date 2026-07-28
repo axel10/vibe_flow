@@ -32,6 +32,14 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   bool _sortAscending = true;
   final Set<String> _selectedAlbumIds = {};
 
+  List<AlbumSummary>? _lastRawAlbums;
+  String? _lastSearchQuery;
+  _AlbumSortField? _lastSortField;
+  bool? _lastSortAscending;
+  List<AlbumSummary>? _cachedFilteredAlbums;
+  List<AlbumSummary>? _cachedKnownAlbums;
+  List<AlbumSummary>? _cachedUnknownAlbums;
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -108,34 +116,54 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
         ),
       ),
       data: (albums) {
-        final visibleAlbums = _filterAndSortAlbums(albums);
-        final knownAlbums = visibleAlbums
-            .where((album) => !album.isUnknownAlbum)
-            .toList(growable: false);
-        final unknownAlbums = visibleAlbums
-            .where((album) => album.isUnknownAlbum)
-            .toList(growable: false);
+        if (!identical(_lastRawAlbums, albums) ||
+            _lastSearchQuery != _searchQuery ||
+            _lastSortField != _sortField ||
+            _lastSortAscending != _sortAscending) {
+          _lastRawAlbums = albums;
+          _lastSearchQuery = _searchQuery;
+          _lastSortField = _sortField;
+          _lastSortAscending = _sortAscending;
+          _cachedFilteredAlbums = _filterAndSortAlbums(albums);
+          _cachedKnownAlbums = _cachedFilteredAlbums!
+              .where((album) => !album.isUnknownAlbum)
+              .toList(growable: false);
+          _cachedUnknownAlbums = _cachedFilteredAlbums!
+              .where((album) => album.isUnknownAlbum)
+              .toList(growable: false);
+        }
+        final visibleAlbums = _cachedFilteredAlbums!;
+        final knownAlbums = _cachedKnownAlbums!;
+        final unknownAlbums = _cachedUnknownAlbums!;
 
-        final selectedSongs = <MusicFile>[];
-        final seenSelectedPaths = <String>{};
-        for (final album in visibleAlbums) {
-          if (_selectedAlbumIds.contains(album.id)) {
-            for (final song in album.songs) {
-              if (seenSelectedPaths.add(song.path)) {
-                selectedSongs.add(song);
+        final List<MusicFile> selectedSongs;
+        final List<MusicFile> allSongs;
+
+        if (isSelectionMode) {
+          selectedSongs = <MusicFile>[];
+          final seenSelectedPaths = <String>{};
+          for (final album in visibleAlbums) {
+            if (_selectedAlbumIds.contains(album.id)) {
+              for (final song in album.songs) {
+                if (seenSelectedPaths.add(song.path)) {
+                  selectedSongs.add(song);
+                }
               }
             }
           }
-        }
 
-        final allSongs = <MusicFile>[];
-        final seenAllPaths = <String>{};
-        for (final album in visibleAlbums) {
-          for (final song in album.songs) {
-            if (seenAllPaths.add(song.path)) {
-              allSongs.add(song);
+          allSongs = <MusicFile>[];
+          final seenAllPaths = <String>{};
+          for (final album in visibleAlbums) {
+            for (final song in album.songs) {
+              if (seenAllPaths.add(song.path)) {
+                allSongs.add(song);
+              }
             }
           }
+        } else {
+          selectedSongs = const [];
+          allSongs = const [];
         }
 
         return Center(

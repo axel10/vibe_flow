@@ -30,23 +30,24 @@ class ArtistLibraryRepository {
     final sessionId = ++_artistLibrarySessionSeq;
     _artistLibraryLog('session#$sessionId start');
 
-    final songs = await _database.getAllSongMetadata();
-    final filteredSongs = songs.where((song) {
-      final flags = song.sourceFlags ?? 0;
-      return (flags & SongSourceFlags.external) == 0;
-    }).toList(growable: false);
-    final groups = _groupSongsByArtist(filteredSongs);
+    await for (final songs in _database.watchAllSongMetadata()) {
+      final filteredSongs = songs.where((song) {
+        final flags = song.sourceFlags ?? 0;
+        return (flags & SongSourceFlags.external) == 0;
+      }).toList(growable: false);
+      final groups = _groupSongsByArtist(filteredSongs);
 
-    final cacheKeys = groups
-        .map((group) => group.queryKey)
-        .toList(growable: false);
-    final caches = await _database.getArtistCachesByKeys(cacheKeys);
-    final orderedGroups = _sortGroupsForDisplay(groups, caches);
-    _artistLibraryLog(
-      'session#$sessionId loaded songs=${songs.length} groups=${groups.length} '
-      'caches=${caches.length}',
-    );
-    yield _buildSummaries(orderedGroups, caches);
+      final cacheKeys = groups
+          .map((group) => group.queryKey)
+          .toList(growable: false);
+      final caches = await _database.getArtistCachesByKeys(cacheKeys);
+      final orderedGroups = _sortGroupsForDisplay(groups, caches);
+      _artistLibraryLog(
+        'session#$sessionId loaded songs=${songs.length} groups=${groups.length} '
+        'caches=${caches.length}',
+      );
+      yield _buildSummaries(orderedGroups, caches);
+    }
     _artistLibraryLog('session#$sessionId complete');
   }
 
