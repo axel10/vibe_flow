@@ -1312,6 +1312,8 @@
   "autoSaveToSourceFileDescription": "补全或更新歌曲标签时，默认同步写入物理音频文件。",
   "aboutSectionDescription": "版本信息、项目链接和相关资料。",
   "checkForUpdates": "检查更新",
+  "storeUpdateNotice": "当前应用由 Microsoft Store 托管更新。您可以前往 Microsoft Store 查看或获取最新版本。",
+  "openMicrosoftStore": "前往 Microsoft Store",
   "lyricsGenerationModel": "歌词生成模型",
   "lyricsGenerationModelDescription": "用于 AI 听歌生成歌词，以及给现有歌词生成/修正时间轴。",
   "lyricsTranslationModel": "歌词翻译模型",

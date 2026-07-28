@@ -4159,6 +4159,18 @@ abstract class AppLocalizations {
   /// **'检查更新'**
   String get checkForUpdates;
 
+  /// No description provided for @storeUpdateNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前应用由 Microsoft Store 托管更新。您可以前往 Microsoft Store 查看或获取最新版本。'**
+  String get storeUpdateNotice;
+
+  /// No description provided for @openMicrosoftStore.
+  ///
+  /// In zh, this message translates to:
+  /// **'前往 Microsoft Store'**
+  String get openMicrosoftStore;
+
   /// No description provided for @lyricsGenerationModel.
   ///
   /// In zh, this message translates to:

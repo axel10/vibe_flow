@@ -899,6 +899,8 @@
   "autoSaveToSourceFileDescription": "タグ補完時に自動的に物理オーディオファイルに書き戻します。",
   "aboutSectionDescription": "バージョン情報、プロジェクトリンク、関連情報。",
   "checkForUpdates": "アップデートを確認",
+  "storeUpdateNotice": "このアプリの更新は Microsoft Store で管理されています。最新バージョンの確認は Microsoft Store で行えます。",
+  "openMicrosoftStore": "Microsoft Store を開く",
   "lyricsGenerationModel": "歌詞生成モデル",
   "lyricsGenerationModelDescription": "AIによる歌詞生成とタイムライン生成/修正に使用されます。",
   "lyricsTranslationModel": "歌詞翻訳モデル",

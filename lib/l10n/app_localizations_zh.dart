@@ -2156,6 +2156,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkForUpdates => '检查更新';
 
   @override
+  String get storeUpdateNotice =>
+      '当前应用由 Microsoft Store 托管更新。您可以前往 Microsoft Store 查看或获取最新版本。';
+
+  @override
+  String get openMicrosoftStore => '前往 Microsoft Store';
+
+  @override
   String get lyricsGenerationModel => '歌词生成模型';
 
   @override
@@ -5234,6 +5241,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get checkForUpdates => '檢查更新';
+
+  @override
+  String get storeUpdateNotice =>
+      '目前應用由 Microsoft Store 託管更新。您可以前往 Microsoft Store 查看或獲取最新版本。';
+
+  @override
+  String get openMicrosoftStore => '前往 Microsoft Store';
 
   @override
   String get lyricsGenerationModel => '歌詞生成模型';

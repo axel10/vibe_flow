@@ -2188,6 +2188,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get checkForUpdates => '업데이트 확인';
 
   @override
+  String get storeUpdateNotice =>
+      '이 앱의 업데이트는 Microsoft Store에서 관리합니다. Microsoft Store에서 최신 버전을 확인하실 수 있습니다.';
+
+  @override
+  String get openMicrosoftStore => 'Microsoft Store로 이동';
+
+  @override
   String get lyricsGenerationModel => '가사 생성 모델';
 
   @override

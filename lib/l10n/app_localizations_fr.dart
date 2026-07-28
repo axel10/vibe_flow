@@ -2293,6 +2293,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get checkForUpdates => 'Vérifier les mises à jour';
 
   @override
+  String get storeUpdateNotice =>
+      'Les mises à jour de cette application sont gérées par le Microsoft Store. Vous pouvez vérifier la dernière version dans le Microsoft Store.';
+
+  @override
+  String get openMicrosoftStore => 'Ouvrir le Microsoft Store';
+
+  @override
   String get lyricsGenerationModel => 'Modèle de génération de paroles';
 
   @override

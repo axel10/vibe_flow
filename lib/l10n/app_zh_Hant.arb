@@ -675,6 +675,8 @@
   "autoSaveToSourceFileDescription": "補全或更新歌曲標籤時，預設同步寫入實體音訊檔案。",
   "aboutSectionDescription": "版本資訊、專案連結和相關資料。",
   "checkForUpdates": "檢查更新",
+  "storeUpdateNotice": "目前應用由 Microsoft Store 託管更新。您可以前往 Microsoft Store 查看或獲取最新版本。",
+  "openMicrosoftStore": "前往 Microsoft Store",
   "lyricsGenerationModel": "歌詞生成模型",
   "lyricsGenerationModelDescription": "用於 AI 聽歌生成歌詞，以及為現有歌詞生成／修正時間軸。",
   "lyricsTranslationModel": "歌詞翻譯模型",

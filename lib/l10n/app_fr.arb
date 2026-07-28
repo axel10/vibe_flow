@@ -846,6 +846,8 @@
   "autoSaveToSourceFileDescription": "Écrire automatiquement les étiquettes dans le fichier audio physique.",
   "aboutSectionDescription": "Informations de version, liens du projet et ressources.",
   "checkForUpdates": "Vérifier les mises à jour",
+  "storeUpdateNotice": "Les mises à jour de cette application sont gérées par le Microsoft Store. Vous pouvez vérifier la dernière version dans le Microsoft Store.",
+  "openMicrosoftStore": "Ouvrir le Microsoft Store",
   "lyricsGenerationModel": "Modèle de génération de paroles",
   "lyricsGenerationModelDescription": "Pour la génération de paroles par IA et la correction de chronologie.",
   "lyricsTranslationModel": "Modèle de traduction de paroles",

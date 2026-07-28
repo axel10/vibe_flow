@@ -237,7 +237,42 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return 0;
   }
 
+  static const bool _isStoreBuild = bool.fromEnvironment(
+    'STORE_BUILD',
+    defaultValue: false,
+  );
+
   Future<void> _checkForUpdates() async {
+    if (_isStoreBuild) {
+      final l10n = AppLocalizations.of(context)!;
+      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=9NMZRZZ6RSD3');
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(l10n.checkForUpdates),
+            content: Text(l10n.storeUpdateNotice),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  Navigator.of(dialogContext).pop();
+                  if (await canLaunchUrl(storeUri)) {
+                    await launchUrl(storeUri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Text(l10n.openMicrosoftStore),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
     if (_isCheckingUpdates) return;
 
     setState(() {

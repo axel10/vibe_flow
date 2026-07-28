@@ -846,6 +846,8 @@
   "autoSaveToSourceFileDescription": "Tags automatisch in die physische Audiodatei schreiben.",
   "aboutSectionDescription": "Versionsinfo, Projektlinks und verwandte Ressourcen.",
   "checkForUpdates": "Nach Updates suchen",
+  "storeUpdateNotice": "Updates für diese App werden vom Microsoft Store verwaltet. Sie können im Microsoft Store nach der neuesten Version suchen.",
+  "openMicrosoftStore": "Zum Microsoft Store",
   "lyricsGenerationModel": "Songtext-Generierungsmodell",
   "lyricsGenerationModelDescription": "Für KI-generierte Songtexte und Zeitachsen-Korrektur.",
   "lyricsTranslationModel": "Songtext-Übersetzungsmodell",

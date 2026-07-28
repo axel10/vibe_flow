@@ -846,6 +846,8 @@
   "autoSaveToSourceFileDescription": "Al completar o actualizar etiquetas de canciones, se escribe automáticamente en el archivo de audio físico.",
   "aboutSectionDescription": "Información de versión, enlaces del proyecto y materiales relacionados.",
   "checkForUpdates": "Verificar actualizaciones",
+  "storeUpdateNotice": "Las actualizaciones de esta aplicación son administradas por Microsoft Store. Puede buscar la versión más reciente en Microsoft Store.",
+  "openMicrosoftStore": "Ir a Microsoft Store",
   "lyricsGenerationModel": "Modelo de generación de letras",
   "lyricsGenerationModelDescription": "Para que la IA genere letras a partir de la canción y genere/corrija la línea de tiempo de letras existentes.",
   "lyricsTranslationModel": "Modelo de traducción de letras",
