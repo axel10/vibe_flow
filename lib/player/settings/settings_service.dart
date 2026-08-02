@@ -383,7 +383,7 @@ class SettingsService extends ChangeNotifier {
   static const String _keyUiScale = 'ui_scale';
   static const double defaultUiScale = 1.0;
   static const double minUiScale = 0.8;
-  static const double maxUiScale = 2.0;
+  static const double maxUiScale = 1.5;
 
   final SharedPreferences _prefs;
   bool _isUserInactive = false;

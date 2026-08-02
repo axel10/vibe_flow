@@ -562,6 +562,7 @@ class PlaybackHeroCard extends ConsumerWidget {
                   lyricsStyle: settings.lyricsStyle,
                   collapseButtonsInLandscapeLyrics:
                       collapseButtonsInLandscapeLyrics,
+                  uiScale: settings.uiScale,
                 );
 
                 // Stable target end layout (tLyrics = 1.0)
@@ -576,6 +577,7 @@ class PlaybackHeroCard extends ConsumerWidget {
                   lyricsStyle: settings.lyricsStyle,
                   collapseButtonsInLandscapeLyrics:
                       collapseButtonsInLandscapeLyrics,
+                  uiScale: settings.uiScale,
                 );
 
                 // Interpolated current layout for smooth animation without re-evaluating full layout rules
@@ -822,6 +824,7 @@ class PlaybackHeroCard extends ConsumerWidget {
     required bool isSmallWindow,
     required LyricsStyle lyricsStyle,
     bool collapseButtonsInLandscapeLyrics = true,
+    double uiScale = 1.0,
   }) {
     // ---------------- Portrait Normal ----------------
     final double scaleFactor = isSmallWindow ? 0.82 : 1.0;
@@ -920,14 +923,6 @@ class PlaybackHeroCard extends ConsumerWidget {
 
     final lColumnWidth = lNormalContentWidth * 0.5;
 
-    // 横屏普通模式控件区宽度：采用具有较高基底和较低增长率的公式，
-    // 使得在窗口化（较小宽度）时控件区比例更大，而在全屏（较大宽度）时保持原样。
-    // (Landscape normal controls width: Use a formula with a higher base and lower growth rate,
-    // making the controls area relatively larger in windowed mode while maintaining fullscreen size.)
-    final lNormalControlsWidth = (lNormalContentWidth * 0.24 + 72).clamp(
-      PlaybackHeroCardUiTuning.lControlsMinWidth,
-      PlaybackHeroCardUiTuning.lControlsMaxWidth,
-    );
     final lNormalCoverSide = math
         .min(
           lColumnWidth * PlaybackHeroCardUiTuning.lNormalCoverSideFactor,
@@ -944,14 +939,25 @@ class PlaybackHeroCard extends ConsumerWidget {
 
     final lNormalCoverRightEdge = lNormalCoverLeft + lNormalCoverSide;
     final lContentRightEdge = lNormalOffsetX + lNormalContentWidth;
-    final lRemainingSpace = lContentRightEdge - lNormalCoverRightEdge;
+    final lRemainingSpace = math.max(0.0, lContentRightEdge - lNormalCoverRightEdge);
+
+    // 横屏普通模式控件区宽度：适配 uiScale 缩放系数（车机大屏方便点击）
+    final lNormalControlsWidth = ((lNormalContentWidth * 0.24 + 72) *
+            math.max(1.0, uiScale * 0.95))
+        .clamp(
+          PlaybackHeroCardUiTuning.lControlsMinWidth,
+          PlaybackHeroCardUiTuning.lControlsMaxWidth * math.max(1.0, uiScale),
+        )
+        .clamp(0.0, lRemainingSpace);
 
     final lNormalControlsLeft =
         lNormalCoverRightEdge + (lRemainingSpace - lNormalControlsWidth) / 2;
 
+    // 控件区缩放倍率：结合 uiScale 进行放大，提升车机上的按键触控体验
     final double lNormalControlsScale =
-        (lNormalControlsWidth / PlaybackHeroCardUiTuning.lControlsScaleBase)
-            .clamp(0.85, 1.8);
+        ((lNormalControlsWidth / PlaybackHeroCardUiTuning.lControlsScaleBase) *
+                uiScale)
+            .clamp(0.85, 1.8 * uiScale);
     final double lNormalSingleButtonWidth =
         PlaybackHeroCardUiTuning.controlsTopButtonsHeight *
         lNormalControlsScale;
@@ -979,18 +985,8 @@ class PlaybackHeroCard extends ConsumerWidget {
         lNormalControlsLeft +
         (lNormalControlsWidth - lNormalInfoWidthAdjusted) / 2;
 
-    // Snap the normal landscape panes to whole pixels to avoid 1px overflow
-    // when the window is resized and the layout lands on fractional values.
-    final lNormalControlsRawScale =
-        lNormalControlsWidth / PlaybackHeroCardUiTuning.lControlsScaleBase;
-
-    // 标题区实际高度 (Title actual height)
-    final lNormalInfoHeight =
-        (PlaybackHeroCardUiTuning.landscapeInfoHeightBase *
-                lNormalControlsRawScale.clamp(0.0, 1.8))
-            .ceilToDouble();
-
     // 控件区动态高度计算 (Dynamic controls height)
+    // 横屏普通模式下主按键行高度为 60.0 (Main buttons row height in normal landscape is 60.0)
     final lNormalControlsBaseIdealHeight =
         PlaybackHeroCardUiTuning.controlsTopButtonsHeight +
         PlaybackHeroCardUiTuning.controlsRowLandscapeGap +
@@ -1000,22 +996,32 @@ class PlaybackHeroCard extends ConsumerWidget {
         PlaybackHeroCardUiTuning.controlsTimeGap +
         PlaybackHeroCardUiTuning.controlsTimeRowHeight +
         PlaybackHeroCardUiTuning.controlsRowLandscapeMainGap +
-        PlaybackHeroCardUiTuning.controlsMainButtonsHeight;
+        60.0;
+
+    final double maxControlsHeight = math.max(
+      height * 0.65,
+      height - 80.0,
+    );
 
     final lNormalControlsHeight =
-        (lNormalControlsBaseIdealHeight *
-                lNormalControlsRawScale.clamp(0.0, 1.8))
-            .clamp(
-              0.0,
-              height * 0.5,
-            ) // Remove pControlsMinHeight clamp to allow exact fit
+        (lNormalControlsBaseIdealHeight * lNormalControlsScale)
+            .clamp(0.0, maxControlsHeight)
             .ceilToDouble();
 
-    final lNormalGap = PlaybackHeroCardUiTuning.landscapeInfoControlsGap;
-    final lNormalInfoTop =
-        (height * 0.5 -
-                (lNormalInfoHeight + lNormalControlsHeight + lNormalGap) / 2)
-            .roundToDouble();
+    // 标题区高度与缩放比例精确匹配，确保 FittedBox 无多余留白 (Title height matches scale 1:1)
+    final lNormalInfoHeight =
+        (PlaybackHeroCardUiTuning.landscapeInfoHeightBase * lNormalControlsScale)
+            .ceilToDouble();
+
+    // 标题区与 7 按钮行之间的自然间距 (Natural gap)
+    final lNormalGap =
+        (PlaybackHeroCardUiTuning.landscapeInfoControlsGap * lNormalControlsScale)
+            .ceilToDouble();
+    final lNormalTotalRightHeight =
+        lNormalInfoHeight + lNormalControlsHeight + lNormalGap;
+    final lNormalInfoTop = (height * 0.5 - lNormalTotalRightHeight / 2)
+        .clamp(8.0, math.max(8.0, height - lNormalTotalRightHeight - 8.0))
+        .roundToDouble();
     final lNormalControlsTop = lNormalInfoTop + lNormalInfoHeight + lNormalGap;
 
     // ---------------- Landscape Lyrics ----------------
@@ -1033,11 +1039,13 @@ class PlaybackHeroCard extends ConsumerWidget {
     final double lLyricsPreferredCoverSide =
         (PlaybackHeroCardUiTuning.lLyricsPreferredCoverSide +
                 spaceFactor * PlaybackHeroCardUiTuning.lLyricsMaxCoverExpansion) *
-        highResControlsScale;
+        highResControlsScale *
+        math.max(1.0, uiScale * 0.95);
     final double lLyricsSpaceControlsScale =
         highResControlsScale *
         (PlaybackHeroCardUiTuning.lLyricsBaseControlsScale +
-            spaceFactor * PlaybackHeroCardUiTuning.lLyricsMaxControlsExpansion);
+            spaceFactor * PlaybackHeroCardUiTuning.lLyricsMaxControlsExpansion) *
+        uiScale;
 
     const lLyricsTopPadding = 16.0;
     const lLyricsOuterLeftPadding = 48.0;
@@ -1060,7 +1068,9 @@ class PlaybackHeroCard extends ConsumerWidget {
       lLyricsLyricsWidth = math.max(0.0, width * rightRatio - 24.0 - 48.0);
     } else {
       final double lLyricsMaxColumnWidth = math.min(width * 0.45, 800.0);
-      lLyricsColumnWidth = (width * 0.20).clamp(
+      final double targetColumnWidth =
+          math.max(width * 0.22, 380.0) * math.max(1.0, uiScale * 0.85);
+      lLyricsColumnWidth = targetColumnWidth.clamp(
         math.min(380.0, lLyricsMaxColumnWidth),
         lLyricsMaxColumnWidth,
       );
@@ -1097,7 +1107,7 @@ class PlaybackHeroCard extends ConsumerWidget {
         PlaybackHeroCardUiTuning.landscapeLyricsInfoControlsGap *
         lLyricsSpaceControlsScale;
 
-    // Apple Music 布局逻辑：控件大小保持舒适设定，高度不足时封面收缩，控件区宽度同步收缩至与封面同宽，控件间距自动紧密
+    // 左侧面板在水平方向上的最大可用空间 (Max horizontal space available for left controls panel)
     final double maxHorizontalSpace =
         lyricsStyle == LyricsStyle.apple
             ? math.max(120.0, lLyricsColumnWidth - 64.0)
@@ -1118,11 +1128,8 @@ class PlaybackHeroCard extends ConsumerWidget {
       maxCoverSide,
     );
 
-    // 控件区与标题区宽度收缩至与封面保持一致，控件大小不变，按钮间距自动收缩
-    final double lLyricsItemWidth = math.min(
-      maxHorizontalSpace,
-      lLyricsCoverSide,
-    );
+    // 控件区与标题区统一使用左侧面板的可用宽度 maxHorizontalSpace，确保控件区随 uiScale 放大，不被封面高度挤压收缩
+    final double lLyricsItemWidth = maxHorizontalSpace;
 
     final double lLyricsTotalContentHeight =
         lLyricsCoverSide +
@@ -1147,9 +1154,8 @@ class PlaybackHeroCard extends ConsumerWidget {
             1.15,
           ),
           1.0,
-          // 横屏普通模式：基于列宽进行缩放，放宽最小缩放限制以允许在小窗口下更自然的布局
-          (lNormalControlsWidth / PlaybackHeroCardUiTuning.lControlsScaleBase)
-              .clamp(0.85, 1.8),
+          // 横屏普通模式：与 lNormalControlsScale 保持一致，确保 FittedBox 高度与实际渲染高度 1:1 精确匹配
+          lNormalControlsScale,
           // 横屏歌词模式：控件大小保持舒适设定
           lLyricsSpaceControlsScale,
           tLyrics,
@@ -2259,12 +2265,19 @@ class PlaybackHeroCard extends ConsumerWidget {
       child: SizedBox(
         width: unifiedWidth,
         height: topRowHeight,
-        child: OverflowBox(
-          minWidth: unifiedWidth + topButtonsOverflowOffset * 2,
-          maxWidth: unifiedWidth + topButtonsOverflowOffset * 2,
-          minHeight: topRowHeight,
-          maxHeight: topRowHeight,
-          child: topButtonsRowInner,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            width: math.max(unifiedWidth, buttonsRowWidth),
+            height: topRowHeight,
+            child: OverflowBox(
+              minWidth: math.max(unifiedWidth, buttonsRowWidth) + topButtonsOverflowOffset * 2,
+              maxWidth: math.max(unifiedWidth, buttonsRowWidth) + topButtonsOverflowOffset * 2,
+              minHeight: topRowHeight,
+              maxHeight: topRowHeight,
+              child: topButtonsRowInner,
+            ),
+          ),
         ),
       ),
     );
@@ -2437,15 +2450,23 @@ class PlaybackHeroCard extends ConsumerWidget {
         ? 12.0 * controlsScale
         : 10.0 * controlsScale;
     final double mainRowHeight = (useOverlayStyle ? 72.0 : 60.0) * controlsScale;
+    final double minMainRowWidth = (useOverlayStyle ? 268.0 : 260.0) * controlsScale;
     final Widget mainControlsRow = SizedBox(
       width: unifiedWidth,
       height: mainRowHeight,
-      child: OverflowBox(
-        minWidth: unifiedWidth + mainControlsOverflowOffset * 2,
-        maxWidth: unifiedWidth + mainControlsOverflowOffset * 2,
-        minHeight: mainRowHeight,
-        maxHeight: mainRowHeight,
-        child: mainControlsRowInner,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: SizedBox(
+          width: math.max(unifiedWidth, minMainRowWidth),
+          height: mainRowHeight,
+          child: OverflowBox(
+            minWidth: math.max(unifiedWidth, minMainRowWidth) + mainControlsOverflowOffset * 2,
+            maxWidth: math.max(unifiedWidth, minMainRowWidth) + mainControlsOverflowOffset * 2,
+            minHeight: mainRowHeight,
+            maxHeight: mainRowHeight,
+            child: mainControlsRowInner,
+          ),
+        ),
       ),
     );
 

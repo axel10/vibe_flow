@@ -687,7 +687,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ),
                             min: SettingsService.minUiScale,
                             max: SettingsService.maxUiScale,
-                            divisions: 24,
+                            divisions: 14,
                             label: '$percent%',
                             onChanged: (value) {
                               setDialogState(() {
@@ -697,7 +697,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             },
                           ),
                         ),
-                        const Text('200%'),
+                        const Text('150%'),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -749,16 +749,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             if (selected) {
                               setDialogState(() => tempScale = 1.50);
                               settings.uiScale = 1.50;
-                            }
-                          },
-                        ),
-                        ChoiceChip(
-                          label: const Text('175% 特大'),
-                          selected: (tempScale - 1.75).abs() < 0.01,
-                          onSelected: (selected) {
-                            if (selected) {
-                              setDialogState(() => tempScale = 1.75);
-                              settings.uiScale = 1.75;
                             }
                           },
                         ),
