@@ -1081,11 +1081,13 @@ class PlaybackHeroCard extends ConsumerWidget {
       lLyricsLyricsWidth = math.max(0.0, width - lLyricsLyricsLeft - 32.0);
     }
 
+    final double lLyricsInfoControlsScale =
+        lLyricsSpaceControlsScale * math.max(1.0, uiScale);
     final double lLyricsInfoHeight =
         (collapseButtonsInLandscapeLyrics
             ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightBase
             : PlaybackHeroCardUiTuning.landscapeInfoHeightBase) *
-        lLyricsSpaceControlsScale;
+        lLyricsInfoControlsScale;
 
     final double lLyricsControlsBaseIdealHeight =
         collapseButtonsInLandscapeLyrics
@@ -1110,7 +1112,7 @@ class PlaybackHeroCard extends ConsumerWidget {
     // 左侧面板在水平方向上的最大可用空间 (Max horizontal space available for left controls panel)
     final double maxHorizontalSpace =
         lyricsStyle == LyricsStyle.apple
-            ? math.max(120.0, lLyricsColumnWidth - 64.0)
+            ? math.max(120.0, lLyricsColumnWidth - 48.0)
             : lLyricsColumnWidth;
     final double maxCoverSide = math.min(
       lLyricsPreferredCoverSide,
@@ -1128,8 +1130,11 @@ class PlaybackHeroCard extends ConsumerWidget {
       maxCoverSide,
     );
 
-    // 控件区与标题区统一使用左侧面板的可用宽度 maxHorizontalSpace，确保控件区随 uiScale 放大，不被封面高度挤压收缩
-    final double lLyricsItemWidth = maxHorizontalSpace;
+    // 横屏歌词模式下，标准缩放(uiScale=1.0)且空间充裕时，控件区与封面同宽；
+    // 当 uiScale 增大（车机大屏触控）或封面高度受限缩小，控件区宽度随 uiScale 扩展至 maxHorizontalSpace，
+    // 确保大按钮与进度条不会被封面的高度挤压变窄。
+    final double lLyricsItemWidth = (lLyricsCoverSide * math.max(1.0, uiScale))
+        .clamp(lLyricsCoverSide, maxHorizontalSpace);
 
     final double lLyricsTotalContentHeight =
         lLyricsCoverSide +
@@ -1167,23 +1172,28 @@ class PlaybackHeroCard extends ConsumerWidget {
     final double lLyricsInfoLeft;
     final double lLyricsControlsLeft;
 
-    if (lyricsStyle == LyricsStyle.apple) {
-      final double leftAreaCenter = lLyricsColumnWidth / 2;
-      lLyricsCoverLeft = (leftAreaCenter - lLyricsCoverSide / 2).clamp(
-        32.0,
-        math.max(32.0, lLyricsColumnWidth - lLyricsCoverSide - 24.0),
-      );
-      final double itemLeft = (leftAreaCenter - lLyricsItemWidth / 2).clamp(
-        24.0,
-        math.max(24.0, lLyricsColumnWidth - lLyricsItemWidth - 24.0),
-      );
-      lLyricsInfoLeft = itemLeft;
-      lLyricsControlsLeft = itemLeft;
-    } else {
-      lLyricsCoverLeft = lLyricsOuterLeftPadding;
-      lLyricsInfoLeft = lLyricsOuterLeftPadding;
-      lLyricsControlsLeft = lLyricsOuterLeftPadding;
-    }
+    final double leftColumnStart =
+        lyricsStyle == LyricsStyle.apple ? 0.0 : lLyricsOuterLeftPadding;
+    final double leftAreaCenter = leftColumnStart + lLyricsColumnWidth / 2;
+    final double minLeftMargin =
+        lyricsStyle == LyricsStyle.apple ? 24.0 : lLyricsOuterLeftPadding;
+
+    lLyricsCoverLeft = (leftAreaCenter - lLyricsCoverSide / 2).clamp(
+      minLeftMargin,
+      math.max(
+        minLeftMargin,
+        leftColumnStart + lLyricsColumnWidth - lLyricsCoverSide - minLeftMargin,
+      ),
+    );
+    final double itemLeft = (leftAreaCenter - lLyricsItemWidth / 2).clamp(
+      minLeftMargin,
+      math.max(
+        minLeftMargin,
+        leftColumnStart + lLyricsColumnWidth - lLyricsItemWidth - minLeftMargin,
+      ),
+    );
+    lLyricsInfoLeft = itemLeft;
+    lLyricsControlsLeft = itemLeft;
 
     final lLyricsInfoTop =
         lLyricsCoverTop + lLyricsCoverSide + lLyricsCoverInfoSpacing;
