@@ -152,10 +152,11 @@ class AudioService extends Notifier<AudioSnapshot> {
         settingsService.prefs.getDouble(_previousVolumeStorageKey) ?? 100.0;
     _isMuted = settingsService.prefs.getBool(_isMutedStorageKey) ?? false;
 
+    final initialFadeEnabled = settingsService.enableFadeEffect;
     _player = AudioCoreController(
       fadeSettings: FadeSettings(
-        fadeOnSwitch: true,
-        fadeOnPauseResume: true,
+        fadeOnSwitch: initialFadeEnabled,
+        fadeOnPauseResume: initialFadeEnabled,
         mode: FadeMode.crossfade,
       ),
     );
@@ -218,6 +219,19 @@ class AudioService extends Notifier<AudioSnapshot> {
     _player.addListener(_handlePlayerChanges);
     _settingsListener = () {
       if (_disposed) return;
+      final fadeEnabled = settingsService.enableFadeEffect;
+      final currentFade = _player.player.fadeSettings;
+      if (currentFade.fadeOnSwitch != fadeEnabled ||
+          currentFade.fadeOnPauseResume != fadeEnabled) {
+        _player.player.setFadeSettings(
+          FadeSettings(
+            fadeOnSwitch: fadeEnabled,
+            fadeOnPauseResume: fadeEnabled,
+            mode: FadeMode.crossfade,
+          ),
+        );
+      }
+
       final currentWaveformChunks = settingsService.waveformChunks;
       if (_lastWaveformChunks != currentWaveformChunks) {
         _lastWaveformChunks = currentWaveformChunks;

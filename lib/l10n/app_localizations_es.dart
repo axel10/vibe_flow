@@ -3267,4 +3267,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String bandsCountOption(int count) {
     return '$count 段';
   }
+
+  @override
+  String get enableFadeEffect => '音频淡入淡出';
+
+  @override
+  String get enableFadeEffectDescription => '在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡';
 }

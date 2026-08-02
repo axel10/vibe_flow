@@ -3236,4 +3236,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String bandsCountOption(int count) {
     return '$count Bands';
   }
+
+  @override
+  String get enableFadeEffect => 'Audio Fade Effect';
+
+  @override
+  String get enableFadeEffectDescription =>
+      'Enable smooth fade transitions during song switching, play, and pause';
 }

@@ -2409,6 +2409,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           },
         ),
         const Divider(height: 32),
+        SwitchListTile(
+          title: Text(l10n.enableFadeEffect),
+          subtitle: Text(l10n.enableFadeEffectDescription),
+          value: settings.enableFadeEffect,
+          onChanged: (value) {
+            settings.enableFadeEffect = value;
+          },
+        ),
+        const Divider(height: 32),
         ListTile(
           title: const Text('重置均衡器设置'),
           subtitle: const Text('重置均衡器增益及预充为默认状态'),

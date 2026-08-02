@@ -1789,6 +1789,8 @@
         "type": "int"
       }
     }
-  }
+  },
+  "enableFadeEffect": "音频淡入淡出",
+  "enableFadeEffectDescription": "在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡"
 }
 

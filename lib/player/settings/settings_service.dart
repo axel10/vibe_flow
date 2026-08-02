@@ -249,6 +249,7 @@ class SettingsService extends ChangeNotifier {
   static const String defaultDeepSeekTranslationModelId = 'deepseek-v4-flash';
   static const String _keyThemeMode = 'theme_mode';
   static const String _keyLocale = 'app_locale';
+  static const String _keyEnableFadeEffect = 'enable_fade_effect';
   static const String _keyWindowsAutoRepairShortcut = 'windows_auto_repair_shortcut';
   static const String _keyEnableSystemTray = 'enable_system_tray';
   static const String _keyCloseToTray = 'close_to_tray';
@@ -1107,6 +1108,13 @@ class SettingsService extends ChangeNotifier {
     onChanged: notifyListeners,
   );
 
+  late final _enableFadeEffectProperty = SettingProperty<bool>(
+    key: _keyEnableFadeEffect,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
   late final _equalizerBandCountProperty = SettingProperty<int>(
     key: _keyEqualizerBandCount,
     defaultValue: 10,
@@ -1829,6 +1837,10 @@ class SettingsService extends ChangeNotifier {
       _playbackSpeedLimit5xProperty.value;
   set playbackSpeedLimit5x(bool value) =>
       _playbackSpeedLimit5xProperty.value = value;
+
+  bool get enableFadeEffect => _enableFadeEffectProperty.value;
+  set enableFadeEffect(bool value) =>
+      _enableFadeEffectProperty.value = value;
 
   int get equalizerBandCount => _equalizerBandCountProperty.value;
   set equalizerBandCount(int value) =>

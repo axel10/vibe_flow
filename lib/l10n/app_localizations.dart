@@ -5808,6 +5808,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'{count} 段'**
   String bandsCountOption(int count);
+
+  /// No description provided for @enableFadeEffect.
+  ///
+  /// In zh, this message translates to:
+  /// **'音频淡入淡出'**
+  String get enableFadeEffect;
+
+  /// No description provided for @enableFadeEffectDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡'**
+  String get enableFadeEffectDescription;
 }
 
 class _AppLocalizationsDelegate
