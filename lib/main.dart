@@ -10,6 +10,7 @@ import 'package:worker_manager/worker_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/services.dart';
+import 'dialogs/close_window_action_dialog.dart';
 import 'l10n/app_localizations.dart';
 import 'pages/main_layout.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
@@ -375,10 +376,45 @@ class _MyAppState extends ConsumerState<MyApp>
   void onWindowClose() async {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       final settings = ref.read(settingsServiceProvider);
-      if (settings.closeToTray) {
+
+      // If system tray is disabled, exit directly without prompt or hide
+      if (!settings.enableSystemTray) {
+        await performCleanExit();
+        return;
+      }
+
+      var action = settings.closeWindowAction;
+      if (action == CloseWindowAction.ask) {
+        await windowManager.show();
+        await windowManager.focus();
+
+        final context = navigatorKey.currentContext;
+        if (context != null && context.mounted) {
+          final result = await showDialog<CloseWindowActionResult>(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogCtx) => const CloseWindowActionDialog(),
+          );
+
+          if (result == null) {
+            // User cancelled the dialog, do not hide or exit.
+            return;
+          }
+
+          if (result.remember) {
+            settings.closeWindowAction = result.action;
+          }
+          action = result.action;
+        } else {
+          await performCleanExit();
+          return;
+        }
+      }
+
+      if (action == CloseWindowAction.minimize) {
         await windowManager.hide();
-      } else {
-        await windowManager.destroy();
+      } else if (action == CloseWindowAction.exit) {
+        await performCleanExit();
       }
     }
   }
@@ -386,7 +422,9 @@ class _MyAppState extends ConsumerState<MyApp>
   @override
   Future<AppExitResponse> didRequestAppExit() async {
     final settings = ref.read(settingsServiceProvider);
-    if (settings.closeToTray && !isExplicitAppExit) {
+    if (settings.enableSystemTray &&
+        settings.closeWindowAction == CloseWindowAction.minimize &&
+        !isExplicitAppExit) {
       AppLog.log(
         'didRequestAppExit: hiding window to tray instead of exit.',
         mirrorToConsole: true,

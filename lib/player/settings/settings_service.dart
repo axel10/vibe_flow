@@ -54,6 +54,17 @@ final class LyricsAiModelSelection {
 
 enum SmallWindowBottomPanelMode { collapsed, queue, lyrics }
 
+enum CloseWindowAction { ask, minimize, exit }
+
+extension CloseWindowActionX on CloseWindowAction {
+  String get storageValue => name;
+  static CloseWindowAction fromStorageValue(String? value) {
+    if (value == 'minimize') return CloseWindowAction.minimize;
+    if (value == 'exit') return CloseWindowAction.exit;
+    return CloseWindowAction.ask;
+  }
+}
+
 enum FolderViewMode { list, hybrid, grid }
 
 extension FolderViewModeX on FolderViewMode {
@@ -241,6 +252,7 @@ class SettingsService extends ChangeNotifier {
   static const String _keyWindowsAutoRepairShortcut = 'windows_auto_repair_shortcut';
   static const String _keyEnableSystemTray = 'enable_system_tray';
   static const String _keyCloseToTray = 'close_to_tray';
+  static const String _keyCloseWindowAction = 'close_window_action';
   static const String _keyImmersiveTabBar = 'immersive_tab_bar_enabled';
   static const String _keyCollapseButtonsInLandscapeLyrics =
       'collapse_buttons_in_landscape_lyrics';
@@ -536,6 +548,27 @@ class SettingsService extends ChangeNotifier {
     defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
+  );
+
+  late final _closeWindowActionProperty = SettingProperty<CloseWindowAction>(
+    key: _keyCloseWindowAction,
+    defaultValue: CloseWindowAction.ask,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) {
+      final val = prefs.getString(key);
+      if (val != null) {
+        return CloseWindowActionX.fromStorageValue(val);
+      }
+      if (prefs.containsKey(_keyCloseToTray)) {
+        final legacyCloseToTray = prefs.getBool(_keyCloseToTray);
+        if (legacyCloseToTray == false) {
+          return CloseWindowAction.exit;
+        }
+      }
+      return def;
+    },
+    customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
   );
 
   late final _waveformChunksProperty = SettingProperty<int>(
@@ -1294,8 +1327,16 @@ class SettingsService extends ChangeNotifier {
   set enableSystemTray(bool value) =>
       _enableSystemTrayProperty.value = value;
 
-  bool get closeToTray => _closeToTrayProperty.value;
-  set closeToTray(bool value) => _closeToTrayProperty.value = value;
+  CloseWindowAction get closeWindowAction => _closeWindowActionProperty.value;
+  set closeWindowAction(CloseWindowAction value) {
+    _closeWindowActionProperty.value = value;
+    _closeToTrayProperty.value = (value == CloseWindowAction.minimize);
+  }
+
+  bool get closeToTray => closeWindowAction == CloseWindowAction.minimize;
+  set closeToTray(bool value) {
+    closeWindowAction = value ? CloseWindowAction.minimize : CloseWindowAction.exit;
+  }
 
   int get sampleStride => _sampleStrideProperty.value;
   set sampleStride(int value) => _sampleStrideProperty.value = value;

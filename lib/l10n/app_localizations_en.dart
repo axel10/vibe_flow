@@ -2894,6 +2894,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep the app running in the background when closing the main window';
 
   @override
+  String get closeWindowActionTitle => 'When closing window';
+
+  @override
+  String get closeWindowActionDescription =>
+      'Choose what happens when clicking the close button';
+
+  @override
+  String get closeWindowActionAsk => 'Always ask';
+
+  @override
+  String get closeWindowActionMinimize => 'Minimize to system tray';
+
+  @override
+  String get closeWindowActionExit => 'Exit application';
+
+  @override
+  String get closeWindowActionRemember =>
+      'Remember my choice and don\'t ask again';
+
+  @override
+  String get closeWindowActionTrayDisabledTip =>
+      '(System tray must be enabled)';
+
+  @override
+  String get closeWindowDialogTitle => 'Close Window';
+
+  @override
+  String get closeWindowDialogContent =>
+      'Please select what should happen when clicking the close button:';
+
+  @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
 
   @override

@@ -1802,13 +1802,44 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               settings.enableSystemTray = value;
             },
           ),
-          SwitchListTile(
-            title: Text(l10n.closeToTray),
-            subtitle: Text(l10n.closeToTrayDescription),
-            value: settings.closeToTray,
-            onChanged: (value) {
-              settings.closeToTray = value;
-            },
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: DropdownButtonFormField<CloseWindowAction>(
+              key: ValueKey('close_action_${settings.enableSystemTray}_${settings.closeWindowAction}'),
+              value: !settings.enableSystemTray
+                  ? CloseWindowAction.exit
+                  : settings.closeWindowAction,
+              isExpanded: true,
+              decoration: InputDecoration(
+                labelText: l10n.closeWindowActionTitle,
+                helperText: !settings.enableSystemTray
+                    ? '${l10n.closeWindowActionDescription} ${l10n.closeWindowActionTrayDisabledTip}'
+                    : l10n.closeWindowActionDescription,
+                border: const OutlineInputBorder(),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: CloseWindowAction.ask,
+                  child: Text(l10n.closeWindowActionAsk),
+                ),
+                DropdownMenuItem(
+                  value: CloseWindowAction.minimize,
+                  enabled: settings.enableSystemTray,
+                  child: Text(l10n.closeWindowActionMinimize),
+                ),
+                DropdownMenuItem(
+                  value: CloseWindowAction.exit,
+                  child: Text(l10n.closeWindowActionExit),
+                ),
+              ],
+              onChanged: !settings.enableSystemTray
+                  ? null
+                  : (value) {
+                      if (value != null) {
+                        settings.closeWindowAction = value;
+                      }
+                    },
+            ),
           ),
         ],
         ListTile(

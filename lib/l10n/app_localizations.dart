@@ -5233,6 +5233,60 @@ abstract class AppLocalizations {
   /// **'关闭主界面时保持后台播放，不直接退出程序'**
   String get closeToTrayDescription;
 
+  /// No description provided for @closeWindowActionTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击关闭按钮时'**
+  String get closeWindowActionTitle;
+
+  /// No description provided for @closeWindowActionDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择点击主界面关闭按钮时的操作'**
+  String get closeWindowActionDescription;
+
+  /// No description provided for @closeWindowActionAsk.
+  ///
+  /// In zh, this message translates to:
+  /// **'每次询问'**
+  String get closeWindowActionAsk;
+
+  /// No description provided for @closeWindowActionMinimize.
+  ///
+  /// In zh, this message translates to:
+  /// **'最小化到系统托盘'**
+  String get closeWindowActionMinimize;
+
+  /// No description provided for @closeWindowActionExit.
+  ///
+  /// In zh, this message translates to:
+  /// **'完全退出应用'**
+  String get closeWindowActionExit;
+
+  /// No description provided for @closeWindowActionRemember.
+  ///
+  /// In zh, this message translates to:
+  /// **'记住我的选择，不再提示'**
+  String get closeWindowActionRemember;
+
+  /// No description provided for @closeWindowActionTrayDisabledTip.
+  ///
+  /// In zh, this message translates to:
+  /// **'（需先启用系统托盘）'**
+  String get closeWindowActionTrayDisabledTip;
+
+  /// No description provided for @closeWindowDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭应用确认'**
+  String get closeWindowDialogTitle;
+
+  /// No description provided for @closeWindowDialogContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'请选择点击关闭按钮时的操作：'**
+  String get closeWindowDialogContent;
+
   /// No description provided for @googleAiStudioApiKey.
   ///
   /// In zh, this message translates to:

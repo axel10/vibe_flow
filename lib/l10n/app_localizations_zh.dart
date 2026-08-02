@@ -2759,6 +2759,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get closeToTrayDescription => '关闭主界面时保持后台播放，不直接退出程序';
 
   @override
+  String get closeWindowActionTitle => '点击关闭按钮时';
+
+  @override
+  String get closeWindowActionDescription => '选择点击主界面关闭按钮时的操作';
+
+  @override
+  String get closeWindowActionAsk => '每次询问';
+
+  @override
+  String get closeWindowActionMinimize => '最小化到系统托盘';
+
+  @override
+  String get closeWindowActionExit => '完全退出应用';
+
+  @override
+  String get closeWindowActionRemember => '记住我的选择，不再提示';
+
+  @override
+  String get closeWindowActionTrayDisabledTip => '（需先启用系统托盘）';
+
+  @override
+  String get closeWindowDialogTitle => '关闭应用确认';
+
+  @override
+  String get closeWindowDialogContent => '请选择点击关闭按钮时的操作：';
+
+  @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
 
   @override
