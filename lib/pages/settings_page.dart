@@ -2494,15 +2494,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         const Divider(height: 32),
         SwitchListTile(
-          title: const Text('5倍速上限'),
-          subtitle: const Text('解禁播放速度滑动条上限至 5.0 倍速'),
-          value: settings.playbackSpeedLimit5x,
-          onChanged: (value) {
-            settings.playbackSpeedLimit5x = value;
-          },
-        ),
-        const Divider(height: 32),
-        SwitchListTile(
           title: Text(l10n.enableFadeEffect),
           subtitle: Text(l10n.enableFadeEffectDescription),
           value: settings.enableFadeEffect,
