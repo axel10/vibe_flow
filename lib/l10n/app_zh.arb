@@ -1777,6 +1777,18 @@
       }
     }
   },
-  "confirm": "确定"
+  "confirm": "确定",
+  "audioSettings": "音频设置",
+  "audioSettingsDescription": "管理音频播放、均衡器频段与播放速度相关配置",
+  "equalizerBandCount": "均衡器频段数量",
+  "equalizerBandCountDescription": "设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动",
+  "bandsCountOption": "{count} 段",
+  "@bandsCountOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
 

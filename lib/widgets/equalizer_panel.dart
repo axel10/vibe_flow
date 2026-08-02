@@ -16,25 +16,24 @@ class EqualizerPanel extends ConsumerStatefulWidget {
 }
 
 class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
-  static const int bandCount = 10;
   List<double> _frequencies = [];
+  int _lastBandCount = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+  void _syncBandCount(int bandCount) {
+    if (_lastBandCount != bandCount) {
+      _lastBandCount = bandCount;
       final audio = ref.read(audioServiceProvider);
       audio.ensureEqualizerBandCount(bandCount);
-      if (!mounted) return;
-      setState(() {
-        _frequencies = audio.getEqualizerBandCenters(bandCount: bandCount);
-      });
-    });
+      _frequencies = audio.getEqualizerBandCenters(bandCount: bandCount);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsServiceProvider);
+    final bandCount = settings.equalizerBandCount;
+    _syncBandCount(bandCount);
+
     final audio = ref.read(audioServiceProvider);
     final snapshot = ref.watch(audioSnapshotProvider);
     final config = snapshot.equalizerConfig;
@@ -62,7 +61,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           children: [
             _buildHeader(audio, config, l10n),
             const SizedBox(height: 24),
-            _buildEqSliders(audio, config, accentColor),
+            _buildEqSliders(audio, config, accentColor, bandCount),
             const SizedBox(height: 32),
             _buildBottomControls(audio, config, accentColor, l10n),
             const SizedBox(height: 24),
@@ -290,21 +289,26 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     AudioService audio,
     EqualizerConfig config,
     Color accentColor,
+    int bandCount,
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    const double minItemWidth = 48.0;
+
     return SizedBox(
       height: 220,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(bandCount, (index) {
-          final gain = index < config.bandGainsDb.length
-              ? config.bandGainsDb[index]
-              : 0.0;
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidthNeeded = minItemWidth * bandCount;
+          final needsScroll = totalWidthNeeded > constraints.maxWidth;
 
-          return Expanded(
-            child: Column(
+          final sliders = List.generate(bandCount, (index) {
+            final gain = index < config.bandGainsDb.length
+                ? config.bandGainsDb[index]
+                : 0.0;
+
+            final sliderItem = Column(
               children: [
                 Expanded(
                   child: _VerticalEqSlider(
@@ -321,15 +325,51 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                       ? _formatFreq(_frequencies[index])
                       : '',
                   style: TextStyle(
-                    color: isDark ? Colors.white.withValues(alpha: 0.6) : theme.colorScheme.onSurfaceVariant,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : theme.colorScheme.onSurfaceVariant,
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
-            ),
-          );
-        }),
+            );
+
+            if (needsScroll) {
+              return SizedBox(
+                width: minItemWidth,
+                child: sliderItem,
+              );
+            } else {
+              return Expanded(child: sliderItem);
+            }
+          });
+
+          if (needsScroll) {
+            return ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                dragDevices: {
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                  PointerDeviceKind.trackpad,
+                },
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: sliders,
+                ),
+              ),
+            );
+          } else {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: sliders,
+            );
+          }
+        },
       ),
     );
   }

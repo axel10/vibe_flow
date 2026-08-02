@@ -3217,4 +3217,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String uiDisplayScaleCurrent(int percent) {
     return 'Current scale: $percent%';
   }
+
+  @override
+  String get audioSettings => 'Audio Settings';
+
+  @override
+  String get audioSettingsDescription =>
+      'Manage audio playback, equalizer bands, and speed configurations';
+
+  @override
+  String get equalizerBandCount => 'Equalizer Band Count';
+
+  @override
+  String get equalizerBandCountDescription =>
+      'Configure number of bands in equalizer panel. High band modes will automatically enable smooth horizontal scrolling.';
+
+  @override
+  String bandsCountOption(int count) {
+    return '$count Bands';
+  }
 }

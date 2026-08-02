@@ -32,6 +32,7 @@ import 'package:vynody/widgets/lyrics_provider_icon.dart';
 enum _SettingsSection {
   home,
   general,
+  audio,
   scanning,
   tags,
   transcode,
@@ -283,6 +284,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return switch (section) {
       _SettingsSection.home => l10n.settings,
       _SettingsSection.general => l10n.generalSectionTitle,
+      _SettingsSection.audio => l10n.audioSettings,
       _SettingsSection.scanning => l10n.scanSectionTitle,
       _SettingsSection.tags => l10n.tags,
       _SettingsSection.transcode => l10n.transcodeSectionTitle,
@@ -296,6 +298,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   List<_SettingsSection> get _sidebarSections => [
         _SettingsSection.general,
+        _SettingsSection.audio,
         _SettingsSection.scanning,
         _SettingsSection.tags,
         _SettingsSection.transcode,
@@ -310,11 +313,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return switch (section) {
       _SettingsSection.home => Icons.settings,
       _SettingsSection.general => Icons.tune_rounded,
+      _SettingsSection.audio => Icons.graphic_eq_rounded,
       _SettingsSection.scanning => Icons.search_rounded,
       _SettingsSection.tags => Icons.label_outline_rounded,
       _SettingsSection.transcode => Icons.swap_horiz_rounded,
       _SettingsSection.lyrics => Icons.auto_awesome_rounded,
-      _SettingsSection.acoustid => Icons.graphic_eq_rounded,
+      _SettingsSection.acoustid => Icons.radar_rounded,
       _SettingsSection.shortcuts => Icons.keyboard_rounded,
       _SettingsSection.windows => Icons.open_in_new_rounded,
       _SettingsSection.about => Icons.info_outline_rounded,
@@ -1639,6 +1643,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         _buildHomeSectionTile(
           context,
+          icon: Icons.graphic_eq_rounded,
+          title: l10n.audioSettings,
+          onTap: () => _openSection(_SettingsSection.audio),
+        ),
+        _buildHomeSectionTile(
+          context,
           icon: Icons.search_rounded,
           title: l10n.scanSectionTitle,
           onTap: () => _openSection(_SettingsSection.scanning),
@@ -2360,10 +2370,71 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Widget _buildAudioPage(BuildContext context, SettingsService settings) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 100),
+      children: [
+        _buildSectionHeader(
+          l10n.audioSettings,
+          l10n.audioSettingsDescription,
+        ),
+        ListTile(
+          title: Text(l10n.equalizerBandCount),
+          subtitle: Text(l10n.equalizerBandCountDescription),
+          trailing: SegmentedButton<int>(
+            segments: [
+              ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
+              ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
+              ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
+              ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
+            ],
+            selected: {settings.equalizerBandCount},
+            onSelectionChanged: (Set<int> selected) {
+              if (selected.isNotEmpty) {
+                settings.equalizerBandCount = selected.first;
+              }
+            },
+            showSelectedIcon: false,
+          ),
+        ),
+        const Divider(height: 32),
+        SwitchListTile(
+          title: const Text('5倍速上限'),
+          subtitle: const Text('解禁播放速度滑动条上限至 5.0 倍速'),
+          value: settings.playbackSpeedLimit5x,
+          onChanged: (value) {
+            settings.playbackSpeedLimit5x = value;
+          },
+        ),
+        const Divider(height: 32),
+        ListTile(
+          title: const Text('重置均衡器设置'),
+          subtitle: const Text('重置均衡器增益及预充为默认状态'),
+          trailing: OutlinedButton.icon(
+            onPressed: () {
+              ref.read(audioServiceProvider).resetEqualizerDefaults();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('均衡器参数已重置为默认状态'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: Text(l10n.reset),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBody(BuildContext context, SettingsService settings) {
     final currentBody = switch (_currentSection) {
       _SettingsSection.home => _buildHomeBody(context),
       _SettingsSection.general => _buildGeneralPage(context, settings),
+      _SettingsSection.audio => _buildAudioPage(context, settings),
       _SettingsSection.scanning => _buildScanningPage(context, settings),
       _SettingsSection.tags => _buildTagsPage(context, settings),
       _SettingsSection.transcode => _buildTranscodePage(context, settings),
@@ -2457,6 +2528,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final currentBody = switch (activeSection) {
       _SettingsSection.home => _buildGeneralPage(context, settings),
       _SettingsSection.general => _buildGeneralPage(context, settings),
+      _SettingsSection.audio => _buildAudioPage(context, settings),
       _SettingsSection.scanning => _buildScanningPage(context, settings),
       _SettingsSection.tags => _buildTagsPage(context, settings),
       _SettingsSection.transcode => _buildTranscodePage(context, settings),

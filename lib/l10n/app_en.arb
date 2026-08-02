@@ -1329,6 +1329,18 @@
       }
     }
   },
-  "confirm": "OK"
+  "confirm": "OK",
+  "audioSettings": "Audio Settings",
+  "audioSettingsDescription": "Manage audio playback, equalizer bands, and speed configurations",
+  "equalizerBandCount": "Equalizer Band Count",
+  "equalizerBandCountDescription": "Configure number of bands in equalizer panel. High band modes will automatically enable smooth horizontal scrolling.",
+  "bandsCountOption": "{count} Bands",
+  "@bandsCountOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
 

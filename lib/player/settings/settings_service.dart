@@ -363,6 +363,7 @@ class SettingsService extends ChangeNotifier {
   static const double minWaveformLongPressSeekSpeed = 1.1;
   static const double maxWaveformLongPressSeekSpeed = 5.0;
   static const String _keyPlaybackSpeedLimit5x = 'playback_speed_limit_5x';
+  static const String _keyEqualizerBandCount = 'equalizer_band_count';
   static const String _keyShowDeveloperOptions = 'show_developer_options';
   static const String skipShortAudioScanEnabledStorageKey =
       'scan_skip_short_audio_enabled';
@@ -1106,6 +1107,13 @@ class SettingsService extends ChangeNotifier {
     onChanged: notifyListeners,
   );
 
+  late final _equalizerBandCountProperty = SettingProperty<int>(
+    key: _keyEqualizerBandCount,
+    defaultValue: 10,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
   late final _showDeveloperOptionsProperty = SettingProperty<bool>(
     key: _keyShowDeveloperOptions,
     defaultValue: false,
@@ -1821,6 +1829,10 @@ class SettingsService extends ChangeNotifier {
       _playbackSpeedLimit5xProperty.value;
   set playbackSpeedLimit5x(bool value) =>
       _playbackSpeedLimit5xProperty.value = value;
+
+  int get equalizerBandCount => _equalizerBandCountProperty.value;
+  set equalizerBandCount(int value) =>
+      _equalizerBandCountProperty.value = value;
 
   bool get showDeveloperOptions => _showDeveloperOptionsProperty.value;
   set showDeveloperOptions(bool value) =>

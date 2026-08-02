@@ -3103,4 +3103,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String uiDisplayScaleCurrent(int percent) {
     return '当前缩放: $percent%';
   }
+
+  @override
+  String get audioSettings => '音频设置';
+
+  @override
+  String get audioSettingsDescription => '管理音频播放、均衡器频段与播放速度相关配置';
+
+  @override
+  String get equalizerBandCount => '均衡器频段数量';
+
+  @override
+  String get equalizerBandCountDescription => '设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动';
+
+  @override
+  String bandsCountOption(int count) {
+    return '$count 段';
+  }
 }

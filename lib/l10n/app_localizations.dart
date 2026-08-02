@@ -5778,6 +5778,36 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'当前缩放: {percent}%'**
   String uiDisplayScaleCurrent(int percent);
+
+  /// No description provided for @audioSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'音频设置'**
+  String get audioSettings;
+
+  /// No description provided for @audioSettingsDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理音频播放、均衡器频段与播放速度相关配置'**
+  String get audioSettingsDescription;
+
+  /// No description provided for @equalizerBandCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'均衡器频段数量'**
+  String get equalizerBandCount;
+
+  /// No description provided for @equalizerBandCountDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动'**
+  String get equalizerBandCountDescription;
+
+  /// No description provided for @bandsCountOption.
+  ///
+  /// In zh, this message translates to:
+  /// **'{count} 段'**
+  String bandsCountOption(int count);
 }
 
 class _AppLocalizationsDelegate
