@@ -6,6 +6,7 @@ import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/localized_text.dart';
 import 'package:path/path.dart' as path;
+import 'package:vynody/main.dart';
 import 'package:flutter_tray/flutter_tray.dart' as ft;
 
 class DesktopTrayService {
@@ -29,7 +30,7 @@ class DesktopTrayService {
     required this.audioService,
     required this.settingsService,
   }) {
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       settingsService.addListener(_handleSettingsChange);
       _syncTrayState();
     }
@@ -197,7 +198,7 @@ class DesktopTrayService {
         break;
       case _idExit:
         _destroyTray().then((_) {
-          exit(0);
+          performCleanExit();
         });
         break;
     }
@@ -217,7 +218,7 @@ class DesktopTrayService {
   }
 
   void dispose() {
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       settingsService.removeListener(_handleSettingsChange);
       _destroyTray();
     }

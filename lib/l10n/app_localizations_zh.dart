@@ -2753,6 +2753,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enableSystemTrayDescription => '在系统任务栏托盘中显示图标，方便快速控制播放';
 
   @override
+  String get closeToTray => '点击关闭按钮时最小化到后台';
+
+  @override
+  String get closeToTrayDescription => '关闭主界面时保持后台播放，不直接退出程序';
+
+  @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
 
   @override

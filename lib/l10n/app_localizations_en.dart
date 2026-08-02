@@ -2887,6 +2887,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show icon in the system tray for quick playback control';
 
   @override
+  String get closeToTray => 'Minimize to Tray on Close';
+
+  @override
+  String get closeToTrayDescription =>
+      'Keep the app running in the background when closing the main window';
+
+  @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
 
   @override

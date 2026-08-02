@@ -1793,7 +1793,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             settings.showDeveloperOptions = value;
           },
         ),
-        if (Platform.isWindows || Platform.isLinux)
+        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
           SwitchListTile(
             title: Text(l10n.enableSystemTray),
             subtitle: Text(l10n.enableSystemTrayDescription),
@@ -1802,6 +1802,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               settings.enableSystemTray = value;
             },
           ),
+          SwitchListTile(
+            title: Text(l10n.closeToTray),
+            subtitle: Text(l10n.closeToTrayDescription),
+            value: settings.closeToTray,
+            onChanged: (value) {
+              settings.closeToTray = value;
+            },
+          ),
+        ],
         ListTile(
           leading: const Icon(Icons.help_outline),
           title: Text(l10n.resetOnboarding),

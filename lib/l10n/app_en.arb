@@ -1152,6 +1152,8 @@
   "confirmDisable": "Disable",
   "enableSystemTray": "Enable System Tray",
   "enableSystemTrayDescription": "Show icon in the system tray for quick playback control",
+  "closeToTray": "Minimize to Tray on Close",
+  "closeToTrayDescription": "Keep the app running in the background when closing the main window",
   "googleAiStudioApiKey": "Google AI Studio API Key",
   "openRouterApiKey": "OpenRouter API Key",
   "doubaoApiKey": "Doubao API Key",

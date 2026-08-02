@@ -209,7 +209,7 @@ class AudioService extends Notifier<AudioSnapshot> {
         : null;
     _linuxIntegration = Platform.isLinux ? LinuxIntegrationService(this) : null;
     _desktopTrayIntegration =
-        !kIsWeb && (Platform.isWindows || Platform.isLinux)
+        !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
         ? DesktopTrayService(
             audioService: this,
             settingsService: settingsService,

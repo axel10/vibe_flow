@@ -5221,6 +5221,18 @@ abstract class AppLocalizations {
   /// **'在系统任务栏托盘中显示图标，方便快速控制播放'**
   String get enableSystemTrayDescription;
 
+  /// No description provided for @closeToTray.
+  ///
+  /// In zh, this message translates to:
+  /// **'点击关闭按钮时最小化到后台'**
+  String get closeToTray;
+
+  /// No description provided for @closeToTrayDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭主界面时保持后台播放，不直接退出程序'**
+  String get closeToTrayDescription;
+
   /// No description provided for @googleAiStudioApiKey.
   ///
   /// In zh, this message translates to:

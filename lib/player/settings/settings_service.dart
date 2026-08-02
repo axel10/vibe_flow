@@ -240,6 +240,7 @@ class SettingsService extends ChangeNotifier {
   static const String _keyLocale = 'app_locale';
   static const String _keyWindowsAutoRepairShortcut = 'windows_auto_repair_shortcut';
   static const String _keyEnableSystemTray = 'enable_system_tray';
+  static const String _keyCloseToTray = 'close_to_tray';
   static const String _keyImmersiveTabBar = 'immersive_tab_bar_enabled';
   static const String _keyCollapseButtonsInLandscapeLyrics =
       'collapse_buttons_in_landscape_lyrics';
@@ -525,6 +526,13 @@ class SettingsService extends ChangeNotifier {
 
   late final _enableSystemTrayProperty = SettingProperty<bool>(
     key: _keyEnableSystemTray,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _closeToTrayProperty = SettingProperty<bool>(
+    key: _keyCloseToTray,
     defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
@@ -1285,6 +1293,9 @@ class SettingsService extends ChangeNotifier {
   bool get enableSystemTray => _enableSystemTrayProperty.value;
   set enableSystemTray(bool value) =>
       _enableSystemTrayProperty.value = value;
+
+  bool get closeToTray => _closeToTrayProperty.value;
+  set closeToTray(bool value) => _closeToTrayProperty.value = value;
 
   int get sampleStride => _sampleStrideProperty.value;
   set sampleStride(int value) => _sampleStrideProperty.value = value;

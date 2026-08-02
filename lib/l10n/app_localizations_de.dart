@@ -2918,6 +2918,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Symbol in der Taskleiste anzeigen für schnelle Wiedergabesteuerung';
 
   @override
+  String get closeToTray => '点击关闭按钮时最小化到后台';
+
+  @override
+  String get closeToTrayDescription => '关闭主界面时保持后台播放，不直接退出程序';
+
+  @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
 
   @override

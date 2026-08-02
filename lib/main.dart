@@ -319,6 +319,27 @@ class MyApp extends ConsumerStatefulWidget {
   ConsumerState<MyApp> createState() => _MyAppState();
 }
 
+bool isExplicitAppExit = false;
+
+Future<void> performCleanExit() async {
+  isExplicitAppExit = true;
+  AppLog.log(
+    'Explicit exit requested, closing database cleanly...',
+    mirrorToConsole: true,
+  );
+  try {
+    await MetadataDatabase().close();
+    AppLog.log('Database closed cleanly.', mirrorToConsole: true);
+  } catch (e, s) {
+    AppLog.log(
+      'Error closing database during exit: $e',
+      mirrorToConsole: true,
+      stackTrace: s,
+    );
+  }
+  exit(0);
+}
+
 class _MyAppState extends ConsumerState<MyApp>
     with WindowListener, WidgetsBindingObserver {
   bool _isMaximized = false;
@@ -332,23 +353,48 @@ class _MyAppState extends ConsumerState<MyApp>
     super.initState();
     ref.read(audioServiceWiringProvider);
     WidgetsBinding.instance.addObserver(this);
-    if (Platform.isLinux) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.addListener(this);
-      _syncWindowState();
+      windowManager.setPreventClose(true);
+      if (Platform.isLinux) {
+        _syncWindowState();
+      }
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (Platform.isLinux) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.removeListener(this);
     }
     super.dispose();
   }
 
   @override
+  void onWindowClose() async {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      final settings = ref.read(settingsServiceProvider);
+      if (settings.closeToTray) {
+        await windowManager.hide();
+      } else {
+        await windowManager.destroy();
+      }
+    }
+  }
+
+  @override
   Future<AppExitResponse> didRequestAppExit() async {
+    final settings = ref.read(settingsServiceProvider);
+    if (settings.closeToTray && !isExplicitAppExit) {
+      AppLog.log(
+        'didRequestAppExit: hiding window to tray instead of exit.',
+        mirrorToConsole: true,
+      );
+      await windowManager.hide();
+      return AppExitResponse.cancel;
+    }
+
     AppLog.log(
       'AppExit request received, closing database cleanly...',
       mirrorToConsole: true,
