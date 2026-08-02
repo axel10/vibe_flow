@@ -43,6 +43,137 @@ enum _SettingsSection {
   about,
 }
 
+class _DropdownOption<T> {
+  final T value;
+  final String label;
+  final Widget? leading;
+  final bool enabled;
+
+  const _DropdownOption({
+    required this.value,
+    required this.label,
+    this.leading,
+    this.enabled = true,
+  });
+}
+
+Widget _buildDropdownTile<T>({
+  required BuildContext context,
+  required String title,
+  String? subtitle,
+  IconData? icon,
+  required T value,
+  required List<_DropdownOption<T>> options,
+  required ValueChanged<T?>? onChanged,
+  bool enabled = true,
+}) {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  final isEffectiveEnabled = enabled && onChanged != null;
+
+  _DropdownOption<T>? selectedOption;
+  for (final opt in options) {
+    if (opt.value == value) {
+      selectedOption = opt;
+      break;
+    }
+  }
+  selectedOption ??= options.isNotEmpty ? options.first : null;
+
+  return ListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    leading: icon != null ? Icon(icon) : null,
+    title: Text(
+      title,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    subtitle: subtitle != null && subtitle.isNotEmpty
+        ? Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          )
+        : null,
+    trailing: PopupMenuButton<T>(
+      enabled: isEffectiveEnabled,
+      onSelected: isEffectiveEnabled ? onChanged : null,
+      itemBuilder: (context) => options.map((opt) {
+        final isSelected = opt.value == value;
+        return PopupMenuItem<T>(
+          value: opt.value,
+          enabled: opt.enabled,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (opt.leading != null) ...[
+                opt.leading!,
+                const SizedBox(width: 8),
+              ],
+              Text(
+                opt.label,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? colorScheme.primary : null,
+                ),
+              ),
+              if (isSelected) ...[
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.check_rounded,
+                  size: 18,
+                  color: colorScheme.primary,
+                ),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isEffectiveEnabled
+              ? colorScheme.surfaceContainerHigh
+              : colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selectedOption?.leading != null) ...[
+              selectedOption!.leading!,
+              const SizedBox(width: 6),
+            ],
+            Text(
+              selectedOption?.label ?? '',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isEffectiveEnabled
+                    ? colorScheme.onSurface
+                    : colorScheme.onSurface.withValues(alpha: 0.38),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.unfold_more_rounded,
+              size: 18,
+              color: isEffectiveEnabled
+                  ? colorScheme.onSurfaceVariant
+                  : colorScheme.onSurface.withValues(alpha: 0.38),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
@@ -535,40 +666,36 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     };
   }
 
+
+
   Widget _buildThemeModeSection(
     BuildContext context,
     SettingsService settings,
   ) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: DropdownButtonFormField<ThemeMode>(
-        initialValue: settings.themeMode,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: l10n.themeMode,
-          border: const OutlineInputBorder(),
+    return _buildDropdownTile<ThemeMode>(
+      context: context,
+      title: l10n.themeMode,
+      value: settings.themeMode,
+      options: [
+        _DropdownOption(
+          value: ThemeMode.system,
+          label: l10n.themeModeSystem,
         ),
-        items: [
-          DropdownMenuItem<ThemeMode>(
-            value: ThemeMode.system,
-            child: Text(l10n.themeModeSystem),
-          ),
-          DropdownMenuItem<ThemeMode>(
-            value: ThemeMode.light,
-            child: Text(l10n.themeModeLight),
-          ),
-          DropdownMenuItem<ThemeMode>(
-            value: ThemeMode.dark,
-            child: Text(l10n.themeModeDark),
-          ),
-        ],
-        onChanged: (value) {
-          if (value == null) return;
-          settings.themeMode = value;
-        },
-      ),
+        _DropdownOption(
+          value: ThemeMode.light,
+          label: l10n.themeModeLight,
+        ),
+        _DropdownOption(
+          value: ThemeMode.dark,
+          label: l10n.themeModeDark,
+        ),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        settings.themeMode = value;
+      },
     );
   }
 
@@ -578,59 +705,53 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   ) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: DropdownButtonFormField<String>(
-        initialValue: settings.appLocale,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: l10n.interfaceLanguage,
-          border: const OutlineInputBorder(),
-          helperText: l10n.interfaceLanguageDescription,
+    return _buildDropdownTile<String>(
+      context: context,
+      title: l10n.interfaceLanguage,
+      subtitle: l10n.interfaceLanguageDescription,
+      value: settings.appLocale,
+      options: [
+        _DropdownOption(
+          value: 'system',
+          label: l10n.followSystemLanguage,
         ),
-        items: [
-          DropdownMenuItem<String>(
-            value: 'system',
-            child: Text(l10n.followSystemLanguage),
-          ),
-          DropdownMenuItem<String>(
-            value: 'zh',
-            child: Text(l10n.nativeLanguageZh),
-          ),
-          DropdownMenuItem<String>(
-            value: 'zh_Hant',
-            child: Text(l10n.nativeLanguageZhHant),
-          ),
-          DropdownMenuItem<String>(
-            value: 'ja',
-            child: Text(l10n.nativeLanguageJa),
-          ),
-          DropdownMenuItem<String>(
-            value: 'ko',
-            child: Text(l10n.nativeLanguageKo),
-          ),
-          DropdownMenuItem<String>(
-            value: 'es',
-            child: Text(l10n.nativeLanguageEs),
-          ),
-          DropdownMenuItem<String>(
-            value: 'fr',
-            child: Text(l10n.nativeLanguageFr),
-          ),
-          DropdownMenuItem<String>(
-            value: 'de',
-            child: Text(l10n.nativeLanguageDe),
-          ),
-          DropdownMenuItem<String>(
-            value: 'en',
-            child: Text(l10n.nativeLanguageEn),
-          ),
-        ],
-        onChanged: (value) {
-          if (value == null) return;
-          settings.appLocale = value;
-        },
-      ),
+        _DropdownOption(
+          value: 'zh',
+          label: l10n.nativeLanguageZh,
+        ),
+        _DropdownOption(
+          value: 'zh_Hant',
+          label: l10n.nativeLanguageZhHant,
+        ),
+        _DropdownOption(
+          value: 'ja',
+          label: l10n.nativeLanguageJa,
+        ),
+        _DropdownOption(
+          value: 'ko',
+          label: l10n.nativeLanguageKo,
+        ),
+        _DropdownOption(
+          value: 'es',
+          label: l10n.nativeLanguageEs,
+        ),
+        _DropdownOption(
+          value: 'fr',
+          label: l10n.nativeLanguageFr,
+        ),
+        _DropdownOption(
+          value: 'de',
+          label: l10n.nativeLanguageDe,
+        ),
+        _DropdownOption(
+          value: 'en',
+          label: l10n.nativeLanguageEn,
+        ),
+      ],
+      onChanged: (value) {
+        if (value == null) return;
+        settings.appLocale = value;
+      },
     );
   }
 
@@ -1049,31 +1170,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   ) {
     final l10n = AppLocalizations.of(context)!;
     final value = settings.lyricsTranslationTargetLanguageCode;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.lyricsTranslationTargetLanguageDescription,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: value.isEmpty ? '' : value,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.lyricsTranslationTargetLanguageLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: _translationLanguageItems(context),
-            onChanged: (newValue) {
-              if (newValue == null) return;
-              settings.lyricsTranslationTargetLanguageCode = newValue;
-            },
-          ),
-        ],
+    final targetValue = value.isEmpty ? '' : value;
+
+    final options = <_DropdownOption<String>>[
+      _DropdownOption<String>(
+        value: '',
+        label: l10n.followSystemLanguage,
       ),
+      ...LanguageCodeUtils.supportedTranslationLanguageCodes.map(
+        (languageCode) => _DropdownOption<String>(
+          value: languageCode,
+          label: _translationLanguageLabel(context, languageCode),
+        ),
+      ),
+    ];
+
+    return _buildDropdownTile<String>(
+      context: context,
+      title: l10n.lyricsTranslationTargetLanguageLabel,
+      subtitle: l10n.lyricsTranslationTargetLanguageDescription,
+      value: targetValue,
+      options: options,
+      onChanged: (newValue) {
+        if (newValue == null) return;
+        settings.lyricsTranslationTargetLanguageCode = newValue;
+      },
     );
   }
 
@@ -1082,44 +1203,29 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     SettingsService settings,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.lyricsSaveMethodDescription,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<LyricsSaveMethod>(
-            initialValue: settings.lyricsSaveMethod,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.lyricsSaveMethodLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: [
-              DropdownMenuItem<LyricsSaveMethod>(
-                value: LyricsSaveMethod.original,
-                child: Text(l10n.lyricsSaveMethodOriginal),
-              ),
-              DropdownMenuItem<LyricsSaveMethod>(
-                value: LyricsSaveMethod.embedded,
-                child: Text(l10n.lyricsSaveMethodEmbedded),
-              ),
-              DropdownMenuItem<LyricsSaveMethod>(
-                value: LyricsSaveMethod.lrcFile,
-                child: Text(l10n.lyricsSaveMethodLrcFile),
-              ),
-            ],
-            onChanged: (newValue) {
-              if (newValue == null) return;
-              settings.lyricsSaveMethod = newValue;
-            },
-          ),
-        ],
-      ),
+    return _buildDropdownTile<LyricsSaveMethod>(
+      context: context,
+      title: l10n.lyricsSaveMethodLabel,
+      subtitle: l10n.lyricsSaveMethodDescription,
+      value: settings.lyricsSaveMethod,
+      options: [
+        _DropdownOption<LyricsSaveMethod>(
+          value: LyricsSaveMethod.original,
+          label: l10n.lyricsSaveMethodOriginal,
+        ),
+        _DropdownOption<LyricsSaveMethod>(
+          value: LyricsSaveMethod.embedded,
+          label: l10n.lyricsSaveMethodEmbedded,
+        ),
+        _DropdownOption<LyricsSaveMethod>(
+          value: LyricsSaveMethod.lrcFile,
+          label: l10n.lyricsSaveMethodLrcFile,
+        ),
+      ],
+      onChanged: (newValue) {
+        if (newValue == null) return;
+        settings.lyricsSaveMethod = newValue;
+      },
     );
   }
 
@@ -1128,40 +1234,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     SettingsService settings,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.lyricsStyleDescription,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<LyricsStyle>(
-            initialValue: settings.lyricsStyle,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.lyricsStyleLabel,
-              border: const OutlineInputBorder(),
-            ),
-            items: [
-              DropdownMenuItem<LyricsStyle>(
-                value: LyricsStyle.traditional,
-                child: Text(l10n.lyricsStyleTraditional),
-              ),
-              DropdownMenuItem<LyricsStyle>(
-                value: LyricsStyle.apple,
-                child: Text(l10n.lyricsStyleApple),
-              ),
-            ],
-            onChanged: (newValue) {
-              if (newValue == null) return;
-              settings.lyricsStyle = newValue;
-            },
-          ),
-        ],
-      ),
+    return _buildDropdownTile<LyricsStyle>(
+      context: context,
+      title: l10n.lyricsStyleLabel,
+      subtitle: l10n.lyricsStyleDescription,
+      value: settings.lyricsStyle,
+      options: [
+        _DropdownOption<LyricsStyle>(
+          value: LyricsStyle.traditional,
+          label: l10n.lyricsStyleTraditional,
+        ),
+        _DropdownOption<LyricsStyle>(
+          value: LyricsStyle.apple,
+          label: l10n.lyricsStyleApple,
+        ),
+      ],
+      onChanged: (newValue) {
+        if (newValue == null) return;
+        settings.lyricsStyle = newValue;
+      },
     );
   }
 
@@ -1561,52 +1652,39 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: DropdownButtonFormField<AudioFormat>(
-            initialValue: settings.transcodeDefaultFormat,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.transcodeDefaultFormat,
-              border: const OutlineInputBorder(),
-            ),
-            items: AudioFormat.values
-                .map(
-                  (format) => DropdownMenuItem<AudioFormat>(
-                    value: format,
-                    child: Text(format.displayName),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value == null) return;
-              settings.transcodeDefaultFormat = value;
-            },
-          ),
+        _buildDropdownTile<AudioFormat>(
+          context: context,
+          title: l10n.transcodeDefaultFormat,
+          value: settings.transcodeDefaultFormat,
+          options: AudioFormat.values
+              .map(
+                (format) => _DropdownOption<AudioFormat>(
+                  value: format,
+                  label: format.displayName,
+                ),
+              )
+              .toList(growable: false),
+          onChanged: (value) {
+            if (value == null) return;
+            settings.transcodeDefaultFormat = value;
+          },
         ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: DropdownButtonFormField<TranscodeQualityTier>(
-            initialValue: settings.transcodeDefaultQualityTier,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: l10n.transcodeDefaultQuality,
-              border: const OutlineInputBorder(),
-            ),
-            items: TranscodeQualityTier.values
-                .map(
-                  (tier) => DropdownMenuItem<TranscodeQualityTier>(
-                    value: tier,
-                    child: Text(_transcodeQualityLabel(context, tier)),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value == null) return;
-              settings.transcodeDefaultQualityTier = value;
-            },
-          ),
+        _buildDropdownTile<TranscodeQualityTier>(
+          context: context,
+          title: l10n.transcodeDefaultQuality,
+          value: settings.transcodeDefaultQualityTier,
+          options: TranscodeQualityTier.values
+              .map(
+                (tier) => _DropdownOption<TranscodeQualityTier>(
+                  value: tier,
+                  label: _transcodeQualityLabel(context, tier),
+                ),
+              )
+              .toList(growable: false),
+          onChanged: (value) {
+            if (value == null) return;
+            settings.transcodeDefaultQualityTier = value;
+          },
         ),
       ],
     );
@@ -1812,44 +1890,38 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               settings.enableSystemTray = value;
             },
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: DropdownButtonFormField<CloseWindowAction>(
-              key: ValueKey('close_action_${settings.enableSystemTray}_${settings.closeWindowAction}'),
-              value: !settings.enableSystemTray
-                  ? CloseWindowAction.exit
-                  : settings.closeWindowAction,
-              isExpanded: true,
-              decoration: InputDecoration(
-                labelText: l10n.closeWindowActionTitle,
-                helperText: !settings.enableSystemTray
-                    ? '${l10n.closeWindowActionDescription} ${l10n.closeWindowActionTrayDisabledTip}'
-                    : l10n.closeWindowActionDescription,
-                border: const OutlineInputBorder(),
+          _buildDropdownTile<CloseWindowAction>(
+            context: context,
+            title: l10n.closeWindowActionTitle,
+            subtitle: !settings.enableSystemTray
+                ? '${l10n.closeWindowActionDescription} ${l10n.closeWindowActionTrayDisabledTip}'
+                : l10n.closeWindowActionDescription,
+            value: !settings.enableSystemTray
+                ? CloseWindowAction.exit
+                : settings.closeWindowAction,
+            enabled: settings.enableSystemTray,
+            options: [
+              _DropdownOption(
+                value: CloseWindowAction.ask,
+                label: l10n.closeWindowActionAsk,
               ),
-              items: [
-                DropdownMenuItem(
-                  value: CloseWindowAction.ask,
-                  child: Text(l10n.closeWindowActionAsk),
-                ),
-                DropdownMenuItem(
-                  value: CloseWindowAction.minimize,
-                  enabled: settings.enableSystemTray,
-                  child: Text(l10n.closeWindowActionMinimize),
-                ),
-                DropdownMenuItem(
-                  value: CloseWindowAction.exit,
-                  child: Text(l10n.closeWindowActionExit),
-                ),
-              ],
-              onChanged: !settings.enableSystemTray
-                  ? null
-                  : (value) {
-                      if (value != null) {
-                        settings.closeWindowAction = value;
-                      }
-                    },
-            ),
+              _DropdownOption(
+                value: CloseWindowAction.minimize,
+                label: l10n.closeWindowActionMinimize,
+                enabled: settings.enableSystemTray,
+              ),
+              _DropdownOption(
+                value: CloseWindowAction.exit,
+                label: l10n.closeWindowActionExit,
+              ),
+            ],
+            onChanged: !settings.enableSystemTray
+                ? null
+                : (value) {
+                    if (value != null) {
+                      settings.closeWindowAction = value;
+                    }
+                  },
           ),
         ],
         ListTile(
@@ -2380,23 +2452,44 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.audioSettings,
           l10n.audioSettingsDescription,
         ),
-        ListTile(
-          title: Text(l10n.equalizerBandCount),
-          subtitle: Text(l10n.equalizerBandCountDescription),
-          trailing: SegmentedButton<int>(
-            segments: [
-              ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
-              ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
-              ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
-              ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.equalizerBandCount,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.equalizerBandCountDescription,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<int>(
+                  segments: [
+                    ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
+                    ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
+                    ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
+                    ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
+                  ],
+                  selected: {settings.equalizerBandCount},
+                  onSelectionChanged: (Set<int> selected) {
+                    if (selected.isNotEmpty) {
+                      settings.equalizerBandCount = selected.first;
+                    }
+                  },
+                  showSelectedIcon: false,
+                ),
+              ),
             ],
-            selected: {settings.equalizerBandCount},
-            onSelectionChanged: (Set<int> selected) {
-              if (selected.isNotEmpty) {
-                settings.equalizerBandCount = selected.first;
-              }
-            },
-            showSelectedIcon: false,
           ),
         ),
         const Divider(height: 32),
@@ -2416,24 +2509,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           onChanged: (value) {
             settings.enableFadeEffect = value;
           },
-        ),
-        const Divider(height: 32),
-        ListTile(
-          title: const Text('重置均衡器设置'),
-          subtitle: const Text('重置均衡器增益及预充为默认状态'),
-          trailing: OutlinedButton.icon(
-            onPressed: () {
-              ref.read(audioServiceProvider).resetEqualizerDefaults();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('均衡器参数已重置为默认状态'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: Text(l10n.reset),
-          ),
         ),
       ],
     );
@@ -3085,32 +3160,16 @@ class _LyricsModelPickerDialogState
                 child: Text(l10n.fillApiKeyFirstEnablesModels),
               )
             else
-              DropdownButtonFormField<LyricsAiProvider>(
+              _buildDropdownTile<LyricsAiProvider>(
+                context: context,
+                title: l10n.platform,
                 value: effectiveProvider,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: l10n.platform,
-                  border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                items: availableTabs
+                options: availableTabs
                     .map(
-                      (provider) => DropdownMenuItem<LyricsAiProvider>(
+                      (provider) => _DropdownOption<LyricsAiProvider>(
                         value: provider,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildProviderIcon(provider),
-                            const SizedBox(width: 12),
-                            Text(
-                              provider.displayName,
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                          ],
-                        ),
+                        label: provider.displayName,
+                        leading: _buildProviderIcon(provider),
                       ),
                     )
                     .toList(growable: false),
