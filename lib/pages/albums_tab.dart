@@ -417,11 +417,11 @@ class _AlbumCard extends ConsumerWidget {
           }
         },
         child: InkWell(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(12),
           onTap: onTap ?? () => _openAlbumDetail(context),
           child: Ink(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(12),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -443,8 +443,8 @@ class _AlbumCard extends ConsumerWidget {
                   tag: 'album-cover-${album.id}',
                   child: ClipRRect(
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(23),
-                      topRight: Radius.circular(23),
+                      topLeft: Radius.circular(11),
+                      topRight: Radius.circular(11),
                     ),
                     child: AspectRatio(
                       aspectRatio: 1,
@@ -609,7 +609,7 @@ class _AlbumCard extends ConsumerWidget {
                     elevation: 16,
                     color: theme.colorScheme.surface,
                     shadowColor: Colors.black26,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(12),
                     clipBehavior: Clip.antiAlias,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),

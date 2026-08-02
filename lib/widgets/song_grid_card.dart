@@ -65,13 +65,13 @@ class SongGridCard extends ConsumerWidget {
       onSecondaryTapDown: onSecondaryTapDown,
       onLongPress: onLongPress,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             color: isHighlighted
                 ? theme.colorScheme.primary.withValues(alpha: 0.15)
                 : theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
@@ -83,7 +83,7 @@ class SongGridCard extends ConsumerWidget {
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -92,7 +92,7 @@ class SongGridCard extends ConsumerWidget {
                   child: Hero(
                     tag: 'song-cover-${song.path}',
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
                       child: Stack(
                         fit: StackFit.expand,
                         children: [

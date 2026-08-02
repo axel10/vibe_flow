@@ -512,7 +512,7 @@ class _ArtistListPane extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
@@ -707,7 +707,7 @@ class _ArtistDetailPane extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
           ),
@@ -737,13 +737,13 @@ class _ArtistDetailPane extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         child: ArtistDetailContent(
           artist: currentArtist,
           songSelectionController: songSelectionController,
@@ -789,7 +789,7 @@ Future<void> _showArtistContextMenuForArtist(
                   elevation: 16,
                   color: theme.colorScheme.surface,
                   shadowColor: Colors.black26,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(12),
                   clipBehavior: Clip.antiAlias,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),

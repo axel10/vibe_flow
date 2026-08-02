@@ -73,14 +73,14 @@ class FolderHeaderBanner extends StatelessWidget {
         child: Hero(
           tag: heroTag!,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: coverWidget,
           ),
         ),
       );
     } else {
       resolvedCover = ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: coverWidget,
       );
     }
@@ -183,7 +183,7 @@ class FolderHeaderBanner extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.5),
               border: Border.all(
                 color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
@@ -255,7 +255,7 @@ class FolderHeaderBanner extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
             color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.5),
             border: Border.all(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),

@@ -84,7 +84,7 @@ class FolderListTile extends StatelessWidget {
           Hero(
             tag: 'folder-cover-${folder.path}',
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               child: Opacity(
                 opacity: isSelectionMode
                     ? (isSelected ? 0.5 : 0.7)
@@ -128,13 +128,13 @@ class FolderListTile extends StatelessWidget {
           color: isSelectionMode && isSelected
               ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             onTap: onTap,
             onLongPress: onLongPress,
             hoverColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),

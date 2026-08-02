@@ -147,7 +147,7 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                         child: Hero(
                           tag: 'album-cover-${widget.album.id}',
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(12),
                             child: SongThumbnail(
                               path: widget.album.representativeSong.path,
                               id: widget.album.representativeSong.id,
