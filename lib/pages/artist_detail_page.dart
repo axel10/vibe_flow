@@ -71,6 +71,24 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
   final Set<String> _selectedSongPaths = {};
   late final LibrarySelectionScopeController _librarySelectionScopeController;
 
+  List<MusicFile>? _lastArtistSongs;
+  String? _lastUnknownAlbumLabel;
+  List<_AlbumSection>? _cachedAlbumSections;
+  List<MusicFile>? _cachedDisplaySongs;
+
+  void _ensureAlbumSectionsCached(String unknownAlbumLabel) {
+    if (!identical(_lastArtistSongs, widget.artist.songs) ||
+        _lastUnknownAlbumLabel != unknownAlbumLabel ||
+        _cachedAlbumSections == null) {
+      _lastArtistSongs = widget.artist.songs;
+      _lastUnknownAlbumLabel = unknownAlbumLabel;
+      _cachedAlbumSections = _buildAlbumSections(widget.artist.songs, unknownAlbumLabel);
+      _cachedDisplaySongs = _cachedAlbumSections!
+          .expand((section) => section.songs)
+          .toList(growable: false);
+    }
+  }
+
   bool get _effectiveIsSelectionMode => widget.songSelectionController != null
       ? widget.songSelectionController!.isSelectionMode
       : _isSelectionMode;
@@ -164,10 +182,9 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
     final headerColor = theme.colorScheme.tertiaryContainer.withValues(
       alpha: 0.65,
     );
-    final albumSections = _buildAlbumSections(widget.artist.songs, unknownAlbumLabel);
-    final displaySongs = albumSections
-        .expand((section) => section.songs)
-        .toList(growable: false);
+    _ensureAlbumSectionsCached(unknownAlbumLabel);
+    final albumSections = _cachedAlbumSections!;
+    final displaySongs = _cachedDisplaySongs!;
 
     if (widget.songSelectionController != null) {
       widget.songSelectionController!.setAllSongs(displaySongs);
@@ -523,48 +540,35 @@ class _AlbumSectionSliver extends StatelessWidget {
                       ),
                     ),
                   ),
-                  sliver: SliverList.builder(
+                  sliver: SliverFixedExtentList.builder(
+                    itemExtent: 45.0,
                     itemCount: section.songs.length,
                     itemBuilder: (context, i) {
                       final song = section.songs[i];
                       final isCurrent = currentMusic?.path == song.path;
                       final isSelected = selectedSongPaths.contains(song.path);
 
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (i > 0)
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              indent: 16,
-                              endIndent: 16,
-                              color: theme.colorScheme.outlineVariant.withValues(
-                                alpha: 0.35,
-                              ),
-                            ),
-                          _AlbumSongTile(
-                            song: song,
-                            isCurrent: isCurrent,
-                            theme: theme,
-                            onTap: () => onSongTap(i),
-                            onSecondaryTapDown: (details) =>
-                                onSongSecondaryTapDown(details, song),
-                            onLongPress: () => onSongLongPress(song),
-                            isSelectionMode: isSelectionMode,
-                            isSelected: isSelected,
-                            borderRadius: BorderRadius.only(
-                              topLeft: i == 0 ? const Radius.circular(18) : Radius.zero,
-                              topRight: i == 0 ? const Radius.circular(18) : Radius.zero,
-                              bottomLeft: i == section.songs.length - 1
-                                  ? const Radius.circular(18)
-                                  : Radius.zero,
-                              bottomRight: i == section.songs.length - 1
-                                  ? const Radius.circular(18)
-                                  : Radius.zero,
-                            ),
-                          ),
-                        ],
+                      return _AlbumSongTile(
+                        song: song,
+                        isCurrent: isCurrent,
+                        theme: theme,
+                        onTap: () => onSongTap(i),
+                        onSecondaryTapDown: (details) =>
+                            onSongSecondaryTapDown(details, song),
+                        onLongPress: () => onSongLongPress(song),
+                        isSelectionMode: isSelectionMode,
+                        isSelected: isSelected,
+                        showTopDivider: i > 0,
+                        borderRadius: BorderRadius.only(
+                          topLeft: i == 0 ? const Radius.circular(18) : Radius.zero,
+                          topRight: i == 0 ? const Radius.circular(18) : Radius.zero,
+                          bottomLeft: i == section.songs.length - 1
+                              ? const Radius.circular(18)
+                              : Radius.zero,
+                          bottomRight: i == section.songs.length - 1
+                              ? const Radius.circular(18)
+                              : Radius.zero,
+                        ),
                       );
                     },
                   ),
@@ -681,6 +685,7 @@ class _AlbumSongTile extends StatelessWidget {
     required this.onLongPress,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.showTopDivider = false,
     this.borderRadius,
   });
 
@@ -692,6 +697,7 @@ class _AlbumSongTile extends StatelessWidget {
   final VoidCallback onLongPress;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool showTopDivider;
   final BorderRadius? borderRadius;
 
   @override
@@ -699,59 +705,79 @@ class _AlbumSongTile extends StatelessWidget {
     final durationLabel = _formatDuration(song.durationMillis);
     final isTileSelected = isSelectionMode ? isSelected : isCurrent;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: onSecondaryTapDown,
-      child: Material(
-        color: isTileSelected
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-            : Colors.transparent,
-        borderRadius: borderRadius,
-        clipBehavior: borderRadius != null ? Clip.antiAlias : Clip.none,
-        child: InkWell(
-          canRequestFocus: false,
-          borderRadius: borderRadius,
-          onTap: onTap,
-          onLongPress: onLongPress,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                if (isSelectionMode) ...[
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Checkbox(
-                      value: isSelected,
-                      onChanged: (_) => onTap(),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                ],
-                Expanded(
-                  child: Text(
-                    song.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: isCurrent ? theme.colorScheme.primary : null,
-                      fontWeight: isCurrent ? FontWeight.w700 : null,
+    return RepaintBoundary(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showTopDivider)
+            Divider(
+              height: 1,
+              thickness: 1,
+              indent: 16,
+              endIndent: 16,
+              color: theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.35,
+              ),
+            ),
+          SizedBox(
+            height: showTopDivider ? 44.0 : 45.0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onSecondaryTapDown: onSecondaryTapDown,
+              child: Material(
+                color: isTileSelected
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+                    : Colors.transparent,
+                borderRadius: borderRadius,
+                clipBehavior: borderRadius != null ? Clip.antiAlias : Clip.none,
+                child: InkWell(
+                  canRequestFocus: false,
+                  borderRadius: borderRadius,
+                  onTap: onTap,
+                  onLongPress: onLongPress,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    child: Row(
+                      children: [
+                        if (isSelectionMode) ...[
+                          SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Checkbox(
+                              value: isSelected,
+                              onChanged: (_) => onTap(),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                        Expanded(
+                          child: Text(
+                            song.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: isCurrent ? theme.colorScheme.primary : null,
+                              fontWeight: isCurrent ? FontWeight.w700 : null,
+                            ),
+                          ),
+                        ),
+                        if (durationLabel != null) ...[
+                          const SizedBox(width: 12),
+                          Text(
+                            durationLabel,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
-                if (durationLabel != null) ...[
-                  const SizedBox(width: 12),
-                  Text(
-                    durationLabel,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

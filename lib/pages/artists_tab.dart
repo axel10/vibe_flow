@@ -548,23 +548,27 @@ class _ArtistListPane extends StatelessWidget {
           : Scrollbar(
               controller: scrollController,
               thumbVisibility: true,
-              child: ListView.separated(
+              child: ListView.builder(
                 controller: scrollController,
                 padding: EdgeInsets.fromLTRB(12, 12, 12, bottomPadding),
+                itemExtent: 80.0,
                 itemCount: artists.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final artist = artists[index];
                   final selected = artist.queryKey == selectedArtistKey;
                   final isSelected = selectedArtistKeysInSelectionMode.contains(artist.queryKey);
-                  return _ArtistListItem(
-                    artist: artist,
-                    selected: selected,
-                    isSelectionMode: isSelectionMode,
-                    isSelectedInSelectionMode: isSelected,
-                    onTap: () => onArtistSelected(artist),
-                    onLongPress: onArtistLongPressed != null ? () => onArtistLongPressed!(artist) : null,
-                    onSelectionToggled: () => onArtistSelected(artist),
+                  return Padding(
+                    key: ValueKey(artist.queryKey),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _ArtistListItem(
+                      artist: artist,
+                      selected: selected,
+                      isSelectionMode: isSelectionMode,
+                      isSelectedInSelectionMode: isSelected,
+                      onTap: () => onArtistSelected(artist),
+                      onLongPress: onArtistLongPressed != null ? () => onArtistLongPressed!(artist) : null,
+                      onSelectionToggled: () => onArtistSelected(artist),
+                    ),
                   );
                 },
               ),
@@ -615,8 +619,9 @@ class _ArtistListItem extends ConsumerWidget {
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
             : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35));
 
-    return Material(
-      color: backgroundColor,
+    return RepaintBoundary(
+      child: Material(
+        color: backgroundColor,
       borderRadius: BorderRadius.circular(18),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -708,8 +713,9 @@ class _ArtistListItem extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _ArtistDetailPane extends StatelessWidget {

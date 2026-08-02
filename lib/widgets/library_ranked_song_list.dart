@@ -267,51 +267,44 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
         else
           SliverPadding(
             padding: EdgeInsets.fromLTRB(12, 12, 12, 140 + (_isSelectionMode ? 220.0 : 0.0)),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final entry = widget.items[index];
-                  final isSelected = _selectedSongPaths.contains(entry.song.path);
-                  return Padding(
-                    key: ValueKey(entry.song.path),
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _SongListItem(
-                      entry: entry,
-                      index: index,
-                      l10n: l10n,
-                      audio: audio,
-                      playlistService: playlistService,
-                      items: widget.items,
-                      trailingBuilder: widget.trailingBuilder,
-                      isSelectionMode: _isSelectionMode,
-                      isSelected: isSelected,
-                      onTap: () {
-                        if (_isSelectionMode) {
-                          _toggleSelection(entry.song.path);
-                        } else {
-                          audio.playPlaylist(
-                            widget.items.map((e) => e.song).toList(),
-                            initialIndex: index,
-                          );
-                        }
-                      },
-                      onLongPress: () {
-                        if (!_isSelectionMode) {
-                          _toggleSelectionMode();
-                          _toggleSelection(entry.song.path);
-                        }
-                      },
-                    ),
-                  );
-                },
-                findChildIndexCallback: (Key key) {
-                  final valueKey = key as ValueKey<String>?;
-                  if (valueKey == null) return null;
-                  final index = widget.items.indexWhere((e) => e.song.path == valueKey.value);
-                  return index >= 0 ? index : null;
-                },
-                childCount: widget.items.length,
-              ),
+            sliver: SliverFixedExtentList.builder(
+              itemExtent: 80.0,
+              itemCount: widget.items.length,
+              itemBuilder: (context, index) {
+                final entry = widget.items[index];
+                final isSelected = _selectedSongPaths.contains(entry.song.path);
+                return Padding(
+                  key: ValueKey(entry.song.path),
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _SongListItem(
+                    entry: entry,
+                    index: index,
+                    l10n: l10n,
+                    audio: audio,
+                    playlistService: playlistService,
+                    items: widget.items,
+                    trailingBuilder: widget.trailingBuilder,
+                    isSelectionMode: _isSelectionMode,
+                    isSelected: isSelected,
+                    onTap: () {
+                      if (_isSelectionMode) {
+                        _toggleSelection(entry.song.path);
+                      } else {
+                        audio.playPlaylist(
+                          widget.items.map((e) => e.song).toList(),
+                          initialIndex: index,
+                        );
+                      }
+                    },
+                    onLongPress: () {
+                      if (!_isSelectionMode) {
+                        _toggleSelectionMode();
+                        _toggleSelection(entry.song.path);
+                      }
+                    },
+                  ),
+                );
+              },
             ),
           ),
       ],
