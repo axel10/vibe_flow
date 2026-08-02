@@ -421,18 +421,6 @@ class _MyAppState extends ConsumerState<MyApp>
 
   @override
   Future<AppExitResponse> didRequestAppExit() async {
-    final settings = ref.read(settingsServiceProvider);
-    if (settings.enableSystemTray &&
-        settings.closeWindowAction == CloseWindowAction.minimize &&
-        !isExplicitAppExit) {
-      AppLog.log(
-        'didRequestAppExit: hiding window to tray instead of exit.',
-        mirrorToConsole: true,
-      );
-      await windowManager.hide();
-      return AppExitResponse.cancel;
-    }
-
     AppLog.log(
       'AppExit request received, closing database cleanly...',
       mirrorToConsole: true,
