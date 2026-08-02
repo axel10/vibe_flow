@@ -133,28 +133,28 @@ Future<void> _handleFileOpenArgs(
 }
 
 void main(List<String> args) async {
-  await AppLog.init();
-  AppLog.install();
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details); // 强制在控制台显示
-    AppLog.log(
-      'Caught FlutterError: ${details.exceptionAsString()}',
-      mirrorToConsole: true,
-      stackTrace: details.stack,
-    );
-  };
-  PlatformDispatcher.instance.onError = (error, stack) {
-    AppLog.log(
-      'Caught PlatformDispatcher error: $error',
-      mirrorToConsole: true,
-      stackTrace: stack,
-    );
-    return false;
-  };
-
   await runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      await AppLog.init();
+      AppLog.install();
+      FlutterError.onError = (FlutterErrorDetails details) {
+        FlutterError.presentError(details); // 强制在控制台显示
+        AppLog.log(
+          'Caught FlutterError: ${details.exceptionAsString()}',
+          mirrorToConsole: true,
+          stackTrace: details.stack,
+        );
+      };
+      PlatformDispatcher.instance.onError = (error, stack) {
+        AppLog.log(
+          'Caught PlatformDispatcher error: $error',
+          mirrorToConsole: true,
+          stackTrace: stack,
+        );
+        return false;
+      };
+
       if (Platform.isAndroid) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       }
