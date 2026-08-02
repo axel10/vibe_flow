@@ -5834,6 +5834,39 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get enableSystemTrayDescription => '在系統工作列匣中顯示圖示，方便快速控制播放';
 
   @override
+  String get closeToTray => '點擊關閉按鈕時最小化到背景';
+
+  @override
+  String get closeToTrayDescription => '關閉主介面時保持背景播放，不直接退出程式';
+
+  @override
+  String get closeWindowActionTitle => '點擊關閉按鈕時';
+
+  @override
+  String get closeWindowActionDescription => '選擇點擊主介面關閉按鈕時的操作';
+
+  @override
+  String get closeWindowActionAsk => '每次詢問';
+
+  @override
+  String get closeWindowActionMinimize => '最小化到系統托盤';
+
+  @override
+  String get closeWindowActionExit => '完全退出應用程式';
+
+  @override
+  String get closeWindowActionRemember => '記住我的選擇，不再提示';
+
+  @override
+  String get closeWindowActionTrayDisabledTip => '（需先啟用系統托盤）';
+
+  @override
+  String get closeWindowDialogTitle => '關閉應用程式確認';
+
+  @override
+  String get closeWindowDialogContent => '請選擇點擊關閉按鈕時的操作：';
+
+  @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
 
   @override
@@ -5923,6 +5956,31 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get onboardingAndroidBatteryStatusUnrestricted =>
       '目前狀態：無限制（建議，背景播放已保護）';
+
+  @override
+  String get onboardingAndroidMediaTitle => '存取手機音樂庫';
+
+  @override
+  String get onboardingAndroidMediaDescription =>
+      '授權後，Vynody 可直接讀取系統媒體庫中的所有音樂，無需手動選擇資料夾。不授權也可以手動匯入指定資料夾中的音樂。';
+
+  @override
+  String get onboardingAndroidMediaStep1 => '1. 即開即用：直接顯示手機裡已有的全部音樂';
+
+  @override
+  String get onboardingAndroidMediaStep2 => '2. 自動發現：新下載或傳入的音樂自動出現在樂庫中';
+
+  @override
+  String get onboardingAndroidMediaStep3 => '3. 隱私安全：僅讀取本機音訊檔案，不會上傳任何資料';
+
+  @override
+  String get onboardingAndroidMediaButton => '授權存取音樂庫';
+
+  @override
+  String get onboardingAndroidMediaStatusGranted => '目前狀態：已授權（推薦）';
+
+  @override
+  String get onboardingAndroidMediaStatusNotGranted => '目前狀態：未授權（可稍後手動匯入資料夾）';
 
   @override
   String get exitApp => '離開';
@@ -6067,4 +6125,41 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get noLogFileFound => '未找到日誌檔案';
+
+  @override
+  String get uiDisplayScale => '介面顯示縮放';
+
+  @override
+  String get uiDisplayScaleDescription => '全域調整所有介面元件與文字大小，適應車機大螢幕';
+
+  @override
+  String get uiDisplayScaleDialogTitle => '介面顯示縮放 / 車機模式';
+
+  @override
+  String uiDisplayScaleCurrent(int percent) {
+    return '目前縮放: $percent%';
+  }
+
+  @override
+  String get audioSettings => '音訊設定';
+
+  @override
+  String get audioSettingsDescription => '管理音訊播放、等化器頻段與播放速度相關設定';
+
+  @override
+  String get equalizerBandCount => '等化器頻段數量';
+
+  @override
+  String get equalizerBandCountDescription => '設定等化器面板顯示的頻段數量，高頻段模式將自動開啟平滑橫向滾動';
+
+  @override
+  String bandsCountOption(int count) {
+    return '$count 段';
+  }
+
+  @override
+  String get enableFadeEffect => '音訊淡入淡出';
+
+  @override
+  String get enableFadeEffectDescription => '在切換歌曲、播放/暫停時啟用平滑淡入淡出和交叉疊化過渡';
 }

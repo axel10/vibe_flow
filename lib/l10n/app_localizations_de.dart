@@ -2918,37 +2918,42 @@ class AppLocalizationsDe extends AppLocalizations {
       'Symbol in der Taskleiste anzeigen für schnelle Wiedergabesteuerung';
 
   @override
-  String get closeToTray => '点击关闭按钮时最小化到后台';
+  String get closeToTray => 'Beim Schließen im Hintergrund minimieren';
 
   @override
-  String get closeToTrayDescription => '关闭主界面时保持后台播放，不直接退出程序';
+  String get closeToTrayDescription =>
+      'Beim Schließen des Hauptfensters im Hintergrund weiterspielen, ohne die App zu beenden';
 
   @override
-  String get closeWindowActionTitle => '点击关闭按钮时';
+  String get closeWindowActionTitle => 'Beim Schließen des Fensters';
 
   @override
-  String get closeWindowActionDescription => '选择点击主界面关闭按钮时的操作';
+  String get closeWindowActionDescription =>
+      'Aktion beim Klick auf die Schließen-Schaltfläche auswählen';
 
   @override
-  String get closeWindowActionAsk => '每次询问';
+  String get closeWindowActionAsk => 'Jedes Mal fragen';
 
   @override
-  String get closeWindowActionMinimize => '最小化到系统托盘';
+  String get closeWindowActionMinimize => 'In den System-Tray minimieren';
 
   @override
-  String get closeWindowActionExit => '完全退出应用';
+  String get closeWindowActionExit => 'Anwendung beenden';
 
   @override
-  String get closeWindowActionRemember => '记住我的选择，不再提示';
+  String get closeWindowActionRemember =>
+      'Auswahl merken und nicht mehr fragen';
 
   @override
-  String get closeWindowActionTrayDisabledTip => '（需先启用系统托盘）';
+  String get closeWindowActionTrayDisabledTip =>
+      '(System-Tray muss zuerst aktiviert werden)';
 
   @override
-  String get closeWindowDialogTitle => '关闭应用确认';
+  String get closeWindowDialogTitle => 'Fenster schließen bestätigen';
 
   @override
-  String get closeWindowDialogContent => '请选择点击关闭按钮时的操作：';
+  String get closeWindowDialogContent =>
+      'Bitte wählen Sie die Aktion beim Schließen des Fensters:';
 
   @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
@@ -3053,29 +3058,35 @@ class AppLocalizationsDe extends AppLocalizations {
       'Status: Nicht eingeschränkt (empfohlen, Wiedergabe geschützt)';
 
   @override
-  String get onboardingAndroidMediaTitle => '访问手机音乐库';
+  String get onboardingAndroidMediaTitle => 'Zugriff auf die Musikbibliothek';
 
   @override
   String get onboardingAndroidMediaDescription =>
-      '授权后，Vynody 可直接读取系统媒体库中的所有音乐，无需手动选择文件夹。不授权也可以手动导入指定文件夹中的音乐。';
+      'Nach der Freigabe kann Vynody alle Musikdateien aus der Systemmedienbibliothek direkt lesen – ohne ordnerweise Auswählen. Sie können Musik auch ohne Freigabe manuell aus Ordnern importieren.';
 
   @override
-  String get onboardingAndroidMediaStep1 => '1. 即开即用：直接显示手机里已有的全部音乐';
+  String get onboardingAndroidMediaStep1 =>
+      '1. Sofort einsatzbereit: Zeigt alle Musikstücke auf Ihrem Telefon direkt an';
 
   @override
-  String get onboardingAndroidMediaStep2 => '2. 自动发现：新下载或传入的音乐自动出现在乐库中';
+  String get onboardingAndroidMediaStep2 =>
+      '2. Automatisch entdecken: Neue Musik erscheint automatisch in der Bibliothek';
 
   @override
-  String get onboardingAndroidMediaStep3 => '3. 隐私安全：仅读取本地音频文件，不会上传任何数据';
+  String get onboardingAndroidMediaStep3 =>
+      '3. Datenschutz sicher: Liest nur lokale Audiodateien und lädt keine Daten hoch';
 
   @override
-  String get onboardingAndroidMediaButton => '授权访问音乐库';
+  String get onboardingAndroidMediaButton =>
+      'Zugriff auf Musikbibliothek gewähren';
 
   @override
-  String get onboardingAndroidMediaStatusGranted => '当前状态：已授权（推荐）';
+  String get onboardingAndroidMediaStatusGranted =>
+      'Status: Gewährt (Empfohlen)';
 
   @override
-  String get onboardingAndroidMediaStatusNotGranted => '当前状态：未授权（可稍后手动导入文件夹）';
+  String get onboardingAndroidMediaStatusNotGranted =>
+      'Status: Nicht gewährt (Ordner können später manuell importiert werden)';
 
   @override
   String get exitApp => 'Beenden';
@@ -3230,39 +3241,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noLogFileFound => 'Keine Protokolldatei gefunden';
 
   @override
-  String get uiDisplayScale => '界面显示缩放';
+  String get uiDisplayScale => 'UI-Skalierung';
 
   @override
-  String get uiDisplayScaleDescription => '全局调整所有界面组件与文字大小，适配车机大屏';
+  String get uiDisplayScaleDescription =>
+      'Größe aller UI-Elemente und Texte global anpassen, optimiert für Fahrzeug-Displays';
 
   @override
-  String get uiDisplayScaleDialogTitle => '界面显示缩放 / 车机模式';
+  String get uiDisplayScaleDialogTitle => 'UI-Skalierung / Fahrzeugmodus';
 
   @override
   String uiDisplayScaleCurrent(int percent) {
-    return '当前缩放: $percent%';
+    return 'Aktuelle Skalierung: $percent%';
   }
 
   @override
-  String get audioSettings => '音频设置';
+  String get audioSettings => 'Audio-Einstellungen';
 
   @override
-  String get audioSettingsDescription => '管理音频播放、均衡器频段与播放速度相关配置';
+  String get audioSettingsDescription =>
+      'Audiowiedergabe, Equalizer-Bänder und Wiedergabegeschwindigkeit verwalten';
 
   @override
-  String get equalizerBandCount => '均衡器频段数量';
+  String get equalizerBandCount => 'Anzahl der Equalizer-Bänder';
 
   @override
-  String get equalizerBandCountDescription => '设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动';
+  String get equalizerBandCountDescription =>
+      'Anzahl der im Equalizer angezeigten Bänder konfigurieren. Bei vielen Bändern wird automatisches horizontales Scrollen aktiviert.';
 
   @override
   String bandsCountOption(int count) {
-    return '$count 段';
+    return '$count Bänder';
   }
 
   @override
-  String get enableFadeEffect => '音频淡入淡出';
+  String get enableFadeEffect => 'Audio-Überblendungseffekt';
 
   @override
-  String get enableFadeEffectDescription => '在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡';
+  String get enableFadeEffectDescription =>
+      'Sanfte Ein-/Ausblendungen und Überblendungen beim Titelwechsel, Abspielen und Pausieren aktivieren';
 }

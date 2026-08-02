@@ -2791,37 +2791,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enableSystemTrayDescription => 'システムトレイにアイコンを表示し、再生をすばやく操作できます';
 
   @override
-  String get closeToTray => '点击关闭按钮时最小化到后台';
+  String get closeToTray => '閉じるときにバックグラウンドに最小化';
 
   @override
-  String get closeToTrayDescription => '关闭主界面时保持后台播放，不直接退出程序';
+  String get closeToTrayDescription => 'メインウィンドウを閉じてもアプリを終了せずバックグラウンド再生を継続';
 
   @override
-  String get closeWindowActionTitle => '点击关闭按钮时';
+  String get closeWindowActionTitle => 'ウィンドウを閉じるとき';
 
   @override
-  String get closeWindowActionDescription => '选择点击主界面关闭按钮时的操作';
+  String get closeWindowActionDescription => 'メインウィンドウの閉じるボタンを押したときの動作を選択';
 
   @override
-  String get closeWindowActionAsk => '每次询问';
+  String get closeWindowActionAsk => '毎回確認';
 
   @override
-  String get closeWindowActionMinimize => '最小化到系统托盘';
+  String get closeWindowActionMinimize => 'システムトレイに最小化';
 
   @override
-  String get closeWindowActionExit => '完全退出应用';
+  String get closeWindowActionExit => 'アプリを完全に終了';
 
   @override
-  String get closeWindowActionRemember => '记住我的选择，不再提示';
+  String get closeWindowActionRemember => '選択を記憶し、次回から表示しない';
 
   @override
-  String get closeWindowActionTrayDisabledTip => '（需先启用系统托盘）';
+  String get closeWindowActionTrayDisabledTip => '（先にシステムトレイを有効にする必要があります）';
 
   @override
-  String get closeWindowDialogTitle => '关闭应用确认';
+  String get closeWindowDialogTitle => 'アプリ終了の確認';
 
   @override
-  String get closeWindowDialogContent => '请选择点击关闭按钮时的操作：';
+  String get closeWindowDialogContent => '閉じるボタンを押したときの動作を選択してください：';
 
   @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
@@ -2921,29 +2921,31 @@ class AppLocalizationsJa extends AppLocalizations {
       '現在の状態：制限なし（推奨、バックグラウンド再生保護済み）';
 
   @override
-  String get onboardingAndroidMediaTitle => '访问手机音乐库';
+  String get onboardingAndroidMediaTitle => '音楽ライブラリへのアクセス';
 
   @override
   String get onboardingAndroidMediaDescription =>
-      '授权后，Vynody 可直接读取系统媒体库中的所有音乐，无需手动选择文件夹。不授权也可以手动导入指定文件夹中的音乐。';
+      '許可すると、Vynodyはフォルダーを手動で選択することなく、端末のメディアライブラリからすべての音楽を直接読み込みます。許可しなくてもフォルダーから手動で音楽をインポートできます。';
 
   @override
-  String get onboardingAndroidMediaStep1 => '1. 即开即用：直接显示手机里已有的全部音乐';
+  String get onboardingAndroidMediaStep1 => '1. すぐに使える：スマートフォン内にある全楽曲を即座に表示';
 
   @override
-  String get onboardingAndroidMediaStep2 => '2. 自动发现：新下载或传入的音乐自动出现在乐库中';
+  String get onboardingAndroidMediaStep2 => '2. 自動検出：新しく追加された楽曲がライブラリに自動で反映';
 
   @override
-  String get onboardingAndroidMediaStep3 => '3. 隐私安全：仅读取本地音频文件，不会上传任何数据';
+  String get onboardingAndroidMediaStep3 =>
+      '3. プライバシー安全：ローカル音声ファイルのみを読み込み、データを送信しません';
 
   @override
-  String get onboardingAndroidMediaButton => '授权访问音乐库';
+  String get onboardingAndroidMediaButton => '音楽ライブラリへのアクセスを許可';
 
   @override
-  String get onboardingAndroidMediaStatusGranted => '当前状态：已授权（推荐）';
+  String get onboardingAndroidMediaStatusGranted => '現在のステータス：許可済み（推奨）';
 
   @override
-  String get onboardingAndroidMediaStatusNotGranted => '当前状态：未授权（可稍后手动导入文件夹）';
+  String get onboardingAndroidMediaStatusNotGranted =>
+      '現在のステータス：未許可（後から手動でフォルダーをインポート可能）';
 
   @override
   String get exitApp => '終了';
@@ -3091,39 +3093,42 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noLogFileFound => 'ログファイルが見つかりません';
 
   @override
-  String get uiDisplayScale => '界面显示缩放';
+  String get uiDisplayScale => 'UI表示スケール';
 
   @override
-  String get uiDisplayScaleDescription => '全局调整所有界面组件与文字大小，适配车机大屏';
+  String get uiDisplayScaleDescription =>
+      '車載ディスプレイなどに合わせて、UIコンポーネントと文字のサイズを全域調整';
 
   @override
-  String get uiDisplayScaleDialogTitle => '界面显示缩放 / 车机模式';
+  String get uiDisplayScaleDialogTitle => 'UI表示スケール / 車載モード';
 
   @override
   String uiDisplayScaleCurrent(int percent) {
-    return '当前缩放: $percent%';
+    return '現在のスケール: $percent%';
   }
 
   @override
-  String get audioSettings => '音频设置';
+  String get audioSettings => 'オーディオ設定';
 
   @override
-  String get audioSettingsDescription => '管理音频播放、均衡器频段与播放速度相关配置';
+  String get audioSettingsDescription => '音声再生、イコライザーバンド、再生速度の設定を管理';
 
   @override
-  String get equalizerBandCount => '均衡器频段数量';
+  String get equalizerBandCount => 'イコライザーバンド数';
 
   @override
-  String get equalizerBandCountDescription => '设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动';
+  String get equalizerBandCountDescription =>
+      'イコライザーパネルに表示するバンド数を設定。高バンドモードではスムーズな横スクロールが自動有効化されます。';
 
   @override
   String bandsCountOption(int count) {
-    return '$count 段';
+    return '$count バンド';
   }
 
   @override
-  String get enableFadeEffect => '音频淡入淡出';
+  String get enableFadeEffect => 'オーディオフェード効果';
 
   @override
-  String get enableFadeEffectDescription => '在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡';
+  String get enableFadeEffectDescription =>
+      '曲の切り替え、再生/一時停止時にスムーズなフェードイン/アウトとクロスフェード有効化';
 }

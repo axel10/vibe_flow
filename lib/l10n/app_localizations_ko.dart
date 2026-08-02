@@ -2794,37 +2794,37 @@ class AppLocalizationsKo extends AppLocalizations {
   String get enableSystemTrayDescription => '시스템 트레이에 아이콘을 표시하여 빠른 재생 제어';
 
   @override
-  String get closeToTray => '点击关闭按钮时最小化到后台';
+  String get closeToTray => '닫기 버튼 클릭 시 백그라운드로 최소화';
 
   @override
-  String get closeToTrayDescription => '关闭主界面时保持后台播放，不直接退出程序';
+  String get closeToTrayDescription => '메인 창을 닫아도 앱을 종료하지 않고 백그라운드 재생 유지';
 
   @override
-  String get closeWindowActionTitle => '点击关闭按钮时';
+  String get closeWindowActionTitle => '창을 닫을 때';
 
   @override
-  String get closeWindowActionDescription => '选择点击主界面关闭按钮时的操作';
+  String get closeWindowActionDescription => '메인 창 닫기 버튼을 누를 때 수행할 작업 선택';
 
   @override
-  String get closeWindowActionAsk => '每次询问';
+  String get closeWindowActionAsk => '매번 확인';
 
   @override
-  String get closeWindowActionMinimize => '最小化到系统托盘';
+  String get closeWindowActionMinimize => '시스템 트레이로 최소화';
 
   @override
-  String get closeWindowActionExit => '完全退出应用';
+  String get closeWindowActionExit => '앱 완전 종료';
 
   @override
-  String get closeWindowActionRemember => '记住我的选择，不再提示';
+  String get closeWindowActionRemember => '선택 기억하기 (다시 묻지 않음)';
 
   @override
-  String get closeWindowActionTrayDisabledTip => '（需先启用系统托盘）';
+  String get closeWindowActionTrayDisabledTip => '(먼저 시스템 트레이를 활성화해야 합니다)';
 
   @override
-  String get closeWindowDialogTitle => '关闭应用确认';
+  String get closeWindowDialogTitle => '앱 종료 확인';
 
   @override
-  String get closeWindowDialogContent => '请选择点击关闭按钮时的操作：';
+  String get closeWindowDialogContent => '닫기 버튼을 누를 때 수행할 작업을 선택하세요:';
 
   @override
   String get googleAiStudioApiKey => 'Google AI Studio API Key';
@@ -2924,29 +2924,32 @@ class AppLocalizationsKo extends AppLocalizations {
       '현재 상태: 제한 없음 (권장, 백그라운드 재생 보호됨)';
 
   @override
-  String get onboardingAndroidMediaTitle => '访问手机音乐库';
+  String get onboardingAndroidMediaTitle => '음악 라이브러리 접근';
 
   @override
   String get onboardingAndroidMediaDescription =>
-      '授权后，Vynody 可直接读取系统媒体库中的所有音乐，无需手动选择文件夹。不授权也可以手动导入指定文件夹中的音乐。';
+      '권한을 허용하면 Vynody가 수동으로 폴더를 선택할 필요 없이 기기 미디어 라이브러리의 모든 음악을 직접 읽어옵니다. 권한을 허용하지 않아도 수동으로 폴더를 가져올 수 있습니다.';
 
   @override
-  String get onboardingAndroidMediaStep1 => '1. 即开即用：直接显示手机里已有的全部音乐';
+  String get onboardingAndroidMediaStep1 => '1. 즉시 사용: 휴대폰의 모든 음악을 즉시 표시';
 
   @override
-  String get onboardingAndroidMediaStep2 => '2. 自动发现：新下载或传入的音乐自动出现在乐库中';
+  String get onboardingAndroidMediaStep2 =>
+      '2. 자동 감지: 새로 추가된 음악이 라이브러리에 자동으로 나타남';
 
   @override
-  String get onboardingAndroidMediaStep3 => '3. 隐私安全：仅读取本地音频文件，不会上传任何数据';
+  String get onboardingAndroidMediaStep3 =>
+      '3. 개인정보 보호: 로컬 오디오 파일만 읽으며 데이터를 업로드하지 않음';
 
   @override
-  String get onboardingAndroidMediaButton => '授权访问音乐库';
+  String get onboardingAndroidMediaButton => '음악 라이브러리 접근 허용';
 
   @override
-  String get onboardingAndroidMediaStatusGranted => '当前状态：已授权（推荐）';
+  String get onboardingAndroidMediaStatusGranted => '현재 상태: 허용됨 (권장)';
 
   @override
-  String get onboardingAndroidMediaStatusNotGranted => '当前状态：未授权（可稍后手动导入文件夹）';
+  String get onboardingAndroidMediaStatusNotGranted =>
+      '현재 상태: 허용 안 됨 (나중에 수동으로 폴더를 가져올 수 있음)';
 
   @override
   String get exitApp => '종료';
@@ -3095,39 +3098,42 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noLogFileFound => '로그 파일을 찾을 수 없습니다';
 
   @override
-  String get uiDisplayScale => '界面显示缩放';
+  String get uiDisplayScale => 'UI 디스플레이 스케일';
 
   @override
-  String get uiDisplayScaleDescription => '全局调整所有界面组件与文字大小，适配车机大屏';
+  String get uiDisplayScaleDescription =>
+      '차량용 디스플레이 등에 맞게 모든 UI 구성 요소 및 텍스트 크기를 전체적으로 조정';
 
   @override
-  String get uiDisplayScaleDialogTitle => '界面显示缩放 / 车机模式';
+  String get uiDisplayScaleDialogTitle => 'UI 디스플레이 스케일 / 차량 모드';
 
   @override
   String uiDisplayScaleCurrent(int percent) {
-    return '当前缩放: $percent%';
+    return '현재 스케일: $percent%';
   }
 
   @override
-  String get audioSettings => '音频设置';
+  String get audioSettings => '오디오 설정';
 
   @override
-  String get audioSettingsDescription => '管理音频播放、均衡器频段与播放速度相关配置';
+  String get audioSettingsDescription => '오디오 재생, 이퀄라이저 밴드 및 재생 속도 설정 관리';
 
   @override
-  String get equalizerBandCount => '均衡器频段数量';
+  String get equalizerBandCount => '이퀄라이저 밴드 수';
 
   @override
-  String get equalizerBandCountDescription => '设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动';
+  String get equalizerBandCountDescription =>
+      '이퀄라이저 패널에 표시할 밴드 수를 설정합니다. 높은 밴드 모드에서는 부드러운 가로 스크롤이 자동으로 활성화됩니다.';
 
   @override
   String bandsCountOption(int count) {
-    return '$count 段';
+    return '$count 밴드';
   }
 
   @override
-  String get enableFadeEffect => '音频淡入淡出';
+  String get enableFadeEffect => '오디오 페이드 효과';
 
   @override
-  String get enableFadeEffectDescription => '在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡';
+  String get enableFadeEffectDescription =>
+      '곡 전환, 재생/일시정지 시 부드러운 페이드 인/아웃 및 크로스페이드 전환 사용';
 }
