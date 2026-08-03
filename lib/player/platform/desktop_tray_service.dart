@@ -7,6 +7,7 @@ import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/localized_text.dart';
 import 'package:path/path.dart' as path;
 import 'package:vynody/main.dart';
+import 'package:vynody/utils/app_log.dart';
 import 'package:flutter_tray/flutter_tray.dart' as ft;
 
 class DesktopTrayService {
@@ -206,14 +207,18 @@ class DesktopTrayService {
 
   Future<void> _showAndFocusWindow() async {
     try {
+      AppLog.log('[Tray] _showAndFocusWindow called', mirrorToConsole: true);
       final isMinimized = await windowManager.isMinimized();
+      AppLog.log('[Tray] window isMinimized=$isMinimized', mirrorToConsole: true);
       if (isMinimized) {
         await windowManager.restore();
       }
       await windowManager.show();
       await windowManager.focus();
+      AppLog.log('[Tray] window reshown & focused, reapplying taskbar buttons...', mirrorToConsole: true);
+      audioService.windowsIntegration?.reapplyTaskbarButtons();
     } catch (e) {
-      debugPrint('Failed to show and focus window: $e');
+      AppLog.log('[Tray] Failed to show and focus window: $e', mirrorToConsole: true);
     }
   }
 

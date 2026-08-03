@@ -119,6 +119,7 @@ class AudioService extends Notifier<AudioSnapshot> {
   late final DesktopTrayService? _desktopTrayIntegration;
   String? _themePaletteRecomputeInProgressPath;
 
+  WindowsIntegrationService? get windowsIntegration => _windowsIntegration;
   Color? get dynamicStartColor => _dynamicStartColor;
   Color? get dynamicEndColor => _dynamicEndColor;
   Map<String, Color> get currentThemeColorsMap => _currentThemeColorsMap;

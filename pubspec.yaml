@@ -70,7 +70,7 @@ dependencies:
       ref: main
   windows_taskbar:
     git:
-      url: https://github.com/alexmercerind/windows_taskbar
+      url: https://github.com/axel10/windows_taskbar
       ref: master
   smtc_windows: ^1.1.0
   audio_service: ^0.18.18 
@@ -268,6 +268,8 @@ dependency_overrides:
   #   path: ./Bonsoir/packages/bonsoir_windows
   audio_core:
     path: ./audio_core
+  windows_taskbar:
+    path: ./windows_taskbar
   sqlparser: 0.44.4
 
   #   mobile_storage_listener:

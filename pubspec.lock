@@ -1727,11 +1727,9 @@ packages:
   windows_taskbar:
     dependency: "direct main"
     description:
-      path: "."
-      ref: master
-      resolved-ref: c1fe0c37171521af8b55bc8ce89734cfe13262c1
-      url: "https://github.com/alexmercerind/windows_taskbar"
-    source: git
+      path: windows_taskbar
+      relative: true
+    source: path
     version: "1.1.4"
   worker_manager:
     dependency: "direct main"

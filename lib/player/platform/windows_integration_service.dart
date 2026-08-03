@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:windows_taskbar/windows_taskbar.dart';
 import 'package:smtc_windows/smtc_windows.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_service.dart';
+import 'package:vynody/utils/app_log.dart';
 
-class WindowsIntegrationService {
+class WindowsIntegrationService with WindowListener {
   final AudioService audioService;
   SMTCWindows? _smtc;
   StreamSubscription? _smtcSubscription;
@@ -49,18 +51,31 @@ class WindowsIntegrationService {
       }
     });
 
+    windowManager.addListener(this);
     _scheduleInitialTaskbarSetup();
     _startArtworkServer();
+  }
 
-    // TEST: Deliberate early call to verify the new error message reporting.
-    // This is expected to fail with "SetProgressMode failed: Window is not visible."
-    unawaited(() async {
-      try {
-        await WindowsTaskbar.setProgressMode(TaskbarProgressMode.normal);
-      } catch (e) {
-        debugPrint('TEST: Expected startup error: $e');
-      }
-    }());
+  @override
+  void onWindowRestore() {
+    AppLog.log('[WindowsTaskbar] onWindowRestore triggered', mirrorToConsole: true);
+    reapplyTaskbarButtons();
+  }
+
+  @override
+  void onWindowFocus() {
+    AppLog.log('[WindowsTaskbar] onWindowFocus triggered, taskbarReady=$_taskbarReady', mirrorToConsole: true);
+    if (!_taskbarReady) {
+      reapplyTaskbarButtons();
+    }
+  }
+
+  void reapplyTaskbarButtons() {
+    AppLog.log('[WindowsTaskbar] reapplyTaskbarButtons called, Platform.isWindows=${Platform.isWindows}, disposed=$_disposed', mirrorToConsole: true);
+    if (!Platform.isWindows || _disposed) return;
+    _taskbarReady = false;
+    _taskbarInitScheduled = false;
+    _scheduleInitialTaskbarSetup();
   }
 
   Future<void> _startArtworkServer() async {
@@ -154,21 +169,24 @@ class WindowsIntegrationService {
     final diff = (position - _lastPosition).abs().inMilliseconds;
     if (diff >= 1000 || diff < 0 || position == Duration.zero) {
       _lastPosition = position;
-      try {
-        if (duration.inMilliseconds > 0) {
-          WindowsTaskbar.setProgressMode(TaskbarProgressMode.normal);
-          WindowsTaskbar.setProgress(
-            position.inMilliseconds,
-            duration.inMilliseconds,
-          );
-        } else {
-          WindowsTaskbar.setProgressMode(TaskbarProgressMode.noProgress);
+      unawaited(() async {
+        try {
+          if (!await windowManager.isVisible()) return;
+          if (duration.inMilliseconds > 0) {
+            await WindowsTaskbar.setProgressMode(TaskbarProgressMode.normal);
+            await WindowsTaskbar.setProgress(
+              position.inMilliseconds,
+              duration.inMilliseconds,
+            );
+          } else {
+            await WindowsTaskbar.setProgressMode(TaskbarProgressMode.noProgress);
+          }
+        } catch (e) {
+          if (!e.toString().contains('Window is not visible')) {
+            debugPrint('WindowsTaskbar progress error: $e');
+          }
         }
-      } catch (e) {
-        // Log only if it's not a 'Window is not visible' error or if we really want to see it
-        // At this point _taskbarReady is true, so this is unexpected.
-        debugPrint('WindowsTaskbar progress error: $e');
-      }
+      }());
     }
   }
 
@@ -184,6 +202,7 @@ class WindowsIntegrationService {
   }
 
   void _scheduleInitialTaskbarSetup() {
+    AppLog.log('[WindowsTaskbar] _scheduleInitialTaskbarSetup, taskbarInitScheduled=$_taskbarInitScheduled', mirrorToConsole: true);
     if (!Platform.isWindows || _disposed || _taskbarInitScheduled) return;
     _taskbarInitScheduled = true;
 
@@ -192,31 +211,37 @@ class WindowsIntegrationService {
         _taskbarInitScheduled = false;
         return;
       }
+      AppLog.log('[WindowsTaskbar] PostFrameCallback starting _retrySetThumbnailToolbar', mirrorToConsole: true);
       await _retrySetThumbnailToolbar();
       if (_disposed) return;
-      // 无论成功与否，都重置标志以便下次可以重新尝试
-      // （例如窗口重新显示时）
       _taskbarInitScheduled = false;
     });
   }
 
   Future<void> _retrySetThumbnailToolbar() async {
     const retryDelays = <Duration>[
+      Duration(milliseconds: 200),
       Duration(milliseconds: 600),
       Duration(milliseconds: 1200),
       Duration(milliseconds: 2400),
-      Duration(milliseconds: 4000),
     ];
 
     for (var i = 0; i < retryDelays.length; i++) {
-      if (_disposed || _taskbarReady) return;
+      if (_disposed || _taskbarReady) {
+        AppLog.log('[WindowsTaskbar] _retrySetThumbnailToolbar loop exit: disposed=$_disposed, taskbarReady=$_taskbarReady', mirrorToConsole: true);
+        return;
+      }
 
       if (i > 0) {
+        AppLog.log('[WindowsTaskbar] _retrySetThumbnailToolbar waiting ${retryDelays[i].inMilliseconds}ms for attempt $i', mirrorToConsole: true);
         await Future.delayed(retryDelays[i]);
         if (_disposed) return;
       }
 
+      final isVisible = await windowManager.isVisible();
+      AppLog.log('[WindowsTaskbar] Attempt $i setting toolbar, isVisible=$isVisible', mirrorToConsole: true);
       final success = await _setThumbnailToolbar(logError: i == retryDelays.length - 1);
+      AppLog.log('[WindowsTaskbar] Attempt $i setThumbnailToolbar result=$success', mirrorToConsole: true);
       if (success) {
         return;
       }
@@ -227,6 +252,12 @@ class WindowsIntegrationService {
     if (_disposed) return false;
 
     try {
+      final visible = await windowManager.isVisible();
+      if (!visible) {
+        AppLog.log('[WindowsTaskbar] _setThumbnailToolbar skipped because window is not visible', mirrorToConsole: true);
+        return false;
+      }
+      AppLog.log('[WindowsTaskbar] Calling WindowsTaskbar.setThumbnailToolbar...', mirrorToConsole: true);
       await WindowsTaskbar.setThumbnailToolbar([
         ThumbnailToolbarButton(
           ThumbnailToolbarAssetIcon('assets/icons/skip_previous.ico'),
@@ -247,11 +278,11 @@ class WindowsIntegrationService {
         ),
       ]);
       _taskbarReady = true;
+      AppLog.log('[WindowsTaskbar] WindowsTaskbar.setThumbnailToolbar succeeded! _taskbarReady=true', mirrorToConsole: true);
       return true;
-    } catch (e) {
-      if (logError) {
-        debugPrint('WindowsTaskbar Error: $e');
-      }
+    } catch (e, stack) {
+      _taskbarReady = false;
+      AppLog.log('[WindowsTaskbar] _setThumbnailToolbar threw exception: $e\n$stack', mirrorToConsole: true);
       return false;
     }
   }
@@ -259,6 +290,7 @@ class WindowsIntegrationService {
   void dispose() {
     if (!Platform.isWindows) return;
     _disposed = true;
+    windowManager.removeListener(this);
     _smtcSubscription?.cancel();
     _smtc?.dispose();
     _artworkServer?.close(force: true);

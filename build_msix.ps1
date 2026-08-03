@@ -1,1 +1,1 @@
-Remove-Item -Recurse -Force build/flutter_assets, build/windows/x64/runner/Release/data/flutter_assets; flutter build windows --release --dart-define=STORE_BUILD=true; dart run msix:create --build-windows false
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue build/flutter_assets, build/windows/x64/runner/Release/data/flutter_assets; flutter build windows --release --dart-define=STORE_BUILD=true; dart run msix:create --build-windows false
