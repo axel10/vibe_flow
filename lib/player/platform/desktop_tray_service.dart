@@ -236,12 +236,11 @@ class DesktopTrayService with WindowListener {
         _toggleWindowVisibility();
         break;
       case _idDisableTray:
+        _showAndFocusWindow();
         settingsService.enableSystemTray = false;
         break;
       case _idExit:
-        _destroyTray().then((_) {
-          performCleanExit();
-        });
+        performCleanExit();
         break;
     }
   }
