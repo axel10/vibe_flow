@@ -158,6 +158,8 @@ flutter:
     - assets/icons/pause.ico
     - assets/icons/skip_previous.ico
     - assets/icons/skip_next.ico
+    - assets/icons/dark/
+    - assets/icons/light/
     - assets/icons/lyrics/
     - assets/images/app_icon.ico
     - assets/images/icon.png

@@ -8,7 +8,7 @@ import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/utils/app_log.dart';
 
-class WindowsIntegrationService with WindowListener {
+class WindowsIntegrationService with WindowListener, WidgetsBindingObserver {
   final AudioService audioService;
   SMTCWindows? _smtc;
   StreamSubscription? _smtcSubscription;
@@ -52,6 +52,7 @@ class WindowsIntegrationService with WindowListener {
     });
 
     windowManager.addListener(this);
+    WidgetsBinding.instance.addObserver(this);
     _scheduleInitialTaskbarSetup();
     _startArtworkServer();
   }
@@ -67,6 +68,14 @@ class WindowsIntegrationService with WindowListener {
     AppLog.log('[WindowsTaskbar] onWindowFocus triggered, taskbarReady=$_taskbarReady', mirrorToConsole: true);
     if (!_taskbarReady) {
       reapplyTaskbarButtons();
+    }
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    AppLog.log('[WindowsTaskbar] didChangePlatformBrightness triggered', mirrorToConsole: true);
+    if (!_disposed && _taskbarReady) {
+      unawaited(_setThumbnailToolbar());
     }
   }
 
@@ -257,22 +266,25 @@ class WindowsIntegrationService with WindowListener {
         AppLog.log('[WindowsTaskbar] _setThumbnailToolbar skipped because window is not visible', mirrorToConsole: true);
         return false;
       }
-      AppLog.log('[WindowsTaskbar] Calling WindowsTaskbar.setThumbnailToolbar...', mirrorToConsole: true);
+      final isLightMode = WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.light;
+      final iconFolder = isLightMode ? 'assets/icons/dark' : 'assets/icons/light';
+
+      AppLog.log('[WindowsTaskbar] Calling WindowsTaskbar.setThumbnailToolbar (isLightMode=$isLightMode, folder=$iconFolder)...', mirrorToConsole: true);
       await WindowsTaskbar.setThumbnailToolbar([
         ThumbnailToolbarButton(
-          ThumbnailToolbarAssetIcon('assets/icons/skip_previous.ico'),
+          ThumbnailToolbarAssetIcon('$iconFolder/skip_previous.ico'),
           'Previous',
           audioService.previous,
         ),
         ThumbnailToolbarButton(
           audioService.isPlaying
-              ? ThumbnailToolbarAssetIcon('assets/icons/pause.ico')
-              : ThumbnailToolbarAssetIcon('assets/icons/play_arrow.ico'),
+              ? ThumbnailToolbarAssetIcon('$iconFolder/pause.ico')
+              : ThumbnailToolbarAssetIcon('$iconFolder/play_arrow.ico'),
           audioService.isPlaying ? 'Pause' : 'Play',
           audioService.togglePlay,
         ),
         ThumbnailToolbarButton(
-          ThumbnailToolbarAssetIcon('assets/icons/skip_next.ico'),
+          ThumbnailToolbarAssetIcon('$iconFolder/skip_next.ico'),
           'Next',
           audioService.next,
         ),
@@ -291,6 +303,7 @@ class WindowsIntegrationService with WindowListener {
     if (!Platform.isWindows) return;
     _disposed = true;
     windowManager.removeListener(this);
+    WidgetsBinding.instance.removeObserver(this);
     _smtcSubscription?.cancel();
     _smtc?.dispose();
     _artworkServer?.close(force: true);
