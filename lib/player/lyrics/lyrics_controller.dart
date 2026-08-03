@@ -80,9 +80,14 @@ class LyricsController extends Notifier<LyricsControllerState> {
       if (state.lyricsTranslationLanguageCode == next) {
         return;
       }
-      state = state.copyWith(
-        lyricsTranslationLanguageCode: next,
-      );
+      Future.microtask(() {
+        if (state.lyricsTranslationLanguageCode == next) {
+          return;
+        }
+        state = state.copyWith(
+          lyricsTranslationLanguageCode: next,
+        );
+      });
     });
     _lyricsAiService = ref.read(lyricsAiServiceProvider);
     _context = LyricsControllerContext(

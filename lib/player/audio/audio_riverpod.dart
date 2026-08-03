@@ -105,7 +105,9 @@ class AudioPlaybackQueueNotifier extends Notifier<List<MusicFile>> {
     ref.listen<AudioSnapshot>(audioSnapshotProvider, (previous, next) {
       if (previous == null ||
           !listEquals(previous.playbackQueue, next.playbackQueue)) {
-        state = next.playbackQueue;
+        Future.microtask(() {
+          state = next.playbackQueue;
+        });
       }
     });
     return ref.read(audioSnapshotProvider).playbackQueue;
