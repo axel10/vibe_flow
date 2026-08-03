@@ -3041,6 +3041,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get disableSystemTray => 'Deshabilitar bandeja del sistema';
 
   @override
+  String get restoreWindow => 'Restaurar ventana';
+
+  @override
+  String get hideWindow => 'Ocultar ventana';
+
+  @override
   String get onboardingAndroidBatteryTitle =>
       'Protección de reproducción en segundo plano';
 

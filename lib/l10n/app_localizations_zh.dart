@@ -2858,6 +2858,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disableSystemTray => '停用系统托盘';
 
   @override
+  String get restoreWindow => '还原窗口';
+
+  @override
+  String get hideWindow => '隐藏窗口';
+
+  @override
   String get onboardingAndroidBatteryTitle => '后台播放防误杀设置';
 
   @override
@@ -5943,6 +5949,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get disableSystemTray => '停用系統匣';
+
+  @override
+  String get restoreWindow => '還原視窗';
+
+  @override
+  String get hideWindow => '隱藏視窗';
 
   @override
   String get onboardingAndroidBatteryTitle => '背景播放防誤殺設定';

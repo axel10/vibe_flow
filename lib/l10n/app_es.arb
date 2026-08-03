@@ -1179,6 +1179,8 @@
   "unmute": "Activar sonido",
   "mute": "Silenciar",
   "disableSystemTray": "Deshabilitar bandeja del sistema",
+  "restoreWindow": "Restaurar ventana",
+  "hideWindow": "Ocultar ventana",
   "onboardingAndroidBatteryTitle": "Protección de reproducción en segundo plano",
   "onboardingAndroidBatteryDescription": "Debido a las estrictas políticas de optimización de batería de Android, para evitar que la reproducción de música se detenga en segundo plano, recomendamos configurar la restricción de batería de Vynody a «Sin restricciones» (Unrestricted).",
   "onboardingAndroidBatteryStep1": "1. Toque el botón «Ir a Ajustes» a continuación.",

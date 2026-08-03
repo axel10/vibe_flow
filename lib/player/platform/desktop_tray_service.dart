@@ -10,12 +10,13 @@ import 'package:vynody/main.dart';
 import 'package:vynody/utils/app_log.dart';
 import 'package:flutter_tray/flutter_tray.dart' as ft;
 
-class DesktopTrayService {
+class DesktopTrayService with WindowListener {
   final AudioService audioService;
   final SettingsService settingsService;
   bool _initialized = false;
   bool? _lastIsPlaying;
   bool? _lastIsMuted;
+  bool? _lastIsWindowVisible;
   final ft.FlutterTray _tray = ft.FlutterTray();
   StreamSubscription<ft.TrayEvent>? _eventSubscription;
 
@@ -24,8 +25,9 @@ class DesktopTrayService {
   static const int _idNext = 3;
   static const int _idToggleMute = 4;
   static const int _idSeparator = 5;
-  static const int _idDisableTray = 6;
-  static const int _idExit = 7;
+  static const int _idToggleWindow = 6;
+  static const int _idDisableTray = 7;
+  static const int _idExit = 8;
 
   DesktopTrayService({
     required this.audioService,
@@ -33,6 +35,7 @@ class DesktopTrayService {
   }) {
     if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       settingsService.addListener(_handleSettingsChange);
+      windowManager.addListener(this);
       _syncTrayState();
     }
   }
@@ -124,10 +127,36 @@ class DesktopTrayService {
       _initialized = false;
       _lastIsPlaying = null;
       _lastIsMuted = null;
+      _lastIsWindowVisible = null;
       debugPrint('[Tray] System tray destroyed.');
     } catch (e) {
       debugPrint('Failed to destroy tray: $e');
     }
+  }
+
+  Future<bool> _isWindowActiveOnScreen() async {
+    try {
+      final isVisible = await windowManager.isVisible();
+      final isMinimized = await windowManager.isMinimized();
+      return isVisible && !isMinimized;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  @override
+  void onWindowMinimize() {
+    updateMenu(force: true);
+  }
+
+  @override
+  void onWindowRestore() {
+    updateMenu(force: true);
+  }
+
+  @override
+  void onWindowFocus() {
+    updateMenu(force: true);
   }
 
   Future<void> updateMenu({bool force = false}) async {
@@ -137,13 +166,18 @@ class DesktopTrayService {
 
     final isPlaying = audioService.isPlaying;
     final isMuted = audioService.isMuted;
+    final isWindowVisible = await _isWindowActiveOnScreen();
 
-    if (!force && isPlaying == _lastIsPlaying && isMuted == _lastIsMuted) {
+    if (!force &&
+        isPlaying == _lastIsPlaying &&
+        isMuted == _lastIsMuted &&
+        isWindowVisible == _lastIsWindowVisible) {
       return;
     }
 
     _lastIsPlaying = isPlaying;
     _lastIsMuted = isMuted;
+    _lastIsWindowVisible = isWindowVisible;
 
     try {
       final l10n = currentAppL10n;
@@ -165,6 +199,10 @@ class DesktopTrayService {
           label: isMuted ? l10n.unmute : l10n.mute,
         ),
         ft.MenuItem.separator(_idSeparator),
+        ft.MenuItem(
+          id: _idToggleWindow,
+          label: isWindowVisible ? l10n.hideWindow : l10n.restoreWindow,
+        ),
         ft.MenuItem(
           id: _idDisableTray,
           label: l10n.disableSystemTray,
@@ -194,6 +232,9 @@ class DesktopTrayService {
       case _idToggleMute:
         audioService.toggleMute();
         break;
+      case _idToggleWindow:
+        _toggleWindowVisibility();
+        break;
       case _idDisableTray:
         settingsService.enableSystemTray = false;
         break;
@@ -202,6 +243,22 @@ class DesktopTrayService {
           performCleanExit();
         });
         break;
+    }
+  }
+
+  Future<void> _toggleWindowVisibility() async {
+    try {
+      final isVisible = await _isWindowActiveOnScreen();
+      if (isVisible) {
+        AppLog.log('[Tray] Hiding window...', mirrorToConsole: true);
+        await windowManager.hide();
+      } else {
+        AppLog.log('[Tray] Restoring window...', mirrorToConsole: true);
+        await _showAndFocusWindow();
+      }
+      await updateMenu(force: true);
+    } catch (e) {
+      AppLog.log('[Tray] Failed to toggle window visibility: $e', mirrorToConsole: true);
     }
   }
 
@@ -217,6 +274,7 @@ class DesktopTrayService {
       await windowManager.focus();
       AppLog.log('[Tray] window reshown & focused, reapplying taskbar buttons...', mirrorToConsole: true);
       audioService.windowsIntegration?.reapplyTaskbarButtons();
+      await updateMenu(force: true);
     } catch (e) {
       AppLog.log('[Tray] Failed to show and focus window: $e', mirrorToConsole: true);
     }
@@ -225,6 +283,7 @@ class DesktopTrayService {
   void dispose() {
     if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
       settingsService.removeListener(_handleSettingsChange);
+      windowManager.removeListener(this);
       _destroyTray();
     }
   }

@@ -2902,6 +2902,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get disableSystemTray => '시스템 트레이 비활성화';
 
   @override
+  String get restoreWindow => '창 복원';
+
+  @override
+  String get hideWindow => '창 숨기기';
+
+  @override
   String get onboardingAndroidBatteryTitle => '백그라운드 재생 보호 설정';
 
   @override

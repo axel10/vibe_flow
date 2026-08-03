@@ -1185,6 +1185,8 @@
   "unmute": "Unmute",
   "mute": "Mute",
   "disableSystemTray": "Disable System Tray",
+  "restoreWindow": "Restore Window",
+  "hideWindow": "Hide Window",
   "onboardingAndroidBatteryTitle": "Background Playback Protection",
   "onboardingAndroidBatteryDescription": "Due to Android's strict battery optimization policies, to prevent music playback from being killed in the background, we recommend setting Vynody's battery restriction to \"Unrestricted\".",
   "onboardingAndroidBatteryStep1": "1. Tap the \"Go to Settings\" button below.",

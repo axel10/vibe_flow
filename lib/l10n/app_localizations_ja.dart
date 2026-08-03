@@ -2899,6 +2899,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get disableSystemTray => 'システムトレイを无効にする';
 
   @override
+  String get restoreWindow => 'ウィンドウを元に戻す';
+
+  @override
+  String get hideWindow => 'ウィンドウを非表示';
+
+  @override
   String get onboardingAndroidBatteryTitle => 'バックグラウンド再生の保護';
 
   @override

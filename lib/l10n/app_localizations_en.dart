@@ -3000,6 +3000,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get disableSystemTray => 'Disable System Tray';
 
   @override
+  String get restoreWindow => 'Restore Window';
+
+  @override
+  String get hideWindow => 'Hide Window';
+
+  @override
   String get onboardingAndroidBatteryTitle => 'Background Playback Protection';
 
   @override

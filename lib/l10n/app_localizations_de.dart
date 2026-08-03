@@ -3034,6 +3034,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get disableSystemTray => 'System Tray deaktivieren';
 
   @override
+  String get restoreWindow => 'Fenster wiederherstellen';
+
+  @override
+  String get hideWindow => 'Fenster ausblenden';
+
+  @override
   String get onboardingAndroidBatteryTitle =>
       'Schutz für Hintergrund-Wiedergabe';
 

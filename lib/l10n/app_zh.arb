@@ -1651,6 +1651,8 @@
   "unmute": "取消静音",
   "mute": "静音",
   "disableSystemTray": "停用系统托盘",
+  "restoreWindow": "还原窗口",
+  "hideWindow": "隐藏窗口",
   "onboardingAndroidBatteryTitle": "后台播放防误杀设置",
   "onboardingAndroidBatteryDescription": "由于安卓系统的电池管理策略非常严格，为了防止音乐在后台播放时被系统强制关闭，建议将 Vynody 的电池使用限制设置为「无限制」（Unrestricted）。",
   "onboardingAndroidBatteryStep1": "1. 点击下方的「去设置」按钮。",

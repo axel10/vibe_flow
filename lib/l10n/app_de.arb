@@ -1179,6 +1179,8 @@
   "unmute": "Stummschaltung aufheben",
   "mute": "Stumm",
   "disableSystemTray": "System Tray deaktivieren",
+  "restoreWindow": "Fenster wiederherstellen",
+  "hideWindow": "Fenster ausblenden",
   "onboardingAndroidBatteryTitle": "Schutz für Hintergrund-Wiedergabe",
   "onboardingAndroidBatteryDescription": "Aufgrund der strengen Akku-Optimierungsrichtlinien von Android empfehlen wir, die Akku-Einschränkung für Vynody auf „Nicht eingeschränkt“ (Unrestricted) zu setzen, um zu verhindern, dass die Musikwiedergabe im Hintergrund beendet wird.",
   "onboardingAndroidBatteryStep1": "1. Tippen Sie unten auf die Schaltfläche „Zu den Einstellungen“.",

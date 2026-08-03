@@ -874,6 +874,8 @@
   "unmute": "取消靜音",
   "mute": "靜音",
   "disableSystemTray": "停用系統匣",
+  "restoreWindow": "還原視窗",
+  "hideWindow": "隱藏視窗",
   "onboardingAndroidBatteryTitle": "背景播放防誤殺設定",
   "onboardingAndroidBatteryDescription": "由於 Android 系統的電池管理策略非常嚴格，為了防止音樂在背景播放時被系統強制關閉，建議將 Vynody 的電池使用限制設定為「無限制」（Unrestricted）。",
   "onboardingAndroidBatteryStep1": "1. 點選下方的「前往設定」按鈕。",

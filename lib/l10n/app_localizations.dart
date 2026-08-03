@@ -5419,6 +5419,18 @@ abstract class AppLocalizations {
   /// **'停用系统托盘'**
   String get disableSystemTray;
 
+  /// No description provided for @restoreWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'还原窗口'**
+  String get restoreWindow;
+
+  /// No description provided for @hideWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏窗口'**
+  String get hideWindow;
+
   /// No description provided for @onboardingAndroidBatteryTitle.
   ///
   /// In zh, this message translates to:

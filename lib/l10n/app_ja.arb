@@ -1278,6 +1278,8 @@
   "unmute": "ミュート解除",
   "mute": "ミュート",
   "disableSystemTray": "システムトレイを无効にする",
+  "restoreWindow": "ウィンドウを元に戻す",
+  "hideWindow": "ウィンドウを非表示",
   "onboardingAndroidBatteryTitle": "バックグラウンド再生の保護",
   "onboardingAndroidBatteryDescription": "Androidの厳格なバッテリー最適化ポリシーにより、バックグラウンドでの音楽再生が強制終了されるのを防ぐため、Vynodyのバッテリー制限を「制限なし」（Unrestricted）に設定することをお勧めします。",
   "onboardingAndroidBatteryStep1": "1. 下の「設定へ」ボタンをタップします。",

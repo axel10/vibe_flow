@@ -3043,6 +3043,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get disableSystemTray => 'Désactiver la barre d\'état système';
 
   @override
+  String get restoreWindow => 'Restaurer la fenêtre';
+
+  @override
+  String get hideWindow => 'Masquer la fenêtre';
+
+  @override
   String get onboardingAndroidBatteryTitle =>
       'Protection de lecture en arrière-plan';
 
