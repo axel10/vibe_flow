@@ -270,8 +270,8 @@ dependency_overrides:
   #   path: ./Bonsoir/packages/bonsoir_windows
   audio_core:
     path: ./audio_core
-  windows_taskbar:
-    path: ./windows_taskbar
+  # windows_taskbar:
+  #   path: ./windows_taskbar
   sqlparser: 0.44.4
 
   #   mobile_storage_listener:
