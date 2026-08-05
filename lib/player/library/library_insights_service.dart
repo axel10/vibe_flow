@@ -11,12 +11,14 @@ class LibraryInsightSongEntry {
     required this.playCount,
     this.lastPlayedAt,
     this.createdAt,
+    this.sourceFlags,
   });
 
   final MusicFile song;
   final int playCount;
   final int? lastPlayedAt;
   final int? createdAt;
+  final int? sourceFlags;
 }
 
 class LibraryInsightsService {
@@ -64,6 +66,18 @@ class LibraryInsightsService {
         .map(_mapRecords);
   }
 
+  Stream<List<LibraryInsightSongEntry>> watchRecentlyPlayed(
+    LibraryTimeRange range, {
+    int? limit = 500,
+  }) {
+    return _database
+        .watchRecentlyPlayedSongs(
+          startAtMillis: _startAtMillis(range),
+          limit: limit,
+        )
+        .map((records) => _mapRecords(records, includeExternal: true));
+  }
+
   int? _startAtMillis(LibraryTimeRange range) {
     final now = DateTime.now();
     return switch (range) {
@@ -78,10 +92,12 @@ class LibraryInsightsService {
   }
 
   List<LibraryInsightSongEntry> _mapRecords(
-    List<LibraryInsightSongRecord> records,
-  ) {
+    List<LibraryInsightSongRecord> records, {
+    bool includeExternal = false,
+  }) {
     return records
         .where((record) {
+          if (includeExternal) return true;
           final flags = record.song.sourceFlags ?? 0;
           return (flags & SongSourceFlags.external) == 0;
         })
@@ -107,6 +123,7 @@ class LibraryInsightsService {
             playCount: record.playCount,
             lastPlayedAt: record.lastPlayedAt,
             createdAt: record.song.createdAt,
+            sourceFlags: record.song.sourceFlags,
           ),
         )
         .toList(growable: false);
@@ -129,6 +146,14 @@ final mostPlayedSongsProvider =
       range,
     ) {
       return ref.read(libraryInsightsServiceProvider).watchMostPlayed(range);
+    });
+
+final recentlyPlayedSongsProvider =
+    StreamProvider.family<List<LibraryInsightSongEntry>, LibraryTimeRange>((
+      ref,
+      range,
+    ) {
+      return ref.read(libraryInsightsServiceProvider).watchRecentlyPlayed(range);
     });
 
 final recentlyAddedSongsProvider =

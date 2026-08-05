@@ -293,6 +293,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mostPlayed => '最も再生された';
 
   @override
+  String get recentlyPlayed => '最近播放';
+
+  @override
   String get recentlyAdded => '最近追加';
 
   @override
@@ -303,6 +306,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mostPlayedDescription => '再生完了回数でランク付け';
+
+  @override
+  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
 
   @override
   String get recentlyAddedDescription => 'ライブラリに追加された日時順';
@@ -326,6 +332,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPlayHistoryInRange => 'この期間の再生履歴はありません';
 
   @override
+  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+
+  @override
+  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+
+  @override
   String get noRecentlyAddedSongs => 'ライブラリに曲がまだありません';
 
   @override
@@ -333,6 +345,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get addedOn => '追加日';
+
+  @override
+  String get externalSourceTag => '外部';
 
   @override
   String get lastPlayed => '最終再生';

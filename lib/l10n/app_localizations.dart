@@ -637,6 +637,12 @@ abstract class AppLocalizations {
   /// **'最多播放'**
   String get mostPlayed;
 
+  /// No description provided for @recentlyPlayed.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近播放'**
+  String get recentlyPlayed;
+
   /// No description provided for @recentlyAdded.
   ///
   /// In zh, this message translates to:
@@ -660,6 +666,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'按有效播放次数排序'**
   String get mostPlayedDescription;
+
+  /// No description provided for @recentlyPlayedDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'按最近播放时间排序，包含未入库文件'**
+  String get recentlyPlayedDescription;
 
   /// No description provided for @recentlyAddedDescription.
   ///
@@ -703,6 +715,18 @@ abstract class AppLocalizations {
   /// **'这个时间范围内还没有播放记录'**
   String get noPlayHistoryInRange;
 
+  /// No description provided for @noRecentlyPlayedSongs.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无播放历史记录'**
+  String get noRecentlyPlayedSongs;
+
+  /// No description provided for @noRecentlyPlayedInRange.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个时间范围内暂无播放历史'**
+  String get noRecentlyPlayedInRange;
+
   /// No description provided for @noRecentlyAddedSongs.
   ///
   /// In zh, this message translates to:
@@ -720,6 +744,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'添加时间'**
   String get addedOn;
+
+  /// No description provided for @externalSourceTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'外部'**
+  String get externalSourceTag;
 
   /// No description provided for @lastPlayed.
   ///

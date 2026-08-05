@@ -296,6 +296,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mostPlayed => 'Am häufigsten gespielt';
 
   @override
+  String get recentlyPlayed => '最近播放';
+
+  @override
   String get recentlyAdded => 'Kürzlich hinzugefügt';
 
   @override
@@ -306,6 +309,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get mostPlayedDescription => 'Sortiert nach vollständigen Wiedergaben';
+
+  @override
+  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
 
   @override
   String get recentlyAddedDescription =>
@@ -331,6 +337,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Wiedergabeverlauf in diesem Zeitraum';
 
   @override
+  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+
+  @override
+  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+
+  @override
   String get noRecentlyAddedSongs => 'Noch keine Songs in der Mediathek';
 
   @override
@@ -339,6 +351,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get addedOn => 'Hinzugefügt am';
+
+  @override
+  String get externalSourceTag => '外部';
 
   @override
   String get lastPlayed => 'Zuletzt gespielt';

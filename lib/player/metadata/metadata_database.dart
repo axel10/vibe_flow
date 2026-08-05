@@ -611,6 +611,14 @@ class MetadataDatabase {
         limit: limit,
       );
 
+  Stream<List<LibraryInsightSongRecord>> watchRecentlyPlayedSongs({
+    int? startAtMillis,
+    int? limit = 500,
+  }) => _db.watchRecentlyPlayedSongs(
+        startAtMillis: startAtMillis,
+        limit: limit,
+      );
+
   Future<int> syncSongSourcePresence({
     required int sourceMask,
     required Iterable<String> presentPaths,

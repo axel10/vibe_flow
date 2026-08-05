@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import 'albums_tab.dart';
 import 'artists_tab.dart';
 import 'most_played_tab.dart';
+import 'recently_played_tab.dart';
 import '../widgets/library_selection_scope.dart';
 import 'playlist_tab.dart';
 import 'recently_added_tab.dart';
@@ -26,7 +27,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this)
+    _tabController = TabController(length: 6, vsync: this)
       ..addListener(() {
         if (_tabController.indexIsChanging) return;
         if (_tabIndex == _tabController.index) return;
@@ -57,6 +58,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
           tabAlignment: isPortrait ? TabAlignment.center : TabAlignment.fill,
           tabs: [
             Tab(text: l10n.playlist),
+            Tab(text: l10n.recentlyPlayed),
             Tab(text: l10n.mostPlayed),
             Tab(text: l10n.recentlyAdded),
             Tab(text: l10n.albums),
@@ -68,6 +70,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
         controller: _tabController,
         children: const [
           KeepAliveWrapper(child: PlaylistTab()),
+          KeepAliveWrapper(child: RecentlyPlayedTab()),
           KeepAliveWrapper(child: MostPlayedTab()),
           KeepAliveWrapper(child: RecentlyAddedTab()),
           KeepAliveWrapper(child: AlbumsTab()),

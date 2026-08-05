@@ -1176,6 +1176,66 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     );
   }
 
+  Stream<List<LibraryInsightSongRecord>> watchRecentlyPlayedSongs({
+    int? startAtMillis,
+    int? limit = 500,
+  }) {
+    final buffer = StringBuffer()
+      ..writeln('SELECT')
+      ..writeln('  s.id,')
+      ..writeln('  s.path,')
+      ..writeln('  s.title,')
+      ..writeln('  s.album,')
+      ..writeln('  s.artist,')
+      ..writeln('  s.duration,')
+      ..writeln('  s.artworkPath,')
+      ..writeln('  s.thumbnailPath,')
+      ..writeln('  s.artworkWidth,')
+      ..writeln('  s.artworkHeight,')
+      ..writeln('  s.trackNumber,')
+      ..writeln('  s.sourceFlags,')
+      ..writeln('  s.themeColorsBlob,')
+      ..writeln('  s.waveformBlob,')
+      ..writeln('  s.lastModifiedTime,')
+      ..writeln('  s.metadataTextScanned,')
+      ..writeln('  s.metadataImgScanned,')
+      ..writeln('  s.createdAt,')
+      ..writeln('  s.genres,')
+      ..writeln('  s.isAppModified,')
+      ..writeln('  COUNT(h.id) AS playCount,')
+      ..writeln('  MAX(h.playedAt) AS lastPlayedAt')
+      ..writeln('FROM songs s')
+      ..writeln('JOIN song_play_history h ON h.songPath = s.path')
+      ..writeln('WHERE s.deletedAt IS NULL');
+
+    final variables = <Variable<Object>>[];
+    if (startAtMillis != null) {
+      buffer.writeln('  AND h.playedAt >= ?');
+      variables.add(Variable.withInt(startAtMillis));
+    }
+
+    buffer
+      ..writeln('GROUP BY s.path')
+      ..writeln('ORDER BY lastPlayedAt DESC,')
+      ..writeln("LOWER(COALESCE(s.title, '')) ASC,")
+      ..writeln('LOWER(s.path) ASC');
+
+    if (limit != null && limit > 0) {
+      buffer.writeln('LIMIT ?');
+      variables.add(Variable.withInt(limit));
+    }
+
+    return customSelect(
+      buffer.toString(),
+      variables: variables,
+      readsFrom: {songs, songPlayHistories},
+    ).watch().map(
+      (rows) => rows
+          .map((row) => _libraryInsightSongRecordFromRow(row))
+          .toList(growable: false),
+    );
+  }
+
   Future<void> deleteSongByPath(String path) async {
     final normalizedPath = _normalizePath(path);
     if (normalizedPath.isEmpty) return;

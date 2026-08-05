@@ -292,6 +292,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mostPlayed => '最多播放';
 
   @override
+  String get recentlyPlayed => '最近播放';
+
+  @override
   String get recentlyAdded => '最近添加';
 
   @override
@@ -302,6 +305,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mostPlayedDescription => '按有效播放次数排序';
+
+  @override
+  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
 
   @override
   String get recentlyAddedDescription => '按进入媒体库的时间排序';
@@ -325,6 +331,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noPlayHistoryInRange => '这个时间范围内还没有播放记录';
 
   @override
+  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+
+  @override
+  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+
+  @override
   String get noRecentlyAddedSongs => '媒体库中还没有歌曲';
 
   @override
@@ -332,6 +344,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get addedOn => '添加时间';
+
+  @override
+  String get externalSourceTag => '外部';
 
   @override
   String get lastPlayed => '最近播放';
@@ -3385,6 +3400,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get mostPlayed => '最多播放';
 
   @override
+  String get recentlyPlayed => '最近播放';
+
+  @override
   String get recentlyAdded => '最近新增';
 
   @override
@@ -3395,6 +3413,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get mostPlayedDescription => '依有效播放次數排序';
+
+  @override
+  String get recentlyPlayedDescription => '依最近播放時間排序，包含未入庫檔案';
 
   @override
   String get recentlyAddedDescription => '依進入媒體庫的時間排序';
@@ -3418,6 +3439,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get noPlayHistoryInRange => '這個時間範圍內還沒有播放記錄';
 
   @override
+  String get noRecentlyPlayedSongs => '暫無播放歷史記錄';
+
+  @override
+  String get noRecentlyPlayedInRange => '這個時間範圍內暫無播放歷史';
+
+  @override
   String get noRecentlyAddedSongs => '媒體庫中還沒有歌曲';
 
   @override
@@ -3425,6 +3452,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get addedOn => '新增時間';
+
+  @override
+  String get externalSourceTag => '外部';
 
   @override
   String get lastPlayed => '最近播放';

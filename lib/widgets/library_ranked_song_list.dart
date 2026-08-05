@@ -8,6 +8,7 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/library/library_insights_service.dart';
 import 'package:vynody/player/library/playlist_service.dart';
+import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'song_thumbnail.dart';
 import 'library_selection_panel.dart';
@@ -415,10 +416,9 @@ class _SongListItem extends ConsumerWidget {
               }
             },
             child: ListTile(
-              isThreeLine: true,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
-                vertical: 8,
+                vertical: 4,
               ),
               selected: isSelectionMode ? isSelected : false,
               selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
@@ -464,8 +464,8 @@ class _SongListItem extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
-                _songSubtitle(l10n, song),
-                maxLines: 2,
+                _songSubtitle(l10n, entry),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: ConstrainedBox(
@@ -479,14 +479,19 @@ class _SongListItem extends ConsumerWidget {
     );
   }
 
-  String _songSubtitle(AppLocalizations l10n, MusicFile song) {
+  String _songSubtitle(AppLocalizations l10n, LibraryInsightSongEntry entry) {
+    final song = entry.song;
     final artist = isVisibleSongText(song.artist)
         ? song.artist!.trim()
         : l10n.unknownArtist;
     final album = isVisibleSongText(song.album)
         ? song.album!.trim()
         : l10n.unknownAlbum;
-    return '$artist · $album';
+    final baseSubtitle = '$artist · $album';
+    if ((entry.sourceFlags ?? 0) & SongSourceFlags.external != 0) {
+      return '$baseSubtitle  •  [${l10n.externalSourceTag}]';
+    }
+    return baseSubtitle;
   }
 }
 
@@ -531,4 +536,28 @@ String formatInsightDate(BuildContext context, int? millis) {
   return DateFormat.yMd(
     locale,
   ).format(DateTime.fromMillisecondsSinceEpoch(millis));
+}
+
+String formatRelativeInsightDate(BuildContext context, int? millis) {
+  if (millis == null) return '';
+  final date = DateTime.fromMillisecondsSinceEpoch(millis);
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  final isZh = Localizations.localeOf(context).languageCode == 'zh';
+  if (difference.inSeconds < 60 && difference.inSeconds >= 0) {
+    return isZh ? '刚刚' : 'Just now';
+  } else if (difference.inMinutes < 60 && difference.inMinutes >= 1) {
+    return isZh ? '${difference.inMinutes}分钟前' : '${difference.inMinutes}m ago';
+  } else if (difference.inHours < 24 && difference.inHours >= 1 && now.day == date.day) {
+    final timeStr = DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(date);
+    return isZh ? '今天 $timeStr' : 'Today $timeStr';
+  } else if (now.year == date.year && now.subtract(const Duration(days: 1)).day == date.day && now.subtract(const Duration(days: 1)).month == date.month) {
+    final timeStr = DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(date);
+    return isZh ? '昨天 $timeStr' : 'Yesterday $timeStr';
+  } else if (now.year == date.year) {
+    return DateFormat.MMMd(Localizations.localeOf(context).toLanguageTag()).format(date);
+  } else {
+    return DateFormat.yMd(Localizations.localeOf(context).toLanguageTag()).format(date);
+  }
 }

@@ -295,6 +295,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mostPlayed => 'Most Played';
 
   @override
+  String get recentlyPlayed => 'Recently Played';
+
+  @override
   String get recentlyAdded => 'Recently Added';
 
   @override
@@ -305,6 +308,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mostPlayedDescription => 'Ranked by completed plays';
+
+  @override
+  String get recentlyPlayedDescription =>
+      'Sorted by play time, including external files';
 
   @override
   String get recentlyAddedDescription =>
@@ -329,6 +336,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPlayHistoryInRange => 'No play history in this time range';
 
   @override
+  String get noRecentlyPlayedSongs => 'No play history yet';
+
+  @override
+  String get noRecentlyPlayedInRange => 'No play history in this time range';
+
+  @override
   String get noRecentlyAddedSongs => 'No songs in your library yet';
 
   @override
@@ -336,6 +349,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addedOn => 'Added On';
+
+  @override
+  String get externalSourceTag => 'External';
 
   @override
   String get lastPlayed => 'Last played';

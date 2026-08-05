@@ -5,27 +5,27 @@ import '../l10n/app_localizations.dart';
 import 'package:vynody/player/library/library_insights_service.dart';
 import '../widgets/library_ranked_song_list.dart';
 
-class MostPlayedTab extends ConsumerStatefulWidget {
-  const MostPlayedTab({super.key});
+class RecentlyPlayedTab extends ConsumerStatefulWidget {
+  const RecentlyPlayedTab({super.key});
 
   @override
-  ConsumerState<MostPlayedTab> createState() => _MostPlayedTabState();
+  ConsumerState<RecentlyPlayedTab> createState() => _RecentlyPlayedTabState();
 }
 
-class _MostPlayedTabState extends ConsumerState<MostPlayedTab> {
+class _RecentlyPlayedTabState extends ConsumerState<RecentlyPlayedTab> {
   LibraryTimeRange _selectedRange = LibraryTimeRange.allTime;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final asyncItems = ref.watch(mostPlayedSongsProvider(_selectedRange));
+    final asyncItems = ref.watch(recentlyPlayedSongsProvider(_selectedRange));
 
     return asyncItems.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text(error.toString())),
       data: (items) => LibraryRankedSongList(
-        title: l10n.mostPlayed,
-        subtitle: l10n.mostPlayedDescription,
+        title: l10n.recentlyPlayed,
+        subtitle: l10n.recentlyPlayedDescription,
         items: items,
         selectedRange: _selectedRange,
         onRangeChanged: (value) {
@@ -34,13 +34,11 @@ class _MostPlayedTabState extends ConsumerState<MostPlayedTab> {
           });
         },
         emptyText: _selectedRange == LibraryTimeRange.allTime
-            ? l10n.noPlayHistory
-            : l10n.noPlayHistoryInRange,
+            ? l10n.noRecentlyPlayedSongs
+            : l10n.noRecentlyPlayedInRange,
         trailingBuilder: (context, entry) => InsightMetricText(
-          primary: l10n.playCountLabel(entry.playCount),
-          secondary: entry.lastPlayedAt == null
-              ? null
-              : formatInsightDate(context, entry.lastPlayedAt),
+          primary: formatRelativeInsightDate(context, entry.lastPlayedAt),
+          secondary: l10n.playCountLabel(entry.playCount),
         ),
       ),
     );

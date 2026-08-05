@@ -292,6 +292,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mostPlayed => '가장 많이 재생';
 
   @override
+  String get recentlyPlayed => '最近播放';
+
+  @override
   String get recentlyAdded => '최근 추가됨';
 
   @override
@@ -302,6 +305,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mostPlayedDescription => '완료된 재생 횟수 기준';
+
+  @override
+  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
 
   @override
   String get recentlyAddedDescription => '라이브러리에 추가된 순서대로 정렬';
@@ -325,6 +331,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noPlayHistoryInRange => '이 시간 범위에 재생 기록이 없습니다';
 
   @override
+  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+
+  @override
+  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+
+  @override
   String get noRecentlyAddedSongs => '아직 라이브러리에 노래가 없습니다';
 
   @override
@@ -332,6 +344,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get addedOn => '추가된 날짜';
+
+  @override
+  String get externalSourceTag => '外部';
 
   @override
   String get lastPlayed => '마지막 재생';
