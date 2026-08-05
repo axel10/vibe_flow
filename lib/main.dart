@@ -179,6 +179,16 @@ void main(List<String> args) async {
         const singleInstanceChannel = MethodChannel('vynody/single_instance');
         singleInstanceChannel.setMethodCallHandler((call) async {
           if (call.method == 'onSecondInstance') {
+            try {
+              if (await windowManager.isMinimized()) {
+                await windowManager.restore();
+              }
+              await windowManager.show();
+              await windowManager.focus();
+            } catch (e) {
+              AppLog.log('Failed to restore window on second instance: $e', mirrorToConsole: true);
+            }
+
             final List<dynamic> rawArgs = call.arguments;
             final argsList = rawArgs.cast<String>();
             AppLog.log(

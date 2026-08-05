@@ -114,6 +114,9 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
 
         // Focus and activate the main window
         HWND main_hwnd = GetHandle();
+        if (!::IsWindowVisible(main_hwnd)) {
+          ::ShowWindow(main_hwnd, SW_SHOW);
+        }
         if (::IsIconic(main_hwnd)) {
           ::ShowWindow(main_hwnd, SW_RESTORE);
         }
