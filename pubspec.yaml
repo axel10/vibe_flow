@@ -161,6 +161,8 @@ flutter:
     - assets/icons/dark/
     - assets/icons/light/
     - assets/icons/lyrics/
+    - assets/icons/tray.png
+    - assets/icons/tray.ico
     - assets/images/app_icon.ico
     - assets/images/icon.png
 
