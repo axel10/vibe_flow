@@ -140,4 +140,41 @@ void main() {
       expect(settingsService.savedRegularWindowSize.height, 650.0);
     });
   });
+
+  group('SettingsService - Button Layout Settings', () {
+    late SettingsService settingsService;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      settingsService = SettingsService(prefs);
+    });
+
+    test('default button layout settings are correctly initialized', () {
+      expect(settingsService.topButtonsOrder, SettingsService.defaultTopButtonsOrder);
+      expect(settingsService.mainControlsLeftButton, SettingsService.defaultMainControlsLeftButton);
+      expect(settingsService.mainControlsRightButton, SettingsService.defaultMainControlsRightButton);
+      expect(settingsService.lyricsHeaderRightButton, SettingsService.defaultLyricsHeaderRightButton);
+    });
+
+    test('updating and resetting button layout settings works as expected', () {
+      final customOrder = ['equalizer', 'sleep_timer', 'tag_completion', 'shuffle', 'playlist_mode', 'favorite', 'more'];
+      settingsService.topButtonsOrder = customOrder;
+      settingsService.mainControlsLeftButton = 'equalizer';
+      settingsService.mainControlsRightButton = 'shuffle';
+      settingsService.lyricsHeaderRightButton = 'more';
+
+      expect(settingsService.topButtonsOrder, customOrder);
+      expect(settingsService.mainControlsLeftButton, 'equalizer');
+      expect(settingsService.mainControlsRightButton, 'shuffle');
+      expect(settingsService.lyricsHeaderRightButton, 'more');
+
+      settingsService.resetPlaybackButtonsToDefault();
+
+      expect(settingsService.topButtonsOrder, SettingsService.defaultTopButtonsOrder);
+      expect(settingsService.mainControlsLeftButton, SettingsService.defaultMainControlsLeftButton);
+      expect(settingsService.mainControlsRightButton, SettingsService.defaultMainControlsRightButton);
+      expect(settingsService.lyricsHeaderRightButton, SettingsService.defaultLyricsHeaderRightButton);
+    });
+  });
 }

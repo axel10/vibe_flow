@@ -5874,6 +5874,114 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡'**
   String get enableFadeEffectDescription;
+
+  /// No description provided for @buttonLayoutSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'按钮排序'**
+  String get buttonLayoutSettings;
+
+  /// No description provided for @playbackButtonLayoutTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放页按钮布局'**
+  String get playbackButtonLayoutTitle;
+
+  /// No description provided for @playbackButtonLayoutDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义播放页 7 按钮行与 5 按钮行的按键显示与排列顺序'**
+  String get playbackButtonLayoutDescription;
+
+  /// No description provided for @topButtonsRowTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'7按钮行排序'**
+  String get topButtonsRowTitle;
+
+  /// No description provided for @mainButtonsRowTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'5按钮行左右侧按钮'**
+  String get mainButtonsRowTitle;
+
+  /// No description provided for @mainControlsLeftButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'左侧按钮'**
+  String get mainControlsLeftButton;
+
+  /// No description provided for @mainControlsRightButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'右侧按钮'**
+  String get mainControlsRightButton;
+
+  /// No description provided for @lyricsHeaderRightButtonTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌词标题栏收起时右侧按钮'**
+  String get lyricsHeaderRightButtonTitle;
+
+  /// No description provided for @resetButtonOrder.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复默认布局'**
+  String get resetButtonOrder;
+
+  /// No description provided for @btnMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'更多菜单'**
+  String get btnMore;
+
+  /// No description provided for @btnFavorite.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏'**
+  String get btnFavorite;
+
+  /// No description provided for @btnPlaylistMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放模式'**
+  String get btnPlaylistMode;
+
+  /// No description provided for @btnShuffle.
+  ///
+  /// In zh, this message translates to:
+  /// **'随机播放'**
+  String get btnShuffle;
+
+  /// No description provided for @btnTagCompletion.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签自动补全'**
+  String get btnTagCompletion;
+
+  /// No description provided for @btnSleepTimer.
+  ///
+  /// In zh, this message translates to:
+  /// **'定时关闭'**
+  String get btnSleepTimer;
+
+  /// No description provided for @btnEqualizer.
+  ///
+  /// In zh, this message translates to:
+  /// **'音效'**
+  String get btnEqualizer;
+
+  /// No description provided for @btnVisualizer.
+  ///
+  /// In zh, this message translates to:
+  /// **'律动/频谱'**
+  String get btnVisualizer;
+
+  /// No description provided for @btnVolume.
+  ///
+  /// In zh, this message translates to:
+  /// **'音量'**
+  String get btnVolume;
 }
 
 class _AppLocalizationsDelegate

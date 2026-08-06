@@ -1800,6 +1800,24 @@
     }
   },
   "enableFadeEffect": "音频淡入淡出",
-  "enableFadeEffectDescription": "在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡"
+  "enableFadeEffectDescription": "在切歌、播放/暂停时启用平滑淡入淡出和交叉叠化过渡",
+  "buttonLayoutSettings": "按钮排序",
+  "playbackButtonLayoutTitle": "播放页按钮布局",
+  "playbackButtonLayoutDescription": "自定义播放页 7 按钮行与 5 按钮行的按键显示与排列顺序",
+  "topButtonsRowTitle": "7按钮行排序",
+  "mainButtonsRowTitle": "5按钮行左右侧按钮",
+  "mainControlsLeftButton": "左侧按钮",
+  "mainControlsRightButton": "右侧按钮",
+  "lyricsHeaderRightButtonTitle": "歌词标题栏收起时右侧按钮",
+  "resetButtonOrder": "恢复默认布局",
+  "btnMore": "更多菜单",
+  "btnFavorite": "收藏",
+  "btnPlaylistMode": "播放模式",
+  "btnShuffle": "随机播放",
+  "btnTagCompletion": "标签自动补全",
+  "btnSleepTimer": "定时关闭",
+  "btnEqualizer": "音效",
+  "btnVisualizer": "律动/频谱",
+  "btnVolume": "音量"
 }
 

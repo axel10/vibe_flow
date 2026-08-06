@@ -11,6 +11,8 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 
+import 'playback_button_layout_dialog.dart';
+
 class VisualizerOptionsDialog extends ConsumerWidget {
   const VisualizerOptionsDialog({
     super.key,
@@ -27,7 +29,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: StatefulBuilder(
         builder: (context, setDialogState) {
           final l10n = AppLocalizations.of(context)!;
@@ -57,6 +59,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
                   tabs: [
                     Tab(text: l10n.algorithm),
                     Tab(text: l10n.appearance),
+                    Tab(text: l10n.buttonLayoutSettings),
                   ],
                   labelColor: theme.colorScheme.primary,
                   unselectedLabelColor: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
@@ -72,6 +75,10 @@ class VisualizerOptionsDialog extends ConsumerWidget {
                 children: [
                   _buildAlgorithmTab(context, ref, setDialogState),
                   _buildAppearanceTab(context, settings, setDialogState),
+                  PlaybackButtonLayoutView(
+                    settings: settings,
+                    onChanged: () => setDialogState(() {}),
+                  ),
                 ],
               ),
             ),

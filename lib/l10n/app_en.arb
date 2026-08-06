@@ -1352,6 +1352,24 @@
     }
   },
   "enableFadeEffect": "Audio Fade Effect",
-  "enableFadeEffectDescription": "Enable smooth fade transitions during song switching, play, and pause"
+  "enableFadeEffectDescription": "Enable smooth fade transitions during song switching, play, and pause",
+  "buttonLayoutSettings": "Button Layout",
+  "playbackButtonLayoutTitle": "Playback Page Controls Layout",
+  "playbackButtonLayoutDescription": "Customize button order and icons on the playback page",
+  "topButtonsRowTitle": "7-Button Row Order",
+  "mainButtonsRowTitle": "5-Button Row Left & Right Buttons",
+  "mainControlsLeftButton": "Left Button",
+  "mainControlsRightButton": "Right Button",
+  "lyricsHeaderRightButtonTitle": "Lyrics Title Bar Collapsed Button",
+  "resetButtonOrder": "Reset to Default",
+  "btnMore": "More Menu",
+  "btnFavorite": "Favorite",
+  "btnPlaylistMode": "Playback Mode",
+  "btnShuffle": "Shuffle",
+  "btnTagCompletion": "Tag Completion",
+  "btnSleepTimer": "Sleep Timer",
+  "btnEqualizer": "Equalizer",
+  "btnVisualizer": "Visualizer",
+  "btnVolume": "Volume"
 }
 

@@ -3164,4 +3164,58 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get enableFadeEffectDescription =>
       '곡 전환, 재생/일시정지 시 부드러운 페이드 인/아웃 및 크로스페이드 전환 사용';
+
+  @override
+  String get buttonLayoutSettings => '按钮排序';
+
+  @override
+  String get playbackButtonLayoutTitle => '播放页按钮布局';
+
+  @override
+  String get playbackButtonLayoutDescription => '自定义播放页 7 按钮行与 5 按钮行的按键显示与排列顺序';
+
+  @override
+  String get topButtonsRowTitle => '7按钮行排序';
+
+  @override
+  String get mainButtonsRowTitle => '5按钮行左右侧按钮';
+
+  @override
+  String get mainControlsLeftButton => '左侧按钮';
+
+  @override
+  String get mainControlsRightButton => '右侧按钮';
+
+  @override
+  String get lyricsHeaderRightButtonTitle => '歌词标题栏收起时右侧按钮';
+
+  @override
+  String get resetButtonOrder => '恢复默认布局';
+
+  @override
+  String get btnMore => '更多菜单';
+
+  @override
+  String get btnFavorite => '收藏';
+
+  @override
+  String get btnPlaylistMode => '播放模式';
+
+  @override
+  String get btnShuffle => '随机播放';
+
+  @override
+  String get btnTagCompletion => '标签自动补全';
+
+  @override
+  String get btnSleepTimer => '定时关闭';
+
+  @override
+  String get btnEqualizer => '音效';
+
+  @override
+  String get btnVisualizer => '律动/频谱';
+
+  @override
+  String get btnVolume => '音量';
 }

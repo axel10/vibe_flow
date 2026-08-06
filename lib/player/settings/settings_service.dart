@@ -255,6 +255,24 @@ class SettingsService extends ChangeNotifier {
   static const String _keyCloseToTray = 'close_to_tray';
   static const String _keyCloseWindowAction = 'close_window_action';
   static const String _keyImmersiveTabBar = 'immersive_tab_bar_enabled';
+  static const List<String> defaultTopButtonsOrder = [
+    'more',
+    'favorite',
+    'playlist_mode',
+    'shuffle',
+    'tag_completion',
+    'sleep_timer',
+    'equalizer',
+  ];
+  static const String defaultMainControlsLeftButton = 'visualizer';
+  static const String defaultMainControlsRightButton = 'volume';
+  static const String defaultLyricsHeaderRightButton = 'favorite';
+
+  static const String _keyTopButtonsOrder = 'top_buttons_order';
+  static const String _keyMainControlsLeftButton = 'main_controls_left_button';
+  static const String _keyMainControlsRightButton = 'main_controls_right_button';
+  static const String _keyLyricsHeaderRightButton = 'lyrics_header_right_button';
+
   static const String _keyCollapseButtonsInLandscapeLyrics =
       'collapse_buttons_in_landscape_lyrics';
   static const String _keyShowScanProgressToast = 'show_scan_progress_toast';
@@ -513,6 +531,49 @@ class SettingsService extends ChangeNotifier {
   late final _collapseButtonsInLandscapeLyricsProperty = SettingProperty<bool>(
     key: _keyCollapseButtonsInLandscapeLyrics,
     defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _topButtonsOrderProperty = SettingProperty<List<String>>(
+    key: _keyTopButtonsOrder,
+    defaultValue: defaultTopButtonsOrder,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) {
+      final raw = prefs.getString(key);
+      if (raw == null || raw.trim().isEmpty) return def;
+      try {
+        final List<dynamic> list = jsonDecode(raw);
+        final result = list.map((e) => e.toString()).toList();
+        if (result.length == 7) return result;
+      } catch (e) {
+        debugPrint('Failed to parse top_buttons_order: $e');
+      }
+      return def;
+    },
+    customWrite: (prefs, key, value) {
+      prefs.setString(key, jsonEncode(value));
+    },
+  );
+
+  late final _mainControlsLeftButtonProperty = SettingProperty<String>(
+    key: _keyMainControlsLeftButton,
+    defaultValue: defaultMainControlsLeftButton,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _mainControlsRightButtonProperty = SettingProperty<String>(
+    key: _keyMainControlsRightButton,
+    defaultValue: defaultMainControlsRightButton,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _lyricsHeaderRightButtonProperty = SettingProperty<String>(
+    key: _keyLyricsHeaderRightButton,
+    defaultValue: defaultLyricsHeaderRightButton,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1325,6 +1386,33 @@ class SettingsService extends ChangeNotifier {
       _collapseButtonsInLandscapeLyricsProperty.value;
   set collapseButtonsInLandscapeLyrics(bool value) =>
       _collapseButtonsInLandscapeLyricsProperty.value = value;
+
+  List<String> get topButtonsOrder => _topButtonsOrderProperty.value;
+  set topButtonsOrder(List<String> value) {
+    _topButtonsOrderProperty.value = value;
+  }
+
+  String get mainControlsLeftButton => _mainControlsLeftButtonProperty.value;
+  set mainControlsLeftButton(String value) {
+    _mainControlsLeftButtonProperty.value = value;
+  }
+
+  String get mainControlsRightButton => _mainControlsRightButtonProperty.value;
+  set mainControlsRightButton(String value) {
+    _mainControlsRightButtonProperty.value = value;
+  }
+
+  String get lyricsHeaderRightButton => _lyricsHeaderRightButtonProperty.value;
+  set lyricsHeaderRightButton(String value) {
+    _lyricsHeaderRightButtonProperty.value = value;
+  }
+
+  void resetPlaybackButtonsToDefault() {
+    topButtonsOrder = List<String>.from(defaultTopButtonsOrder);
+    mainControlsLeftButton = defaultMainControlsLeftButton;
+    mainControlsRightButton = defaultMainControlsRightButton;
+    lyricsHeaderRightButton = defaultLyricsHeaderRightButton;
+  }
 
   bool get showScanProgressToast => _showScanProgressToastProperty.value;
   set showScanProgressToast(bool value) =>

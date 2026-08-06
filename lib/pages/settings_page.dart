@@ -18,6 +18,7 @@ import 'package:window_manager/window_manager.dart';
 import '../dialogs/acoustid_api_key_dialog.dart';
 import '../dialogs/ai_guide_dialog.dart';
 import '../dialogs/shortcut_settings_dialog.dart';
+import '../dialogs/playback_button_layout_dialog.dart';
 import '../l10n/app_localizations.dart';
 import 'package:vynody/player/ai/lyrics_model_catalog_service.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
@@ -1841,6 +1842,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           onChanged: (value) {
             settings.collapseButtonsInLandscapeLyrics = value;
           },
+        ),
+        ListTile(
+          title: Text(l10n.playbackButtonLayoutTitle),
+          subtitle: Text(l10n.playbackButtonLayoutDescription),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => showPlaybackButtonLayoutDialog(context, settings),
         ),
         SwitchListTile(
           title: Text(l10n.showScanProgressToastSetting),

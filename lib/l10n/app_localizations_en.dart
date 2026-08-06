@@ -3272,4 +3272,60 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get enableFadeEffectDescription =>
       'Enable smooth fade transitions during song switching, play, and pause';
+
+  @override
+  String get buttonLayoutSettings => 'Button Layout';
+
+  @override
+  String get playbackButtonLayoutTitle => 'Playback Page Controls Layout';
+
+  @override
+  String get playbackButtonLayoutDescription =>
+      'Customize button order and icons on the playback page';
+
+  @override
+  String get topButtonsRowTitle => '7-Button Row Order';
+
+  @override
+  String get mainButtonsRowTitle => '5-Button Row Left & Right Buttons';
+
+  @override
+  String get mainControlsLeftButton => 'Left Button';
+
+  @override
+  String get mainControlsRightButton => 'Right Button';
+
+  @override
+  String get lyricsHeaderRightButtonTitle =>
+      'Lyrics Title Bar Collapsed Button';
+
+  @override
+  String get resetButtonOrder => 'Reset to Default';
+
+  @override
+  String get btnMore => 'More Menu';
+
+  @override
+  String get btnFavorite => 'Favorite';
+
+  @override
+  String get btnPlaylistMode => 'Playback Mode';
+
+  @override
+  String get btnShuffle => 'Shuffle';
+
+  @override
+  String get btnTagCompletion => 'Tag Completion';
+
+  @override
+  String get btnSleepTimer => 'Sleep Timer';
+
+  @override
+  String get btnEqualizer => 'Equalizer';
+
+  @override
+  String get btnVisualizer => 'Visualizer';
+
+  @override
+  String get btnVolume => 'Volume';
 }
