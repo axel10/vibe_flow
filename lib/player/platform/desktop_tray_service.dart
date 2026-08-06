@@ -81,7 +81,7 @@ class DesktopTrayService with WindowListener {
   Future<void> _initTray() async {
     try {
       debugPrint('[Tray] Initializing system tray...');
-      final iconRelativePath = Platform.isWindows ? 'assets/icons/tray.ico' : 'assets/icons/tray.png';
+      final iconRelativePath = Platform.isWindows ? 'assets/icons/tray_shadow.ico' : 'assets/icons/tray.png';
       final iconAbsolutePath = _getIconAbsolutePath(iconRelativePath);
       debugPrint('[Tray] Absolute icon path: $iconAbsolutePath');
 

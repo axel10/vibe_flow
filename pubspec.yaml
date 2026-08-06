@@ -163,6 +163,8 @@ flutter:
     - assets/icons/lyrics/
     - assets/icons/tray.png
     - assets/icons/tray.ico
+    - assets/icons/tray_shadow.png
+    - assets/icons/tray_shadow.ico
     - assets/images/app_icon.ico
     - assets/images/icon.png
 
