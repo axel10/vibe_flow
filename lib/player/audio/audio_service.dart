@@ -296,6 +296,14 @@ class AudioService extends Notifier<AudioSnapshot> {
       _queue
         ..clear()
         ..addAll(session.queue);
+
+      if (Platform.isIOS || Platform.isMacOS) {
+        for (final song in _queue) {
+          await _player.registerPersistentAccess(path: song.path);
+          await _player.beginScopedAccess(path: song.path);
+        }
+      }
+
       _position = Duration.zero;
       _duration = Duration.zero;
       _isPlaying = false;
