@@ -93,14 +93,17 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
   void initState() {
     super.initState();
     _audioService = ref.read(audioServiceProvider);
-    if (ref.read(settingsServiceProvider).defaultToLyricsModeOnPlaybackOpen) {
-      _audioService?.setLyricsActive(true);
-    }
     final initialMusic = ref.read(audioCurrentMusicProvider);
     _pendingArtworkBytes = initialMusic?.artworkBytes;
     _pendingArtworkPath = initialMusic?.path;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          ref
+              .read(settingsServiceProvider)
+              .defaultToLyricsModeOnPlaybackOpen) {
+        _audioService?.setLyricsActive(true);
+      }
       MemoryTrace.snapshot(
         'playbackPage:init',
         details: <String, Object?>{

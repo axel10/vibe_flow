@@ -1077,6 +1077,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     // 如果当前开启了歌词模式，但因为切歌瞬间加载太快（时长 Duration 还没准备好）
     // 导致 API 没匹配到或尚未开始加载，当时长变为有效正值时，自动触发补抓取。
     if (isLyricsActive &&
+        currentMusic != null &&
         _duration > Duration.zero &&
         !hasLyrics &&
         !isLyricsLoading &&

@@ -113,7 +113,7 @@ SPEC CHECKSUMS:
   device_info_plus: a56e6e74dbbd2bb92f2da12c64ddd4f67a749041
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
-  flutter_tray: b06e7642573047e4e28f9616964833cb9a7eab0d
+  flutter_tray: cdb663f45c9619b9426ef2e490a29504ac0cc430
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   mobile_storage_listener: 7894760322d7fb5121e315b81806dbddfceef26e
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870

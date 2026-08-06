@@ -596,7 +596,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "2a28c0e28ea023bfe7fb361175b686b286e63512"
+      resolved-ref: fe3360288b6c14dfef3c8aa526da861efee34f9d
       url: "https://github.com/axel10/flutter_tray"
     source: git
     version: "0.0.1"
