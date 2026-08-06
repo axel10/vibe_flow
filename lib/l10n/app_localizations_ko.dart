@@ -2997,6 +2997,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '폴더 뷰에서 곡을 탭하여 재생할 때 자동으로 재생 페이지로 이동합니다.';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen => '재생 페이지 진입 시 가사 모드 기본 사용';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      '재생 페이지를 열 때 자동으로 가사 모드로 전환합니다.';
+
+  @override
   String get tapCoverToEnterLyricsMode => '커버를 탭하여 가사 모드로 전환';
 
   @override

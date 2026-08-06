@@ -5587,6 +5587,18 @@ abstract class AppLocalizations {
   /// **'在目录页点击歌曲播放时，自动跳转至全屏播放界面'**
   String get openPlaybackOnDirectorySongTapDescription;
 
+  /// No description provided for @defaultToLyricsModeOnPlaybackOpen.
+  ///
+  /// In zh, this message translates to:
+  /// **'进入播放页默认显示歌词'**
+  String get defaultToLyricsModeOnPlaybackOpen;
+
+  /// No description provided for @defaultToLyricsModeOnPlaybackOpenDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开全屏播放界面时，默认自动切至歌词显示模式'**
+  String get defaultToLyricsModeOnPlaybackOpenDescription;
+
   /// No description provided for @tapCoverToEnterLyricsMode.
   ///
   /// In zh, this message translates to:

@@ -1213,6 +1213,8 @@
   "showScanProgressToastSettingDescription": "Display real-time scanning progress at the top of the screen when scanning folders.",
   "openPlaybackOnDirectorySongTap": "Open playback page when tapping a song",
   "openPlaybackOnDirectorySongTapDescription": "Automatically open the playback page when tapping a song in directory view.",
+  "defaultToLyricsModeOnPlaybackOpen": "Default to lyrics mode on playback page",
+  "defaultToLyricsModeOnPlaybackOpenDescription": "Automatically show lyrics mode when opening the playback page.",
   "scanToastHiddenHint": "Scanning status toast hidden. You can re-enable it in Settings - Interface.",
   "tapCoverToEnterLyricsMode": "Tap cover to enter lyrics mode",
   "@tapCoverToEnterLyricsMode": {

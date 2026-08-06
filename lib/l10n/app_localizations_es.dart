@@ -3143,6 +3143,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Abre automáticamente la página de reproducción al tocar una canción en la vista de carpetas.';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen =>
+      'Modo de letras por defecto en la página de reproducción';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      'Muestra automáticamente el modo de letras al abrir la página de reproducción.';
+
+  @override
   String get tapCoverToEnterLyricsMode =>
       'Toca la portada para entrar en modo letras';
 

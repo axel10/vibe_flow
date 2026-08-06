@@ -527,7 +527,10 @@ class PlaybackHeroCard extends ConsumerWidget {
         return TweenAnimationBuilder<double>(
           duration: animDuration,
           curve: animCurve,
-          tween: Tween<double>(end: effectiveIsLyricsMode ? 1.0 : 0.0),
+          tween: Tween<double>(
+            begin: 0.0,
+            end: effectiveIsLyricsMode ? 1.0 : 0.0,
+          ),
           child: child,
           builder: (context, tLyrics, child) {
             return LayoutBuilder(

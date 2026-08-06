@@ -1679,6 +1679,8 @@
   "showScanProgressToastSettingDescription": "在添加文件夹并进行文件扫描时，在顶部显示实时的扫描进度提示",
   "openPlaybackOnDirectorySongTap": "点击歌曲后跳转到播放页",
   "openPlaybackOnDirectorySongTapDescription": "在目录页点击歌曲播放时，自动跳转至全屏播放界面",
+  "defaultToLyricsModeOnPlaybackOpen": "进入播放页默认显示歌词",
+  "defaultToLyricsModeOnPlaybackOpenDescription": "打开全屏播放界面时，默认自动切至歌词显示模式",
   "tapCoverToEnterLyricsMode": "点击封面可以进入歌词模式",
   "longPressLyricsPanelToOpenMenu": "长按歌词面板可以调出菜单",
   "gotIt": "我知道了",

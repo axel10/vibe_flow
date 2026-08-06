@@ -3146,6 +3146,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ouvre automatiquement la page de lecture lors d\'un appui sur un morceau dans la vue des dossiers.';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen =>
+      'Mode paroles par défaut sur la page de lecture';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      'Passe automatiquement en mode paroles lors de l\'ouverture de la page de lecture.';
+
+  @override
   String get tapCoverToEnterLyricsMode =>
       'Appuyez sur la pochette pour passer en mode paroles';
 

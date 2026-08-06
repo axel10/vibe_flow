@@ -278,6 +278,8 @@ class SettingsService extends ChangeNotifier {
   static const String _keyShowScanProgressToast = 'show_scan_progress_toast';
   static const String _keyOpenPlaybackOnDirectorySongTap =
       'open_playback_on_directory_song_tap';
+  static const String _keyDefaultToLyricsModeOnPlaybackOpen =
+      'default_to_lyrics_mode_on_playback_open';
   static const String _keySampleStride = 'sample_stride';
   static const String _keyWaveformChunks = 'waveform_chunks';
   static const String geminiApiKeyStorageKey = 'gemini_api_key';
@@ -588,6 +590,13 @@ class SettingsService extends ChangeNotifier {
   late final _openPlaybackOnDirectorySongTapProperty = SettingProperty<bool>(
     key: _keyOpenPlaybackOnDirectorySongTap,
     defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _defaultToLyricsModeOnPlaybackOpenProperty = SettingProperty<bool>(
+    key: _keyDefaultToLyricsModeOnPlaybackOpen,
+    defaultValue: false,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1422,6 +1431,11 @@ class SettingsService extends ChangeNotifier {
       _openPlaybackOnDirectorySongTapProperty.value;
   set openPlaybackOnDirectorySongTap(bool value) =>
       _openPlaybackOnDirectorySongTapProperty.value = value;
+
+  bool get defaultToLyricsModeOnPlaybackOpen =>
+      _defaultToLyricsModeOnPlaybackOpenProperty.value;
+  set defaultToLyricsModeOnPlaybackOpen(bool value) =>
+      _defaultToLyricsModeOnPlaybackOpenProperty.value = value;
 
   bool get windowsAutoRepairShortcut => _windowsAutoRepairShortcutProperty.value;
   set windowsAutoRepairShortcut(bool value) =>

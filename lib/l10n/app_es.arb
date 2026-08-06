@@ -1194,6 +1194,8 @@
   "showScanProgressToastSettingDescription": "Muestra el progreso de escaneo en tiempo real en la parte superior de la pantalla al escanear carpetas.",
   "openPlaybackOnDirectorySongTap": "Ir a la página de reproducción al tocar una canción",
   "openPlaybackOnDirectorySongTapDescription": "Abre automáticamente la página de reproducción al tocar una canción en la vista de carpetas.",
+  "defaultToLyricsModeOnPlaybackOpen": "Modo de letras por defecto en la página de reproducción",
+  "defaultToLyricsModeOnPlaybackOpenDescription": "Muestra automáticamente el modo de letras al abrir la página de reproducción.",
   "scanToastHiddenHint": "Toast de estado de escaneo oculto. Puede volver a habilitarlo en Ajustes - Interfaz.",
   "tapCoverToEnterLyricsMode": "Toca la portada para entrar en modo letras",
   "longPressLyricsPanelToOpenMenu": "Mantén presionado el panel de letras para abrir el menú",

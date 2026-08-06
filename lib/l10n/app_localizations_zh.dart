@@ -2948,6 +2948,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '在目录页点击歌曲播放时，自动跳转至全屏播放界面';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen => '进入播放页默认显示歌词';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      '打开全屏播放界面时，默认自动切至歌词显示模式';
+
+  @override
   String get tapCoverToEnterLyricsMode => '点击封面可以进入歌词模式';
 
   @override
@@ -6108,6 +6115,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get openPlaybackOnDirectorySongTapDescription =>
       '在目錄頁點擊歌曲播放時，自動跳轉至全螢幕播放介面';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpen => '進入播放頁預設顯示歌詞';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      '打開全螢幕播放介面時，預設自動切至歌詞顯示模式';
 
   @override
   String get tapCoverToEnterLyricsMode => '點選封面可以進入歌詞模式';

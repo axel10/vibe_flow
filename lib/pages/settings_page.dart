@@ -1866,6 +1866,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           },
         ),
         SwitchListTile(
+          title: Text(l10n.defaultToLyricsModeOnPlaybackOpen),
+          subtitle: Text(l10n.defaultToLyricsModeOnPlaybackOpenDescription),
+          value: settings.defaultToLyricsModeOnPlaybackOpen,
+          onChanged: (value) {
+            settings.defaultToLyricsModeOnPlaybackOpen = value;
+          },
+        ),
+        SwitchListTile(
           title: Text(l10n.enableWaveformProgressBar),
           subtitle: Text(l10n.enableWaveformProgressBarDescription),
           value: settings.isWaveformProgressBarEnabled,

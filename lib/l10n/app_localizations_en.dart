@@ -3100,6 +3100,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Automatically open the playback page when tapping a song in directory view.';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen =>
+      'Default to lyrics mode on playback page';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      'Automatically show lyrics mode when opening the playback page.';
+
+  @override
   String get tapCoverToEnterLyricsMode => 'Tap cover to enter lyrics mode';
 
   @override

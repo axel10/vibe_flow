@@ -3135,6 +3135,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wechselt automatisch zur Wiedergabeseite, wenn im Ordneransicht ein Titel angetippt wird.';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen =>
+      'Standardmäßig Songtext-Modus auf der Wiedergabeseite';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      'Wechselt beim Öffnen der Wiedergabeseite automatisch in den Songtext-Modus.';
+
+  @override
   String get tapCoverToEnterLyricsMode =>
       'Cover antippen, um den Textmodus zu öffnen';
 

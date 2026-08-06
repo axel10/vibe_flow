@@ -2993,6 +2993,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'フォルダビューで曲をタップして再生した時、自動的に再生ページに移動します。';
 
   @override
+  String get defaultToLyricsModeOnPlaybackOpen => '再生ページで歌詞モードをデフォルトにする';
+
+  @override
+  String get defaultToLyricsModeOnPlaybackOpenDescription =>
+      '再生ページを開いた時、自動的に歌詞表示モードにします。';
+
+  @override
   String get tapCoverToEnterLyricsMode => 'カバーをタップして歌詞モードに入る';
 
   @override
