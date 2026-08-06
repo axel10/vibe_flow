@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/models/music_lyric.dart';
 import 'package:vynody/models/music_lyric_translation.dart';
+import 'package:vynody/utils/language_code_utils.dart';
+import 'package:vynody/utils/lrc_utils.dart';
 import 'package:vynody/utils/lyrics_id_utils.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_context.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_utils.dart';
@@ -96,16 +98,37 @@ class LyricsFetchCoordinator {
         return;
       }
 
+      final rawLyricsText = result?.lyricsText ?? '';
+      final parsedResult = LrcUtils.parseLyricsWithTranslation(rawLyricsText);
+      final effectiveSyncedLines = _support.buildLyricsLines(
+        parsedResult.syncedLines.isNotEmpty
+            ? parsedResult.syncedLines
+            : (result?.syncedLines ?? const []),
+        rawLyricsText,
+      );
+
       _context.setIsLyricsLoading(false);
       _context.setLyricsSearchAttempted(true);
       _context.setHasLyrics(result != null && result.track.hasLyrics);
-      _context.setCurrentLyricsLines(
-        _support.buildLyricsLines(
-          result?.syncedLines ?? const [],
-          result?.lyricsText ?? '',
-        ),
-      );
-      _context.setCurrentLyricsText(result?.lyricsText ?? '');
+      _context.setCurrentLyricsLines(effectiveSyncedLines);
+      _context.setCurrentLyricsText(rawLyricsText);
+
+      final translationsMap = <String, MusicLyricTranslation>{};
+      if (song.lyrics?.translations != null) {
+        translationsMap.addAll(song.lyrics!.translations);
+      }
+      if (parsedResult.hasTranslation) {
+        final langCode = LanguageCodeUtils.currentAppLanguageCode().isNotEmpty
+            ? LanguageCodeUtils.currentAppLanguageCode()
+            : 'zh';
+        translationsMap[langCode] = MusicLyricTranslation(
+          languageCode: langCode,
+          translatedLines: parsedResult.translatedLines!,
+          translatedText: parsedResult.translatedLines!.join('\n'),
+          provider: 'embedded_lrc',
+          updatedAt: DateTime.now(),
+        );
+      }
 
       final updated = _support.replaceCurrentSongIfPath(
         song.path,
@@ -121,6 +144,7 @@ class LyricsFetchCoordinator {
                 result?.timelineOffset ??
                 song.lyrics?.timelineOffset ??
                 Duration.zero,
+            translations: translationsMap,
           ),
         ),
       );

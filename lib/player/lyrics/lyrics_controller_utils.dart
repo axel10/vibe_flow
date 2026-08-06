@@ -245,16 +245,32 @@ class LyricsControllerSupport {
 
     if (_context.currentMusic()?.path != song.path) return;
 
-    final parsedTimedLines = LrcUtils.parseTimedLyrics(normalizedText);
+    final parsedResult = LrcUtils.parseLyricsWithTranslation(normalizedText);
+    final translationsMap = <String, MusicLyricTranslation>{};
+    if (song.lyrics?.translations != null) {
+      translationsMap.addAll(song.lyrics!.translations);
+    }
+    if (parsedResult.hasTranslation) {
+      final preferredLang = LanguageCodeUtils.currentAppLanguageCode();
+      final langCode = preferredLang.isNotEmpty ? preferredLang : 'zh';
+      translationsMap[langCode] = MusicLyricTranslation(
+        languageCode: langCode,
+        translatedLines: parsedResult.translatedLines!,
+        translatedText: parsedResult.translatedLines!.join('\n'),
+        provider: 'embedded_lrc',
+        updatedAt: DateTime.now(),
+      );
+    }
+
     final filledLyrics = MusicLyric(
       id: LyricsIdUtils.fromLyricsText(normalizedText),
-      syncedLines: parsedTimedLines.isNotEmpty
-          ? parsedTimedLines
+      syncedLines: parsedResult.syncedLines.isNotEmpty
+          ? parsedResult.syncedLines
           : buildLyricsLines(const [], normalizedText),
       plainText: normalizedText,
       source: source.musicLyricSource,
       timelineOffset: song.lyrics?.timelineOffset ?? Duration.zero,
-      translations: song.lyrics?.translations ?? const <String, MusicLyricTranslation>{},
+      translations: translationsMap,
     );
 
     final updatedSong = replaceCurrentSongIfPath(
@@ -296,6 +312,20 @@ class LyricsControllerSupport {
           updatedAtMillis: DateTime.now().millisecondsSinceEpoch,
         ),
       );
+      if (parsedResult.hasTranslation && cacheKey.isNotEmpty) {
+        final preferredLang = LanguageCodeUtils.currentAppLanguageCode();
+        final langCode = preferredLang.isNotEmpty ? preferredLang : 'zh';
+        await _context.lyricsCacheRepository.saveLyricsTranslationCache(
+          LyricsTranslationCacheRecord(
+            cacheKey: cacheKey,
+            languageCode: langCode,
+            translatedText: parsedResult.translatedLines!.join('\n'),
+            translatedLines: parsedResult.translatedLines!,
+            provider: 'embedded_lrc',
+            updatedAtMillis: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+      }
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selected_lyric_source_$cacheKey', '${source.dbValue}|');
     } catch (e) {

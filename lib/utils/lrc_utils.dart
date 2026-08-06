@@ -1,5 +1,19 @@
 import 'package:vynody/models/lyric_line.dart';
 
+class ParsedLyricsResult {
+  final List<LyricLine> syncedLines;
+  final List<String>? translatedLines;
+
+  const ParsedLyricsResult({
+    required this.syncedLines,
+    this.translatedLines,
+  });
+
+  bool get hasTranslation =>
+      translatedLines != null &&
+      translatedLines!.any((line) => line.trim().isNotEmpty);
+}
+
 class LrcUtils {
   static final RegExp _timestampLinePattern = RegExp(
     r'[\[<\(]\s*\d{1,3}:\d{2}(?:[.:]\d{1,3})?\s*[\]>\)]',
@@ -9,9 +23,17 @@ class LrcUtils {
     r'^(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?$',
   );
 
+  static final RegExp _inlineTranslationDelimiterPattern = RegExp(
+    r'\s+[/／]\s+|\s*//\s*',
+  );
+
   static List<LyricLine> parseTimedLyrics(String? lyrics) {
+    return parseLyricsWithTranslation(lyrics).syncedLines;
+  }
+
+  static ParsedLyricsResult parseLyricsWithTranslation(String? lyrics) {
     if (lyrics == null || lyrics.trim().isEmpty) {
-      return const [];
+      return const ParsedLyricsResult(syncedLines: []);
     }
 
     final rawLines = lyrics.split(RegExp(r'\r?\n'));
@@ -33,7 +55,7 @@ class LrcUtils {
       blocks.add(currentBlock);
     }
 
-    final result = <LyricLine>[];
+    final allParsedLines = <LyricLine>[];
 
     for (final block in blocks) {
       final blockLines = <LyricLine>[];
@@ -43,11 +65,137 @@ class LrcUtils {
 
       if (blockLines.isEmpty) continue;
 
-      result.addAll(_groupWordPerLineIfNeeded(blockLines));
+      allParsedLines.addAll(_groupWordPerLineIfNeeded(blockLines));
     }
 
-    result.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    return result;
+    if (allParsedLines.isEmpty) {
+      return const ParsedLyricsResult(syncedLines: []);
+    }
+
+    // Check Format ①: Inline translation delimiter ("原文 / 译文")
+    int inlineDelimiterCount = 0;
+    for (final line in allParsedLines) {
+      if (_hasInlineTranslationDelimiter(line.text)) {
+        inlineDelimiterCount++;
+      }
+    }
+
+    final isFormat1 = inlineDelimiterCount >= 2 ||
+        (inlineDelimiterCount == 1 && allParsedLines.length <= 2);
+
+    if (isFormat1) {
+      final syncedLines = <LyricLine>[];
+      final translatedLines = <String>[];
+
+      for (final line in allParsedLines) {
+        final split = _splitInlineTranslation(line.text);
+        if (split != null) {
+          syncedLines.add(line.copyWith(text: split.$1));
+          translatedLines.add(split.$2);
+        } else {
+          syncedLines.add(line);
+          translatedLines.add('');
+        }
+      }
+
+      syncedLines.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      return ParsedLyricsResult(
+        syncedLines: syncedLines,
+        translatedLines: translatedLines,
+      );
+    }
+
+    // Check Format ② & ③: Duplicate timestamps for main lyric vs translation
+    // Group lines by exact timestamp, preserving file order in each bucket
+    final timestampBuckets = <Duration, List<LyricLine>>{};
+    for (final line in allParsedLines) {
+      timestampBuckets.putIfAbsent(line.timestamp, () => []).add(line);
+    }
+
+    final hasTranslationDuplicates = timestampBuckets.values.any((bucket) {
+      if (bucket.length <= 1) return false;
+      final firstText = bucket.first.text.trim();
+      return bucket.sublist(1).any((line) => line.text.trim() != firstText);
+    });
+
+    if (hasTranslationDuplicates) {
+      final sortedTimestamps = timestampBuckets.keys.toList()
+        ..sort((a, b) => a.compareTo(b));
+
+      final syncedLines = <LyricLine>[];
+      final translatedLines = <String>[];
+
+      for (final ts in sortedTimestamps) {
+        final bucket = timestampBuckets[ts]!;
+        // 1st line in bucket is main lyric
+        syncedLines.add(bucket.first);
+        // 2nd (and subsequent) lines in bucket with different text are translation
+        final firstText = bucket.first.text.trim();
+        final translationBucket = bucket
+            .sublist(1)
+            .where((l) => l.text.trim() != firstText)
+            .toList();
+
+        if (translationBucket.isNotEmpty) {
+          final translationText =
+              translationBucket.map((l) => l.text.trim()).join(' / ');
+          translatedLines.add(translationText);
+        } else {
+          translatedLines.add('');
+        }
+      }
+
+      return ParsedLyricsResult(
+        syncedLines: syncedLines,
+        translatedLines: translatedLines,
+      );
+    }
+
+    allParsedLines.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    return ParsedLyricsResult(syncedLines: allParsedLines);
+  }
+
+  static bool _hasInlineTranslationDelimiter(String text) {
+    if (text.isEmpty) return false;
+    if (_inlineTranslationDelimiterPattern.hasMatch(text)) return true;
+    final cjkSlashMatch = RegExp(r'^(.*?)\s*[/／]\s*(.*?)$').firstMatch(text);
+    if (cjkSlashMatch != null) {
+      final part1 = cjkSlashMatch.group(1) ?? '';
+      final part2 = cjkSlashMatch.group(2) ?? '';
+      if (part1.isNotEmpty && part2.isNotEmpty && (_hasCJK(part1) || _hasCJK(part2))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static (String, String)? _splitInlineTranslation(String text) {
+    final match = _inlineTranslationDelimiterPattern.firstMatch(text);
+    if (match != null) {
+      final orig = text.substring(0, match.start).trim();
+      final trans = text.substring(match.end).trim();
+      if (orig.isNotEmpty || trans.isNotEmpty) {
+        return (orig, trans);
+      }
+    }
+
+    final cjkSlashMatch = RegExp(r'^(.*?)\s*[/／]\s*(.*?)$').firstMatch(text);
+    if (cjkSlashMatch != null) {
+      final part1 = cjkSlashMatch.group(1)?.trim() ?? '';
+      final part2 = cjkSlashMatch.group(2)?.trim() ?? '';
+      if (part1.isNotEmpty && part2.isNotEmpty && (_hasCJK(part1) || _hasCJK(part2))) {
+        return (part1, part2);
+      }
+    }
+
+    return null;
+  }
+
+  static bool _hasCJK(String text) {
+    for (final unit in text.codeUnits) {
+      if (_isCJKCodeUnit(unit)) return true;
+    }
+    return false;
   }
 
   static void _parseSingleNormalizedLine(String line, List<LyricLine> targetList) {
