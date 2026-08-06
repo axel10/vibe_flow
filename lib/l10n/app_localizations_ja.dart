@@ -293,7 +293,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mostPlayed => '最も再生された';
 
   @override
-  String get recentlyPlayed => '最近播放';
+  String get recentlyPlayed => '最近再生した曲';
 
   @override
   String get recentlyAdded => '最近追加';
@@ -308,7 +308,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mostPlayedDescription => '再生完了回数でランク付け';
 
   @override
-  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
+  String get recentlyPlayedDescription => '最近の再生時間で並べ替え（ライブラリ外のファイルを含む）';
 
   @override
   String get recentlyAddedDescription => 'ライブラリに追加された日時順';
@@ -332,10 +332,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPlayHistoryInRange => 'この期間の再生履歴はありません';
 
   @override
-  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+  String get noRecentlyPlayedSongs => '再生履歴はありません';
 
   @override
-  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+  String get noRecentlyPlayedInRange => '指定された期間内に再生履歴はありません';
 
   @override
   String get noRecentlyAddedSongs => 'ライブラリに曲がまだありません';
@@ -3168,55 +3168,56 @@ class AppLocalizationsJa extends AppLocalizations {
       '曲の切り替え、再生/一時停止時にスムーズなフェードイン/アウトとクロスフェード有効化';
 
   @override
-  String get buttonLayoutSettings => '按钮排序';
+  String get buttonLayoutSettings => 'ボタンレイアウト';
 
   @override
-  String get playbackButtonLayoutTitle => '播放页按钮布局';
+  String get playbackButtonLayoutTitle => '再生ページのボタンレイアウト';
 
   @override
-  String get playbackButtonLayoutDescription => '自定义播放页 7 按钮行与 5 按钮行的按键显示与排列顺序';
+  String get playbackButtonLayoutDescription =>
+      '再生ページの 7 ボタン行と 5 ボタン行の表示および並び順をカスタマイズ';
 
   @override
-  String get topButtonsRowTitle => '7按钮行排序';
+  String get topButtonsRowTitle => '7ボタン行の並び順';
 
   @override
-  String get mainButtonsRowTitle => '5按钮行左右侧按钮';
+  String get mainButtonsRowTitle => '5ボタン行の左右ボタン';
 
   @override
-  String get mainControlsLeftButton => '左侧按钮';
+  String get mainControlsLeftButton => '左側ボタン';
 
   @override
-  String get mainControlsRightButton => '右侧按钮';
+  String get mainControlsRightButton => '右側ボタン';
 
   @override
-  String get lyricsHeaderRightButtonTitle => '歌词标题栏收起时右侧按钮';
+  String get lyricsHeaderRightButtonTitle => '歌詞タイトルバー折りたたみ時の右側ボタン';
 
   @override
-  String get resetButtonOrder => '恢复默认布局';
+  String get resetButtonOrder => 'デフォルトレイアウトに戻す';
 
   @override
-  String get btnMore => '更多菜单';
+  String get btnMore => '詳細メニュー';
 
   @override
-  String get btnFavorite => '收藏';
+  String get btnFavorite => 'お気に入り';
 
   @override
-  String get btnPlaylistMode => '播放模式';
+  String get btnPlaylistMode => '再生モード';
 
   @override
-  String get btnShuffle => '随机播放';
+  String get btnShuffle => 'シャッフル';
 
   @override
-  String get btnTagCompletion => '标签自动补全';
+  String get btnTagCompletion => 'タグ自動補完';
 
   @override
-  String get btnSleepTimer => '定时关闭';
+  String get btnSleepTimer => 'スリープタイマー';
 
   @override
-  String get btnEqualizer => '音效';
+  String get btnEqualizer => 'イコライザー';
 
   @override
-  String get btnVisualizer => '律动/频谱';
+  String get btnVisualizer => 'ビジュアライザー';
 
   @override
   String get btnVolume => '音量';

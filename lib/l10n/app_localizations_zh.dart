@@ -6286,4 +6286,58 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get enableFadeEffectDescription => '在切換歌曲、播放/暫停時啟用平滑淡入淡出和交叉疊化過渡';
+
+  @override
+  String get buttonLayoutSettings => '按鈕排序';
+
+  @override
+  String get playbackButtonLayoutTitle => '播放頁按鈕佈局';
+
+  @override
+  String get playbackButtonLayoutDescription => '自訂播放頁 7 按鈕列與 5 按鈕列的按鈕顯示與排列順序';
+
+  @override
+  String get topButtonsRowTitle => '7按鈕列排序';
+
+  @override
+  String get mainButtonsRowTitle => '5按鈕列左右側按鈕';
+
+  @override
+  String get mainControlsLeftButton => '左側按鈕';
+
+  @override
+  String get mainControlsRightButton => '右側按鈕';
+
+  @override
+  String get lyricsHeaderRightButtonTitle => '歌詞標題列收起時右側按鈕';
+
+  @override
+  String get resetButtonOrder => '恢復預設佈局';
+
+  @override
+  String get btnMore => '更多選單';
+
+  @override
+  String get btnFavorite => '收藏';
+
+  @override
+  String get btnPlaylistMode => '播放模式';
+
+  @override
+  String get btnShuffle => '隨機播放';
+
+  @override
+  String get btnTagCompletion => '標籤自動補全';
+
+  @override
+  String get btnSleepTimer => '定時關閉';
+
+  @override
+  String get btnEqualizer => '音效';
+
+  @override
+  String get btnVisualizer => '律動/頻譜';
+
+  @override
+  String get btnVolume => '音量';
 }

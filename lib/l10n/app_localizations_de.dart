@@ -296,7 +296,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mostPlayed => 'Am häufigsten gespielt';
 
   @override
-  String get recentlyPlayed => '最近播放';
+  String get recentlyPlayed => 'Zuletzt gespielt';
 
   @override
   String get recentlyAdded => 'Kürzlich hinzugefügt';
@@ -311,7 +311,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mostPlayedDescription => 'Sortiert nach vollständigen Wiedergaben';
 
   @override
-  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
+  String get recentlyPlayedDescription =>
+      'Nach Wiedergabezeit sortiert, einschließlich externer Dateien';
 
   @override
   String get recentlyAddedDescription =>
@@ -337,10 +338,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Wiedergabeverlauf in diesem Zeitraum';
 
   @override
-  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+  String get noRecentlyPlayedSongs => 'Kein Wiedergabeverlauf';
 
   @override
-  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+  String get noRecentlyPlayedInRange =>
+      'Kein Wiedergabeverlauf in diesem Zeitraum';
 
   @override
   String get noRecentlyAddedSongs => 'Noch keine Songs in der Mediathek';
@@ -353,7 +355,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addedOn => 'Hinzugefügt am';
 
   @override
-  String get externalSourceTag => '外部';
+  String get externalSourceTag => 'Extern';
 
   @override
   String get lastPlayed => 'Zuletzt gespielt';
@@ -3318,56 +3320,60 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sanfte Ein-/Ausblendungen und Überblendungen beim Titelwechsel, Abspielen und Pausieren aktivieren';
 
   @override
-  String get buttonLayoutSettings => '按钮排序';
+  String get buttonLayoutSettings => 'Schaltflächen-Layout';
 
   @override
-  String get playbackButtonLayoutTitle => '播放页按钮布局';
+  String get playbackButtonLayoutTitle =>
+      'Schaltflächen-Layout der Wiedergabeseite';
 
   @override
-  String get playbackButtonLayoutDescription => '自定义播放页 7 按钮行与 5 按钮行的按键显示与排列顺序';
+  String get playbackButtonLayoutDescription =>
+      'Passen Sie die Reihenfolge und Anzeige der Schaltflächen in den 7- und 5-Schaltflächen-Zeilen an';
 
   @override
-  String get topButtonsRowTitle => '7按钮行排序';
+  String get topButtonsRowTitle => 'Reihenfolge der 7-Schaltflächen-Zeile';
 
   @override
-  String get mainButtonsRowTitle => '5按钮行左右侧按钮';
+  String get mainButtonsRowTitle =>
+      'Linker & rechter Button der 5-Schaltflächen-Zeile';
 
   @override
-  String get mainControlsLeftButton => '左侧按钮';
+  String get mainControlsLeftButton => 'Linke Schaltfläche';
 
   @override
-  String get mainControlsRightButton => '右侧按钮';
+  String get mainControlsRightButton => 'Rechte Schaltfläche';
 
   @override
-  String get lyricsHeaderRightButtonTitle => '歌词标题栏收起时右侧按钮';
+  String get lyricsHeaderRightButtonTitle =>
+      'Rechte Schaltfläche bei eingeklappter Songtext-Titelleiste';
 
   @override
-  String get resetButtonOrder => '恢复默认布局';
+  String get resetButtonOrder => 'Standard-Layout wiederherstellen';
 
   @override
-  String get btnMore => '更多菜单';
+  String get btnMore => 'Mehr-Menü';
 
   @override
-  String get btnFavorite => '收藏';
+  String get btnFavorite => 'Favorit';
 
   @override
-  String get btnPlaylistMode => '播放模式';
+  String get btnPlaylistMode => 'Wiedergabemodus';
 
   @override
-  String get btnShuffle => '随机播放';
+  String get btnShuffle => 'Zufallswiedergabe';
 
   @override
-  String get btnTagCompletion => '标签自动补全';
+  String get btnTagCompletion => 'Tag-Vervollständigung';
 
   @override
-  String get btnSleepTimer => '定时关闭';
+  String get btnSleepTimer => 'Sleeptimer';
 
   @override
-  String get btnEqualizer => '音效';
+  String get btnEqualizer => 'Equalizer';
 
   @override
-  String get btnVisualizer => '律动/频谱';
+  String get btnVisualizer => 'Visualizer';
 
   @override
-  String get btnVolume => '音量';
+  String get btnVolume => 'Lautstärke';
 }

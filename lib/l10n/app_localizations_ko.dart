@@ -292,7 +292,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mostPlayed => '가장 많이 재생';
 
   @override
-  String get recentlyPlayed => '最近播放';
+  String get recentlyPlayed => '최근 재생';
 
   @override
   String get recentlyAdded => '최근 추가됨';
@@ -307,7 +307,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get mostPlayedDescription => '완료된 재생 횟수 기준';
 
   @override
-  String get recentlyPlayedDescription => '按最近播放时间排序，包含未入库文件';
+  String get recentlyPlayedDescription => '최근 재생 시간순 정렬 (외부 파일 포함)';
 
   @override
   String get recentlyAddedDescription => '라이브러리에 추가된 순서대로 정렬';
@@ -331,10 +331,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noPlayHistoryInRange => '이 시간 범위에 재생 기록이 없습니다';
 
   @override
-  String get noRecentlyPlayedSongs => '暂无播放历史记录';
+  String get noRecentlyPlayedSongs => '재생 기록이 없습니다';
 
   @override
-  String get noRecentlyPlayedInRange => '这个时间范围内暂无播放历史';
+  String get noRecentlyPlayedInRange => '해당 기간에 재생 기록이 없습니다';
 
   @override
   String get noRecentlyAddedSongs => '아직 라이브러리에 노래가 없습니다';
@@ -346,7 +346,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get addedOn => '추가된 날짜';
 
   @override
-  String get externalSourceTag => '外部';
+  String get externalSourceTag => '외부';
 
   @override
   String get lastPlayed => '마지막 재생';
@@ -3173,56 +3173,57 @@ class AppLocalizationsKo extends AppLocalizations {
       '곡 전환, 재생/일시정지 시 부드러운 페이드 인/아웃 및 크로스페이드 전환 사용';
 
   @override
-  String get buttonLayoutSettings => '按钮排序';
+  String get buttonLayoutSettings => '버튼 레이아웃';
 
   @override
-  String get playbackButtonLayoutTitle => '播放页按钮布局';
+  String get playbackButtonLayoutTitle => '재생 화면 버튼 레이아웃';
 
   @override
-  String get playbackButtonLayoutDescription => '自定义播放页 7 按钮行与 5 按钮行的按键显示与排列顺序';
+  String get playbackButtonLayoutDescription =>
+      '재생 화면 7버튼 및 5버튼 행의 표시 및 순서 사용자 지정';
 
   @override
-  String get topButtonsRowTitle => '7按钮行排序';
+  String get topButtonsRowTitle => '7버튼 행 순서';
 
   @override
-  String get mainButtonsRowTitle => '5按钮行左右侧按钮';
+  String get mainButtonsRowTitle => '5버튼 행 좌우 버튼';
 
   @override
-  String get mainControlsLeftButton => '左侧按钮';
+  String get mainControlsLeftButton => '좌측 버튼';
 
   @override
-  String get mainControlsRightButton => '右侧按钮';
+  String get mainControlsRightButton => '우측 버튼';
 
   @override
-  String get lyricsHeaderRightButtonTitle => '歌词标题栏收起时右侧按钮';
+  String get lyricsHeaderRightButtonTitle => '가사 제목 표시줄 접힘 시 우측 버튼';
 
   @override
-  String get resetButtonOrder => '恢复默认布局';
+  String get resetButtonOrder => '기본 레이아웃으로 복원';
 
   @override
-  String get btnMore => '更多菜单';
+  String get btnMore => '더보기 메뉴';
 
   @override
-  String get btnFavorite => '收藏';
+  String get btnFavorite => '즐겨찾기';
 
   @override
-  String get btnPlaylistMode => '播放模式';
+  String get btnPlaylistMode => '재생 모드';
 
   @override
-  String get btnShuffle => '随机播放';
+  String get btnShuffle => '셔플 재생';
 
   @override
-  String get btnTagCompletion => '标签自动补全';
+  String get btnTagCompletion => '태그 자동 완성';
 
   @override
-  String get btnSleepTimer => '定时关闭';
+  String get btnSleepTimer => '취침 타이머';
 
   @override
-  String get btnEqualizer => '音效';
+  String get btnEqualizer => '이퀄라이저';
 
   @override
-  String get btnVisualizer => '律动/频谱';
+  String get btnVisualizer => '비주얼라이저';
 
   @override
-  String get btnVolume => '音量';
+  String get btnVolume => '음량';
 }
