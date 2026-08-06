@@ -1028,7 +1028,7 @@ class PlaybackHeroCard extends ConsumerWidget {
 
     // 当窗口宽度与高度均充足时，通过 PlaybackHeroCardUiTuning 中的统一参数按比例放大封面与控件区
     final double widthFactor = ((width - 960.0) / 720.0).clamp(0.0, 1.0);
-    final double heightFactor = ((height - 580.0) / 420.0).clamp(0.0, 1.0);
+    final double heightFactor = ((height - 580.0) / 520.0).clamp(0.0, 1.0);
     final double spaceFactor = math.min(widthFactor, heightFactor);
 
     final double lLyricsPreferredCoverSide =
@@ -1109,16 +1109,26 @@ class PlaybackHeroCard extends ConsumerWidget {
         lyricsStyle == LyricsStyle.apple
             ? math.max(120.0, lLyricsColumnWidth - 48.0)
             : lLyricsColumnWidth;
+
+    // 非封面控件及间距的总高度 (Total height of info, controls and spacing)
+    final double nonCoverHeight =
+        lLyricsInfoHeight +
+        lLyricsControlsHeight +
+        lLyricsCoverInfoSpacing +
+        lLyricsInfoControlsSpacing;
+
+    // 整个左侧控件区总高度受 PlaybackHeroCardUiTuning.lLyricsMaxLeftAreaHeightRatio 比例上限限制
+    final double maxLeftAreaTotalHeight = lyricsStyle == LyricsStyle.apple
+        ? height * PlaybackHeroCardUiTuning.lLyricsMaxLeftAreaHeightRatio
+        : height;
+    final double maxCoverHeightByTotalLimit = maxLeftAreaTotalHeight - nonCoverHeight;
+
     final double maxCoverSide = math.min(
       lLyricsPreferredCoverSide,
-      maxHorizontalSpace,
+      math.min(math.max(140.0, maxCoverHeightByTotalLimit), maxHorizontalSpace),
     );
     final double availableCoverHeight =
-        lLyricsAvailableHeight -
-        lLyricsInfoHeight -
-        lLyricsControlsHeight -
-        lLyricsCoverInfoSpacing -
-        lLyricsInfoControlsSpacing;
+        lLyricsAvailableHeight - nonCoverHeight;
 
     final double lLyricsCoverSide = availableCoverHeight.clamp(
       math.min(140.0, maxCoverSide),
@@ -1126,10 +1136,13 @@ class PlaybackHeroCard extends ConsumerWidget {
     );
 
     // 横屏歌词模式下，标准缩放(uiScale=1.0)且空间充裕时，控件区与封面同宽；
-    // 当 uiScale 增大（车机大屏触控）或封面高度受限缩小，控件区宽度随 uiScale 扩展至 maxHorizontalSpace，
-    // 确保大按钮与进度条不会被封面的高度挤压变窄。
+    // 当 uiScale 增大（车机大屏触控）或封面高度受限缩小，控件区宽度随 uiScale 扩展至 maxHorizontalSpace。
+    final double maxItemWidth = lyricsStyle == LyricsStyle.apple
+        ? math.min(maxCoverSide, maxHorizontalSpace)
+        : maxHorizontalSpace;
+    final double upperItemWidth = math.max(lLyricsCoverSide, maxItemWidth);
     final double lLyricsItemWidth = (lLyricsCoverSide * math.max(1.0, uiScale))
-        .clamp(lLyricsCoverSide, maxHorizontalSpace);
+        .clamp(lLyricsCoverSide, upperItemWidth);
 
     final double lLyricsTotalContentHeight =
         lLyricsCoverSide +

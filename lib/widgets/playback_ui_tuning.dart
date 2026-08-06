@@ -123,10 +123,11 @@ class PlaybackHeroCardUiTuning {
   static const double lNormalCoverSideFactor = 0.72; // 横屏普通模式封面尺寸系数
 
   // 横屏歌词模式统一调节入口 (Unified tuning entry for landscape lyrics mode)
-  static const double lLyricsPreferredCoverSide = 420.0; // 横屏歌词封面基础尺寸 (默认 440.0，空间充足时更大)
-  static const double lLyricsBaseControlsScale = 0.8; // 横屏歌词控件区基础缩放倍率 (默认 1.22，包含按钮、图标、字体)
+  static const double lLyricsPreferredCoverSide = 420.0; // 横屏歌词封面基础尺寸
+  static const double lLyricsBaseControlsScale = 0.8; // 横屏歌词控件区基础缩放倍率 (包含按钮、图标、字体)
   static const double lLyricsMaxCoverExpansion = 120.0; // 窗口空间充裕时封面最大额外扩大尺寸
-  static const double lLyricsMaxControlsExpansion = 0.25; // 窗口空间充裕时控件区最大额外放大倍率
+  static const double lLyricsMaxControlsExpansion = 0.22; // 窗口空间充裕时控件区最大额外放大倍率
+  static const double lLyricsMaxLeftAreaHeightRatio = 0.75; // 横屏歌词模式左侧控件区总高度占屏幕的最大比例 (如 0.68 即不超过 68%)
 
   static const double appleLyricsRightPanelRatio = 0.5; // 苹果样式下歌词模式占比
 
