@@ -111,7 +111,7 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
         (widget.hideButtonsWhenInactive || isSmallWindowMode) &&
         settings.isUserInactive;
 
-    final Widget titleBarContent = GestureDetector(
+    final Widget dragGestureArea = GestureDetector(
       behavior: HitTestBehavior.translucent,
       onPanStart: (details) {
         windowManager.startDragging();
@@ -125,127 +125,57 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
           await windowManager.maximize();
         }
       },
-      child: SizedBox(
-        height: widget.height,
-        child: Row(
-          children: [
-            if (isMacOS && showMiniButton)
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: hideButtons ? 0.0 : 1.0,
-                curve: Curves.easeInOut,
-                child: IgnorePointer(
-                  ignoring: hideButtons,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _MacosSmallWindowButton(
-                        icon: isSmallWindowMode
-                            ? Icons.open_in_full
-                            : Icons.picture_in_picture_alt,
-                        iconSize: isSmallWindowMode ? 16 : 18,
-                        onPressed: () {
-                          settings.isSmallWindowMode = !settings.isSmallWindowMode;
-                        },
-                      ),
-                      if (isSmallWindowMode)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AppTooltip(
-                              message: AppLocalizations.of(context)?.alwaysOnTop ??
-                                  'Always on Top',
-                              child: _MacosSmallWindowButton(
-                                icon: settings.isSmallWindowAlwaysOnTop
-                                    ? Icons.push_pin
-                                    : Icons.push_pin_outlined,
-                                iconSize: 16,
-                                color: settings.isSmallWindowAlwaysOnTop
-                                    ? Theme.of(context).colorScheme.primary
-                                    : null,
-                                onPressed: () async {
-                                  final nextVal = !settings.isSmallWindowAlwaysOnTop;
-                                  settings.isSmallWindowAlwaysOnTop = nextVal;
-                                  await windowManager.setAlwaysOnTop(nextVal);
-                                },
-                              ),
-                            ),
-                            _MacosSmallWindowButton(
-                              icon: Icons.queue_music,
-                              iconSize: 16,
-                              color: settings.isSmallWindowQueueExpanded
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                              onPressed: () {
-                                settings.toggleSmallWindowBottomPanelMode(
-                                  SmallWindowBottomPanelMode.queue,
-                                );
-                              },
-                            ),
-                            _MacosSmallWindowButton(
-                              icon: Icons.text_snippet_outlined,
-                              iconSize: 16,
-                              color: settings.isSmallWindowLyricsExpanded
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                              onPressed: () {
-                                settings.toggleSmallWindowBottomPanelMode(
-                                  SmallWindowBottomPanelMode.lyrics,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            const Spacer(),
-            if (isWindowsOrLinux)
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: hideButtons ? 0.0 : 1.0,
-                curve: Curves.easeInOut,
-                child: IgnorePointer(
-                  ignoring: hideButtons,
-                  child: _WindowsCapsuleButtons(
-                    buttons: [
-                      if (showMiniButton) ...[
-                        _CapsuleButtonData(
-                          icon: isSmallWindowMode
-                              ? Icons.open_in_full
-                              : Icons.picture_in_picture_alt,
-                          iconSize: isSmallWindowMode ? 14 : 16,
-                          onPressed: () {
-                            settings.isSmallWindowMode =
-                                !settings.isSmallWindowMode;
-                          },
-                        ),
-                        if (isSmallWindowMode)
-                          _CapsuleButtonData(
-                            icon: settings.isSmallWindowAlwaysOnTop
-                                ? Icons.push_pin
-                                : Icons.push_pin_outlined,
-                            iconSize: 14,
-                            tooltip:
-                                AppLocalizations.of(
-                                  context,
-                                )?.alwaysOnTop ??
+      child: const SizedBox.expand(),
+    );
+
+    final Widget titleBarContent = SizedBox(
+      height: widget.height,
+      child: Row(
+        children: [
+          if (isMacOS && showMiniButton)
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: hideButtons ? 0.0 : 1.0,
+              curve: Curves.easeInOut,
+              child: IgnorePointer(
+                ignoring: hideButtons,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _MacosSmallWindowButton(
+                      icon: isSmallWindowMode
+                          ? Icons.open_in_full
+                          : Icons.picture_in_picture_alt,
+                      iconSize: isSmallWindowMode ? 16 : 18,
+                      onPressed: () {
+                        settings.isSmallWindowMode = !settings.isSmallWindowMode;
+                      },
+                    ),
+                    if (isSmallWindowMode)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AppTooltip(
+                            message: AppLocalizations.of(context)?.alwaysOnTop ??
                                 'Always on Top',
-                            color: settings.isSmallWindowAlwaysOnTop
-                                ? Theme.of(context).colorScheme.primary
-                                : null,
-                            onPressed: () async {
-                              final nextVal =
-                                  !settings.isSmallWindowAlwaysOnTop;
-                              settings.isSmallWindowAlwaysOnTop = nextVal;
-                              await windowManager.setAlwaysOnTop(nextVal);
-                            },
+                            child: _MacosSmallWindowButton(
+                              icon: settings.isSmallWindowAlwaysOnTop
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                              iconSize: 16,
+                              color: settings.isSmallWindowAlwaysOnTop
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
+                              onPressed: () async {
+                                final nextVal = !settings.isSmallWindowAlwaysOnTop;
+                                settings.isSmallWindowAlwaysOnTop = nextVal;
+                                await windowManager.setAlwaysOnTop(nextVal);
+                              },
+                            ),
                           ),
-                        if (isSmallWindowMode)
-                          _CapsuleButtonData(
+                          _MacosSmallWindowButton(
                             icon: Icons.queue_music,
-                            iconSize: 14,
+                            iconSize: 16,
                             color: settings.isSmallWindowQueueExpanded
                                 ? Theme.of(context).colorScheme.primary
                                 : null,
@@ -255,10 +185,9 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
                               );
                             },
                           ),
-                        if (isSmallWindowMode)
-                          _CapsuleButtonData(
+                          _MacosSmallWindowButton(
                             icon: Icons.text_snippet_outlined,
-                            iconSize: 14,
+                            iconSize: 16,
                             color: settings.isSmallWindowLyricsExpanded
                                 ? Theme.of(context).colorScheme.primary
                                 : null,
@@ -268,58 +197,133 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
                               );
                             },
                           ),
-                      ],
-                      if (!isSmallWindowMode) ...[
-                        _CapsuleButtonData(
-                          icon: isFullScreen
-                              ? Icons.fullscreen_exit
-                              : Icons.fullscreen,
-                          iconSize: 16,
-                          onPressed: () async {
-                            await _setFullScreen(!isFullScreen);
-                          },
-                        ),
-                        _CapsuleButtonData(
-                          icon: Icons.remove,
-                          iconSize: 16,
-                          onPressed: () async {
-                            if (isFullScreen) {
-                              await _setFullScreen(false);
-                            }
-                            await windowManager.minimize();
-                          },
-                        ),
-                        _CapsuleButtonData(
-                          icon: _isMaximized
-                              ? Icons.filter_none
-                              : Icons.crop_square,
-                          iconSize: 12,
-                          onPressed: () async {
-                            if (isFullScreen) {
-                              await _setFullScreen(false);
-                            } else if (_isMaximized) {
-                              await windowManager.unmaximize();
-                            } else {
-                              await windowManager.maximize();
-                            }
-                          },
-                        ),
-                      ],
-                      _CapsuleButtonData(
-                        icon: Icons.close,
-                        iconSize: 16,
-                        isClose: true,
-                        onPressed: windowManager.close,
+                        ],
                       ),
-                    ],
-                    brightness: widget.brightness,
-                    height: widget.height,
-                    showBackground: widget.showButtonGroupBackground && isSmallWindowMode,
-                  ),
+                  ],
                 ),
               ),
-          ],
-        ),
+            ),
+          Expanded(
+            child: dragGestureArea,
+          ),
+          if (isWindowsOrLinux)
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: hideButtons ? 0.0 : 1.0,
+              curve: Curves.easeInOut,
+              child: IgnorePointer(
+                ignoring: hideButtons,
+                child: _WindowsCapsuleButtons(
+                  buttons: [
+                    if (showMiniButton) ...[
+                      _CapsuleButtonData(
+                        icon: isSmallWindowMode
+                            ? Icons.open_in_full
+                            : Icons.picture_in_picture_alt,
+                        iconSize: isSmallWindowMode ? 14 : 16,
+                        onPressed: () {
+                          settings.isSmallWindowMode =
+                              !settings.isSmallWindowMode;
+                        },
+                      ),
+                      if (isSmallWindowMode)
+                        _CapsuleButtonData(
+                          icon: settings.isSmallWindowAlwaysOnTop
+                              ? Icons.push_pin
+                              : Icons.push_pin_outlined,
+                          iconSize: 14,
+                          tooltip:
+                              AppLocalizations.of(
+                                context,
+                              )?.alwaysOnTop ??
+                              'Always on Top',
+                          color: settings.isSmallWindowAlwaysOnTop
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                          onPressed: () async {
+                            final nextVal =
+                                !settings.isSmallWindowAlwaysOnTop;
+                            settings.isSmallWindowAlwaysOnTop = nextVal;
+                            await windowManager.setAlwaysOnTop(nextVal);
+                          },
+                        ),
+                      if (isSmallWindowMode)
+                        _CapsuleButtonData(
+                          icon: Icons.queue_music,
+                          iconSize: 14,
+                          color: settings.isSmallWindowQueueExpanded
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                          onPressed: () {
+                            settings.toggleSmallWindowBottomPanelMode(
+                              SmallWindowBottomPanelMode.queue,
+                            );
+                          },
+                        ),
+                      if (isSmallWindowMode)
+                        _CapsuleButtonData(
+                          icon: Icons.text_snippet_outlined,
+                          iconSize: 14,
+                          color: settings.isSmallWindowLyricsExpanded
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                          onPressed: () {
+                            settings.toggleSmallWindowBottomPanelMode(
+                              SmallWindowBottomPanelMode.lyrics,
+                            );
+                          },
+                        ),
+                    ],
+                    if (!isSmallWindowMode) ...[
+                      _CapsuleButtonData(
+                        icon: isFullScreen
+                            ? Icons.fullscreen_exit
+                            : Icons.fullscreen,
+                        iconSize: 16,
+                        onPressed: () async {
+                          await _setFullScreen(!isFullScreen);
+                        },
+                      ),
+                      _CapsuleButtonData(
+                        icon: Icons.remove,
+                        iconSize: 16,
+                        onPressed: () async {
+                          if (isFullScreen) {
+                            await _setFullScreen(false);
+                          }
+                          await windowManager.minimize();
+                        },
+                      ),
+                      _CapsuleButtonData(
+                        icon: _isMaximized
+                            ? Icons.filter_none
+                            : Icons.crop_square,
+                        iconSize: 12,
+                        onPressed: () async {
+                          if (isFullScreen) {
+                            await _setFullScreen(false);
+                          } else if (_isMaximized) {
+                            await windowManager.unmaximize();
+                          } else {
+                            await windowManager.maximize();
+                          }
+                        },
+                      ),
+                    ],
+                    _CapsuleButtonData(
+                      icon: Icons.close,
+                      iconSize: 16,
+                      isClose: true,
+                      onPressed: windowManager.close,
+                    ),
+                  ],
+                  brightness: widget.brightness,
+                  height: widget.height,
+                  showBackground: widget.showButtonGroupBackground && isSmallWindowMode,
+                ),
+              ),
+            ),
+        ],
       ),
     );
 

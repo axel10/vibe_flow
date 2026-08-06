@@ -261,11 +261,7 @@ dependency_overrides:
       path: packages/bonsoir_windows
       ref: main
   window_manager:
-    # path: ./window_manager/packages/window_manager
-    git:
-      url: https://github.com/axel10/window_manager
-      path: packages/window_manager
-      ref: main
+    path: ./window_manager/packages/window_manager
   # flutter_tray:
   #     path: ./flutter_tray
   # bonsoir:

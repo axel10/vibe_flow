@@ -1734,11 +1734,9 @@ packages:
   window_manager:
     dependency: "direct main"
     description:
-      path: "packages/window_manager"
-      ref: main
-      resolved-ref: d67dcadd6d1d8618a5bfcf15663357480632e7c5
-      url: "https://github.com/axel10/window_manager"
-    source: git
+      path: "window_manager/packages/window_manager"
+      relative: true
+    source: path
     version: "0.5.2"
   windows_taskbar:
     dependency: "direct main"
