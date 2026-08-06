@@ -44,9 +44,11 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    final scopeNotifier = ref.read(librarySelectionScopeProvider.notifier);
+    final currentScope = ref.read(librarySelectionScopeProvider);
     Future.microtask(() {
-      if (ref.read(librarySelectionScopeProvider) == LibrarySelectionScope.album) {
-        ref.read(librarySelectionScopeProvider.notifier).clear();
+      if (currentScope == LibrarySelectionScope.album) {
+        scopeNotifier.clear();
       }
     });
     super.dispose();

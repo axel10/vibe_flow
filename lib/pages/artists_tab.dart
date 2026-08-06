@@ -59,10 +59,12 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
     _searchController.dispose();
     _songSelectionController.removeListener(_onSongSelectionChanged);
     _songSelectionController.dispose();
+    final scopeNotifier = ref.read(librarySelectionScopeProvider.notifier);
+    final scope = ref.read(librarySelectionScopeProvider);
     Future.microtask(() {
-      final scope = ref.read(librarySelectionScopeProvider);
-      if (scope == LibrarySelectionScope.artist || scope == LibrarySelectionScope.library) {
-        ref.read(librarySelectionScopeProvider.notifier).clear();
+      if (scope == LibrarySelectionScope.artist ||
+          scope == LibrarySelectionScope.library) {
+        scopeNotifier.clear();
       }
     });
     super.dispose();
