@@ -96,9 +96,11 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     if (ref.read(settingsServiceProvider).defaultToLyricsModeOnPlaybackOpen) {
       _audioService?.setLyricsActive(true);
     }
+    final initialMusic = ref.read(audioCurrentMusicProvider);
+    _pendingArtworkBytes = initialMusic?.artworkBytes;
+    _pendingArtworkPath = initialMusic?.path;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _pendingArtworkBytes = ref.read(audioCurrentMusicProvider)?.artworkBytes;
-      _pendingArtworkPath = ref.read(audioCurrentMusicProvider)?.path;
       MemoryTrace.snapshot(
         'playbackPage:init',
         details: <String, Object?>{
@@ -107,9 +109,6 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
         },
       );
       ref.read(settingsServiceProvider).resetInactivity();
-      if (mounted) {
-        setState(() {});
-      }
     });
 
     // Keep the hero flight smooth: defer background warmup until after the
@@ -1431,8 +1430,8 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
 
     return Positioned.fill(
       child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: PlaybackHeroCardUiTuning.transitionDuration,
+        curve: Curves.fastOutSlowIn,
         opacity: targetOpacity,
         child: IgnorePointer(
           child: DecoratedBox(
@@ -1469,8 +1468,8 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
 
     return Positioned.fill(
       child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: PlaybackHeroCardUiTuning.transitionDuration,
+        curve: Curves.fastOutSlowIn,
         opacity: isSmallWin || !isLyricsMode ? 0.0 : 1.0,
         child: IgnorePointer(
           child: ColoredBox(color: Colors.black.withValues(alpha: opacity)),
@@ -1526,9 +1525,10 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                   metadata?.thumbnailPath ??
                   (songPath == currentMusic?.path ? currentMusic?.thumbnailPath : null);
               final Uint8List? cachedBytes = songPath != null
-                  ? ((songPath == currentMusic?.path
+                  ? (((songPath == currentMusic?.path
                           ? currentMusic?.artworkBytes
                           : null) ??
+                      _fileArtworkBytesCache[songPath]) ??
                       ref.read(audioServiceProvider).getCachedArtwork(songPath))
                   : null;
 
@@ -1791,13 +1791,18 @@ class _SafeBackgroundSwitcherState extends State<_SafeBackgroundSwitcher>
       if (_items.isNotEmpty) {
         final last = _items.last;
         if (last.child.key != widget.child.key) {
-          setState(() {
-            _items[_items.length - 1] = _SwitcherItem(
-              child: widget.child,
-              controller: last.controller,
-              animation: last.animation,
-            );
-          });
+          final isFromEmpty = last.child.key.toString().contains('bg_empty');
+          if (isFromEmpty) {
+            _addNewChild(widget.child, animate: true);
+          } else {
+            setState(() {
+              _items[_items.length - 1] = _SwitcherItem(
+                child: widget.child,
+                controller: last.controller,
+                animation: last.animation,
+              );
+            });
+          }
         }
       }
     }

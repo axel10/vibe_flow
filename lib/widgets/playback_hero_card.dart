@@ -734,26 +734,16 @@ class PlaybackHeroCard extends ConsumerWidget {
                           height: layout.cover.height,
                           child: Consumer(
                             builder: (context, ref, child) {
-                              final double currentSize = optimize
-                                  ? coverNormalLayout.cover.width
-                                  : layout.cover.width;
                               final Widget coverWidget = _buildAlbumArtCore(
                                 context,
                                 ref,
-                                currentSize,
+                                layout.cover.width,
                                 cacheWidthSize: coverNormalLayout.cover.width,
                               );
-                              final Widget result = optimize
-                                  ? FittedBox(
-                                      fit: BoxFit.fill,
-                                      child: SizedBox(
-                                        width: coverNormalLayout.cover.width,
-                                        height: coverNormalLayout.cover.width,
-                                        child: coverWidget,
-                                      ),
-                                    )
-                                  : coverWidget;
-                              return KeyedSubtree(key: coverKey, child: result);
+                              return KeyedSubtree(
+                                key: coverKey,
+                                child: coverWidget,
+                              );
                             },
                           ),
                         ),
