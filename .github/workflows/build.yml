@@ -173,6 +173,21 @@ jobs:
           FFMPEG_DIR: ${{ github.workspace }}\audio_core\windows\third_party\ffmpeg
         run: flutter build windows --release -v
 
+      - name: Bundle VC Runtime DLLs
+        shell: pwsh
+        run: |
+          $dlls = @("msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "msvcp140_codecvt_ids.dll", "vcruntime140.dll", "vcruntime140_1.dll", "vcruntime140_threads.dll")
+          $destDir = Join-Path $env:GITHUB_WORKSPACE "build\windows\x64\runner\Release"
+          foreach ($dll in $dlls) {
+            $sysPath = Join-Path $env:SystemRoot "System32\$dll"
+            if (Test-Path $sysPath) {
+              Copy-Item $sysPath -Destination $destDir -Force
+              Write-Host "Bundled $dll to Release directory."
+            } else {
+              Write-Warning "DLL $dll not found in System32."
+            }
+          }
+
       # - name: Build Windows MSIX
       #   run: dart run msix:create --build-windows false
 
