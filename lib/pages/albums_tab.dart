@@ -33,6 +33,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   bool _sortAscending = true;
   bool _is3DView = false;
   final Set<String> _selectedAlbumIds = {};
+  bool _isShuffledMode = false;
+  List<AlbumSummary>? _shuffledAlbums;
+  final GlobalKey<_Album3DCoverFlowViewState> _coverFlowKey = GlobalKey();
 
   List<AlbumSummary>? _lastRawAlbums;
   String? _lastSearchQuery;
@@ -124,6 +127,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
             _lastSearchQuery != _searchQuery ||
             _lastSortField != _sortField ||
             _lastSortAscending != _sortAscending) {
+          if (_lastSortField != _sortField || _lastSortAscending != _sortAscending) {
+            _isShuffledMode = false;
+            _shuffledAlbums = null;
+          }
           _lastRawAlbums = albums;
           _lastSearchQuery = _searchQuery;
           _lastSortField = _sortField;
@@ -216,11 +223,15 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                   onSortFieldSelected: (field) {
                     setState(() {
                       _sortField = field;
+                      _isShuffledMode = false;
+                      _shuffledAlbums = null;
                     });
                   },
                   onSortOrderToggled: () {
                     setState(() {
                       _sortAscending = !_sortAscending;
+                      _isShuffledMode = false;
+                      _shuffledAlbums = null;
                     });
                   },
                   onViewModeToggled: () {
@@ -228,6 +239,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                       _is3DView = !_is3DView;
                     });
                   },
+                  onShufflePressed: () => _onShufflePressed(albums),
                 );
 
                 final Widget mainContent;
@@ -244,6 +256,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                                 ),
                               )
                             : _Album3DCoverFlowView(
+                                key: _coverFlowKey,
                                 albums: visibleAlbums,
                                 isSelectionMode: isSelectionMode,
                                 selectedAlbumIds: _selectedAlbumIds,
@@ -358,7 +371,46 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     );
   }
 
-  List<AlbumSummary> _filterAndSortAlbums(List<AlbumSummary> albums) {
+  void _onShufflePressed(List<AlbumSummary> albums) {
+    final coverFlowState = _coverFlowKey.currentState;
+    void doShuffle() {
+      setState(() {
+        _isShuffledMode = true;
+        final baseFiltered = _filterAndSortAlbums(albums, ignoreShuffle: true);
+        _shuffledAlbums = List<AlbumSummary>.from(baseFiltered)..shuffle();
+        _cachedFilteredAlbums = _shuffledAlbums;
+        _cachedKnownAlbums = _cachedFilteredAlbums!
+            .where((album) => !album.isUnknownAlbum)
+            .toList(growable: false);
+        _cachedUnknownAlbums = _cachedFilteredAlbums!
+            .where((album) => album.isUnknownAlbum)
+            .toList(growable: false);
+      });
+    }
+
+    if (coverFlowState != null) {
+      coverFlowState.animateShuffle(doShuffle);
+    } else {
+      doShuffle();
+    }
+  }
+
+  List<AlbumSummary> _filterAndSortAlbums(
+    List<AlbumSummary> albums, {
+    bool ignoreShuffle = false,
+  }) {
+    if (_isShuffledMode && !ignoreShuffle && _shuffledAlbums != null) {
+      if (_searchQuery.isEmpty) {
+        return _shuffledAlbums!;
+      } else {
+        final query = _searchQuery.toLowerCase();
+        return _shuffledAlbums!.where((album) {
+          return album.title.toLowerCase().contains(query) ||
+              album.artist.toLowerCase().contains(query);
+        }).toList();
+      }
+    }
+
     final query = _searchQuery.toLowerCase();
     final filtered = albums.where((album) {
       if (query.isEmpty) return true;
@@ -874,6 +926,7 @@ class _AlbumsToolbar extends StatelessWidget {
     required this.onSortFieldSelected,
     required this.onSortOrderToggled,
     required this.onViewModeToggled,
+    this.onShufflePressed,
   });
 
   final TextEditingController searchController;
@@ -888,6 +941,7 @@ class _AlbumsToolbar extends StatelessWidget {
   final ValueChanged<_AlbumSortField> onSortFieldSelected;
   final VoidCallback onSortOrderToggled;
   final VoidCallback onViewModeToggled;
+  final VoidCallback? onShufflePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -967,6 +1021,14 @@ class _AlbumsToolbar extends StatelessWidget {
             is3DView ? Icons.grid_view_rounded : Icons.view_carousel_rounded,
           ),
         ),
+        if (is3DView)
+          IconButton.filledTonal(
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            padding: EdgeInsets.zero,
+            tooltip: isZh ? '随机打乱专辑顺序' : 'Shuffle Album Order',
+            onPressed: onShufflePressed,
+            icon: const Icon(Icons.shuffle_rounded),
+          ),
         PopupMenuButton<_AlbumSortField>(
           tooltip: l10n.albumSort,
           onSelected: onSortFieldSelected,
@@ -1092,6 +1154,7 @@ class _AlbumsToolbar extends StatelessWidget {
 
 class _Album3DCoverFlowView extends ConsumerStatefulWidget {
   const _Album3DCoverFlowView({
+    super.key,
     required this.albums,
     required this.isSelectionMode,
     required this.selectedAlbumIds,
@@ -1113,8 +1176,9 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
 }
 
 class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _animController;
+  late AnimationController _shuffleAnimController;
   Animation<double>? _animation;
   double _currentPage = 0.0;
   int _targetIndex = 0;
@@ -1126,6 +1190,10 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
+    );
+    _shuffleAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
     );
   }
 
@@ -1144,8 +1212,49 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
   @override
   void dispose() {
     _animController.dispose();
+    _shuffleAnimController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void animateShuffle(VoidCallback onMidpoint) {
+    if (_shuffleAnimController.isAnimating) return;
+
+    _animController.stop();
+
+    final activeIndex = _currentPage.round().clamp(0, widget.albums.length - 1);
+    final activeAlbumId = widget.albums.isNotEmpty ? widget.albums[activeIndex].id : null;
+
+    bool midpointCalled = false;
+    void listener() {
+      if (mounted) {
+        setState(() {});
+      }
+      if (!midpointCalled && _shuffleAnimController.value >= 0.45) {
+        midpointCalled = true;
+        onMidpoint();
+        if (activeAlbumId != null && widget.albums.isNotEmpty) {
+          final newIndex = widget.albums.indexWhere((a) => a.id == activeAlbumId);
+          if (newIndex != -1) {
+            _currentPage = newIndex.toDouble();
+            _targetIndex = newIndex;
+          } else {
+            _currentPage = _currentPage.clamp(0.0, (widget.albums.length - 1).toDouble());
+            _targetIndex = _currentPage.round();
+          }
+        }
+      }
+    }
+
+    _shuffleAnimController.reset();
+    _shuffleAnimController.addListener(listener);
+
+    _shuffleAnimController.forward().then((_) {
+      _shuffleAnimController.removeListener(listener);
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   void _animateToPage(int pageIndex, {Duration duration = const Duration(milliseconds: 350)}) {
@@ -1201,6 +1310,20 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
         final double availableHeight = (stageHeight - widget.bottomOffset).clamp(100.0, stageHeight);
         final isWide = stageWidth >= 780;
         final double coverSize = (isWide ? 260.0 : 200.0).clamp(140.0, availableHeight * 0.46);
+
+        final double shuffleVal = _shuffleAnimController.value;
+        double gatherFactor = 0.0;
+        if (_shuffleAnimController.isAnimating || shuffleVal > 0) {
+          if (shuffleVal <= 0.45) {
+            final progress = (shuffleVal / 0.45).clamp(0.0, 1.0);
+            gatherFactor = Curves.easeInOutCubic.transform(progress);
+          } else if (shuffleVal <= 0.55) {
+            gatherFactor = 1.0;
+          } else {
+            final progress = ((shuffleVal - 0.55) / 0.45).clamp(0.0, 1.0);
+            gatherFactor = 1.0 - Curves.easeOutCubic.transform(progress);
+          }
+        }
 
         final int range = ((stageWidth / 2) / (coverSize * 0.44)).ceil().clamp(5, 16);
         final minIndex = (_currentPage - range).floor().clamp(0, widget.albums.length - 1);
@@ -1321,6 +1444,12 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                       scale = 1.06 - absD * 0.16;
                     } else {
                       scale = (0.90 - (absD - 1.0) * 0.08).clamp(0.58, 1.06);
+                    }
+
+                    if (gatherFactor > 0) {
+                      xOffset *= (1.0 - gatherFactor);
+                      rotationY *= (1.0 - gatherFactor * 0.85);
+                      scale *= (1.0 - gatherFactor * 0.12);
                     }
 
                     final transform = Matrix4.identity()
