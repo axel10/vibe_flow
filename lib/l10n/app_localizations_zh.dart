@@ -1103,10 +1103,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get apiKeySavedAcoustid => 'AcoustID API Key 已保存';
 
   @override
-  String get generalSectionTitle => '界面';
+  String get generalSectionTitle => '界面与行为';
 
   @override
-  String get generalSectionDescription => '这些选项会影响页面和播放界面的整体显示方式。';
+  String get generalSectionDescription => '配置软件的界面外观、播放交互以及窗口与系统行为。';
+
+  @override
+  String get uiAppearanceGroup => '外观与显示';
+
+  @override
+  String get playbackBehaviorGroup => '播放与交互行为';
+
+  @override
+  String get systemWindowBehaviorGroup => '窗口与系统行为';
 
   @override
   String get interfaceLanguage => '界面语言';
@@ -3096,7 +3105,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get audioSettings => '音频设置';
+  String get audioSettings => '音频';
 
   @override
   String get audioSettingsDescription => '管理音频播放、均衡器频段与播放速度相关配置';
@@ -4272,10 +4281,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get apiKeySavedAcoustid => 'AcoustID API Key 已儲存';
 
   @override
-  String get generalSectionTitle => '介面';
+  String get generalSectionTitle => '介面與行為';
 
   @override
-  String get generalSectionDescription => '這些選項會影響頁面和播放介面的整體顯示方式。';
+  String get generalSectionDescription => '設定軟體的介面外觀、播放互動以及視窗與系統行為。';
+
+  @override
+  String get uiAppearanceGroup => '外觀與顯示';
+
+  @override
+  String get playbackBehaviorGroup => '播放與互動行為';
+
+  @override
+  String get systemWindowBehaviorGroup => '視窗與系統行為';
 
   @override
   String get interfaceLanguage => '介面語言';

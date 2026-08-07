@@ -887,8 +887,11 @@
     }
   },
   "apiKeySavedAcoustid": "AcoustID API Key 已保存",
-  "generalSectionTitle": "界面",
-  "generalSectionDescription": "这些选项会影响页面和播放界面的整体显示方式。",
+  "generalSectionTitle": "界面与行为",
+  "generalSectionDescription": "配置软件的界面外观、播放交互以及窗口与系统行为。",
+  "uiAppearanceGroup": "外观与显示",
+  "playbackBehaviorGroup": "播放与交互行为",
+  "systemWindowBehaviorGroup": "窗口与系统行为",
   "interfaceLanguage": "界面语言",
   "interfaceLanguageDescription": "选择软件的界面显示语言。",
   "scanSectionTitle": "扫描",
@@ -1789,7 +1792,7 @@
     }
   },
   "confirm": "确定",
-  "audioSettings": "音频设置",
+  "audioSettings": "音频",
   "audioSettingsDescription": "管理音频播放、均衡器频段与播放速度相关配置",
   "equalizerBandCount": "均衡器频段数量",
   "equalizerBandCountDescription": "设置均衡器面板显示的频段数量，高频段模式将自动开启平滑横向滚动",

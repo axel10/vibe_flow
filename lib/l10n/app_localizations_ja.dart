@@ -1117,6 +1117,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get generalSectionDescription => 'これらのオプションはページと再生UIの全体的な外観に影響します。';
 
   @override
+  String get uiAppearanceGroup => '外观与显示';
+
+  @override
+  String get playbackBehaviorGroup => '播放与交互行为';
+
+  @override
+  String get systemWindowBehaviorGroup => '窗口与系统行为';
+
+  @override
   String get interfaceLanguage => 'インターフェース言語';
 
   @override

@@ -2200,14 +2200,32 @@ abstract class AppLocalizations {
   /// No description provided for @generalSectionTitle.
   ///
   /// In zh, this message translates to:
-  /// **'界面'**
+  /// **'界面与行为'**
   String get generalSectionTitle;
 
   /// No description provided for @generalSectionDescription.
   ///
   /// In zh, this message translates to:
-  /// **'这些选项会影响页面和播放界面的整体显示方式。'**
+  /// **'配置软件的界面外观、播放交互以及窗口与系统行为。'**
   String get generalSectionDescription;
+
+  /// No description provided for @uiAppearanceGroup.
+  ///
+  /// In zh, this message translates to:
+  /// **'外观与显示'**
+  String get uiAppearanceGroup;
+
+  /// No description provided for @playbackBehaviorGroup.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放与交互行为'**
+  String get playbackBehaviorGroup;
+
+  /// No description provided for @systemWindowBehaviorGroup.
+  ///
+  /// In zh, this message translates to:
+  /// **'窗口与系统行为'**
+  String get systemWindowBehaviorGroup;
 
   /// No description provided for @interfaceLanguage.
   ///
@@ -5848,7 +5866,7 @@ abstract class AppLocalizations {
   /// No description provided for @audioSettings.
   ///
   /// In zh, this message translates to:
-  /// **'音频设置'**
+  /// **'音频'**
   String get audioSettings;
 
   /// No description provided for @audioSettingsDescription.

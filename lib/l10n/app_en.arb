@@ -438,8 +438,11 @@
     }
   },
   "apiKeySavedAcoustid": "AcoustID API key saved",
-  "generalSectionTitle": "Interface",
-  "generalSectionDescription": "These options affect the overall appearance of the pages and playback UI.",
+  "generalSectionTitle": "Interface & Behavior",
+  "generalSectionDescription": "Configure appearance, playback interactions, and window system behaviors.",
+  "uiAppearanceGroup": "Appearance & Display",
+  "playbackBehaviorGroup": "Playback & Interaction",
+  "systemWindowBehaviorGroup": "Window & System Behavior",
   "interfaceLanguage": "Interface Language",
   "interfaceLanguageDescription": "Select the display language of the application.",
   "scanSectionTitle": "Scanning",

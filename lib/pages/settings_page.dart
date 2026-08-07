@@ -689,6 +689,54 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Widget _buildGroupCard(
+    BuildContext context, {
+    required String title,
+    IconData? icon,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Row(
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                ],
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          ...children,
+        ],
+      ),
+    );
+  }
+
   String _transcodeQualityLabel(
     BuildContext context,
     TranscodeQualityTier tier,
@@ -1824,171 +1872,192 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.generalSectionTitle,
           l10n.generalSectionDescription,
         ),
-        _buildThemeModeSection(context, settings),
-        _buildLanguageSection(context, settings),
-        _buildUiScaleSection(context, settings),
-        SwitchListTile(
-          title: Text(l10n.immersiveTabBar),
-          subtitle: Text(l10n.immersiveTabBarDescription),
-          value: settings.isImmersiveTabBarEnabled,
-          onChanged: (value) {
-            settings.isImmersiveTabBarEnabled = value;
-          },
+        _buildGroupCard(
+          context,
+          title: l10n.uiAppearanceGroup,
+          icon: Icons.palette_outlined,
+          children: [
+            _buildThemeModeSection(context, settings),
+            _buildLanguageSection(context, settings),
+            _buildUiScaleSection(context, settings),
+            SwitchListTile(
+              title: Text(l10n.collapseButtonsInLandscapeLyrics),
+              subtitle: Text(l10n.collapseButtonsInLandscapeLyricsDescription),
+              value: settings.collapseButtonsInLandscapeLyrics,
+              onChanged: (value) {
+                settings.collapseButtonsInLandscapeLyrics = value;
+              },
+            ),
+            ListTile(
+              title: Text(l10n.playbackButtonLayoutTitle),
+              subtitle: Text(l10n.playbackButtonLayoutDescription),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => showPlaybackButtonLayoutDialog(context, settings),
+            ),
+            SwitchListTile(
+              title: Text(l10n.showDeveloperOptions),
+              subtitle: Text(l10n.showDeveloperOptionsDescription),
+              value: settings.showDeveloperOptions,
+              onChanged: (value) {
+                settings.showDeveloperOptions = value;
+              },
+            ),
+          ],
         ),
-        SwitchListTile(
-          title: Text(l10n.collapseButtonsInLandscapeLyrics),
-          subtitle: Text(l10n.collapseButtonsInLandscapeLyricsDescription),
-          value: settings.collapseButtonsInLandscapeLyrics,
-          onChanged: (value) {
-            settings.collapseButtonsInLandscapeLyrics = value;
-          },
-        ),
-        ListTile(
-          title: Text(l10n.playbackButtonLayoutTitle),
-          subtitle: Text(l10n.playbackButtonLayoutDescription),
-          trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => showPlaybackButtonLayoutDialog(context, settings),
-        ),
-        SwitchListTile(
-          title: Text(l10n.showScanProgressToastSetting),
-          subtitle: Text(l10n.showScanProgressToastSettingDescription),
-          value: settings.showScanProgressToast,
-          onChanged: (value) {
-            settings.showScanProgressToast = value;
-          },
-        ),
-        SwitchListTile(
-          title: Text(l10n.openPlaybackOnDirectorySongTap),
-          subtitle: Text(l10n.openPlaybackOnDirectorySongTapDescription),
-          value: settings.openPlaybackOnDirectorySongTap,
-          onChanged: (value) {
-            settings.openPlaybackOnDirectorySongTap = value;
-          },
-        ),
-        SwitchListTile(
-          title: Text(l10n.defaultToLyricsModeOnPlaybackOpen),
-          subtitle: Text(l10n.defaultToLyricsModeOnPlaybackOpenDescription),
-          value: settings.defaultToLyricsModeOnPlaybackOpen,
-          onChanged: (value) {
-            settings.defaultToLyricsModeOnPlaybackOpen = value;
-          },
-        ),
-        SwitchListTile(
-          title: Text(l10n.enableWaveformProgressBar),
-          subtitle: Text(l10n.enableWaveformProgressBarDescription),
-          value: settings.isWaveformProgressBarEnabled,
-          onChanged: (value) {
-            settings.isWaveformProgressBarEnabled = value;
-          },
-        ),
-        if (settings.isWaveformProgressBarEnabled)
-          SwitchListTile(
-            title: Text(l10n.enableWaveformLongPressSeek),
-            subtitle: Text(l10n.enableWaveformLongPressSeekDescription),
-            value: settings.enableWaveformLongPressSeek,
-            onChanged: (value) {
-              settings.enableWaveformLongPressSeek = value;
-            },
-          ),
-        if (settings.isWaveformProgressBarEnabled)
-          ListTile(
-            title: Text(l10n.waveformLongPressSeekSpeed),
-            subtitle: Text(l10n.waveformLongPressSeekSpeedDescription),
-            trailing: SizedBox(
-              width: 200,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Slider(
-                      value: settings.waveformLongPressSeekSpeed.clamp(
-                        SettingsService.minWaveformLongPressSeekSpeed,
-                        SettingsService.maxWaveformLongPressSeekSpeed,
+        _buildGroupCard(
+          context,
+          title: l10n.playbackBehaviorGroup,
+          icon: Icons.touch_app_outlined,
+          children: [
+            SwitchListTile(
+              title: Text(l10n.immersiveTabBar),
+              subtitle: Text(l10n.immersiveTabBarDescription),
+              value: settings.isImmersiveTabBarEnabled,
+              onChanged: (value) {
+                settings.isImmersiveTabBarEnabled = value;
+              },
+            ),
+            SwitchListTile(
+              title: Text(l10n.openPlaybackOnDirectorySongTap),
+              subtitle: Text(l10n.openPlaybackOnDirectorySongTapDescription),
+              value: settings.openPlaybackOnDirectorySongTap,
+              onChanged: (value) {
+                settings.openPlaybackOnDirectorySongTap = value;
+              },
+            ),
+            SwitchListTile(
+              title: Text(l10n.defaultToLyricsModeOnPlaybackOpen),
+              subtitle: Text(l10n.defaultToLyricsModeOnPlaybackOpenDescription),
+              value: settings.defaultToLyricsModeOnPlaybackOpen,
+              onChanged: (value) {
+                settings.defaultToLyricsModeOnPlaybackOpen = value;
+              },
+            ),
+            SwitchListTile(
+              title: Text(l10n.enableWaveformProgressBar),
+              subtitle: Text(l10n.enableWaveformProgressBarDescription),
+              value: settings.isWaveformProgressBarEnabled,
+              onChanged: (value) {
+                settings.isWaveformProgressBarEnabled = value;
+              },
+            ),
+            if (settings.isWaveformProgressBarEnabled)
+              SwitchListTile(
+                title: Text(l10n.enableWaveformLongPressSeek),
+                subtitle: Text(l10n.enableWaveformLongPressSeekDescription),
+                value: settings.enableWaveformLongPressSeek,
+                onChanged: (value) {
+                  settings.enableWaveformLongPressSeek = value;
+                },
+              ),
+            if (settings.isWaveformProgressBarEnabled)
+              ListTile(
+                title: Text(l10n.waveformLongPressSeekSpeed),
+                subtitle: Text(l10n.waveformLongPressSeekSpeedDescription),
+                trailing: SizedBox(
+                  width: 200,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          value: settings.waveformLongPressSeekSpeed.clamp(
+                            SettingsService.minWaveformLongPressSeekSpeed,
+                            SettingsService.maxWaveformLongPressSeekSpeed,
+                          ),
+                          min: SettingsService.minWaveformLongPressSeekSpeed,
+                          max: SettingsService.maxWaveformLongPressSeekSpeed,
+                          divisions: ((SettingsService.maxWaveformLongPressSeekSpeed -
+                                      SettingsService.minWaveformLongPressSeekSpeed) /
+                                  0.1)
+                              .round(),
+                          onChanged: (value) {
+                            settings.waveformLongPressSeekSpeed = value;
+                          },
+                        ),
                       ),
-                      min: SettingsService.minWaveformLongPressSeekSpeed,
-                      max: SettingsService.maxWaveformLongPressSeekSpeed,
-                      divisions: ((SettingsService.maxWaveformLongPressSeekSpeed -
-                                  SettingsService.minWaveformLongPressSeekSpeed) /
-                              0.1)
-                          .round(),
-                      onChanged: (value) {
-                        settings.waveformLongPressSeekSpeed = value;
-                      },
-                    ),
+                      Text(
+                        '${settings.waveformLongPressSeekSpeed.toStringAsFixed(1)}×',
+                        style: Theme.of(context).textTheme.labelMedium,
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${settings.waveformLongPressSeekSpeed.toStringAsFixed(1)}×',
-                    style: Theme.of(context).textTheme.labelMedium,
+                ),
+              ),
+          ],
+        ),
+        _buildGroupCard(
+          context,
+          title: l10n.systemWindowBehaviorGroup,
+          icon: Icons.desktop_windows_outlined,
+          children: [
+            SwitchListTile(
+              title: Text(l10n.showScanProgressToastSetting),
+              subtitle: Text(l10n.showScanProgressToastSettingDescription),
+              value: settings.showScanProgressToast,
+              onChanged: (value) {
+                settings.showScanProgressToast = value;
+              },
+            ),
+            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
+              SwitchListTile(
+                title: Text(l10n.enableSystemTray),
+                subtitle: Text(l10n.enableSystemTrayDescription),
+                value: settings.enableSystemTray,
+                onChanged: (value) {
+                  settings.enableSystemTray = value;
+                },
+              ),
+              _buildDropdownTile<CloseWindowAction>(
+                context: context,
+                title: l10n.closeWindowActionTitle,
+                subtitle: !settings.enableSystemTray
+                    ? '${l10n.closeWindowActionDescription} ${l10n.closeWindowActionTrayDisabledTip}'
+                    : l10n.closeWindowActionDescription,
+                value: !settings.enableSystemTray
+                    ? CloseWindowAction.exit
+                    : settings.closeWindowAction,
+                enabled: settings.enableSystemTray,
+                options: [
+                  _DropdownOption(
+                    value: CloseWindowAction.ask,
+                    label: l10n.closeWindowActionAsk,
+                  ),
+                  _DropdownOption(
+                    value: CloseWindowAction.minimize,
+                    label: l10n.closeWindowActionMinimize,
+                    enabled: settings.enableSystemTray,
+                  ),
+                  _DropdownOption(
+                    value: CloseWindowAction.exit,
+                    label: l10n.closeWindowActionExit,
                   ),
                 ],
-              ),
-            ),
-          ),
-        SwitchListTile(
-          title: Text(l10n.showDeveloperOptions),
-          subtitle: Text(l10n.showDeveloperOptionsDescription),
-          value: settings.showDeveloperOptions,
-          onChanged: (value) {
-            settings.showDeveloperOptions = value;
-          },
-        ),
-        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
-          SwitchListTile(
-            title: Text(l10n.enableSystemTray),
-            subtitle: Text(l10n.enableSystemTrayDescription),
-            value: settings.enableSystemTray,
-            onChanged: (value) {
-              settings.enableSystemTray = value;
-            },
-          ),
-          _buildDropdownTile<CloseWindowAction>(
-            context: context,
-            title: l10n.closeWindowActionTitle,
-            subtitle: !settings.enableSystemTray
-                ? '${l10n.closeWindowActionDescription} ${l10n.closeWindowActionTrayDisabledTip}'
-                : l10n.closeWindowActionDescription,
-            value: !settings.enableSystemTray
-                ? CloseWindowAction.exit
-                : settings.closeWindowAction,
-            enabled: settings.enableSystemTray,
-            options: [
-              _DropdownOption(
-                value: CloseWindowAction.ask,
-                label: l10n.closeWindowActionAsk,
-              ),
-              _DropdownOption(
-                value: CloseWindowAction.minimize,
-                label: l10n.closeWindowActionMinimize,
-                enabled: settings.enableSystemTray,
-              ),
-              _DropdownOption(
-                value: CloseWindowAction.exit,
-                label: l10n.closeWindowActionExit,
+                onChanged: !settings.enableSystemTray
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          settings.closeWindowAction = value;
+                        }
+                      },
               ),
             ],
-            onChanged: !settings.enableSystemTray
-                ? null
-                : (value) {
-                    if (value != null) {
-                      settings.closeWindowAction = value;
-                    }
-                  },
-          ),
-        ],
-        ListTile(
-          leading: const Icon(Icons.help_outline),
-          title: Text(l10n.resetOnboarding),
-          subtitle: Text(l10n.resetOnboardingDesc),
-          trailing: FilledButton.tonal(
-            onPressed: () {
-              settings.hasShownOnboarding = false;
-              settings.hasShownCoverTapLyricTip = false;
-              settings.hasShownLyricsMenuTip = false;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.onboardingReset)),
-              );
-            },
-            child: Text(l10n.reset),
-          ),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: Text(l10n.resetOnboarding),
+              subtitle: Text(l10n.resetOnboardingDesc),
+              trailing: FilledButton.tonal(
+                onPressed: () {
+                  settings.hasShownOnboarding = false;
+                  settings.hasShownCoverTapLyricTip = false;
+                  settings.hasShownLyricsMenuTip = false;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.onboardingReset)),
+                  );
+                },
+                child: Text(l10n.reset),
+              ),
+            ),
+          ],
         ),
         if (settings.showDeveloperOptions) ...[
           const SizedBox(height: 8),

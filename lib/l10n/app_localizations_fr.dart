@@ -1161,6 +1161,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ces options affectent l\'apparence générale des pages et de l\'interface de lecture.';
 
   @override
+  String get uiAppearanceGroup => '外观与显示';
+
+  @override
+  String get playbackBehaviorGroup => '播放与交互行为';
+
+  @override
+  String get systemWindowBehaviorGroup => '窗口与系统行为';
+
+  @override
   String get interfaceLanguage => 'Langue de l\'interface';
 
   @override

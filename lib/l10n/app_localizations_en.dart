@@ -1134,11 +1134,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiKeySavedAcoustid => 'AcoustID API key saved';
 
   @override
-  String get generalSectionTitle => 'Interface';
+  String get generalSectionTitle => 'Interface & Behavior';
 
   @override
   String get generalSectionDescription =>
-      'These options affect the overall appearance of the pages and playback UI.';
+      'Configure appearance, playback interactions, and window system behaviors.';
+
+  @override
+  String get uiAppearanceGroup => 'Appearance & Display';
+
+  @override
+  String get playbackBehaviorGroup => 'Playback & Interaction';
+
+  @override
+  String get systemWindowBehaviorGroup => 'Window & System Behavior';
 
   @override
   String get interfaceLanguage => 'Interface Language';

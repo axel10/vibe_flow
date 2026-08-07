@@ -1121,6 +1121,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '이 옵션들은 페이지 및 재생 UI의 전반적인 모양에 영향을 줍니다.';
 
   @override
+  String get uiAppearanceGroup => '外观与显示';
+
+  @override
+  String get playbackBehaviorGroup => '播放与交互行为';
+
+  @override
+  String get systemWindowBehaviorGroup => '窗口与系统行为';
+
+  @override
   String get interfaceLanguage => '인터페이스 언어';
 
   @override
