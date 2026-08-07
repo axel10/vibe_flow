@@ -1338,6 +1338,17 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
     final activeIndex = _currentPage.round().clamp(0, widget.albums.length - 1);
     final activeAlbum = widget.albums[activeIndex];
 
+    final isDark = theme.brightness == Brightness.dark;
+    final navBtnBg = isDark ? Colors.black : Colors.white;
+    final navBtnFg = isDark ? Colors.white : Colors.black;
+    final navButtonStyle = IconButton.styleFrom(
+      backgroundColor: navBtnBg,
+      foregroundColor: navBtnFg,
+      disabledBackgroundColor: navBtnBg.withValues(alpha: 0.35),
+      disabledForegroundColor: navBtnFg.withValues(alpha: 0.35),
+      elevation: 2,
+    );
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final stageWidth = constraints.maxWidth;
@@ -1545,55 +1556,13 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                     );
                   }),
 
-                  // Left edge gradient vignette
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: widget.bottomOffset,
-                    width: 40,
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              theme.colorScheme.surface.withValues(alpha: 0.7),
-                              theme.colorScheme.surface.withValues(alpha: 0.0),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Right edge gradient vignette
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: widget.bottomOffset,
-                    width: 40,
-                    child: IgnorePointer(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerRight,
-                            end: Alignment.centerLeft,
-                            colors: [
-                              theme.colorScheme.surface.withValues(alpha: 0.7),
-                              theme.colorScheme.surface.withValues(alpha: 0.0),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
 
                   if (widget.albums.length > 1) ...[
                     Positioned(
                       left: 16,
                       top: stageCenterY - 24,
-                      child: IconButton.filledTonal(
+                      child: IconButton(
+                        style: navButtonStyle,
                         onPressed: _targetIndex > 0
                             ? () => _animateToPage(_targetIndex - 1)
                             : null,
@@ -1603,7 +1572,8 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                     Positioned(
                       right: 16,
                       top: stageCenterY - 24,
-                      child: IconButton.filledTonal(
+                      child: IconButton(
+                        style: navButtonStyle,
                         onPressed: _targetIndex < widget.albums.length - 1
                             ? () => _animateToPage(_targetIndex + 1)
                             : null,
