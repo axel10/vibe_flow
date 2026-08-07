@@ -1148,6 +1148,8 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         settings.isImmersiveTabBarEnabled &&
         !hideBottomBar;
 
+    final double railWidth = (useSidebar && !hideImmersiveTabBar) ? 80.0 : 0.0;
+
     _shortcutManager.shortcuts = _buildShortcutMap(settings);
 
     final mainAppWidget = Shortcuts.manager(
@@ -1319,7 +1321,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                                       ? 80.0
                                       : 0.0))
                             : -120.0,
-                        left: 0,
+                        left: railWidth,
                         right: 0,
                         child: Center(
                           child: !isPlayback && currentMusic != null
@@ -1331,13 +1333,14 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                                     final isLandscape =
                                         MediaQuery.of(context).orientation ==
                                         Orientation.landscape;
+                                    final availableWidth =
+                                        MediaQuery.of(context).size.width -
+                                        railWidth;
 
                                     return Container(
                                       key: const ValueKey('dynamic-island'),
                                       constraints: BoxConstraints(
-                                        maxWidth:
-                                            MediaQuery.of(context).size.width *
-                                            0.9,
+                                        maxWidth: availableWidth * 0.9,
                                       ),
                                       child: PlaybackHeroCard(
                                         isMini: true,
