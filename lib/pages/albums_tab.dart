@@ -44,17 +44,21 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   List<AlbumSummary>? _cachedFilteredAlbums;
   List<AlbumSummary>? _cachedKnownAlbums;
   List<AlbumSummary>? _cachedUnknownAlbums;
+  late final LibrarySelectionScopeController _librarySelectionScopeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _librarySelectionScopeController =
+        ref.read(librarySelectionScopeProvider.notifier);
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
-    final scopeNotifier = ref.read(librarySelectionScopeProvider.notifier);
-    final currentScope = ref.read(librarySelectionScopeProvider);
     Future.microtask(() {
-      if (currentScope == LibrarySelectionScope.album) {
-        scopeNotifier.clear();
-      }
+      _librarySelectionScopeController.clear();
     });
     super.dispose();
   }

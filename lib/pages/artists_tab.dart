@@ -40,9 +40,13 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
   bool? _lastSortAscending;
   List<ArtistSummary>? _cachedFilteredArtists;
 
+  late final LibrarySelectionScopeController _librarySelectionScopeController;
+
   @override
   void initState() {
     super.initState();
+    _librarySelectionScopeController =
+        ref.read(librarySelectionScopeProvider.notifier);
     _songSelectionController = ArtistSongSelectionController()
       ..addListener(_onSongSelectionChanged);
   }
@@ -59,13 +63,8 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
     _searchController.dispose();
     _songSelectionController.removeListener(_onSongSelectionChanged);
     _songSelectionController.dispose();
-    final scopeNotifier = ref.read(librarySelectionScopeProvider.notifier);
-    final scope = ref.read(librarySelectionScopeProvider);
     Future.microtask(() {
-      if (scope == LibrarySelectionScope.artist ||
-          scope == LibrarySelectionScope.library) {
-        scopeNotifier.clear();
-      }
+      _librarySelectionScopeController.clear();
     });
     super.dispose();
   }
