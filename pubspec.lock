@@ -1734,9 +1734,10 @@ packages:
   window_manager:
     dependency: "direct main"
     description:
-      path: "window_manager/packages/window_manager"
-      relative: true
-    source: path
+      name: window_manager
+      sha256: "05c231fd7b23d2380f14c5cc10b7b93d60d4fa4a2fb4e0f032de27e44b5560e9"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
     version: "0.5.2"
   windows_taskbar:
     dependency: "direct main"
