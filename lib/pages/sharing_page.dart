@@ -15,6 +15,7 @@ import 'package:vynody/transcode/transcode_riverpod.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:vynody/l10n/app_localizations.dart';
+import '../utils/song_context_menu_utils.dart';
 
 class SharingPage extends ConsumerStatefulWidget {
   const SharingPage({super.key});
@@ -30,6 +31,25 @@ class _SharingPageState extends ConsumerState<SharingPage> {
 
   Future<String?> _getDirectoryPath() {
     return FileSelectorHelper.pickDirectory(lockParentWindow: false);
+  }
+
+  Future<void> _handleOpenReceiveDirectory() async {
+    final settings = ref.read(settingsServiceProvider);
+    final folderPath = settings.lanSharingFolderPath.isNotEmpty
+        ? settings.lanSharingFolderPath
+        : ref.read(sharingServiceProvider).sharingFolderPath;
+
+    if (folderPath.isNotEmpty) {
+      final dir = Directory(folderPath);
+      if (!dir.existsSync()) {
+        try {
+          await dir.create(recursive: true);
+        } catch (e) {
+          debugPrint('[SharingPage] Could not create receive folder: $e');
+        }
+      }
+      await openFolderLocation(folderPath);
+    }
   }
 
   @override
@@ -538,6 +558,14 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                           ],
                         ),
                       ),
+                      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ...[
+                        IconButton(
+                          icon: const Icon(Icons.folder_open_outlined),
+                          tooltip: l10n.openFolderLocation,
+                          onPressed: _handleOpenReceiveDirectory,
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       Icon(
                         Icons.chevron_right,
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
