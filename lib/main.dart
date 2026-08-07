@@ -333,13 +333,22 @@ class MyApp extends ConsumerStatefulWidget {
 bool isExplicitAppExit = false;
 
 Future<void> performCleanExit() async {
+  if (isExplicitAppExit) return;
   isExplicitAppExit = true;
   AppLog.log(
     'Explicit exit requested, closing database cleanly...',
     mirrorToConsole: true,
   );
   try {
-    await MetadataDatabase().close();
+    await MetadataDatabase().close().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () {
+        AppLog.log(
+          'Database close timed out during exit, forcing exit.',
+          mirrorToConsole: true,
+        );
+      },
+    );
     AppLog.log('Database closed cleanly.', mirrorToConsole: true);
   } catch (e, s) {
     AppLog.log(
@@ -435,16 +444,7 @@ class _MyAppState extends ConsumerState<MyApp>
       'AppExit request received, closing database cleanly...',
       mirrorToConsole: true,
     );
-    try {
-      await MetadataDatabase().close();
-      AppLog.log('Database closed cleanly.', mirrorToConsole: true);
-    } catch (e, s) {
-      AppLog.log(
-        'Error closing database during exit: $e',
-        mirrorToConsole: true,
-        stackTrace: s,
-      );
-    }
+    await performCleanExit();
     return AppExitResponse.exit;
   }
 
