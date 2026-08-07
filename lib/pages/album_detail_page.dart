@@ -131,7 +131,6 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
             slivers: [
               SliverToBoxAdapter(
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -139,66 +138,75 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                       colors: [headerColor, theme.colorScheme.surface],
                     ),
                   ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 700;
-                      final cover = HeroMode(
-                        enabled: _isCoverVisible,
-                        child: Hero(
-                          tag: 'album-cover-${widget.album.id}',
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: SongThumbnail(
-                              path: widget.album.representativeSong.path,
-                              id: widget.album.representativeSong.id,
-                              size: isWide
-                                  ? 220
-                                  : math.min(220, constraints.maxWidth),
-                              borderRadius: BorderRadius.zero,
-                            ),
-                          ),
-                        ),
-                      );
-                      final info = _AlbumInfo(
-                        album: widget.album,
-                        onPlayAll: () => audio.playPlaylist(
-                          widget.album.songs,
-                          source: PlaybackSource(
-                            type: PlaybackSourceType.album,
-                            id: widget.album.id,
-                            name: widget.album.title,
-                          ),
-                        ),
-                        onShufflePlay: () => audio.playPlaylist(
-                          List.of(widget.album.songs)..shuffle(),
-                          source: PlaybackSource(
-                            type: PlaybackSourceType.album,
-                            id: widget.album.id,
-                            name: widget.album.title,
-                          ),
-                        ),
-                      );
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1080),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWide = constraints.maxWidth >= 700;
+                            final cover = HeroMode(
+                              enabled: _isCoverVisible,
+                              child: Hero(
+                                tag: 'album-cover-${widget.album.id}',
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SongThumbnail(
+                                    path: widget.album.representativeSong.path,
+                                    id: widget.album.representativeSong.id,
+                                    size: isWide
+                                        ? 220
+                                        : math.min(220, constraints.maxWidth),
+                                    borderRadius: BorderRadius.zero,
+                                  ),
+                                ),
+                              ),
+                            );
+                            final info = _AlbumInfo(
+                              album: widget.album,
+                              onPlayAll: () => audio.playPlaylist(
+                                widget.album.songs,
+                                source: PlaybackSource(
+                                  type: PlaybackSourceType.album,
+                                  id: widget.album.id,
+                                  name: widget.album.title,
+                                ),
+                              ),
+                              onShufflePlay: () => audio.playPlaylist(
+                                List.of(widget.album.songs)..shuffle(),
+                                source: PlaybackSource(
+                                  type: PlaybackSourceType.album,
+                                  id: widget.album.id,
+                                  name: widget.album.title,
+                                ),
+                              ),
+                            );
 
-                      if (isWide) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            cover,
-                            const SizedBox(width: 24),
-                            Expanded(child: info),
-                          ],
-                        );
-                      }
+                            if (isWide) {
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  cover,
+                                  const SizedBox(width: 24),
+                                  Expanded(child: info),
+                                ],
+                              );
+                            }
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(child: cover),
-                          const SizedBox(height: 20),
-                          info,
-                        ],
-                      );
-                    },
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(child: cover),
+                                const SizedBox(height: 20),
+                                info,
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -458,48 +466,54 @@ class _AlbumSongItem extends StatelessWidget {
           canRequestFocus: false,
           onTap: onTap,
           onLongPress: onLongPress,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                leadingWidget,
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        song.displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: isCurrent ? theme.colorScheme.primary : null,
-                          fontWeight: isCurrent ? FontWeight.w700 : null,
-                        ),
+          child: Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1080),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Row(
+                  children: [
+                    leadingWidget,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: isCurrent ? theme.colorScheme.primary : null,
+                              fontWeight: isCurrent ? FontWeight.w700 : null,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            song.artist ?? unknownArtist,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
+                    ),
+                    if (durationLabel != null) ...[
+                      const SizedBox(width: 12),
                       Text(
-                        song.artist ?? unknownArtist,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        durationLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-                if (durationLabel != null) ...[
-                  const SizedBox(width: 12),
-                  Text(
-                    durationLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ),
