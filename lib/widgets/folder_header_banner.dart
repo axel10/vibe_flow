@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
+import 'package:vynody/player/audio/audio_riverpod.dart';
 
-class FolderHeaderBanner extends StatefulWidget {
+class FolderHeaderBanner extends ConsumerStatefulWidget {
   const FolderHeaderBanner({
     super.key,
     required this.title,
@@ -24,6 +26,7 @@ class FolderHeaderBanner extends StatefulWidget {
     required this.onToggleSearch,
     this.heroTag,
     this.isHeroModeEnabled = true,
+    this.isLowEndDevice,
   });
 
   final String title;
@@ -43,12 +46,13 @@ class FolderHeaderBanner extends StatefulWidget {
   final ValueChanged<bool> onToggleSearch;
   final String? heroTag;
   final bool isHeroModeEnabled;
+  final bool? isLowEndDevice;
 
   @override
-  State<FolderHeaderBanner> createState() => _FolderHeaderBannerState();
+  ConsumerState<FolderHeaderBanner> createState() => _FolderHeaderBannerState();
 }
 
-class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
+class _FolderHeaderBannerState extends ConsumerState<FolderHeaderBanner> {
   double? _aspectRatio;
   String? _resolvedPath;
 
@@ -122,17 +126,45 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
 
     final hasImage = _resolvedPath != null && File(_resolvedPath!).existsSync();
     final coverFile = hasImage ? File(_resolvedPath!) : null;
-    final isWideOrSquare = _aspectRatio == null || _aspectRatio! >= 0.85;
-
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isWideOrSquare = _aspectRatio == null || _aspectRatio! >= 0.85;
+    final bool isLowEndDevice = widget.isLowEndDevice ?? ref.watch(isLowMidEndDeviceProvider);
+
+
 
     if (isLandscape) {
-      return _FolderLandscapeHeaderBanner(
+      return RepaintBoundary(
+        child: _FolderLandscapeHeaderBanner(
+          title: widget.title,
+          subtitle: widget.subtitle,
+          songsCount: widget.songsCount,
+          durationText: durationText,
+          coverWidget: widget.coverWidget,
+          actionButtons: widget.actionButtons,
+          actionButtonsScrollable: widget.actionButtonsScrollable,
+          isSearching: widget.isSearching,
+          searchController: widget.searchController,
+          searchQuery: widget.searchQuery,
+          searchHintText: widget.searchHintText,
+          onSearchQueryChanged: widget.onSearchQueryChanged,
+          onToggleSearch: widget.onToggleSearch,
+          heroTag: widget.heroTag,
+          isHeroModeEnabled: widget.isHeroModeEnabled,
+        ),
+      );
+    }
+
+    return RepaintBoundary(
+      child: _FolderPortraitHeaderBanner(
         title: widget.title,
         subtitle: widget.subtitle,
         songsCount: widget.songsCount,
         durationText: durationText,
         coverWidget: widget.coverWidget,
+        coverFile: coverFile,
+        hasImage: hasImage,
+        isWideOrSquare: isWideOrSquare,
+        topHeader: widget.topHeader,
         actionButtons: widget.actionButtons,
         actionButtonsScrollable: widget.actionButtonsScrollable,
         isSearching: widget.isSearching,
@@ -143,31 +175,10 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
         onToggleSearch: widget.onToggleSearch,
         heroTag: widget.heroTag,
         isHeroModeEnabled: widget.isHeroModeEnabled,
-      );
-    }
-
-    return _FolderPortraitHeaderBanner(
-      title: widget.title,
-      subtitle: widget.subtitle,
-      songsCount: widget.songsCount,
-      durationText: durationText,
-      coverWidget: widget.coverWidget,
-      coverFile: coverFile,
-      hasImage: hasImage,
-      isWideOrSquare: isWideOrSquare,
-      topHeader: widget.topHeader,
-      actionButtons: widget.actionButtons,
-      actionButtonsScrollable: widget.actionButtonsScrollable,
-      isSearching: widget.isSearching,
-      searchController: widget.searchController,
-      searchQuery: widget.searchQuery,
-      searchHintText: widget.searchHintText,
-      onSearchQueryChanged: widget.onSearchQueryChanged,
-      onToggleSearch: widget.onToggleSearch,
-      heroTag: widget.heroTag,
-      isHeroModeEnabled: widget.isHeroModeEnabled,
-      resolvedPath: _resolvedPath,
-      totalDuration: widget.totalDuration,
+        resolvedPath: _resolvedPath,
+        totalDuration: widget.totalDuration,
+        isLowEndDevice: isLowEndDevice,
+      ),
     );
   }
 }
@@ -444,6 +455,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
     required this.isHeroModeEnabled,
     required this.resolvedPath,
     required this.totalDuration,
+    required this.isLowEndDevice,
   });
 
   final String title;
@@ -467,6 +479,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
   final bool isHeroModeEnabled;
   final String? resolvedPath;
   final Duration totalDuration;
+  final bool isLowEndDevice;
 
   @override
   Widget build(BuildContext context) {
@@ -517,15 +530,15 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   if (hasImage) ...[
-                    Image.file(
-                      coverFile!,
-                      fit: BoxFit.cover,
-                    ),
-                    BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: isWideOrSquare ? 0.25 : 0.45),
+                    ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                      child: Image.file(
+                        coverFile!,
+                        fit: BoxFit.cover,
                       ),
+                    ),
+                    Container(
+                      color: Colors.black.withValues(alpha: isWideOrSquare ? 0.25 : 0.45),
                     ),
                   ] else ...[
                     Container(
@@ -568,6 +581,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                     statusBarTop: statusBarTop,
                                     desktopTitleBarHeight: desktopTitleBarHeight,
                                     hasTopHeader: hasTopHeader,
+                                    isLowEndDevice: isLowEndDevice,
                                   );
                                 },
                                 child: hasImage
@@ -920,6 +934,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
     required double statusBarTop,
     required double desktopTitleBarHeight,
     required bool hasTopHeader,
+    required bool isLowEndDevice,
   }) {
     return AnimatedBuilder(
       animation: animation,
@@ -933,9 +948,13 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
           curve: Curves.easeOut,
         ).value;
 
+        // On high-end/desktop devices (isLowEndDevice == false), retain full rich Hero animation with foreground items.
+        // On low-end devices, apply smooth fade-in curve (from 20% to 100% progress) so components smoothly fade in without popping up abruptly.
         final double fgOpacity = CurvedAnimation(
           parent: animation,
-          curve: const Interval(0.15, 1.0, curve: Curves.easeOutCubic),
+          curve: isLowEndDevice
+              ? const Interval(0.20, 1.0, curve: Curves.easeOutCubic)
+              : const Interval(0.15, 1.0, curve: Curves.easeOutCubic),
         ).value;
 
         final double fgOffsetY = 12.0 * (1.0 - fgOpacity);
@@ -988,7 +1007,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                 ),
               ),
 
-              // 3. Complete Foreground Layer
+              // 3. Complete Foreground Layer (Rendered with smooth fade-in on both modes)
               if (fgOpacity > 0.01)
                 Opacity(
                   opacity: fgOpacity,

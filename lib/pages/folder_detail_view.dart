@@ -73,6 +73,8 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   String? _lastHighlightedPath;
   bool _isCoverVisible = true;
   bool _showStatusBarOverlay = false;
+  String? _cachedFolderKey;
+  int? _cachedTotalDurationMs;
 
   void _performSearch(String query) {
     _searchDebounce?.cancel();
@@ -317,10 +319,18 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
 
     final representativeSong = scanner.getRepresentativeSongForFolder(folder);
 
-    final totalDurationMs = folder.allSongs.fold<int>(
-      0,
-      (sum, song) => sum + (song.durationMillis ?? 0),
-    );
+    int totalDurationMs = 0;
+    final folderKey = '${folder.path}_${folder.allSongs.length}';
+    if (_cachedFolderKey == folderKey && _cachedTotalDurationMs != null) {
+      totalDurationMs = _cachedTotalDurationMs!;
+    } else {
+      totalDurationMs = folder.allSongs.fold<int>(
+        0,
+        (sum, song) => sum + (song.durationMillis ?? 0),
+      );
+      _cachedFolderKey = folderKey;
+      _cachedTotalDurationMs = totalDurationMs;
+    }
 
     final showSearchLoading = _searchQuery.isNotEmpty && _isSearchLoading && matchedFolders.isEmpty && matchedSongs.isEmpty;
     final noResults = _searchQuery.isNotEmpty && matchedFolders.isEmpty && matchedSongs.isEmpty && !_isSearchLoading;
