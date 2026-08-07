@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:audio_core/audio_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -525,7 +526,8 @@ class SettingsService extends ChangeNotifier {
 
   late final _isImmersiveTabBarEnabledProperty = SettingProperty<bool>(
     key: _keyImmersiveTabBar,
-    defaultValue: true,
+    defaultValue: !(defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS),
     prefs: _prefs,
     onChanged: notifyListeners,
   );

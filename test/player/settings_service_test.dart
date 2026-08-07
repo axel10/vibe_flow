@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/player/settings/settings_service.dart';
@@ -175,6 +176,32 @@ void main() {
       expect(settingsService.mainControlsLeftButton, SettingsService.defaultMainControlsLeftButton);
       expect(settingsService.mainControlsRightButton, SettingsService.defaultMainControlsRightButton);
       expect(settingsService.lyricsHeaderRightButton, SettingsService.defaultLyricsHeaderRightButton);
+    });
+  });
+
+  group('SettingsService - Immersive Tab Bar Default Setting', () {
+    test('defaults to false on Android and iOS', () async {
+      for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+        debugDefaultTargetPlatformOverride = platform;
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final settings = SettingsService(prefs);
+        expect(settings.isImmersiveTabBarEnabled, isFalse,
+            reason: 'Should default to false on $platform');
+      }
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    test('defaults to true on Desktop (macOS, Windows, Linux)', () async {
+      for (final platform in [TargetPlatform.macOS, TargetPlatform.windows, TargetPlatform.linux]) {
+        debugDefaultTargetPlatformOverride = platform;
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final settings = SettingsService(prefs);
+        expect(settings.isImmersiveTabBarEnabled, isTrue,
+            reason: 'Should default to true on $platform');
+      }
+      debugDefaultTargetPlatformOverride = null;
     });
   });
 }
