@@ -287,6 +287,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final folder = _effectiveFolder;
     final scanner = ref.watch(scannerServiceProvider);
     final settings = ref.watch(settingsServiceProvider);
@@ -329,6 +330,15 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
       controller: _localScrollController,
       cacheExtent: 1000.0,
       slivers: [
+        if (!isPortrait)
+          SliverPersistentHeader(
+            delegate: _BreadcrumbsHeaderDelegate(
+              child: _buildBreadcrumbs(folder, scanner, isOverlay: false),
+              height: 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0)),
+            ),
+            pinned: !Platform.isAndroid && !Platform.isIOS,
+            floating: Platform.isAndroid || Platform.isIOS,
+          ),
         SliverToBoxAdapter(
           child: FolderHeaderBanner(
             title: folder.name,
@@ -336,7 +346,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             songsCount: folder.allSongs.length,
             totalDuration: Duration(milliseconds: totalDurationMs),
             coverImagePath: representativeSong?.thumbnailPath ?? (representativeSong != null ? scanner.metadataMap[representativeSong.path]?.thumbnailPath : null),
-            topHeader: _buildBreadcrumbs(folder, scanner, isOverlay: true),
+            topHeader: isPortrait ? _buildBreadcrumbs(folder, scanner, isOverlay: true) : null,
             coverWidget: representativeSong != null
                 ? SongThumbnail(
                     path: representativeSong.path,
@@ -812,9 +822,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
-    final topPadding = isOverlay
-        ? (statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0))
-        : 8.0 + statusBarHeight;
+    final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0);
 
     return Container(
       padding: EdgeInsets.only(
@@ -836,11 +844,21 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
           backButton,
           backChevron,
           Expanded(
-            child: SingleChildScrollView(
-              controller: _breadcrumbsScrollController,
-              scrollDirection: Axis.horizontal,
-              reverse: true,
-              child: Row(children: breadcrumbItems),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  controller: _breadcrumbsScrollController,
+                  scrollDirection: Axis.horizontal,
+                  reverse: true,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Row(children: breadcrumbItems),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(width: 8),

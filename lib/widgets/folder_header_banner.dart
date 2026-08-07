@@ -176,6 +176,179 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
               )
             : null;
 
+        final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+        if (isLandscape) {
+          Widget resolvedCover;
+          if (widget.heroTag != null) {
+            resolvedCover = HeroMode(
+              enabled: widget.isHeroModeEnabled,
+              child: Hero(
+                tag: widget.heroTag!,
+                createRectTween: (begin, end) => SmoothRectTween(begin: begin, end: end),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: widget.coverWidget,
+                ),
+              ),
+            );
+          } else {
+            resolvedCover = ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: widget.coverWidget,
+            );
+          }
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isWideScreen = constraints.maxWidth >= 540 && MediaQuery.of(context).size.width >= 900;
+
+              if (isWideScreen) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.5),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      resolvedCover,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: buildInfoColumn(isOverlay: false),
+                      ),
+                      const SizedBox(width: 16),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: widget.isSearching
+                            ? Row(
+                                key: const ValueKey('wide-search-active'),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 260,
+                                    child: buildSearchTextField(compact: true),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.close_rounded, size: 20),
+                                    onPressed: () {
+                                      widget.searchController.clear();
+                                      widget.onSearchQueryChanged('');
+                                      widget.onToggleSearch(false);
+                                    },
+                                    style: IconButton.styleFrom(
+                                      minimumSize: const Size(32, 32),
+                                      padding: EdgeInsets.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                key: const ValueKey('wide-actions-normal'),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (widget.actionButtonsScrollable)
+                                    Flexible(
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: widget.actionButtons,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    ...widget.actionButtons,
+                                  const SizedBox(width: 8),
+                                  buildSearchIconButton(isWhite: false),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.5),
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        resolvedCover,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: buildInfoColumn(isOverlay: false),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: widget.isSearching
+                          ? Row(
+                              key: const ValueKey('search-active-row'),
+                              children: [
+                                Expanded(
+                                  child: buildSearchTextField(),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () {
+                                    widget.searchController.clear();
+                                    widget.onSearchQueryChanged('');
+                                    widget.onToggleSearch(false);
+                                  },
+                                ),
+                              ],
+                            )
+                          : Row(
+                              key: const ValueKey('actions-normal-row'),
+                              children: [
+                                if (widget.actionButtonsScrollable)
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: widget.actionButtons,
+                                      ),
+                                    ),
+                                  )
+                                else ...[
+                                  ...widget.actionButtons,
+                                  const Spacer(),
+                                ],
+                                const SizedBox(width: 8),
+                                buildSearchIconButton(isWhite: false),
+                              ],
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+
         return Container(
           margin: const EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 12),
           decoration: BoxDecoration(
@@ -598,25 +771,24 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
             textAlign: TextAlign.left,
           ),
         ],
-        const SizedBox(height: 8),
-        Container(
-          padding: isOverlay ? const EdgeInsets.symmetric(horizontal: 10, vertical: 4) : EdgeInsets.zero,
-          decoration: isOverlay
-              ? BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: theme.colorScheme.onPrimaryContainer.withValues(alpha: 0.2),
-                  ),
-                )
-              : null,
-          child: Text(
-            '${l10n.songCount(widget.songsCount)} | $durationText',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: isOverlay ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              fontSize: isOverlay ? 12 : 14,
-            ),
+        const SizedBox(height: 6),
+        Text(
+          '${l10n.songCount(widget.songsCount)} | $durationText',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: isOverlay
+                ? Colors.white.withValues(alpha: 0.85)
+                : theme.colorScheme.primary,
+            fontWeight: FontWeight.w600,
+            fontSize: isOverlay ? 13 : 14,
+            shadows: isOverlay
+                ? const [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 3,
+                      color: Colors.black87,
+                    ),
+                  ]
+                : null,
           ),
         ),
       ],

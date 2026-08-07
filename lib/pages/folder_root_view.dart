@@ -277,6 +277,12 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
           );
         },
       );
+      rootList = Column(
+        children: [
+          _buildRootTopHeader(context, isOverlay: false),
+          Expanded(child: rootList),
+        ],
+      );
     } else {
       final representativeSong = () {
         if (Platform.isAndroid) {
@@ -303,11 +309,17 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
 
       final double foldersBottomPadding = matchedSongs.isEmpty ? 160.0 : 16.0;
 
+      final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+
       rootList = CustomScrollView(
         key: const ValueKey('root_folders_scroll_view'),
         controller: _localScrollController,
         cacheExtent: 1000.0,
         slivers: [
+          if (!isPortrait)
+            SliverToBoxAdapter(
+              child: _buildRootTopHeader(context, isOverlay: false),
+            ),
           SliverToBoxAdapter(
             child: FolderHeaderBanner(
               title: l10n.scanDirectory,
@@ -315,7 +327,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               songsCount: totalSongsCount,
               totalDuration: Duration(milliseconds: totalDurationMs),
               coverImagePath: representativeSong?.thumbnailPath ?? (representativeSong != null ? scanner.metadataMap[representativeSong.path]?.thumbnailPath : null),
-              topHeader: _buildRootTopHeader(context),
+              topHeader: isPortrait ? _buildRootTopHeader(context, isOverlay: true) : null,
               coverWidget: representativeSong != null
                   ? SongThumbnail(
                       path: representativeSong.path,
@@ -575,7 +587,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     );
   }
 
-  Widget _buildRootTopHeader(BuildContext context) {
+  Widget _buildRootTopHeader(BuildContext context, {bool isOverlay = true}) {
     final settings = ref.watch(settingsServiceProvider);
     final l10n = AppLocalizations.of(context)!;
     final currentMusic = ref.watch(audioCurrentMusicProvider);
@@ -585,14 +597,15 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0);
     final isRootSelectionMode = ref.watch(librarySelectionScopeProvider) == LibrarySelectionScope.folderRoot;
 
-    const iconColor = Colors.white;
+    final iconColor = isOverlay ? Colors.white : Theme.of(context).colorScheme.onSurface;
+    final textColor = isOverlay ? Colors.white : Theme.of(context).colorScheme.onSurface;
 
     return Container(
       padding: EdgeInsets.only(
         top: topPadding,
         bottom: 8,
-        left: 0,
-        right: 0,
+        left: isOverlay ? 0 : 16,
+        right: isOverlay ? 0 : 16,
       ),
       child: Row(
         children: [
@@ -603,7 +616,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.home_rounded,
                     size: 20,
                     color: iconColor,
@@ -611,13 +624,15 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
                   const SizedBox(width: 6),
                   Text(
                     l10n.scanDirectory,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
-                      ],
+                      color: textColor,
+                      shadows: isOverlay
+                          ? const [
+                              Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
+                            ]
+                          : null,
                     ),
                   ),
                 ],
@@ -627,7 +642,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
           const Spacer(),
           if (isPortrait)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, color: iconColor),
+              icon: Icon(Icons.more_vert_rounded, color: iconColor),
               onSelected: (value) {
                 if (value == 'locate') {
                   widget.onLocateCurrentSong();
@@ -695,7 +710,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
           else ...[
             if (currentMusic != null) ...[
               IconButton(
-                icon: const Icon(Icons.my_location_rounded, color: iconColor),
+                icon: Icon(Icons.my_location_rounded, color: iconColor),
                 onPressed: widget.onLocateCurrentSong,
                 tooltip: l10n.locateCurrentSong,
               ),
