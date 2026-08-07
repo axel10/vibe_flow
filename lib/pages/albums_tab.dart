@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +31,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   String _searchQuery = '';
   _AlbumSortField _sortField = _AlbumSortField.artist;
   bool _sortAscending = true;
+  bool _is3DView = false;
   final Set<String> _selectedAlbumIds = {};
 
   List<AlbumSummary>? _lastRawAlbums;
@@ -192,80 +194,112 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                 final bottomPadding = 120.0 + (isSelectionMode ? 220.0 : 0.0);
                 final bottomOffset = (currentMusic != null ? 140.0 : 40.0) + (isSelectionMode ? 220.0 : 0.0);
 
-                final mainContent = ScrollToTopWrapper(
-                  scrollController: _scrollController,
-                  bottomOffset: bottomOffset,
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    cacheExtent: 1000,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: _AlbumsToolbar(
-                          searchController: _searchController,
-                          searchQuery: _searchQuery,
-                          sortField: _sortField,
-                          sortAscending: _sortAscending,
-                          albumCount: visibleAlbums.length,
-                          isWide: isWide,
-                          onSearchChanged: (value) {
-                            setState(() {
-                              _searchQuery = value.trim();
-                            });
-                          },
-                          onSearchCleared: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                            });
-                          },
-                          onSortFieldSelected: (field) {
-                            setState(() {
-                              _sortField = field;
-                            });
-                          },
-                          onSortOrderToggled: () {
-                            setState(() {
-                              _sortAscending = !_sortAscending;
-                            });
-                          },
-                        ),
-                      ),
-                      if (visibleAlbums.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Text(
-                              l10n.noAlbums,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ),
-                        )
-                      else ...[
-                        if (knownAlbums.isNotEmpty) ...[
-                          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                          ..._albumSectionSlivers(
-                            title: "",
-                            albums: knownAlbums,
-                            crossAxisCount: crossAxisCount,
-                            childAspectRatio: childAspectRatio,
-                            isSelectionMode: isSelectionMode,
-                          ),
-                        ],
-                        if (knownAlbums.isNotEmpty && unknownAlbums.isNotEmpty)
-                          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                        if (unknownAlbums.isNotEmpty)
-                          ..._albumSectionSlivers(
-                            title: l10n.unknownAlbum,
-                            albums: unknownAlbums,
-                            crossAxisCount: crossAxisCount,
-                            childAspectRatio: childAspectRatio,
-                            isSelectionMode: isSelectionMode,
-                          ),
-                        SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
-                      ],
-                    ],
-                  ),
+                final toolbar = _AlbumsToolbar(
+                  searchController: _searchController,
+                  searchQuery: _searchQuery,
+                  sortField: _sortField,
+                  sortAscending: _sortAscending,
+                  albumCount: visibleAlbums.length,
+                  isWide: isWide,
+                  is3DView: _is3DView,
+                  onSearchChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.trim();
+                    });
+                  },
+                  onSearchCleared: () {
+                    _searchController.clear();
+                    setState(() {
+                      _searchQuery = '';
+                    });
+                  },
+                  onSortFieldSelected: (field) {
+                    setState(() {
+                      _sortField = field;
+                    });
+                  },
+                  onSortOrderToggled: () {
+                    setState(() {
+                      _sortAscending = !_sortAscending;
+                    });
+                  },
+                  onViewModeToggled: () {
+                    setState(() {
+                      _is3DView = !_is3DView;
+                    });
+                  },
                 );
+
+                final Widget mainContent;
+                if (_is3DView) {
+                  mainContent = Column(
+                    children: [
+                      toolbar,
+                      Expanded(
+                        child: visibleAlbums.isEmpty
+                            ? Center(
+                                child: Text(
+                                  l10n.noAlbums,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                              )
+                            : _Album3DCoverFlowView(
+                                albums: visibleAlbums,
+                                isSelectionMode: isSelectionMode,
+                                selectedAlbumIds: _selectedAlbumIds,
+                                bottomOffset: bottomOffset,
+                                onToggleSelection: _toggleAlbumSelection,
+                                onEnterSelectionMode: _enterAlbumSelectionMode,
+                              ),
+                      ),
+                    ],
+                  );
+                } else {
+                  mainContent = ScrollToTopWrapper(
+                    scrollController: _scrollController,
+                    bottomOffset: bottomOffset,
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      cacheExtent: 1000,
+                      slivers: [
+                        SliverToBoxAdapter(child: toolbar),
+                        if (visibleAlbums.isEmpty)
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(
+                              child: Text(
+                                l10n.noAlbums,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                          )
+                        else ...[
+                          if (knownAlbums.isNotEmpty) ...[
+                            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                            ..._albumSectionSlivers(
+                              title: "",
+                              albums: knownAlbums,
+                              crossAxisCount: crossAxisCount,
+                              childAspectRatio: childAspectRatio,
+                              isSelectionMode: isSelectionMode,
+                            ),
+                          ],
+                          if (knownAlbums.isNotEmpty && unknownAlbums.isNotEmpty)
+                            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                          if (unknownAlbums.isNotEmpty)
+                            ..._albumSectionSlivers(
+                              title: l10n.unknownAlbum,
+                              albums: unknownAlbums,
+                              crossAxisCount: crossAxisCount,
+                              childAspectRatio: childAspectRatio,
+                              isSelectionMode: isSelectionMode,
+                            ),
+                          SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
+                        ],
+                      ],
+                    ),
+                  );
+                }
 
                 return Stack(
                   children: [
@@ -436,14 +470,14 @@ class _AlbumCard extends ConsumerWidget {
         behavior: HitTestBehavior.opaque,
         onSecondaryTapDown: (details) {
           if (!isSelectionMode) {
-            _showAlbumContextMenu(context, ref);
+            _showAlbumContextMenu(context, ref, album);
           }
         },
         onLongPress: () {
           if (onLongPress != null) {
             onLongPress!();
           } else if (!isSelectionMode) {
-            _showAlbumContextMenu(context, ref);
+            _showAlbumContextMenu(context, ref, album);
           }
         },
         child: InkWell(
@@ -610,11 +644,13 @@ class _AlbumCard extends ConsumerWidget {
       MaterialPageRoute<void>(builder: (_) => AlbumDetailPage(album: album)),
     );
   }
+}
 
-  Future<void> _showAlbumContextMenu(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+Future<void> _showAlbumContextMenu(
+  BuildContext context,
+  WidgetRef ref,
+  AlbumSummary album,
+) async {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -823,7 +859,6 @@ class _AlbumCard extends ConsumerWidget {
       onTap: () => Navigator.pop(context, value),
     );
   }
-}
 
 class _AlbumsToolbar extends StatelessWidget {
   const _AlbumsToolbar({
@@ -833,10 +868,12 @@ class _AlbumsToolbar extends StatelessWidget {
     required this.sortAscending,
     required this.albumCount,
     required this.isWide,
+    required this.is3DView,
     required this.onSearchChanged,
     required this.onSearchCleared,
     required this.onSortFieldSelected,
     required this.onSortOrderToggled,
+    required this.onViewModeToggled,
   });
 
   final TextEditingController searchController;
@@ -845,15 +882,19 @@ class _AlbumsToolbar extends StatelessWidget {
   final bool sortAscending;
   final int albumCount;
   final bool isWide;
+  final bool is3DView;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchCleared;
   final ValueChanged<_AlbumSortField> onSortFieldSelected;
   final VoidCallback onSortOrderToggled;
+  final VoidCallback onViewModeToggled;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -915,6 +956,17 @@ class _AlbumsToolbar extends StatelessWidget {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        IconButton.filledTonal(
+          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          padding: EdgeInsets.zero,
+          tooltip: is3DView
+              ? (isZh ? '网格视图' : 'Grid View')
+              : (isZh ? '3D 视图' : '3D View'),
+          onPressed: onViewModeToggled,
+          icon: Icon(
+            is3DView ? Icons.grid_view_rounded : Icons.view_carousel_rounded,
+          ),
+        ),
         PopupMenuButton<_AlbumSortField>(
           tooltip: l10n.albumSort,
           onSelected: onSortFieldSelected,
@@ -1035,5 +1087,614 @@ class _AlbumsToolbar extends StatelessWidget {
       _AlbumSortField.duration => l10n.sortDuration,
       _AlbumSortField.recentAdded => l10n.sortRecentAdded,
     };
+  }
+}
+
+class _Album3DCoverFlowView extends ConsumerStatefulWidget {
+  const _Album3DCoverFlowView({
+    required this.albums,
+    required this.isSelectionMode,
+    required this.selectedAlbumIds,
+    required this.bottomOffset,
+    required this.onToggleSelection,
+    required this.onEnterSelectionMode,
+  });
+
+  final List<AlbumSummary> albums;
+  final bool isSelectionMode;
+  final Set<String> selectedAlbumIds;
+  final double bottomOffset;
+  final ValueChanged<String> onToggleSelection;
+  final ValueChanged<String> onEnterSelectionMode;
+
+  @override
+  ConsumerState<_Album3DCoverFlowView> createState() =>
+      _Album3DCoverFlowViewState();
+}
+
+class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  Animation<double>? _animation;
+  double _currentPage = 0.0;
+  int _targetIndex = 0;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _Album3DCoverFlowView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.albums.isEmpty) {
+      _currentPage = 0.0;
+      _targetIndex = 0;
+    } else if (_targetIndex >= widget.albums.length) {
+      _targetIndex = widget.albums.length - 1;
+      _animateToPage(_targetIndex);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _animateToPage(int pageIndex, {Duration duration = const Duration(milliseconds: 350)}) {
+    if (widget.albums.isEmpty) return;
+    final clamped = pageIndex.clamp(0, widget.albums.length - 1);
+    final target = clamped.toDouble();
+    _targetIndex = clamped;
+
+    if (_currentPage == target) return;
+
+    _animController.stop();
+    final startPage = _currentPage;
+    _animController.duration = duration;
+    _animation = Tween<double>(begin: startPage, end: target).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+    )..addListener(() {
+        setState(() {
+          _currentPage = _animation!.value;
+        });
+      });
+
+    _animController.reset();
+    _animController.forward();
+  }
+
+  void _onPointerScroll(PointerScrollEvent event) {
+    if (widget.albums.isEmpty) return;
+    if (event.scrollDelta.dy > 0 || event.scrollDelta.dx > 0) {
+      _animateToPage(_targetIndex + 1);
+    } else if (event.scrollDelta.dy < 0 || event.scrollDelta.dx < 0) {
+      _animateToPage(_targetIndex - 1);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.albums.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final audio = ref.watch(audioServiceProvider);
+
+    final activeIndex = _currentPage.round().clamp(0, widget.albums.length - 1);
+    final activeAlbum = widget.albums[activeIndex];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stageWidth = constraints.maxWidth;
+        final stageHeight = constraints.maxHeight;
+
+        final double availableHeight = (stageHeight - widget.bottomOffset).clamp(100.0, stageHeight);
+        final isWide = stageWidth >= 780;
+        final double coverSize = (isWide ? 260.0 : 200.0).clamp(140.0, availableHeight * 0.46);
+
+        final int range = ((stageWidth / 2) / (coverSize * 0.44)).ceil().clamp(5, 16);
+        final minIndex = (_currentPage - range).floor().clamp(0, widget.albums.length - 1);
+        final maxIndex = (_currentPage + range).ceil().clamp(0, widget.albums.length - 1);
+
+        final visibleIndices = List.generate(maxIndex - minIndex + 1, (i) => minIndex + i);
+        visibleIndices.sort((a, b) {
+          final distA = (a - _currentPage).abs();
+          final distB = (b - _currentPage).abs();
+          return distB.compareTo(distA);
+        });
+
+        final double stageCenterY = (availableHeight * 0.38).clamp(coverSize * 0.52, availableHeight * 0.48);
+
+        return Focus(
+          focusNode: _focusNode,
+          autofocus: true,
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent) {
+              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                _animateToPage(_targetIndex - 1);
+                return KeyEventResult.handled;
+              } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                _animateToPage(_targetIndex + 1);
+                return KeyEventResult.handled;
+              }
+            }
+            return KeyEventResult.ignored;
+          },
+          child: Listener(
+            onPointerSignal: (pointerSignal) {
+              if (pointerSignal is PointerScrollEvent) {
+                _onPointerScroll(pointerSignal);
+              }
+            },
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragStart: (_) {
+                _animController.stop();
+              },
+              onHorizontalDragUpdate: (details) {
+                final deltaPages = details.primaryDelta! / (coverSize * 0.7);
+                setState(() {
+                  _currentPage = (_currentPage - deltaPages)
+                      .clamp(-0.5, widget.albums.length - 0.5);
+                  _targetIndex = _currentPage.round().clamp(0, widget.albums.length - 1);
+                });
+              },
+              onHorizontalDragEnd: (details) {
+                int nearest = _currentPage.round().clamp(0, widget.albums.length - 1);
+                final velocity = details.primaryVelocity ?? 0;
+                if (velocity.abs() > 200) {
+                  final step = velocity < 0 ? 1 : -1;
+                  nearest = (_currentPage + step).round().clamp(0, widget.albums.length - 1);
+                }
+                _animateToPage(nearest);
+              },
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: const Alignment(0, -0.3),
+                          radius: 0.85,
+                          colors: [
+                            theme.colorScheme.primary.withValues(alpha: 0.12),
+                            theme.colorScheme.surface.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  ...visibleIndices.map((i) {
+                    final album = widget.albums[i];
+                    final delta = i - _currentPage;
+                    final absD = delta.abs();
+
+                    final sign = delta.sign;
+                    final baseGap = coverSize * 0.70;
+                    final stepGap = coverSize * 0.38;
+                    double xOffset = 0.0;
+                    if (absD > 0) {
+                      if (absD <= 1.0) {
+                        xOffset = sign * (absD * baseGap);
+                      } else {
+                        xOffset = sign * (baseGap + (absD - 1.0) * stepGap);
+                      }
+                    }
+
+                    final double distFromCenter = xOffset.abs();
+                    final double stageHalfWidth = stageWidth / 2;
+                    double opacity = 1.0;
+
+                    if (distFromCenter > stageHalfWidth + coverSize * 0.5) {
+                      opacity = 0.0;
+                    } else if (distFromCenter > stageHalfWidth - 80.0) {
+                      final fadeProgress = (stageHalfWidth + coverSize * 0.5 - distFromCenter) / (coverSize * 0.5 + 80.0);
+                      opacity = (fadeProgress * fadeProgress).clamp(0.0, 1.0);
+                    } else {
+                      opacity = (1.0 - (absD - 1.0) * 0.05).clamp(0.55, 1.0);
+                    }
+
+                    if (opacity <= 0.001) {
+                      return const SizedBox.shrink();
+                    }
+
+                    double rotationY = 0.0;
+                    if (delta > 0) {
+                      rotationY = -1.02 * delta.clamp(0.0, 1.0);
+                    } else if (delta < 0) {
+                      rotationY = 1.02 * (-delta).clamp(0.0, 1.0);
+                    }
+
+                    double scale = 1.0;
+                    if (absD <= 1.0) {
+                      scale = 1.06 - absD * 0.16;
+                    } else {
+                      scale = (0.90 - (absD - 1.0) * 0.08).clamp(0.58, 1.06);
+                    }
+
+                    final transform = Matrix4.identity()
+                      ..setEntry(3, 2, -0.0009)
+                      ..translate(xOffset, 0.0, 0.0)
+                      ..rotateY(rotationY)
+                      ..scale(scale, scale, 1.0);
+
+                    final isSelected = widget.selectedAlbumIds.contains(album.id);
+
+                    return Positioned(
+                      left: (stageWidth - coverSize) / 2,
+                      top: stageCenterY - (coverSize * 0.5),
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: transform,
+                        child: Opacity(
+                          opacity: opacity,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (absD < 0.3) {
+                                if (widget.isSelectionMode) {
+                                  widget.onToggleSelection(album.id);
+                                } else {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => AlbumDetailPage(album: album),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                _animateToPage(i);
+                              }
+                            },
+                            onLongPress: () {
+                              if (widget.isSelectionMode) {
+                                widget.onToggleSelection(album.id);
+                              } else {
+                                widget.onEnterSelectionMode(album.id);
+                              }
+                            },
+                            onSecondaryTapDown: (_) {
+                              if (!widget.isSelectionMode) {
+                                _showAlbumContextMenu(context, ref, album);
+                              }
+                            },
+                            child: _Album3DCoverCard(
+                              album: album,
+                              coverSize: coverSize,
+                              isSelected: isSelected,
+                              isSelectionMode: widget.isSelectionMode,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+
+                  // Left edge gradient vignette
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: widget.bottomOffset,
+                    width: 40,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              theme.colorScheme.surface.withValues(alpha: 0.7),
+                              theme.colorScheme.surface.withValues(alpha: 0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Right edge gradient vignette
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: widget.bottomOffset,
+                    width: 40,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerRight,
+                            end: Alignment.centerLeft,
+                            colors: [
+                              theme.colorScheme.surface.withValues(alpha: 0.7),
+                              theme.colorScheme.surface.withValues(alpha: 0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  if (widget.albums.length > 1) ...[
+                    Positioned(
+                      left: 16,
+                      top: stageCenterY - 24,
+                      child: IconButton.filledTonal(
+                        onPressed: _targetIndex > 0
+                            ? () => _animateToPage(_targetIndex - 1)
+                            : null,
+                        icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                      ),
+                    ),
+                    Positioned(
+                      right: 16,
+                      top: stageCenterY - 24,
+                      child: IconButton.filledTonal(
+                        onPressed: _targetIndex < widget.albums.length - 1
+                            ? () => _animateToPage(_targetIndex + 1)
+                            : null,
+                        icon: const Icon(Icons.chevron_right_rounded, size: 28),
+                      ),
+                    ),
+                  ],
+                  Positioned(
+                    left: 24,
+                    right: 24,
+                    bottom: widget.bottomOffset + 12.0,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 580),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: Column(
+                            key: ValueKey(activeAlbum.id),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                activeAlbum.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${activeAlbum.artist}  ·  ${l10n.songCount(activeAlbum.trackCount)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  FilledButton.icon(
+                                    onPressed: () {
+                                      audio.playPlaylist(
+                                        activeAlbum.songs,
+                                        source: PlaybackSource(
+                                          type: PlaybackSourceType.album,
+                                          id: activeAlbum.id,
+                                          name: activeAlbum.title,
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.play_arrow_rounded),
+                                    label: Text(l10n.playAll),
+                                  ),
+                                  FilledButton.tonalIcon(
+                                    onPressed: () {
+                                      audio.playPlaylist(
+                                        List.of(activeAlbum.songs)..shuffle(),
+                                        source: PlaybackSource(
+                                          type: PlaybackSourceType.album,
+                                          id: activeAlbum.id,
+                                          name: activeAlbum.title,
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.shuffle_rounded),
+                                    label: Text(l10n.shufflePlay),
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) =>
+                                              AlbumDetailPage(album: activeAlbum),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.album_rounded),
+                                    label: Text(
+                                      Localizations.localeOf(context).languageCode == 'zh'
+                                          ? '查看详情'
+                                          : 'Details',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Album3DCoverCard extends StatelessWidget {
+  const _Album3DCoverCard({
+    required this.album,
+    required this.coverSize,
+    required this.isSelected,
+    required this.isSelectionMode,
+  });
+
+  final AlbumSummary album;
+  final double coverSize;
+  final bool isSelected;
+  final bool isSelectionMode;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final secondaryAnimation = ModalRoute.of(context)?.secondaryAnimation;
+
+    Widget reflectionWidget = SizedBox(
+      width: coverSize,
+      height: coverSize * 0.4,
+      child: ShaderMask(
+        shaderCallback: (bounds) {
+          return LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withValues(alpha: 0.38),
+              Colors.black.withValues(alpha: 0.0),
+            ],
+            stops: const [0.0, 1.0],
+          ).createShader(bounds);
+        },
+        blendMode: BlendMode.dstIn,
+        child: ClipRect(
+          child: OverflowBox(
+            minWidth: coverSize,
+            maxWidth: coverSize,
+            minHeight: coverSize,
+            maxHeight: coverSize,
+            alignment: Alignment.topCenter,
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.diagonal3Values(1.0, -1.0, 1.0),
+              child: SongThumbnail(
+                path: album.representativeSong.path,
+                id: album.representativeSong.id,
+                size: coverSize,
+                width: coverSize,
+                height: coverSize,
+                borderRadius: BorderRadius.zero,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (secondaryAnimation != null) {
+      reflectionWidget = AnimatedBuilder(
+        animation: secondaryAnimation,
+        builder: (context, child) {
+          final progress = (1.0 - secondaryAnimation.value).clamp(0.0, 1.0);
+          final opacity = const Interval(0.35, 1.0, curve: Curves.easeOutCubic).transform(progress);
+          return Opacity(
+            opacity: opacity,
+            child: child,
+          );
+        },
+        child: reflectionWidget,
+      );
+    }
+
+    return SizedBox(
+      width: coverSize,
+      height: coverSize * 1.4,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Hero(
+            tag: 'album-cover-${album.id}',
+            child: Container(
+              width: coverSize,
+              height: coverSize,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                    spreadRadius: 2,
+                  ),
+                ],
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  width: 1.2,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(13),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    SongThumbnail(
+                      path: album.representativeSong.path,
+                      id: album.representativeSong.id,
+                      size: coverSize,
+                      width: double.infinity,
+                      height: double.infinity,
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    if (isSelectionMode) ...[
+                      Positioned.fill(
+                        child: Container(
+                          color: isSelected
+                              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+                              : Colors.black38,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(color: Colors.black26, blurRadius: 4),
+                            ],
+                          ),
+                          child: Icon(
+                            isSelected
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            color: isSelected ? theme.colorScheme.primary : Colors.grey,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+          reflectionWidget,
+        ],
+      ),
+    );
   }
 }
