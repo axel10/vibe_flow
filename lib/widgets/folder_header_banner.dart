@@ -159,7 +159,8 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
         final isWideScreen = screenWidth >= 900;
         final hasImage = _resolvedPath != null && File(_resolvedPath!).existsSync();
         final coverFile = hasImage ? File(_resolvedPath!) : null;
-        final isWideOrSquare = _aspectRatio == null || _aspectRatio! >= 1.0;
+        // Treat covers with width >= 85% of height as wide/square to fill the header
+        final isWideOrSquare = _aspectRatio == null || _aspectRatio! >= 0.85;
         final statusBarTop = MediaQuery.of(context).padding.top;
         final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
         final desktopTitleBarHeight = isDesktop ? 28.0 : 0.0;
