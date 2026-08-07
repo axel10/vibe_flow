@@ -343,14 +343,6 @@ class _AlbumInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.albums,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
           album.title,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
