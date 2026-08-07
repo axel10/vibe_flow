@@ -242,77 +242,99 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                   onShufflePressed: () => _onShufflePressed(albums),
                 );
 
-                final Widget mainContent;
-                if (_is3DView) {
-                  mainContent = Column(
-                    children: [
-                      toolbar,
-                      Expanded(
-                        child: visibleAlbums.isEmpty
-                            ? Center(
-                                child: Text(
-                                  l10n.noAlbums,
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                              )
-                            : _Album3DCoverFlowView(
-                                key: _coverFlowKey,
-                                albums: visibleAlbums,
-                                isSelectionMode: isSelectionMode,
-                                selectedAlbumIds: _selectedAlbumIds,
-                                bottomOffset: bottomOffset,
-                                onToggleSelection: _toggleAlbumSelection,
-                                onEnterSelectionMode: _enterAlbumSelectionMode,
-                              ),
-                      ),
-                    ],
-                  );
-                } else {
-                  mainContent = ScrollToTopWrapper(
-                    scrollController: _scrollController,
-                    bottomOffset: bottomOffset,
-                    child: CustomScrollView(
-                      controller: _scrollController,
-                      cacheExtent: 1000,
-                      slivers: [
-                        SliverToBoxAdapter(child: toolbar),
-                        if (visibleAlbums.isEmpty)
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(
-                              child: Text(
-                                l10n.noAlbums,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                          )
-                        else ...[
-                          if (knownAlbums.isNotEmpty) ...[
-                            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                            ..._albumSectionSlivers(
-                              title: "",
-                              albums: knownAlbums,
-                              crossAxisCount: crossAxisCount,
-                              childAspectRatio: childAspectRatio,
-                              isSelectionMode: isSelectionMode,
+                final Widget mainContent = AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  switchInCurve: Curves.easeInOut,
+                  switchOutCurve: Curves.easeInOut,
+                  layoutBuilder: (currentChild, previousChildren) {
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ...previousChildren,
+                        if (currentChild != null) currentChild,
+                      ],
+                    );
+                  },
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  child: _is3DView
+                      ? Column(
+                          key: const ValueKey('album_3d_cover_flow_view'),
+                          children: [
+                            toolbar,
+                            Expanded(
+                              child: visibleAlbums.isEmpty
+                                  ? Center(
+                                      child: Text(
+                                        l10n.noAlbums,
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                      ),
+                                    )
+                                  : _Album3DCoverFlowView(
+                                      key: _coverFlowKey,
+                                      albums: visibleAlbums,
+                                      isSelectionMode: isSelectionMode,
+                                      selectedAlbumIds: _selectedAlbumIds,
+                                      bottomOffset: bottomOffset,
+                                      isHeroEnabled: _is3DView,
+                                      onToggleSelection: _toggleAlbumSelection,
+                                      onEnterSelectionMode: _enterAlbumSelectionMode,
+                                    ),
                             ),
                           ],
-                          if (knownAlbums.isNotEmpty && unknownAlbums.isNotEmpty)
-                            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                          if (unknownAlbums.isNotEmpty)
-                            ..._albumSectionSlivers(
-                              title: l10n.unknownAlbum,
-                              albums: unknownAlbums,
-                              crossAxisCount: crossAxisCount,
-                              childAspectRatio: childAspectRatio,
-                              isSelectionMode: isSelectionMode,
-                            ),
-                          SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
-                        ],
-                      ],
-                    ),
-                  );
-                }
+                        )
+                      : ScrollToTopWrapper(
+                          key: const ValueKey('album_grid_view'),
+                          scrollController: _scrollController,
+                          bottomOffset: bottomOffset,
+                          child: CustomScrollView(
+                            controller: _scrollController,
+                            cacheExtent: 1000,
+                            slivers: [
+                              SliverToBoxAdapter(child: toolbar),
+                              if (visibleAlbums.isEmpty)
+                                SliverFillRemaining(
+                                  hasScrollBody: false,
+                                  child: Center(
+                                    child: Text(
+                                      l10n.noAlbums,
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                )
+                              else ...[
+                                if (knownAlbums.isNotEmpty) ...[
+                                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                                  ..._albumSectionSlivers(
+                                    title: "",
+                                    albums: knownAlbums,
+                                    crossAxisCount: crossAxisCount,
+                                    childAspectRatio: childAspectRatio,
+                                    isSelectionMode: isSelectionMode,
+                                    isHeroEnabled: !_is3DView,
+                                  ),
+                                ],
+                                if (knownAlbums.isNotEmpty && unknownAlbums.isNotEmpty)
+                                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                                if (unknownAlbums.isNotEmpty)
+                                  ..._albumSectionSlivers(
+                                    title: l10n.unknownAlbum,
+                                    albums: unknownAlbums,
+                                    crossAxisCount: crossAxisCount,
+                                    childAspectRatio: childAspectRatio,
+                                    isSelectionMode: isSelectionMode,
+                                    isHeroEnabled: !_is3DView,
+                                  ),
+                                SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
+                              ],
+                            ],
+                          ),
+                        ),
+                );
 
                 return Stack(
                   children: [
@@ -449,6 +471,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     required int crossAxisCount,
     required double childAspectRatio,
     required bool isSelectionMode,
+    bool isHeroEnabled = true,
   }) {
     return [
       SliverPadding(
@@ -468,6 +491,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                 album: album,
                 isSelectionMode: isSelectionMode,
                 isSelected: isSelected,
+                isHeroEnabled: isHeroEnabled,
                 onTap: () {
                   if (isSelectionMode) {
                     _toggleAlbumSelection(album.id);
@@ -499,6 +523,7 @@ class _AlbumCard extends ConsumerWidget {
     required this.album,
     this.isSelectionMode = false,
     this.isSelected = false,
+    this.isHeroEnabled = true,
     this.onTap,
     this.onLongPress,
   });
@@ -506,6 +531,7 @@ class _AlbumCard extends ConsumerWidget {
   final AlbumSummary album;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isHeroEnabled;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
 
@@ -515,6 +541,55 @@ class _AlbumCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final audio = ref.read(audioServiceProvider);
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+
+    final coverContent = ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(11),
+        topRight: Radius.circular(11),
+      ),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SongThumbnail(
+              path: album.representativeSong.path,
+              id: album.representativeSong.id,
+              size: 250,
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: BorderRadius.zero,
+            ),
+            if (isSelectionMode)
+              Positioned.fill(
+                child: Container(
+                  color: isSelected
+                      ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+                      : Colors.black26,
+                ),
+              ),
+            if (isSelectionMode)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => onTap?.call(),
+                    fillColor: WidgetStateProperty.all(Colors.white),
+                    checkColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
 
     return Material(
       color: Colors.transparent,
@@ -555,57 +630,12 @@ class _AlbumCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Hero(
-                  tag: 'album-cover-${album.id}',
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(11),
-                      topRight: Radius.circular(11),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          SongThumbnail(
-                            path: album.representativeSong.path,
-                            id: album.representativeSong.id,
-                            size: 250,
-                            width: double.infinity,
-                            height: double.infinity,
-                            borderRadius: BorderRadius.zero,
-                          ),
-                          if (isSelectionMode)
-                            Positioned.fill(
-                              child: Container(
-                                color: isSelected
-                                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-                                    : Colors.black26,
-                              ),
-                            ),
-                          if (isSelectionMode)
-                            Positioned(
-                              top: 8,
-                              left: 8,
-                              child: SizedBox(
-                                width: 28,
-                                height: 28,
-                                child: Checkbox(
-                                  value: isSelected,
-                                  onChanged: (_) => onTap?.call(),
-                                  fillColor: WidgetStateProperty.all(Colors.white),
-                                  checkColor: Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                isHeroEnabled
+                    ? Hero(
+                        tag: 'album-cover-${album.id}',
+                        child: coverContent,
+                      )
+                    : coverContent,
                 Expanded(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(
@@ -1159,6 +1189,7 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
     required this.isSelectionMode,
     required this.selectedAlbumIds,
     required this.bottomOffset,
+    this.isHeroEnabled = true,
     required this.onToggleSelection,
     required this.onEnterSelectionMode,
   });
@@ -1167,6 +1198,7 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
   final bool isSelectionMode;
   final Set<String> selectedAlbumIds;
   final double bottomOffset;
+  final bool isHeroEnabled;
   final ValueChanged<String> onToggleSelection;
   final ValueChanged<String> onEnterSelectionMode;
 
@@ -1501,6 +1533,7 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                               coverSize: coverSize,
                               isSelected: isSelected,
                               isSelectionMode: widget.isSelectionMode,
+                              isHeroEnabled: widget.isHeroEnabled,
                             ),
                           ),
                         ),
@@ -1680,12 +1713,14 @@ class _Album3DCoverCard extends StatelessWidget {
     required this.coverSize,
     required this.isSelected,
     required this.isSelectionMode,
+    this.isHeroEnabled = true,
   });
 
   final AlbumSummary album;
   final double coverSize;
   final bool isSelected;
   final bool isSelectionMode;
+  final bool isHeroEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -1747,80 +1782,84 @@ class _Album3DCoverCard extends StatelessWidget {
       );
     }
 
+    final coverBox = Container(
+      width: coverSize,
+      height: coverSize,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.45),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 2,
+          ),
+        ],
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          width: 1.2,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SongThumbnail(
+              path: album.representativeSong.path,
+              id: album.representativeSong.id,
+              size: coverSize,
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: BorderRadius.zero,
+            ),
+            if (isSelectionMode) ...[
+              Positioned.fill(
+                child: Container(
+                  color: isSelected
+                      ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+                      : Colors.black38,
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black26, blurRadius: 4),
+                    ],
+                  ),
+                  child: Icon(
+                    isSelected
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: isSelected ? theme.colorScheme.primary : Colors.grey,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
     return SizedBox(
       width: coverSize,
       height: coverSize * 1.4,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Hero(
-            tag: 'album-cover-${album.id}',
-            child: Container(
-              width: coverSize,
-              height: coverSize,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                    spreadRadius: 2,
-                  ),
-                ],
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  width: 1.2,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(13),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    SongThumbnail(
-                      path: album.representativeSong.path,
-                      id: album.representativeSong.id,
-                      size: coverSize,
-                      width: double.infinity,
-                      height: double.infinity,
-                      borderRadius: BorderRadius.zero,
-                    ),
-                    if (isSelectionMode) ...[
-                      Positioned.fill(
-                        child: Container(
-                          color: isSelected
-                              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-                              : Colors.black38,
-                        ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: Colors.black26, blurRadius: 4),
-                            ],
-                          ),
-                          child: Icon(
-                            isSelected
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            color: isSelected ? theme.colorScheme.primary : Colors.grey,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
+          isHeroEnabled
+              ? Hero(
+                  tag: 'album-cover-${album.id}',
+                  child: coverBox,
+                )
+              : coverBox,
           reflectionWidget,
         ],
       ),
