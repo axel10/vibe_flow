@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/widgets/library_selection_scope.dart';
 import 'package:vynody/widgets/playback_hero_card.dart';
+import 'volume_controls.dart';
 import '../pages/main_layout.dart';
 import '../pages/main_layout_riverpod.dart';
 
@@ -112,6 +113,8 @@ class _MiniPlayerWrapperState extends ConsumerState<MiniPlayerWrapper> {
                 : const SizedBox.shrink(key: ValueKey('empty-island-detail')),
           ),
         ),
+        if (uiState.showVolumeHud)
+          VolumeHUD(volume: ref.read(audioServiceProvider).volume),
       ],
     );
   }

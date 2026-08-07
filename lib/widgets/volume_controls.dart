@@ -216,41 +216,44 @@ class VolumeHUD extends StatelessWidget {
       left: 0,
       right: 0,
       child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          clipBehavior: Clip.antiAlias,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                volume > 0 ? Icons.volume_up : Icons.volume_off,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 12),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.volume,
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  Text(
-                    '${volume.round()}%',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+        child: Material(
+          type: MaterialType.transparency,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            clipBehavior: Clip.antiAlias,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  volume > 0 ? Icons.volume_up : Icons.volume_off,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.volume,
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    Text(
+                      '${volume.round()}%',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
