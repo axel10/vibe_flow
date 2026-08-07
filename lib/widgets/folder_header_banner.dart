@@ -663,7 +663,13 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
                                     ),
                                     const SizedBox(width: 8),
                                     IconButton(
-                                      icon: const Icon(Icons.close_rounded, color: Colors.white),
+                                      icon: const Icon(
+                                        Icons.close_rounded,
+                                        color: Colors.white,
+                                        shadows: [
+                                          Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
+                                        ],
+                                      ),
                                       onPressed: () {
                                         widget.searchController.clear();
                                         widget.onSearchQueryChanged('');
@@ -805,6 +811,11 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
         Icons.search_rounded,
         size: isLargeScreen ? 18 : 16,
         color: isWhite ? Colors.white : null,
+        shadows: isWhite
+            ? const [
+                Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
+              ]
+            : null,
       ),
       tooltip: l10n.search,
       style: IconButton.styleFrom(

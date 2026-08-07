@@ -599,6 +599,9 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
 
     final iconColor = isOverlay ? Colors.white : Theme.of(context).colorScheme.onSurface;
     final textColor = isOverlay ? Colors.white : Theme.of(context).colorScheme.onSurface;
+    final shadows = isOverlay
+        ? const [Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87)]
+        : null;
 
     return Container(
       padding: EdgeInsets.only(
@@ -620,6 +623,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
                     Icons.home_rounded,
                     size: 20,
                     color: iconColor,
+                    shadows: shadows,
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -628,11 +632,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: textColor,
-                      shadows: isOverlay
-                          ? const [
-                              Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
-                            ]
-                          : null,
+                      shadows: shadows,
                     ),
                   ),
                 ],
@@ -642,7 +642,11 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
           const Spacer(),
           if (isPortrait)
             PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert_rounded, color: iconColor),
+              icon: Icon(
+                Icons.more_vert_rounded,
+                color: iconColor,
+                shadows: shadows,
+              ),
               onSelected: (value) {
                 if (value == 'locate') {
                   widget.onLocateCurrentSong();
