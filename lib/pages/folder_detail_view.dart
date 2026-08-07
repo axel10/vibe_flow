@@ -121,13 +121,6 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlightedSong());
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_breadcrumbsScrollController.hasClients) {
-        _breadcrumbsScrollController.jumpTo(
-          _breadcrumbsScrollController.position.maxScrollExtent,
-        );
-      }
-    });
   }
 
   @override
@@ -336,20 +329,14 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
       controller: _localScrollController,
       cacheExtent: 1000.0,
       slivers: [
-        SliverPersistentHeader(
-          delegate: _BreadcrumbsHeaderDelegate(
-            child: _buildBreadcrumbs(folder, scanner),
-            height: 64.0 + MediaQuery.of(context).padding.top,
-          ),
-          pinned: !Platform.isAndroid && !Platform.isIOS,
-          floating: Platform.isAndroid || Platform.isIOS,
-        ),
         SliverToBoxAdapter(
           child: FolderHeaderBanner(
             title: folder.name,
             subtitle: ScannerPathUtils.cleanDisplayPath(folder.path),
             songsCount: folder.allSongs.length,
             totalDuration: Duration(milliseconds: totalDurationMs),
+            coverImagePath: representativeSong?.thumbnailPath ?? (representativeSong != null ? scanner.metadataMap[representativeSong.path]?.thumbnailPath : null),
+            topHeader: _buildBreadcrumbs(folder, scanner, isOverlay: true),
             coverWidget: representativeSong != null
                 ? SongThumbnail(
                     path: representativeSong.path,
@@ -692,9 +679,13 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     );
   }
 
-  Widget _buildBreadcrumbs(MusicFolder current, ScannerService scanner) {
+  Widget _buildBreadcrumbs(MusicFolder current, ScannerService scanner, {bool isOverlay = false}) {
     final theme = Theme.of(context);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
+
+    final iconColor = isOverlay ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.7);
+    final chevronColor = isOverlay ? Colors.white.withValues(alpha: 0.6) : theme.colorScheme.onSurface.withValues(alpha: 0.3);
+    final folderTextColor = isOverlay ? Colors.white.withValues(alpha: 0.9) : theme.colorScheme.onSurface.withValues(alpha: 0.75);
 
     final backButton = Material(
       color: Colors.transparent,
@@ -706,7 +697,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
           child: Icon(
             Icons.arrow_back_rounded,
             size: 20,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            color: iconColor,
           ),
         ),
       ),
@@ -717,7 +708,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
       child: Icon(
         Icons.chevron_right_rounded,
         size: 16,
-        color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+        color: chevronColor,
       ),
     );
 
@@ -737,7 +728,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             child: Icon(
               Icons.home_rounded,
               size: 20,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              color: iconColor,
             ),
           ),
         ),
@@ -752,7 +743,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
           child: Icon(
             Icons.chevron_right_rounded,
             size: 16,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+            color: chevronColor,
           ),
         ),
       );
@@ -775,7 +766,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                  color: folderTextColor,
                 ),
               ),
             ),
@@ -790,14 +781,16 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
         child: Icon(
           Icons.chevron_right_rounded,
           size: 16,
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+          color: chevronColor,
         ),
       ),
     );
     breadcrumbItems.add(
       Container(
         decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.12),
+          color: isOverlay
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.85)
+              : theme.colorScheme.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8),
         ),
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
@@ -806,7 +799,9 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: isOverlay
+                ? theme.colorScheme.onPrimaryContainer
+                : theme.colorScheme.primary,
           ),
         ),
       ),
@@ -816,19 +811,25 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     final l10n = AppLocalizations.of(context)!;
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    final topPadding = isOverlay
+        ? (statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0))
+        : 8.0 + statusBarHeight;
 
     return Container(
       padding: EdgeInsets.only(
-        top: 8 + statusBarHeight,
+        top: topPadding,
         bottom: 8,
-        left: 16,
-        right: 16,
+        left: isOverlay ? 0 : 16,
+        right: isOverlay ? 0 : 16,
       ),
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(
-          bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.05)),
-        ),
+        color: isOverlay ? Colors.transparent : theme.scaffoldBackgroundColor,
+        border: isOverlay
+            ? null
+            : Border(
+                bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.05)),
+              ),
       ),
       child: Row(
         children: [
@@ -838,13 +839,14 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             child: SingleChildScrollView(
               controller: _breadcrumbsScrollController,
               scrollDirection: Axis.horizontal,
+              reverse: true,
               child: Row(children: breadcrumbItems),
             ),
           ),
           const SizedBox(width: 8),
           if (isPortrait)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded),
+              icon: Icon(Icons.more_vert_rounded, color: iconColor),
               onSelected: (value) {
                 if (value == 'locate') {
                   widget.onLocateCurrentSong();

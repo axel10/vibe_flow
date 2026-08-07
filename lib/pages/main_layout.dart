@@ -611,7 +611,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     switch (_currentIndex) {
       case 0:
         return Padding(
-          padding: EdgeInsets.only(top: isDesktop ? 32 : 0, left: leftPadding),
+          padding: EdgeInsets.only(top: 0, left: leftPadding),
           child: FoldersPage(
             key: _foldersPageKey,
             onOpenPlayback: () => _onDestinationSelected(1),

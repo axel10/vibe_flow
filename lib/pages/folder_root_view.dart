@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import 'package:vynody/models/music_file.dart';
@@ -16,6 +17,7 @@ import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/folder_helpers.dart';
 import '../widgets/folder_content_slivers.dart';
+import '../widgets/folder_layout_utils.dart';
 
 class FolderRootView extends ConsumerStatefulWidget {
   const FolderRootView({
@@ -53,6 +55,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   bool _isSearching = false;
   bool _isSearchLoading = false;
   String _searchQuery = '';
+  bool _showStatusBarOverlay = false;
 
   List<MusicFile> _matchedSongs = [];
   List<MusicFolder> _matchedFolders = [];
@@ -95,10 +98,34 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   }
 
   void _onScroll() {
+    final offset = _localScrollController.offset;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final headerHeight = 64.0 + statusBarHeight;
+
     ref.read(scannerServiceProvider).setFolderScrollOffset(
       'root',
-      _localScrollController.offset,
+      offset,
     );
+
+    bool showOverlay = false;
+    if (offset > headerHeight) {
+      final direction = _localScrollController.position.userScrollDirection;
+      if (direction == ScrollDirection.reverse) {
+        showOverlay = true;
+      } else if (direction == ScrollDirection.forward) {
+        showOverlay = false;
+      } else {
+        showOverlay = _showStatusBarOverlay;
+      }
+    } else {
+      showOverlay = false;
+    }
+
+    if (showOverlay != _showStatusBarOverlay) {
+      setState(() {
+        _showStatusBarOverlay = showOverlay;
+      });
+    }
   }
 
   @override
@@ -141,7 +168,6 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     final scanner = ref.watch(scannerServiceProvider);
     final settings = ref.watch(settingsServiceProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isLargeScreen = MediaQuery.of(context).size.width >= 1000;
     final isRootSelectionMode =
         ref.watch(librarySelectionScopeProvider) ==
         LibrarySelectionScope.folderRoot;
@@ -154,6 +180,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     final audio = ref.read(audioServiceProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
 
+    final isLargeScreen = MediaQuery.of(context).size.width >= 1000;
     final selectionLabel = l10n.selectedFolders(widget.selectedRootPaths.length);
     final rootListBottomPadding = isRootSelectionMode ? 224.0 : 160.0;
 
@@ -180,12 +207,13 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
 
     Widget rootList;
     if (isRootSelectionMode) {
+      final topPadding = MediaQuery.of(context).padding.top + 16.0;
       rootList = ReorderableListView.builder(
         key: const ValueKey('root_folders_list'),
         buildDefaultDragHandles: false,
         scrollController: _localScrollController,
         cacheExtent: 1000.0,
-        padding: EdgeInsets.only(bottom: rootListBottomPadding),
+        padding: EdgeInsets.only(top: topPadding, bottom: rootListBottomPadding),
         itemCount: rootFolders.length,
         onReorder: (oldIndex, newIndex) {
           if (newIndex > oldIndex) newIndex--;
@@ -286,6 +314,8 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               subtitle: '',
               songsCount: totalSongsCount,
               totalDuration: Duration(milliseconds: totalDurationMs),
+              coverImagePath: representativeSong?.thumbnailPath ?? (representativeSong != null ? scanner.metadataMap[representativeSong.path]?.thumbnailPath : null),
+              topHeader: _buildRootTopHeader(context),
               coverWidget: representativeSong != null
                   ? SongThumbnail(
                       path: representativeSong.path,
@@ -460,144 +490,15 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
       );
     }
 
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: Stack(
           children: [
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              AppLocalizations.of(context)!.scanDirectory,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          if (isPortrait)
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert_rounded),
-                              onSelected: (value) {
-                                if (value == 'locate') {
-                                  widget.onLocateCurrentSong();
-                                } else if (value == 'sort') {
-                                  widget.onToggleRootSelectionMode();
-                                } else if (value == 'view_mode') {
-                                  settings.folderViewMode = switch (settings.folderViewMode) {
-                                    FolderViewMode.list => FolderViewMode.hybrid,
-                                    FolderViewMode.hybrid => FolderViewMode.grid,
-                                    FolderViewMode.grid => FolderViewMode.list,
-                                  };
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                if (currentMusic != null)
-                                  PopupMenuItem(
-                                    value: 'locate',
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.my_location_rounded, size: 20),
-                                        const SizedBox(width: 12),
-                                        Text(l10n.locateCurrentSong),
-                                      ],
-                                    ),
-                                  ),
-                                PopupMenuItem(
-                                  value: 'sort',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.sort,
-                                        size: 20,
-                                        color: isRootSelectionMode ? Theme.of(context).colorScheme.primary : null,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(l10n.sort),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'view_mode',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        switch (settings.folderViewMode) {
-                                          FolderViewMode.list => Icons.grid_view_rounded,
-                                          FolderViewMode.hybrid => Icons.view_module_rounded,
-                                          FolderViewMode.grid => Icons.view_list_rounded,
-                                        },
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        switch (settings.folderViewMode) {
-                                          FolderViewMode.list => l10n.hybridView,
-                                          FolderViewMode.hybrid => l10n.gridView,
-                                          FolderViewMode.grid => l10n.listView,
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            )
-                          else ...[
-                            if (currentMusic != null)
-                              IconButton(
-                                icon: const Icon(Icons.my_location_rounded),
-                                onPressed: widget.onLocateCurrentSong,
-                                tooltip: l10n.locateCurrentSong,
-                              ),
-                            IconButton(
-                              icon: Icon(
-                                switch (settings.folderViewMode) {
-                                  FolderViewMode.list => Icons.grid_view_rounded,
-                                  FolderViewMode.hybrid => Icons.view_module_rounded,
-                                  FolderViewMode.grid => Icons.view_list_rounded,
-                                },
-                              ),
-                              onPressed: () {
-                                settings.folderViewMode = switch (settings.folderViewMode) {
-                                  FolderViewMode.list => FolderViewMode.hybrid,
-                                  FolderViewMode.hybrid => FolderViewMode.grid,
-                                  FolderViewMode.grid => FolderViewMode.list,
-                                };
-                              },
-                              tooltip: switch (settings.folderViewMode) {
-                                FolderViewMode.list => l10n.hybridView,
-                                FolderViewMode.hybrid => l10n.gridView,
-                                FolderViewMode.grid => l10n.listView,
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.sort,
-                                color: isRootSelectionMode
-                                    ? Theme.of(context).colorScheme.primary
-                                    : null,
-                              ),
-                              onPressed: widget.onToggleRootSelectionMode,
-                              tooltip: l10n.sort,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: rootList,
-                    ),
-                  ],
-                ),
+                child: rootList,
               ),
             ),
             Positioned(
@@ -653,9 +554,186 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
                       ),
               ),
             ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: MediaQuery.of(context).padding.top,
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: _showStatusBarOverlay ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildRootTopHeader(BuildContext context) {
+    final settings = ref.watch(settingsServiceProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+    final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0);
+    final isRootSelectionMode = ref.watch(librarySelectionScopeProvider) == LibrarySelectionScope.folderRoot;
+
+    const iconColor = Colors.white;
+
+    return Container(
+      padding: EdgeInsets.only(
+        top: topPadding,
+        bottom: 8,
+        left: 0,
+        right: 0,
+      ),
+      child: Row(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.home_rounded,
+                    size: 20,
+                    color: iconColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.scanDirectory,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Spacer(),
+          if (isPortrait)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded, color: iconColor),
+              onSelected: (value) {
+                if (value == 'locate') {
+                  widget.onLocateCurrentSong();
+                } else if (value == 'sort') {
+                  widget.onToggleRootSelectionMode();
+                } else if (value == 'view_mode') {
+                  settings.folderViewMode = switch (settings.folderViewMode) {
+                    FolderViewMode.list => FolderViewMode.hybrid,
+                    FolderViewMode.hybrid => FolderViewMode.grid,
+                    FolderViewMode.grid => FolderViewMode.list,
+                  };
+                }
+              },
+              itemBuilder: (context) => [
+                if (currentMusic != null)
+                  PopupMenuItem(
+                    value: 'locate',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.my_location_rounded, size: 20),
+                        const SizedBox(width: 12),
+                        Text(l10n.locateCurrentSong),
+                      ],
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'sort',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.sort,
+                        size: 20,
+                        color: isRootSelectionMode ? Theme.of(context).colorScheme.primary : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(l10n.sort),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'view_mode',
+                  child: Row(
+                    children: [
+                      Icon(
+                        switch (settings.folderViewMode) {
+                          FolderViewMode.list => Icons.grid_view_rounded,
+                          FolderViewMode.hybrid => Icons.view_module_rounded,
+                          FolderViewMode.grid => Icons.view_list_rounded,
+                        },
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        switch (settings.folderViewMode) {
+                          FolderViewMode.list => l10n.hybridView,
+                          FolderViewMode.hybrid => l10n.gridView,
+                          FolderViewMode.grid => l10n.listView,
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          else ...[
+            if (currentMusic != null) ...[
+              IconButton(
+                icon: const Icon(Icons.my_location_rounded, color: iconColor),
+                onPressed: widget.onLocateCurrentSong,
+                tooltip: l10n.locateCurrentSong,
+              ),
+            ],
+            IconButton(
+              icon: Icon(
+                switch (settings.folderViewMode) {
+                  FolderViewMode.list => Icons.grid_view_rounded,
+                  FolderViewMode.hybrid => Icons.view_module_rounded,
+                  FolderViewMode.grid => Icons.view_list_rounded,
+                },
+                color: iconColor,
+              ),
+              onPressed: () {
+                settings.folderViewMode = switch (settings.folderViewMode) {
+                  FolderViewMode.list => FolderViewMode.hybrid,
+                  FolderViewMode.hybrid => FolderViewMode.grid,
+                  FolderViewMode.grid => FolderViewMode.list,
+                };
+              },
+              tooltip: switch (settings.folderViewMode) {
+                FolderViewMode.list => l10n.hybridView,
+                FolderViewMode.hybrid => l10n.gridView,
+                FolderViewMode.grid => l10n.listView,
+              },
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.sort,
+                color: isRootSelectionMode ? Theme.of(context).colorScheme.primary : iconColor,
+              ),
+              onPressed: widget.onToggleRootSelectionMode,
+              tooltip: l10n.sort,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
+
