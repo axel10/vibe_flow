@@ -186,7 +186,11 @@ class _FolderHeaderBannerState extends State<FolderHeaderBanner> {
               enabled: widget.isHeroModeEnabled,
               child: Hero(
                 tag: widget.heroTag!,
-                createRectTween: (begin, end) => SmoothRectTween(begin: begin, end: end),
+                createRectTween: (begin, end) => SmoothRectTween(
+                  begin: begin,
+                  end: end,
+                  curve: Curves.linear,
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: widget.coverWidget,
