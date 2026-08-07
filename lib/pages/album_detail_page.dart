@@ -123,7 +123,19 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
     final unknownArtist = l10n.unknownArtist;
 
     Widget content = Scaffold(
-      appBar: AppBar(title: Text(widget.album.title)),
+      appBar: AppBar(
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: _isCoverVisible
+              ? const SizedBox.shrink()
+              : Text(
+                  widget.album.title,
+                  key: const ValueKey('album_title'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+        ),
+      ),
       body: Stack(
         children: [
           CustomScrollView(
