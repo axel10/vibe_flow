@@ -1415,7 +1415,7 @@
   "onboardingAndroidMediaStatusNotGranted": "現在のステータス：未許可（後から手動でフォルダーをインポート可能）",
   "onboardingAndroidMediaStep1": "1. すぐに使える：スマートフォン内にある全楽曲を即座に表示",
   "onboardingAndroidMediaStep2": "2. 自動検出：新しく追加された楽曲がライブラリに自動で反映",
-  "onboardingAndroidMediaStep3": "3. プライバシー安全：ローカル音声ファイルのみを読み込み、データを送信しません",
+  "onboardingAndroidMediaStep3": "3. プライバシー安全：ローカル音声ファイルのみを読み込み、ライブラリを自動送信しません（AI歌詞などのクラウド機能を除く）",
   "onboardingAndroidMediaTitle": "音楽ライブラリへのアクセス",
   "uiDisplayScale": "UI表示スケール",
   "uiDisplayScaleCurrent": "現在のスケール: {percent}%",

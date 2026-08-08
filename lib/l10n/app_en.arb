@@ -1207,7 +1207,7 @@
   "onboardingAndroidMediaDescription": "Once granted, Vynody can directly read all music from your system media library — no need to pick folders manually. You can still import music from specific folders without granting permission.",
   "onboardingAndroidMediaStep1": "1. Ready to go: Instantly shows all music already on your phone",
   "onboardingAndroidMediaStep2": "2. Auto-discover: Newly downloaded or transferred music appears automatically",
-  "onboardingAndroidMediaStep3": "3. Privacy safe: Only reads local audio files, never uploads any data",
+  "onboardingAndroidMediaStep3": "3. Privacy safe: Only reads local audio files and won't auto-upload your library (except when using cloud services like AI lyrics)",
   "onboardingAndroidMediaButton": "Grant Music Library Access",
   "onboardingAndroidMediaStatusGranted": "Status: Granted (Recommended)",
   "onboardingAndroidMediaStatusNotGranted": "Status: Not granted (you can import folders manually later)",

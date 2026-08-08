@@ -18,6 +18,8 @@ PODS:
     - FlutterMacOS
   - file_selector_macos (0.0.1):
     - FlutterMacOS
+  - flutter_secure_storage_macos (6.1.3):
+    - FlutterMacOS
   - flutter_tray (0.0.1):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
@@ -52,6 +54,7 @@ DEPENDENCIES:
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
+  - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
   - flutter_tray (from `Flutter/ephemeral/.symlinks/plugins/flutter_tray/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - mobile_storage_listener (from `Flutter/ephemeral/.symlinks/plugins/mobile_storage_listener/darwin`)
@@ -81,6 +84,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   file_selector_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
+  flutter_secure_storage_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos
   flutter_tray:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_tray/macos
   FlutterMacOS:
@@ -113,6 +118,7 @@ SPEC CHECKSUMS:
   device_info_plus: a56e6e74dbbd2bb92f2da12c64ddd4f67a749041
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
+  flutter_secure_storage_macos: 7f45e30f838cf2659862a4e4e3ee1c347c2b3b54
   flutter_tray: cdb663f45c9619b9426ef2e490a29504ac0cc430
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   mobile_storage_listener: 7894760322d7fb5121e315b81806dbddfceef26e

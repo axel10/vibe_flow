@@ -1316,7 +1316,7 @@
   "onboardingAndroidMediaStatusNotGranted": "Statut : Non accordé (vous pourrez importer des dossiers manuellement plus tard)",
   "onboardingAndroidMediaStep1": "1. Prêt à l’emploi : Affiche instantanément toute la musique déjà présente sur votre téléphone",
   "onboardingAndroidMediaStep2": "2. Découverte automatique : Les nouveaux morceaux ajoutés apparaissent automatiquement",
-  "onboardingAndroidMediaStep3": "3. Respect de la vie privée : Lit uniquement les fichiers audio locaux, aucune donnée n’est envoyée",
+  "onboardingAndroidMediaStep3": "3. Respect de la vie privée : Lit uniquement les fichiers audio locaux et n'envoie pas automatiquement votre bibliothèque (sauf utilisation de services cloud comme les paroles IA)",
   "onboardingAndroidMediaTitle": "Accéder à la bibliothèque musicale",
   "uiDisplayScale": "Échelle d’affichage de l’interface",
   "uiDisplayScaleCurrent": "Échelle actuelle : {percent}%",

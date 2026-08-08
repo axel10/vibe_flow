@@ -1316,7 +1316,7 @@
   "onboardingAndroidMediaStatusNotGranted": "Estado: No concedido (puede importar carpetas manualmente más tarde)",
   "onboardingAndroidMediaStep1": "1. Listo para usar: Muestra instantáneamente toda la música de tu teléfono",
   "onboardingAndroidMediaStep2": "2. Detección automática: La música nueva aparece automáticamente en la biblioteca",
-  "onboardingAndroidMediaStep3": "3. Privacidad garantizada: Solo lee archivos de audio locales, nunca sube datos",
+  "onboardingAndroidMediaStep3": "3. Privacidad garantizada: Solo lee archivos de audio locales y no sube automáticamente tu biblioteca (excepto al usar servicios en la nube como letras IA)",
   "onboardingAndroidMediaTitle": "Acceder a la biblioteca de música",
   "uiDisplayScale": "Escala de la interfaz",
   "uiDisplayScaleCurrent": "Escala actual: {percent}%",

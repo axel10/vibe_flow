@@ -1019,7 +1019,7 @@
   "onboardingAndroidMediaStatusNotGranted": "目前狀態：未授權（可稍後手動匯入資料夾）",
   "onboardingAndroidMediaStep1": "1. 即開即用：直接顯示手機裡已有的全部音樂",
   "onboardingAndroidMediaStep2": "2. 自動發現：新下載或傳入的音樂自動出現在樂庫中",
-  "onboardingAndroidMediaStep3": "3. 隱私安全：僅讀取本機音訊檔案，不會上傳任何資料",
+  "onboardingAndroidMediaStep3": "3. 隱私安全：僅在本機讀取音訊檔案，不會自動上傳你的音樂庫（使用 AI 歌詞等雲端服務除外）",
   "onboardingAndroidMediaTitle": "存取手機音樂庫",
   "uiDisplayScale": "介面顯示縮放",
   "uiDisplayScaleCurrent": "目前縮放: {percent}%",

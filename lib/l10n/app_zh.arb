@@ -1673,7 +1673,7 @@
   "onboardingAndroidMediaDescription": "授权后，Vynody 可直接读取系统媒体库中的所有音乐，无需手动选择文件夹。不授权也可以手动导入指定文件夹中的音乐。",
   "onboardingAndroidMediaStep1": "1. 即开即用：直接显示手机里已有的全部音乐",
   "onboardingAndroidMediaStep2": "2. 自动发现：新下载或传入的音乐自动出现在乐库中",
-  "onboardingAndroidMediaStep3": "3. 隐私安全：仅读取本地音频文件，不会上传任何数据",
+  "onboardingAndroidMediaStep3": "3. 隐私安全：仅在本地读取音频文件，不会自动上传你的音乐库（使用 AI 歌词等云端服务除外）",
   "onboardingAndroidMediaButton": "授权访问音乐库",
   "onboardingAndroidMediaStatusGranted": "当前状态：已授权（推荐）",
   "onboardingAndroidMediaStatusNotGranted": "当前状态：未授权（可稍后手动导入文件夹）",

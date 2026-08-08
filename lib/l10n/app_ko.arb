@@ -1316,7 +1316,7 @@
   "onboardingAndroidMediaStatusNotGranted": "현재 상태: 허용 안 됨 (나중에 수동으로 폴더를 가져올 수 있음)",
   "onboardingAndroidMediaStep1": "1. 즉시 사용: 휴대폰의 모든 음악을 즉시 표시",
   "onboardingAndroidMediaStep2": "2. 자동 감지: 새로 추가된 음악이 라이브러리에 자동으로 나타남",
-  "onboardingAndroidMediaStep3": "3. 개인정보 보호: 로컬 오디오 파일만 읽으며 데이터를 업로드하지 않음",
+  "onboardingAndroidMediaStep3": "3. 개인정보 보호: 로컬 오디오 파일만 읽으며 라이브러리를 자동으로 업로드하지 않음 (AI 가사 등 클라우드 서비스 제외)",
   "onboardingAndroidMediaTitle": "음악 라이브러리 접근",
   "uiDisplayScale": "UI 디스플레이 스케일",
   "uiDisplayScaleCurrent": "현재 스케일: {percent}%",
