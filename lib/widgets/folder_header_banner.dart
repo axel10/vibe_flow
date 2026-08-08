@@ -431,6 +431,10 @@ class _FolderLandscapeHeaderBanner extends StatelessWidget {
   }
 }
 
+/// Default cover image opacity values for light theme banner display
+const double _kLightModeCoverOpacity = 0.35;
+const double _kLightModeBlurredCoverOpacity = 0.35;
+
 /// Decoupled Portrait Header Banner Component
 class _FolderPortraitHeaderBanner extends StatelessWidget {
   const _FolderPortraitHeaderBanner({
@@ -484,6 +488,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth >= 900;
@@ -514,7 +519,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
+            color: isDark ? Colors.black.withValues(alpha: 0.12) : theme.colorScheme.shadow.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -529,27 +534,41 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (hasImage) ...[
-                    ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                      child: Image.file(
-                        coverFile!,
-                        fit: BoxFit.cover,
+                  Container(
+                    color: isDark
+                        ? Colors.black
+                        : theme.colorScheme.surface,
+                  ),
+                  if (hasImage && !isWideOrSquare) ...[
+                    Opacity(
+                      opacity: isDark ? 1.0 : _kLightModeBlurredCoverOpacity,
+                      child: ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                        child: Image.file(
+                          coverFile!,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                    Container(
-                      color: Colors.black.withValues(alpha: isWideOrSquare ? 0.25 : 0.45),
-                    ),
+                    if (isDark)
+                      Container(
+                        color: Colors.black.withValues(alpha: isWideOrSquare ? 0.25 : 0.45),
+                      ),
                   ] else ...[
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                            HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                          ],
+                          colors: isDark
+                              ? [
+                                  HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
+                                  HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
+                                ]
+                              : [
+                                  HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
+                                  HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
+                                ],
                         ),
                       ),
                     ),
@@ -585,48 +604,64 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                   );
                                 },
                                 child: hasImage
-                                    ? Image.file(
-                                        coverFile!,
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: double.infinity,
+                                    ? Opacity(
+                                        opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
+                                        child: Image.file(
+                                          coverFile!,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                        ),
                                       )
                                     : Container(
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
-                                            colors: [
-                                              HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                                              HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                                            ],
+                                            colors: isDark
+                                                ? [
+                                                    HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
+                                                    HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
+                                                  ]
+                                                : [
+                                                    HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
+                                                    HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
+                                                  ],
                                           ),
                                         ),
                                       ),
                               ),
                             )
                           : (hasImage
-                              ? Image.file(
-                                  coverFile!,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
+                              ? Opacity(
+                                  opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
+                                  child: Image.file(
+                                    coverFile!,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
                                 )
                               : Container(
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
-                                      colors: [
-                                        HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                                        HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                                      ],
+                                      colors: isDark
+                                          ? [
+                                              HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
+                                              HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
+                                            ]
+                                          : [
+                                              HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
+                                              HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
+                                            ],
                                     ),
                                   ),
                                 )),
                     ),
                   ],
-                  // Dark gradient overlay for text readability
+                  // Gradient overlay for text readability (Dark mode: dark gradient, Light mode: light surface gradient)
                   AnimatedBuilder(
                     animation: routeAnimation ?? const AlwaysStoppedAnimation(1.0),
                     builder: (context, child) {
@@ -641,11 +676,17 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.35),
-                            Colors.black.withValues(alpha: 0.55),
-                            Colors.black.withValues(alpha: 0.85),
-                          ],
+                          colors: isDark
+                              ? [
+                                  Colors.black.withValues(alpha: 0.35),
+                                  Colors.black.withValues(alpha: 0.55),
+                                  Colors.black.withValues(alpha: 0.85),
+                                ]
+                              : [
+                                  theme.colorScheme.surface.withValues(alpha: 0.25),
+                                  theme.colorScheme.surface.withValues(alpha: 0.60),
+                                  theme.colorScheme.surface.withValues(alpha: 0.92),
+                                ],
                           stops: const [0.0, 0.45, 1.0],
                         ),
                       ),
@@ -759,7 +800,11 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 8),
                                       IconButton(
-                                        icon: const Icon(Icons.close_rounded, size: 20, color: Colors.white),
+                                        icon: Icon(
+                                          Icons.close_rounded,
+                                          size: 20,
+                                          color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                                        ),
                                         onPressed: () {
                                           searchController.clear();
                                           onSearchQueryChanged('');
@@ -788,7 +833,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                       _BannerSearchIconButton(
                                         onPressed: () => onToggleSearch(true),
                                         tooltip: l10n.search,
-                                        isWhite: true,
+                                        isWhite: isDark,
                                       ),
                                     ],
                                   ),
@@ -871,12 +916,14 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.close_rounded,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
-                                      ],
+                                      color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                                      shadows: isDark
+                                          ? const [
+                                              Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
+                                            ]
+                                          : null,
                                     ),
                                     onPressed: () {
                                       searchController.clear();
@@ -906,7 +953,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                   _BannerSearchIconButton(
                                     onPressed: () => onToggleSearch(true),
                                     tooltip: l10n.search,
-                                    isWhite: true,
+                                    isWhite: isDark,
                                   ),
                                 ],
                               ),
@@ -936,6 +983,8 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
     required bool hasTopHeader,
     required bool isLowEndDevice,
   }) {
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
@@ -967,28 +1016,40 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
+              // 0. Base surface background
+              Container(
+                color: isDark ? Colors.black : theme.colorScheme.surface,
+              ),
               // 1. Cover Image / Gradient Background
               hasImage
-                  ? Image.file(
-                      coverFile!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
+                  ? Opacity(
+                      opacity: isDark ? 1.0 : (lerpDouble(1.0, _kLightModeCoverOpacity, progress) ?? 1.0),
+                      child: Image.file(
+                        coverFile!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                     )
                   : Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                            HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                          ],
+                          colors: isDark
+                              ? [
+                                  HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
+                                  HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
+                                ]
+                              : [
+                                  HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
+                                  HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
+                                ],
                         ),
                       ),
                     ),
 
-              // 2. Dark Gradient Overlay
+              // 2. Gradient Overlay (Dark in dark mode, light surface gradient in light mode)
               Opacity(
                 opacity: darkOpacity,
                 child: Container(
@@ -996,11 +1057,17 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.35),
-                        Colors.black.withValues(alpha: 0.55),
-                        Colors.black.withValues(alpha: 0.85),
-                      ],
+                      colors: isDark
+                          ? [
+                              Colors.black.withValues(alpha: 0.35),
+                              Colors.black.withValues(alpha: 0.55),
+                              Colors.black.withValues(alpha: 0.85),
+                            ]
+                          : [
+                              theme.colorScheme.surface.withValues(alpha: 0.25),
+                              theme.colorScheme.surface.withValues(alpha: 0.60),
+                              theme.colorScheme.surface.withValues(alpha: 0.92),
+                            ],
                       stops: const [0.0, 0.45, 1.0],
                     ),
                   ),
@@ -1066,7 +1133,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                 _BannerSearchIconButton(
                                   onPressed: () {},
                                   tooltip: l10n.search,
-                                  isWhite: true,
+                                  isWhite: isDark,
                                 ),
                               ],
                             ),
@@ -1104,10 +1171,26 @@ class _BannerInfoColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final titleColor = isOverlay ? Colors.white : theme.colorScheme.onSurface;
-    final subtitleColor = isOverlay
+    final isDark = theme.brightness == Brightness.dark;
+    final useWhiteText = isOverlay && isDark;
+
+    final titleColor = useWhiteText ? Colors.white : theme.colorScheme.onSurface;
+    final subtitleColor = useWhiteText
         ? Colors.white.withValues(alpha: 0.8)
-        : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
+        : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8);
+    final countDurationColor = useWhiteText
+        ? Colors.white.withValues(alpha: 0.85)
+        : theme.colorScheme.primary;
+
+    final List<Shadow>? textShadows = useWhiteText
+        ? const [
+            Shadow(
+              offset: Offset(0, 1),
+              blurRadius: 4,
+              color: Colors.black87,
+            ),
+          ]
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1119,11 +1202,7 @@ class _BannerInfoColumn extends StatelessWidget {
             fontWeight: FontWeight.bold,
             fontSize: 18,
             color: titleColor,
-            shadows: isOverlay
-                ? const [
-                    Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
-                  ]
-                : null,
+            shadows: textShadows,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -1134,11 +1213,7 @@ class _BannerInfoColumn extends StatelessWidget {
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
               color: subtitleColor,
-              shadows: isOverlay
-                  ? const [
-                      Shadow(offset: Offset(0, 1), blurRadius: 3, color: Colors.black87),
-                    ]
-                  : null,
+              shadows: textShadows,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -1150,20 +1225,10 @@ class _BannerInfoColumn extends StatelessWidget {
         Text(
           '${l10n.songCount(songsCount)} | $durationText',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isOverlay
-                ? Colors.white.withValues(alpha: 0.85)
-                : theme.colorScheme.primary,
+            color: countDurationColor,
             fontWeight: FontWeight.w600,
-            fontSize: isOverlay ? 13 : 14,
-            shadows: isOverlay
-                ? const [
-                    Shadow(
-                      offset: Offset(0, 1),
-                      blurRadius: 3,
-                      color: Colors.black87,
-                    ),
-                  ]
-                : null,
+            fontSize: useWhiteText ? 13 : 14,
+            shadows: textShadows,
           ),
         ),
       ],

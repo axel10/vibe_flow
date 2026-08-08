@@ -701,12 +701,20 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
 
   Widget _buildBreadcrumbs(MusicFolder current, ScannerService scanner, {bool isOverlay = false}) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final useWhiteText = isOverlay && isDark;
     final currentMusic = ref.watch(audioCurrentMusicProvider);
 
-    final iconColor = isOverlay ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.7);
-    final chevronColor = isOverlay ? Colors.white.withValues(alpha: 0.6) : theme.colorScheme.onSurface.withValues(alpha: 0.3);
-    final folderTextColor = isOverlay ? Colors.white.withValues(alpha: 0.9) : theme.colorScheme.onSurface.withValues(alpha: 0.75);
-    final shadows = isOverlay
+    final iconColor = useWhiteText
+        ? Colors.white
+        : theme.colorScheme.onSurface.withValues(alpha: 0.85);
+    final chevronColor = useWhiteText
+        ? Colors.white.withValues(alpha: 0.6)
+        : theme.colorScheme.onSurface.withValues(alpha: 0.4);
+    final folderTextColor = useWhiteText
+        ? Colors.white.withValues(alpha: 0.9)
+        : theme.colorScheme.onSurface.withValues(alpha: 0.85);
+    final shadows = useWhiteText
         ? const [Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87)]
         : null;
 
@@ -822,7 +830,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isOverlay ? Colors.white : theme.colorScheme.primary,
+            color: folderTextColor,
             shadows: shadows,
           ),
         ),
