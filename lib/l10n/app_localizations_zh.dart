@@ -2691,6 +2691,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accept => '接收';
 
   @override
+  String get incomingLyricsExportTitle => '收到歌词导出读取请求';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return '设备 \"$senderName\" 申请读取并导出您设备上的歌词库。';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => '收到歌词导入更新请求';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return '设备 \"$senderName\" 申请向您设备导入共 $count 首歌曲的歌词。';
+  }
+
+  @override
+  String get lyricsRequestRejected => '对方拒绝了歌词同步请求';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" 发送完毕';
   }
@@ -2929,7 +2948,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get onboardingAndroidMediaStep2 => '2. 自动发现：新下载或传入的音乐自动出现在乐库中';
 
   @override
-  String get onboardingAndroidMediaStep3 => '3. 隐私安全：仅读取本地音频文件，不会上传任何数据';
+  String get onboardingAndroidMediaStep3 =>
+      '3. 隐私安全：仅在本地读取音频文件，不会自动上传你的音乐库（使用 AI 歌词等云端服务除外）';
 
   @override
   String get onboardingAndroidMediaButton => '授权访问音乐库';
@@ -5871,6 +5891,25 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get accept => '接收';
 
   @override
+  String get incomingLyricsExportTitle => '收到歌詞匯出讀取請求';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return '裝置 \"$senderName\" 申請讀取並匯出您裝置上的歌詞庫。';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => '收到歌詞匯入更新請求';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return '裝置 \"$senderName\" 申請向您裝置匯入共 $count 首歌曲的歌詞。';
+  }
+
+  @override
+  String get lyricsRequestRejected => '對方拒絕了歌詞同步請求';
+
+  @override
   String sendCompleted(Object fileName) {
     return '「$fileName」傳送完畢';
   }
@@ -6108,7 +6147,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get onboardingAndroidMediaStep2 => '2. 自動發現：新下載或傳入的音樂自動出現在樂庫中';
 
   @override
-  String get onboardingAndroidMediaStep3 => '3. 隱私安全：僅讀取本機音訊檔案，不會上傳任何資料';
+  String get onboardingAndroidMediaStep3 =>
+      '3. 隱私安全：僅在本機讀取音訊檔案，不會自動上傳你的音樂庫（使用 AI 歌詞等雲端服務除外）';
 
   @override
   String get onboardingAndroidMediaButton => '授權存取音樂庫';

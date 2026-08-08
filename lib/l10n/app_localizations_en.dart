@@ -2823,6 +2823,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accept => 'Accept';
 
   @override
+  String get incomingLyricsExportTitle => 'Lyrics Export Request';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return 'Device \"$senderName\" requested to read and export your lyrics library.';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => 'Lyrics Import Request';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return 'Device \"$senderName\" requested to import lyrics for $count songs into your device.';
+  }
+
+  @override
+  String get lyricsRequestRejected =>
+      'The remote device rejected the lyrics sync request.';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" sent';
   }
@@ -3077,7 +3097,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. Privacy safe: Only reads local audio files, never uploads any data';
+      '3. Privacy safe: Only reads local audio files and won\'t auto-upload your library (except when using cloud services like AI lyrics)';
 
   @override
   String get onboardingAndroidMediaButton => 'Grant Music Library Access';

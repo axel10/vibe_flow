@@ -2860,6 +2860,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accept => 'Accepter';
 
   @override
+  String get incomingLyricsExportTitle => 'Demande d\'exportation de paroles';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return 'L\'appareil \"$senderName\" demande à lire et exporter la bibliothèque de paroles.';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => 'Demande d\'importation de paroles';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return 'L\'appareil \"$senderName\" demande à importer des paroles pour $count chansons.';
+  }
+
+  @override
+  String get lyricsRequestRejected =>
+      'L\'appareil distant a refusé la demande de synchronisation des paroles.';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" envoyé';
   }
@@ -3123,7 +3143,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. Respect de la vie privée : Lit uniquement les fichiers audio locaux, aucune donnée n’est envoyée';
+      '3. Respect de la vie privée : Lit uniquement les fichiers audio locaux et n\'envoie pas automatiquement votre bibliothèque (sauf utilisation de services cloud comme les paroles IA)';
 
   @override
   String get onboardingAndroidMediaButton =>

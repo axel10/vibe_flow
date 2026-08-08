@@ -836,6 +836,24 @@
   "receiveFileHint": "提示：接收後檔案將自動儲存至本機音樂資料夾並加入媒體庫。",
   "reject": "拒絕",
   "accept": "接收",
+  "incomingLyricsExportTitle": "收到歌詞匯出讀取請求",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "裝置 \"{senderName}\" 申請讀取並匯出您裝置上的歌詞庫。",
+  "incomingLyricsImportTitle": "收到歌詞匯入更新請求",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "裝置 \"{senderName}\" 申請向您裝置匯入共 {count} 首歌曲的歌詞。",
+  "lyricsRequestRejected": "對方拒絕了歌詞同步請求",
   "sendCompleted": "「{fileName}」傳送完畢",
   "receiveCompleted": "成功接收了 {count} 首歌曲",
   "transferCancelledWithReason": "{direction}已取消（{reason}）",

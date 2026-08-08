@@ -2854,6 +2854,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get accept => 'Annehmen';
 
   @override
+  String get incomingLyricsExportTitle => 'Songtext-Exportanfrage';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return 'Gerät \"$senderName\" möchte Ihre Songtext-Bibliothek lesen und exportieren.';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => 'Songtext-Importanfrage';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return 'Gerät \"$senderName\" möchte Songtexte für $count Titel auf Ihr Gerät importieren.';
+  }
+
+  @override
+  String get lyricsRequestRejected =>
+      'Die Songtext-Synchronisationsanfrage wurde abgelehnt.';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" gesendet';
   }
@@ -3113,7 +3133,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. Datenschutz sicher: Liest nur lokale Audiodateien und lädt keine Daten hoch';
+      '3. Datenschutz sicher: Liest nur lokale Audiodateien und lädt Ihre Bibliothek nicht automatisch hoch (ausgenommen Cloud-Dienste wie AI-Songtexte)';
 
   @override
   String get onboardingAndroidMediaButton =>

@@ -1181,6 +1181,24 @@
   "receiveFileHint": "受信したファイルは音楽フォルダに保存され、ライブラリに追加されます。",
   "reject": "拒否",
   "accept": "受け入れる",
+  "incomingLyricsExportTitle": "歌詞エクスポート要求",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "デバイス \"{senderName}\" が歌詞ライブラリの読み取りとエクスポートを要求しています。",
+  "incomingLyricsImportTitle": "歌詞インポート要求",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "デバイス \"{senderName}\" が {count} 曲の歌詞のインポートを要求しています。",
+  "lyricsRequestRejected": "リモートデバイスが歌詞の同期要求を拒否しました。",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {

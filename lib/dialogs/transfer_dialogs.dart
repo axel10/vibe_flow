@@ -111,6 +111,85 @@ void showIncomingTransferDialog(BuildContext context, IncomingTransferRequest re
   );
 }
 
+void showIncomingLyricsDialog(BuildContext context, IncomingLyricsRequest request) {
+  final theme = Theme.of(context);
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      final l10n = AppLocalizations.of(context)!;
+      final isExport = request.type == IncomingLyricsRequestType.exportLyrics;
+      final title = isExport
+          ? l10n.incomingLyricsExportTitle
+          : l10n.incomingLyricsImportTitle;
+      final message = isExport
+          ? l10n.incomingLyricsExportFrom(request.senderName)
+          : l10n.incomingLyricsImportFrom(
+              request.senderName,
+              '${request.lyricsCount}',
+            );
+
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+            ),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.lyrics, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
+              ),
+            ],
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                request.onDecision(false);
+              },
+              child: Text(l10n.reject),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                request.onDecision(true);
+              },
+              child: Text(l10n.accept, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 void showTransferProgressDialog(BuildContext context, String sessionId) {
   final theme = Theme.of(context);
   showDialog(

@@ -5125,6 +5125,36 @@ abstract class AppLocalizations {
   /// **'接收'**
   String get accept;
 
+  /// No description provided for @incomingLyricsExportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'收到歌词导出读取请求'**
+  String get incomingLyricsExportTitle;
+
+  /// Who requested to export/read lyrics
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 \"{senderName}\" 申请读取并导出您设备上的歌词库。'**
+  String incomingLyricsExportFrom(Object senderName);
+
+  /// No description provided for @incomingLyricsImportTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'收到歌词导入更新请求'**
+  String get incomingLyricsImportTitle;
+
+  /// Who requested to import/push lyrics
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 \"{senderName}\" 申请向您设备导入共 {count} 首歌曲的歌词。'**
+  String incomingLyricsImportFrom(Object senderName, Object count);
+
+  /// No description provided for @lyricsRequestRejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'对方拒绝了歌词同步请求'**
+  String get lyricsRequestRejected;
+
   /// Toast when sending completes
   ///
   /// In zh, this message translates to:
@@ -5554,7 +5584,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingAndroidMediaStep3.
   ///
   /// In zh, this message translates to:
-  /// **'3. 隐私安全：仅读取本地音频文件，不会上传任何数据'**
+  /// **'3. 隐私安全：仅在本地读取音频文件，不会自动上传你的音乐库（使用 AI 歌词等云端服务除外）'**
   String get onboardingAndroidMediaStep3;
 
   /// No description provided for @onboardingAndroidMediaButton.

@@ -1082,6 +1082,24 @@
   "receiveFileHint": "Les fichiers reçus seront sauvegardés dans le dossier musical et ajoutés à la bibliothèque.",
   "reject": "Refuser",
   "accept": "Accepter",
+  "incomingLyricsExportTitle": "Demande d'exportation de paroles",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "L'appareil \"{senderName}\" demande à lire et exporter la bibliothèque de paroles.",
+  "incomingLyricsImportTitle": "Demande d'importation de paroles",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "L'appareil \"{senderName}\" demande à importer des paroles pour {count} chansons.",
+  "lyricsRequestRejected": "L'appareil distant a refusé la demande de synchronisation des paroles.",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {

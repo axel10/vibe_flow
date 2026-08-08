@@ -1024,6 +1024,16 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       }
     });
 
+    // Listen for incoming LAN lyrics requests
+    ref.listen<IncomingLyricsRequest?>(incomingLyricsRequestProvider, (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        showIncomingLyricsDialog(context, next);
+      }
+    });
+
     // Listen for sharing warnings
     ref.listen<String?>(sharingWarningProvider, (previous, next) {
       if (next != null) {

@@ -1082,6 +1082,24 @@
   "receiveFileHint": "Los archivos recibidos se guardarán automáticamente en la carpeta de música local y se agregarán a la biblioteca.",
   "reject": "Rechazar",
   "accept": "Aceptar",
+  "incomingLyricsExportTitle": "Solicitud de exportación de letras",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "El dispositivo \"{senderName}\" solicitó leer y exportar la biblioteca de letras.",
+  "incomingLyricsImportTitle": "Solicitud de importación de letras",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "El dispositivo \"{senderName}\" solicitó importar letras para {count} canciones.",
+  "lyricsRequestRejected": "El dispositivo remoto rechazó la solicitud de sincronización de letras.",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {

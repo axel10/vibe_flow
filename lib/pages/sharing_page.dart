@@ -305,7 +305,10 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         ),
       );
     } catch (e) {
-      showToast(AppLocalizations.of(context)!.syncLyricsFailed(e.toString()));
+      final errorMsg = e.toString().contains('rejected')
+          ? AppLocalizations.of(context)!.lyricsRequestRejected
+          : e.toString();
+      showToast(AppLocalizations.of(context)!.syncLyricsFailed(errorMsg));
     }
   }
 
@@ -324,7 +327,10 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         ),
       );
     } catch (e) {
-      showToast(AppLocalizations.of(context)!.syncLyricsFailed(e.toString()));
+      final errorMsg = e.toString().contains('rejected')
+          ? AppLocalizations.of(context)!.lyricsRequestRejected
+          : e.toString();
+      showToast(AppLocalizations.of(context)!.syncLyricsFailed(errorMsg));
     }
   }
 

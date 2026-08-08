@@ -1082,6 +1082,24 @@
   "receiveFileHint": "Empfangene Dateien werden im Musikordner gespeichert und zur Mediathek hinzugefügt.",
   "reject": "Ablehnen",
   "accept": "Annehmen",
+  "incomingLyricsExportTitle": "Songtext-Exportanfrage",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "Gerät \"{senderName}\" möchte Ihre Songtext-Bibliothek lesen und exportieren.",
+  "incomingLyricsImportTitle": "Songtext-Importanfrage",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "Gerät \"{senderName}\" möchte Songtexte für {count} Titel auf Ihr Gerät importieren.",
+  "lyricsRequestRejected": "Die Songtext-Synchronisationsanfrage wurde abgelehnt.",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {

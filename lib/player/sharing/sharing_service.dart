@@ -40,6 +40,35 @@ final incomingRequestProvider =
       IncomingRequestNotifier.new,
     );
 
+enum IncomingLyricsRequestType { importLyrics, exportLyrics }
+
+class IncomingLyricsRequest {
+  final String senderId;
+  final String senderName;
+  final IncomingLyricsRequestType type;
+  final int lyricsCount;
+  final void Function(bool accepted) onDecision;
+
+  IncomingLyricsRequest({
+    required this.senderId,
+    required this.senderName,
+    required this.type,
+    this.lyricsCount = 0,
+    required this.onDecision,
+  });
+}
+
+class IncomingLyricsRequestNotifier extends Notifier<IncomingLyricsRequest?> {
+  @override
+  IncomingLyricsRequest? build() => null;
+  void setRequest(IncomingLyricsRequest? request) => state = request;
+}
+
+final incomingLyricsRequestProvider =
+    NotifierProvider<IncomingLyricsRequestNotifier, IncomingLyricsRequest?>(
+      IncomingLyricsRequestNotifier.new,
+    );
+
 class SharingWarningNotifier extends Notifier<String?> {
   @override
   String? build() => null;
@@ -2160,17 +2189,28 @@ class SharingService {
       );
       final request = await client.postUrl(uri);
       request.headers.contentType = ContentType.json;
-      request.write(jsonEncode({'lyrics': exportedList}));
+      request.write(
+        jsonEncode({
+          'sender_id': _deviceId,
+          'sender_name': _deviceName,
+          'lyrics': exportedList,
+        }),
+      );
 
       final response = await request.close();
       if (response.statusCode == HttpStatus.ok) {
         final body = await utf8.decoder.bind(response).join();
         final json = jsonDecode(body) as Map<String, dynamic>;
+        if (json['accepted'] == false) {
+          throw Exception('rejected');
+        }
         return {
           'matched': json['matched'] as int? ?? 0,
           'overwritten': json['overwritten'] as int? ?? 0,
           'skipped': json['skipped'] as int? ?? 0,
         };
+      } else if (response.statusCode == HttpStatus.forbidden) {
+        throw Exception('rejected');
       } else {
         throw Exception('Server returned status code ${response.statusCode}');
       }
@@ -2184,8 +2224,10 @@ class SharingService {
     client.connectionTimeout = const Duration(seconds: 5);
     try {
       final formattedHost = formatHostForUrl(targetDevice.ip);
+      final encodedSenderId = Uri.encodeComponent(_deviceId);
+      final encodedSenderName = Uri.encodeComponent(_deviceName);
       final uri = Uri.parse(
-        'http://$formattedHost:${targetDevice.httpPort}/api/lyrics/export',
+        'http://$formattedHost:${targetDevice.httpPort}/api/lyrics/export?sender_id=$encodedSenderId&sender_name=$encodedSenderName',
       );
       final request = await client.getUrl(uri);
       final response = await request.close();
@@ -2193,9 +2235,14 @@ class SharingService {
       if (response.statusCode == HttpStatus.ok) {
         final body = await utf8.decoder.bind(response).join();
         final json = jsonDecode(body) as Map<String, dynamic>;
+        if (json['accepted'] == false) {
+          throw Exception('rejected');
+        }
 
         final lyrics = json['lyrics'] as List<dynamic>? ?? [];
         return await _importLyricsList(lyrics);
+      } else if (response.statusCode == HttpStatus.forbidden) {
+        throw Exception('rejected');
       } else {
         throw Exception('Server returned status code ${response.statusCode}');
       }
@@ -2205,6 +2252,37 @@ class SharingService {
   }
 
   Future<void> _handleExportLyrics(HttpRequest request) async {
+    final senderId = request.uri.queryParameters['sender_id'] ?? 'unknown';
+    final senderName = request.uri.queryParameters['sender_name'] ?? 'Unknown';
+
+    final completer = Completer<bool>();
+    _ref
+        .read(incomingLyricsRequestProvider.notifier)
+        .setRequest(
+          IncomingLyricsRequest(
+            senderId: senderId,
+            senderName: senderName,
+            type: IncomingLyricsRequestType.exportLyrics,
+            onDecision: (accepted) {
+              completer.complete(accepted);
+              _ref
+                  .read(incomingLyricsRequestProvider.notifier)
+                  .setRequest(null);
+            },
+          ),
+        );
+
+    final accepted = await completer.future;
+    if (!accepted) {
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'accepted': false, 'reason': 'Request rejected by user'}),
+      );
+      await request.response.close();
+      return;
+    }
+
     final songs = await MetadataDatabase().getAllSongMetadata();
     final List<Map<String, dynamic>> exportedList = [];
 
@@ -2236,20 +2314,55 @@ class SharingService {
       }
     }
 
+    request.response.statusCode = HttpStatus.ok;
     request.response.headers.contentType = ContentType.json;
-    request.response.write(jsonEncode({'lyrics': exportedList}));
+    request.response.write(
+      jsonEncode({'accepted': true, 'lyrics': exportedList}),
+    );
     await request.response.close();
   }
 
   Future<void> _handleImportLyrics(HttpRequest request) async {
     final content = await utf8.decoder.bind(request).join();
     final json = jsonDecode(content) as Map<String, dynamic>;
+    final senderId = json['sender_id'] as String? ?? 'unknown';
+    final senderName = json['sender_name'] as String? ?? 'Unknown';
     final lyrics = json['lyrics'] as List<dynamic>? ?? [];
+
+    final completer = Completer<bool>();
+    _ref
+        .read(incomingLyricsRequestProvider.notifier)
+        .setRequest(
+          IncomingLyricsRequest(
+            senderId: senderId,
+            senderName: senderName,
+            type: IncomingLyricsRequestType.importLyrics,
+            lyricsCount: lyrics.length,
+            onDecision: (accepted) {
+              completer.complete(accepted);
+              _ref
+                  .read(incomingLyricsRequestProvider.notifier)
+                  .setRequest(null);
+            },
+          ),
+        );
+
+    final accepted = await completer.future;
+    if (!accepted) {
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'accepted': false, 'reason': 'Request rejected by user'}),
+      );
+      await request.response.close();
+      return;
+    }
 
     final stats = await _importLyricsList(lyrics);
 
+    request.response.statusCode = HttpStatus.ok;
     request.response.headers.contentType = ContentType.json;
-    request.response.write(jsonEncode(stats));
+    request.response.write(jsonEncode({'accepted': true, ...stats}));
     await request.response.close();
   }
 }

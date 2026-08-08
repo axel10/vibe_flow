@@ -2861,6 +2861,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accept => 'Aceptar';
 
   @override
+  String get incomingLyricsExportTitle => 'Solicitud de exportación de letras';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return 'El dispositivo \"$senderName\" solicitó leer y exportar la biblioteca de letras.';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => 'Solicitud de importación de letras';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return 'El dispositivo \"$senderName\" solicitó importar letras para $count canciones.';
+  }
+
+  @override
+  String get lyricsRequestRejected =>
+      'El dispositivo remoto rechazó la solicitud de sincronización de letras.';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" enviado';
   }
@@ -3120,7 +3140,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. Privacidad garantizada: Solo lee archivos de audio locales, nunca sube datos';
+      '3. Privacidad garantizada: Solo lee archivos de audio locales y no sube automáticamente tu biblioteca (excepto al usar servicios en la nube como letras IA)';
 
   @override
   String get onboardingAndroidMediaButton =>

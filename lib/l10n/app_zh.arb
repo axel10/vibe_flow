@@ -1556,6 +1556,24 @@
   "receiveFileHint": "提示：接收后文件将自动保存至本地音乐文件夹并加入媒体库。",
   "reject": "拒绝",
   "accept": "接收",
+  "incomingLyricsExportTitle": "收到歌词导出读取请求",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "设备 \"{senderName}\" 申请读取并导出您设备上的歌词库。",
+  "incomingLyricsImportTitle": "收到歌词导入更新请求",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "设备 \"{senderName}\" 申请向您设备导入共 {count} 首歌曲的歌词。",
+  "lyricsRequestRejected": "对方拒绝了歌词同步请求",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {

@@ -1082,6 +1082,24 @@
   "receiveFileHint": "수신된 파일은 음악 폴더에 저장되고 라이브러리에 추가됩니다.",
   "reject": "거절",
   "accept": "수락",
+  "incomingLyricsExportTitle": "가사 내보내기 요청",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "\"{senderName}\" 기기에서 가사 라이브러리 읽기 및 내보내기를 요청했습니다.",
+  "incomingLyricsImportTitle": "가사 가져오기 요청",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "\"{senderName}\" 기기에서 {count}개 곡의 가사 가져오기를 요청했습니다.",
+  "lyricsRequestRejected": "상대 기기에서 가사 동기화 요청을 거절했습니다.",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {

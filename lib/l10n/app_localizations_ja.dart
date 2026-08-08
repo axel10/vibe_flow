@@ -2728,6 +2728,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get accept => '受け入れる';
 
   @override
+  String get incomingLyricsExportTitle => '歌詞エクスポート要求';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return 'デバイス \"$senderName\" が歌詞ライブラリの読み取りとエクスポートを要求しています。';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => '歌詞インポート要求';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return 'デバイス \"$senderName\" が $count 曲の歌詞のインポートを要求しています。';
+  }
+
+  @override
+  String get lyricsRequestRejected => 'リモートデバイスが歌詞の同期要求を拒否しました。';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" を送信しました';
   }
@@ -2972,7 +2991,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. プライバシー安全：ローカル音声ファイルのみを読み込み、データを送信しません';
+      '3. プライバシー安全：ローカル音声ファイルのみを読み込み、ライブラリを自動送信しません（AI歌詞などのクラウド機能を除く）';
 
   @override
   String get onboardingAndroidMediaButton => '音楽ライブラリへのアクセスを許可';

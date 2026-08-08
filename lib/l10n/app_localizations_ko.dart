@@ -2731,6 +2731,25 @@ class AppLocalizationsKo extends AppLocalizations {
   String get accept => '수락';
 
   @override
+  String get incomingLyricsExportTitle => '가사 내보내기 요청';
+
+  @override
+  String incomingLyricsExportFrom(Object senderName) {
+    return '\"$senderName\" 기기에서 가사 라이브러리 읽기 및 내보내기를 요청했습니다.';
+  }
+
+  @override
+  String get incomingLyricsImportTitle => '가사 가져오기 요청';
+
+  @override
+  String incomingLyricsImportFrom(Object senderName, Object count) {
+    return '\"$senderName\" 기기에서 $count개 곡의 가사 가져오기를 요청했습니다.';
+  }
+
+  @override
+  String get lyricsRequestRejected => '상대 기기에서 가사 동기화 요청을 거절했습니다.';
+
+  @override
   String sendCompleted(Object fileName) {
     return '\"$fileName\" 전송 완료';
   }
@@ -2976,7 +2995,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get onboardingAndroidMediaStep3 =>
-      '3. 개인정보 보호: 로컬 오디오 파일만 읽으며 데이터를 업로드하지 않음';
+      '3. 개인정보 보호: 로컬 오디오 파일만 읽으며 라이브러리를 자동으로 업로드하지 않음 (AI 가사 등 클라우드 서비스 제외)';
 
   @override
   String get onboardingAndroidMediaButton => '음악 라이브러리 접근 허용';

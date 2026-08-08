@@ -1090,6 +1090,24 @@
   "receiveFileHint": "Received files will be saved to the music folder and added to the library.",
   "reject": "Reject",
   "accept": "Accept",
+  "incomingLyricsExportTitle": "Lyrics Export Request",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "Device \"{senderName}\" requested to read and export your lyrics library.",
+  "incomingLyricsImportTitle": "Lyrics Import Request",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "Device \"{senderName}\" requested to import lyrics for {count} songs into your device.",
+  "lyricsRequestRejected": "The remote device rejected the lyrics sync request.",
   "@sendCompleted": {
     "description": "Toast when sending completes",
     "placeholders": {
