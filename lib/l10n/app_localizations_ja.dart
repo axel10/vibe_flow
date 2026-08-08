@@ -2215,6 +2215,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get openMicrosoftStore => 'Microsoft Store を開く';
 
   @override
+  String get appStoreUpdateNotice =>
+      'このアプリの更新は App Store によって管理されています。App Store で最新バージョンを確認してください。';
+
+  @override
+  String get openAppStore => 'App Store へ';
+
+  @override
   String get lyricsGenerationModel => '歌詞生成モデル';
 
   @override

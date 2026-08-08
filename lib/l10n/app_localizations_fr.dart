@@ -2326,6 +2326,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get openMicrosoftStore => 'Ouvrir le Microsoft Store';
 
   @override
+  String get appStoreUpdateNotice =>
+      'Les mises à jour de cette application sont gérées par l\'App Store. Vous pouvez consulter ou télécharger la dernière version sur l\'App Store.';
+
+  @override
+  String get openAppStore => 'Ouvrir l\'App Store';
+
+  @override
   String get lyricsGenerationModel => 'Modèle de génération de paroles';
 
   @override

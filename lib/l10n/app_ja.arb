@@ -901,6 +901,8 @@
   "checkForUpdates": "アップデートを確認",
   "storeUpdateNotice": "このアプリの更新は Microsoft Store で管理されています。最新バージョンの確認は Microsoft Store で行えます。",
   "openMicrosoftStore": "Microsoft Store を開く",
+  "appStoreUpdateNotice": "このアプリの更新は App Store によって管理されています。App Store で最新バージョンを確認してください。",
+  "openAppStore": "App Store へ",
   "lyricsGenerationModel": "歌詞生成モデル",
   "lyricsGenerationModelDescription": "AIによる歌詞生成とタイムライン生成/修正に使用されます。",
   "lyricsTranslationModel": "歌詞翻訳モデル",

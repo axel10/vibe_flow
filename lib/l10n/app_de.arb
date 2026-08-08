@@ -848,6 +848,8 @@
   "checkForUpdates": "Nach Updates suchen",
   "storeUpdateNotice": "Updates für diese App werden vom Microsoft Store verwaltet. Sie können im Microsoft Store nach der neuesten Version suchen.",
   "openMicrosoftStore": "Zum Microsoft Store",
+  "appStoreUpdateNotice": "Updates für diese App werden über den App Store verwaltet. Sie können im App Store nach der neuesten Version suchen.",
+  "openAppStore": "Zum App Store",
   "lyricsGenerationModel": "Songtext-Generierungsmodell",
   "lyricsGenerationModelDescription": "Für KI-generierte Songtexte und Zeitachsen-Korrektur.",
   "lyricsTranslationModel": "Songtext-Übersetzungsmodell",

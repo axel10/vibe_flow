@@ -243,8 +243,50 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     defaultValue: false,
   );
 
+  static const bool _isAppStoreBuild = bool.fromEnvironment(
+    'APP_STORE_BUILD',
+    defaultValue: false,
+  );
+
+  static const String _appStoreId = String.fromEnvironment(
+    'APP_STORE_ID',
+    defaultValue: '6799339894',
+  );
+
   Future<void> _checkForUpdates() async {
-    if (_isStoreBuild) {
+    final bool isAppleStore =
+        Platform.isIOS || _isAppStoreBuild || (Platform.isMacOS && _isStoreBuild);
+    if (isAppleStore) {
+      final l10n = AppLocalizations.of(context)!;
+      final storeUri = Uri.parse('https://apps.apple.com/app/id$_appStoreId');
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: Text(l10n.checkForUpdates),
+            content: Text(l10n.appStoreUpdateNotice),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  Navigator.of(dialogContext).pop();
+                  if (await canLaunchUrl(storeUri)) {
+                    await launchUrl(storeUri, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Text(l10n.openAppStore),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    if (Platform.isWindows && _isStoreBuild) {
       final l10n = AppLocalizations.of(context)!;
       final storeUri = Uri.parse('ms-windows-store://pdp/?productid=9NMZRZZ6RSD3');
       await showDialog<void>(

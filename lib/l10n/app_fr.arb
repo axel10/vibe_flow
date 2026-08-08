@@ -848,6 +848,8 @@
   "checkForUpdates": "Vérifier les mises à jour",
   "storeUpdateNotice": "Les mises à jour de cette application sont gérées par le Microsoft Store. Vous pouvez vérifier la dernière version dans le Microsoft Store.",
   "openMicrosoftStore": "Ouvrir le Microsoft Store",
+  "appStoreUpdateNotice": "Les mises à jour de cette application sont gérées par l'App Store. Vous pouvez consulter ou télécharger la dernière version sur l'App Store.",
+  "openAppStore": "Ouvrir l'App Store",
   "lyricsGenerationModel": "Modèle de génération de paroles",
   "lyricsGenerationModelDescription": "Pour la génération de paroles par IA et la correction de chronologie.",
   "lyricsTranslationModel": "Modèle de traduction de paroles",

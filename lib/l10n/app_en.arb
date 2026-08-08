@@ -856,6 +856,8 @@
   "checkForUpdates": "Check for updates",
   "storeUpdateNotice": "Updates for this app are managed by Microsoft Store. You can check for or get the latest version in Microsoft Store.",
   "openMicrosoftStore": "Go to Microsoft Store",
+  "appStoreUpdateNotice": "Updates for this app are managed by App Store. You can visit App Store to check for or get the latest version.",
+  "openAppStore": "Go to App Store",
   "lyricsGenerationModel": "Lyrics Generation Model",
   "lyricsGenerationModelDescription": "Used for AI-generated lyrics and timeline generation/correction.",
   "lyricsTranslationModel": "Lyrics Translation Model",

@@ -848,6 +848,8 @@
   "checkForUpdates": "업데이트 확인",
   "storeUpdateNotice": "이 앱의 업데이트는 Microsoft Store에서 관리합니다. Microsoft Store에서 최신 버전을 확인하실 수 있습니다.",
   "openMicrosoftStore": "Microsoft Store로 이동",
+  "appStoreUpdateNotice": "이 앱의 업데이트는 App Store에서 관리됩니다. App Store에서 최신 버전을 확인하거나 다운로드할 수 있습니다.",
+  "openAppStore": "App Store로 이동",
   "lyricsGenerationModel": "가사 생성 모델",
   "lyricsGenerationModelDescription": "AI 가사 생성 및 타임라인 생성/수정에 사용됩니다.",
   "lyricsTranslationModel": "가사 번역 모델",

@@ -2187,6 +2187,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openMicrosoftStore => '前往 Microsoft Store';
 
   @override
+  String get appStoreUpdateNotice =>
+      '当前应用由 App Store 托管更新。您可以前往 App Store 查看或获取最新版本。';
+
+  @override
+  String get openAppStore => '前往 App Store';
+
+  @override
   String get lyricsGenerationModel => '歌词生成模型';
 
   @override
@@ -5363,6 +5370,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get openMicrosoftStore => '前往 Microsoft Store';
+
+  @override
+  String get appStoreUpdateNotice =>
+      '目前應用程式由 App Store 託管更新。您可以前往 App Store 查看或取得最新版本。';
+
+  @override
+  String get openAppStore => '前往 App Store';
 
   @override
   String get lyricsGenerationModel => '歌詞生成模型';

@@ -1322,6 +1322,8 @@
   "checkForUpdates": "检查更新",
   "storeUpdateNotice": "当前应用由 Microsoft Store 托管更新。您可以前往 Microsoft Store 查看或获取最新版本。",
   "openMicrosoftStore": "前往 Microsoft Store",
+  "appStoreUpdateNotice": "当前应用由 App Store 托管更新。您可以前往 App Store 查看或获取最新版本。",
+  "openAppStore": "前往 App Store",
   "lyricsGenerationModel": "歌词生成模型",
   "lyricsGenerationModelDescription": "用于 AI 听歌生成歌词，以及给现有歌词生成/修正时间轴。",
   "lyricsTranslationModel": "歌词翻译模型",

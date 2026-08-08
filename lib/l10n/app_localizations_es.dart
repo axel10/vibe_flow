@@ -2323,6 +2323,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get openMicrosoftStore => 'Ir a Microsoft Store';
 
   @override
+  String get appStoreUpdateNotice =>
+      'Las actualizaciones de esta app las gestiona App Store. Puedes consultar o descargar la última versión en App Store.';
+
+  @override
+  String get openAppStore => 'Ir a App Store';
+
+  @override
   String get lyricsGenerationModel => 'Modelo de generación de letras';
 
   @override
