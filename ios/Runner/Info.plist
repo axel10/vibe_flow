@@ -75,7 +75,9 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>此应用需要访问局域网以发现和与其他设备传输音乐文件。</string>
+	<string>This app requires access to your local network to discover and transfer music files between your devices.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app requires access to your media library to scan, display, and play your local audio files.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_vynody-share._tcp</string>
