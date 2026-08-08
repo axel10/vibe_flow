@@ -333,15 +333,22 @@ class MyApp extends ConsumerStatefulWidget {
 bool isExplicitAppExit = false;
 
 Future<void> performCleanExit() async {
-  if (isExplicitAppExit) return;
+  if (isExplicitAppExit) {
+    exit(0);
+  }
   isExplicitAppExit = true;
   AppLog.log(
     'Explicit exit requested, closing database cleanly...',
     mirrorToConsole: true,
   );
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    try {
+      await windowManager.hide();
+    } catch (_) {}
+  }
   try {
     await MetadataDatabase().close().timeout(
-      const Duration(seconds: 2),
+      const Duration(milliseconds: 300),
       onTimeout: () {
         AppLog.log(
           'Database close timed out during exit, forcing exit.',
