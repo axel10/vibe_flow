@@ -78,6 +78,10 @@
 	<string>This app requires access to your local network to discover and transfer music files between your devices.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>This app requires access to your media library to scan, display, and play your local audio files.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to select audio files or custom artwork.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app requires permission to save media files to your photo library.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_vynody-share._tcp</string>

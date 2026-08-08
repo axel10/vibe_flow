@@ -1,3 +1,6 @@
 /* Localized versions of Info.plist keys */
 "NSLocalNetworkUsageDescription" = "This app requires access to your local network to discover and transfer music files between your devices.";
 "NSAppleMusicUsageDescription" = "This app requires access to your media library to scan, display, and play your local audio files.";
+"NSPhotoLibraryUsageDescription" = "This app requires access to your photo library to select audio files or custom artwork.";
+"NSPhotoLibraryAddUsageDescription" = "This app requires permission to save media files to your photo library.";
+
