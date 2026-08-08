@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:vynody/utils/network_client.dart';
 import 'package:vynody/player/settings/settings_service.dart';
@@ -8,20 +8,25 @@ import 'package:vynody/utils/localized_text.dart';
 AppLocalizations _l10n() => currentAppL10n;
 
 class OpenRouterApiKeyService {
-  OpenRouterApiKeyService({NetworkClient? client})
-    : _client = client ?? NetworkClient.instance;
+  OpenRouterApiKeyService({
+    NetworkClient? client,
+    FlutterSecureStorage? storage,
+  }) : _client = client ?? NetworkClient.instance,
+       _storage = storage ?? const FlutterSecureStorage();
 
   final NetworkClient _client;
+  final FlutterSecureStorage _storage;
 
   Future<String?> loadApiKey() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedKey = prefs.getString(
-      SettingsService.openRouterApiKeyStorageKey,
-    );
-    final normalizedStoredKey = storedKey?.trim();
-    if (normalizedStoredKey != null && normalizedStoredKey.isNotEmpty) {
-      return normalizedStoredKey;
-    }
+    try {
+      final storedKey = await _storage.read(
+        key: SettingsService.openRouterApiKeyStorageKey,
+      );
+      final normalizedStoredKey = storedKey?.trim();
+      if (normalizedStoredKey != null && normalizedStoredKey.isNotEmpty) {
+        return normalizedStoredKey;
+      }
+    } catch (_) {}
 
     return null;
   }

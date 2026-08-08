@@ -9,6 +9,7 @@
 #include <bonsoir_windows/bonsoir_windows_plugin_c_api.h>
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <file_selector_windows/file_selector_windows.h>
+#include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <flutter_tray/flutter_tray_plugin_c_api.h>
 #include <mobile_storage_listener/mobile_storage_listener_plugin_c_api.h>
 #include <pasteboard/pasteboard_plugin.h>
@@ -26,6 +27,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("DesktopDropPlugin"));
   FileSelectorWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FileSelectorWindows"));
+  FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
   FlutterTrayPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterTrayPluginCApi"));
   MobileStorageListenerPluginCApiRegisterWithRegistrar(

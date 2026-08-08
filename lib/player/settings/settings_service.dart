@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audio_core/audio_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:vynody/player/settings/shortcut_bindings.dart';
@@ -75,7 +76,10 @@ extension FolderViewModeX on FolderViewMode {
     FolderViewMode.grid => 'grid_all',
   };
 
-  static FolderViewMode fromStorageValue(String? value, FolderViewMode defaultValue) {
+  static FolderViewMode fromStorageValue(
+    String? value,
+    FolderViewMode defaultValue,
+  ) {
     switch (value?.trim().toLowerCase()) {
       case 'grid':
         return FolderViewMode.hybrid;
@@ -125,8 +129,7 @@ extension LyricsAiProviderX on LyricsAiProvider {
           : SettingsService._lastKnownCustomProviderName.trim();
     }
     return switch (this) {
-      LyricsAiProvider.googleAiStudio =>
-        'Google AI Studio',
+      LyricsAiProvider.googleAiStudio => 'Google AI Studio',
       LyricsAiProvider.openRouter => 'OpenRouter',
       LyricsAiProvider.doubao => _l10n().doubao,
       LyricsAiProvider.deepseek => 'DeepSeek',
@@ -251,7 +254,8 @@ class SettingsService extends ChangeNotifier {
   static const String _keyThemeMode = 'theme_mode';
   static const String _keyLocale = 'app_locale';
   static const String _keyEnableFadeEffect = 'enable_fade_effect';
-  static const String _keyWindowsAutoRepairShortcut = 'windows_auto_repair_shortcut';
+  static const String _keyWindowsAutoRepairShortcut =
+      'windows_auto_repair_shortcut';
   static const String _keyEnableSystemTray = 'enable_system_tray';
   static const String _keyCloseToTray = 'close_to_tray';
   static const String _keyCloseWindowAction = 'close_window_action';
@@ -271,8 +275,10 @@ class SettingsService extends ChangeNotifier {
 
   static const String _keyTopButtonsOrder = 'top_buttons_order';
   static const String _keyMainControlsLeftButton = 'main_controls_left_button';
-  static const String _keyMainControlsRightButton = 'main_controls_right_button';
-  static const String _keyLyricsHeaderRightButton = 'lyrics_header_right_button';
+  static const String _keyMainControlsRightButton =
+      'main_controls_right_button';
+  static const String _keyLyricsHeaderRightButton =
+      'lyrics_header_right_button';
 
   static const String _keyCollapseButtonsInLandscapeLyrics =
       'collapse_buttons_in_landscape_lyrics';
@@ -287,8 +293,17 @@ class SettingsService extends ChangeNotifier {
   static const String openRouterApiKeyStorageKey = 'openrouter_api_key';
   static const String doubaoApiKeyStorageKey = 'doubao_api_key';
   static const String deepseekApiKeyStorageKey = 'deepseek_api_key';
-  static const String customProviderApiKeyStorageKey = 'custom_provider_api_key';
-  static const String customProviderBaseUrlStorageKey = 'custom_provider_base_url';
+  static const String customProviderApiKeyStorageKey =
+      'custom_provider_api_key';
+  static const List<String> _apiKeyStorageKeys = [
+    geminiApiKeyStorageKey,
+    openRouterApiKeyStorageKey,
+    doubaoApiKeyStorageKey,
+    deepseekApiKeyStorageKey,
+    customProviderApiKeyStorageKey,
+  ];
+  static const String customProviderBaseUrlStorageKey =
+      'custom_provider_base_url';
   static const String customProviderNameStorageKey = 'custom_provider_name';
   static String _lastKnownCustomProviderName = '';
   static const String _keyLyricsTranslationTargetLanguage =
@@ -296,7 +311,8 @@ class SettingsService extends ChangeNotifier {
   static const String _keyLyricsSaveMethod = 'lyrics_save_method';
   static const String _keyLyricsStyle = 'lyrics_style';
   static const String _keyLyricsFontScale = 'lyrics_font_scale';
-  static const String _keyLyricsFontScaleTraditional = 'lyrics_font_scale_traditional';
+  static const String _keyLyricsFontScaleTraditional =
+      'lyrics_font_scale_traditional';
   static const String _keyLyricsFontScaleApple = 'lyrics_font_scale_apple';
   static const String _keyGenerationPrimaryProvider =
       'lyrics_generation_primary_provider';
@@ -409,7 +425,8 @@ class SettingsService extends ChangeNotifier {
   static const String _keySmallWindowQueueWidth = 'small_window_queue_width';
   static const String _keySmallWindowQueueHeight = 'small_window_queue_height';
   static const String _keyHasShownOnboarding = 'has_shown_onboarding';
-  static const String _keyHasShownCoverTapLyricTip = 'has_shown_cover_tap_lyric_tip';
+  static const String _keyHasShownCoverTapLyricTip =
+      'has_shown_cover_tap_lyric_tip';
   static const String _keyHasShownLyricsMenuTip = 'has_shown_lyrics_menu_tip';
   static const String _keyTagCompletionSaveToSourceFile =
       'tag_completion_save_to_source_file';
@@ -526,8 +543,9 @@ class SettingsService extends ChangeNotifier {
 
   late final _isImmersiveTabBarEnabledProperty = SettingProperty<bool>(
     key: _keyImmersiveTabBar,
-    defaultValue: !(defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS),
+    defaultValue:
+        !(defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS),
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -701,7 +719,9 @@ class SettingsService extends ChangeNotifier {
     onChanged: notifyListeners,
     customRead: (prefs, key, def) {
       if (!prefs.containsKey(key) && prefs.containsKey(_keyLyricsFontScale)) {
-        return _normalizeLyricsFontScale(prefs.getDouble(_keyLyricsFontScale) ?? def);
+        return _normalizeLyricsFontScale(
+          prefs.getDouble(_keyLyricsFontScale) ?? def,
+        );
       }
       return _normalizeLyricsFontScale(prefs.getDouble(key) ?? def);
     },
@@ -716,7 +736,9 @@ class SettingsService extends ChangeNotifier {
     onChanged: notifyListeners,
     customRead: (prefs, key, def) {
       if (!prefs.containsKey(key) && prefs.containsKey(_keyLyricsFontScale)) {
-        return _normalizeLyricsFontScale(prefs.getDouble(_keyLyricsFontScale) ?? def);
+        return _normalizeLyricsFontScale(
+          prefs.getDouble(_keyLyricsFontScale) ?? def,
+        );
       }
       return _normalizeLyricsFontScale(prefs.getDouble(key) ?? def);
     },
@@ -846,14 +868,8 @@ class SettingsService extends ChangeNotifier {
     defaultValue: '',
     prefs: _prefs,
     onChanged: notifyListeners,
-    customWrite: (prefs, key, val) {
-      final normalized = val.trim();
-      if (normalized.isEmpty) {
-        prefs.remove(key);
-      } else {
-        prefs.setString(key, normalized);
-      }
-    },
+    customRead: (prefs, key, def) => _readSecureApiKey(prefs, key, def),
+    customWrite: _writeSecureApiKey,
   );
 
   late final _openRouterApiKeyProperty = SettingProperty<String>(
@@ -861,14 +877,8 @@ class SettingsService extends ChangeNotifier {
     defaultValue: '',
     prefs: _prefs,
     onChanged: notifyListeners,
-    customWrite: (prefs, key, val) {
-      final normalized = val.trim();
-      if (normalized.isEmpty) {
-        prefs.remove(key);
-      } else {
-        prefs.setString(key, normalized);
-      }
-    },
+    customRead: (prefs, key, def) => _readSecureApiKey(prefs, key, def),
+    customWrite: _writeSecureApiKey,
   );
 
   late final _doubaoApiKeyProperty = SettingProperty<String>(
@@ -876,14 +886,8 @@ class SettingsService extends ChangeNotifier {
     defaultValue: '',
     prefs: _prefs,
     onChanged: notifyListeners,
-    customWrite: (prefs, key, val) {
-      final normalized = val.trim();
-      if (normalized.isEmpty) {
-        prefs.remove(key);
-      } else {
-        prefs.setString(key, normalized);
-      }
-    },
+    customRead: (prefs, key, def) => _readSecureApiKey(prefs, key, def),
+    customWrite: _writeSecureApiKey,
   );
 
   late final _deepseekApiKeyProperty = SettingProperty<String>(
@@ -891,14 +895,8 @@ class SettingsService extends ChangeNotifier {
     defaultValue: '',
     prefs: _prefs,
     onChanged: notifyListeners,
-    customWrite: (prefs, key, val) {
-      final normalized = val.trim();
-      if (normalized.isEmpty) {
-        prefs.remove(key);
-      } else {
-        prefs.setString(key, normalized);
-      }
-    },
+    customRead: (prefs, key, def) => _readSecureApiKey(prefs, key, def),
+    customWrite: _writeSecureApiKey,
   );
 
   late final _customProviderApiKeyProperty = SettingProperty<String>(
@@ -906,14 +904,8 @@ class SettingsService extends ChangeNotifier {
     defaultValue: '',
     prefs: _prefs,
     onChanged: notifyListeners,
-    customWrite: (prefs, key, val) {
-      final normalized = val.trim();
-      if (normalized.isEmpty) {
-        prefs.remove(key);
-      } else {
-        prefs.setString(key, normalized);
-      }
-    },
+    customRead: (prefs, key, def) => _readSecureApiKey(prefs, key, def),
+    customWrite: _writeSecureApiKey,
   );
 
   late final _customProviderBaseUrlProperty = SettingProperty<String>(
@@ -1158,10 +1150,7 @@ class SettingsService extends ChangeNotifier {
     customWrite: (prefs, key, val) {
       prefs.setDouble(
         key,
-        val.clamp(
-          minWaveformLongPressSeekSpeed,
-          maxWaveformLongPressSeekSpeed,
-        ),
+        val.clamp(minWaveformLongPressSeekSpeed, maxWaveformLongPressSeekSpeed),
       );
     },
   );
@@ -1335,12 +1324,52 @@ class SettingsService extends ChangeNotifier {
     return emptyUsesDefault ? defaultValue : '';
   }
 
-  SettingsService(this._prefs)
-    : _shortcutBindings = _loadShortcutBindings(_prefs) {
+  String _readSecureApiKey(
+    SharedPreferences prefs,
+    String key,
+    String defaultValue,
+  ) {
+    return _secureApiKeys[key] ?? prefs.getString(key) ?? defaultValue;
+  }
+
+  void _writeSecureApiKey(SharedPreferences prefs, String key, String value) {
+    final normalized = value.trim();
+    if (_secureStorage == null) {
+      if (normalized.isEmpty) {
+        unawaited(prefs.remove(key));
+      } else {
+        unawaited(prefs.setString(key, normalized));
+      }
+      return;
+    }
+
+    if (normalized.isEmpty) {
+      _secureApiKeys.remove(key);
+      unawaited(_secureStorage.delete(key: key).catchError((_) {}));
+    } else {
+      _secureApiKeys[key] = normalized;
+      unawaited(
+        _secureStorage.write(key: key, value: normalized).catchError((_) {}),
+      );
+    }
+    unawaited(prefs.remove(key));
+  }
+
+  SettingsService(
+    this._prefs, {
+    FlutterSecureStorage? secureStorage,
+    Map<String, String> secureApiKeys = const <String, String>{},
+  }) : _secureStorage = secureStorage,
+       _secureApiKeys = Map<String, String>.from(secureApiKeys),
+       _shortcutBindings = _loadShortcutBindings(_prefs) {
     _lastKnownCustomProviderName =
         _prefs.getString(customProviderNameStorageKey)?.trim() ?? '';
-    LocalizedText.overrideLanguageCode = _prefs.getString(_keyLocale) ?? 'system';
+    LocalizedText.overrideLanguageCode =
+        _prefs.getString(_keyLocale) ?? 'system';
   }
+
+  final FlutterSecureStorage? _secureStorage;
+  final Map<String, String> _secureApiKeys;
 
   bool get hasShownOnboarding => _hasShownOnboardingProperty.value;
   set hasShownOnboarding(bool value) =>
@@ -1439,13 +1468,13 @@ class SettingsService extends ChangeNotifier {
   set defaultToLyricsModeOnPlaybackOpen(bool value) =>
       _defaultToLyricsModeOnPlaybackOpenProperty.value = value;
 
-  bool get windowsAutoRepairShortcut => _windowsAutoRepairShortcutProperty.value;
+  bool get windowsAutoRepairShortcut =>
+      _windowsAutoRepairShortcutProperty.value;
   set windowsAutoRepairShortcut(bool value) =>
       _windowsAutoRepairShortcutProperty.value = value;
 
   bool get enableSystemTray => _enableSystemTrayProperty.value;
-  set enableSystemTray(bool value) =>
-      _enableSystemTrayProperty.value = value;
+  set enableSystemTray(bool value) => _enableSystemTrayProperty.value = value;
 
   CloseWindowAction get closeWindowAction => _closeWindowActionProperty.value;
   set closeWindowAction(CloseWindowAction value) {
@@ -1455,7 +1484,9 @@ class SettingsService extends ChangeNotifier {
 
   bool get closeToTray => closeWindowAction == CloseWindowAction.minimize;
   set closeToTray(bool value) {
-    closeWindowAction = value ? CloseWindowAction.minimize : CloseWindowAction.exit;
+    closeWindowAction = value
+        ? CloseWindowAction.minimize
+        : CloseWindowAction.exit;
   }
 
   int get sampleStride => _sampleStrideProperty.value;
@@ -1488,7 +1519,6 @@ class SettingsService extends ChangeNotifier {
     return LanguageCodeUtils.currentAppLanguageCode();
   }
 
-
   LyricsSaveMethod get lyricsSaveMethod {
     return LyricsSaveMethod.values.firstWhere(
       (method) => method.name == _lyricsSaveMethodProperty.value,
@@ -1514,11 +1544,14 @@ class SettingsService extends ChangeNotifier {
   double get lyricsFontScale => lyricsFontScaleTraditional;
   set lyricsFontScale(double value) => lyricsFontScaleTraditional = value;
 
-  double get lyricsFontScaleTraditional => _lyricsFontScaleTraditionalProperty.value;
-  set lyricsFontScaleTraditional(double value) => _lyricsFontScaleTraditionalProperty.value = value;
+  double get lyricsFontScaleTraditional =>
+      _lyricsFontScaleTraditionalProperty.value;
+  set lyricsFontScaleTraditional(double value) =>
+      _lyricsFontScaleTraditionalProperty.value = value;
 
   double get lyricsFontScaleApple => _lyricsFontScaleAppleProperty.value;
-  set lyricsFontScaleApple(double value) => _lyricsFontScaleAppleProperty.value = value;
+  set lyricsFontScaleApple(double value) =>
+      _lyricsFontScaleAppleProperty.value = value;
 
   LyricsAiProvider get lyricsAiProvider => generationPrimaryModel.provider;
   set lyricsAiProvider(LyricsAiProvider value) {
@@ -1698,15 +1731,12 @@ class SettingsService extends ChangeNotifier {
     }
   }
 
-  bool get hasCustomGoogleAiStudioApiKey =>
-      _prefs.containsKey(geminiApiKeyStorageKey);
-  bool get hasCustomOpenRouterApiKey =>
-      _prefs.containsKey(openRouterApiKeyStorageKey);
-  bool get hasCustomDoubaoApiKey => _prefs.containsKey(doubaoApiKeyStorageKey);
-  bool get hasCustomDeepSeekApiKey =>
-      _prefs.containsKey(deepseekApiKeyStorageKey);
+  bool get hasCustomGoogleAiStudioApiKey => geminiApiKey.trim().isNotEmpty;
+  bool get hasCustomOpenRouterApiKey => openRouterApiKey.trim().isNotEmpty;
+  bool get hasCustomDoubaoApiKey => doubaoApiKey.trim().isNotEmpty;
+  bool get hasCustomDeepSeekApiKey => deepseekApiKey.trim().isNotEmpty;
   bool get hasCustomProviderConfigured =>
-      _prefs.containsKey(customProviderApiKeyStorageKey);
+      customProviderApiKey.trim().isNotEmpty;
   bool get hasBothLyricsGenerationApiKeys =>
       geminiApiKey.trim().isNotEmpty &&
       openRouterApiKey.trim().isNotEmpty &&
@@ -1937,14 +1967,12 @@ class SettingsService extends ChangeNotifier {
   set enableWaveformLongPressSeek(bool value) =>
       _enableWaveformLongPressSeekProperty.value = value;
 
-  bool get playbackSpeedLimit5x =>
-      _playbackSpeedLimit5xProperty.value;
+  bool get playbackSpeedLimit5x => _playbackSpeedLimit5xProperty.value;
   set playbackSpeedLimit5x(bool value) =>
       _playbackSpeedLimit5xProperty.value = value;
 
   bool get enableFadeEffect => _enableFadeEffectProperty.value;
-  set enableFadeEffect(bool value) =>
-      _enableFadeEffectProperty.value = value;
+  set enableFadeEffect(bool value) => _enableFadeEffectProperty.value = value;
 
   int get equalizerBandCount => _equalizerBandCountProperty.value;
   set equalizerBandCount(int value) =>
@@ -2009,7 +2037,8 @@ class SettingsService extends ChangeNotifier {
   }
 
   FolderViewMode get folderViewMode => _folderViewModeProperty.value;
-  set folderViewMode(FolderViewMode value) => _folderViewModeProperty.value = value;
+  set folderViewMode(FolderViewMode value) =>
+      _folderViewModeProperty.value = value;
 
   SharedPreferences get prefs => _prefs;
 
@@ -2255,7 +2284,35 @@ class SettingsService extends ChangeNotifier {
 
   static Future<SettingsService> init() async {
     final prefs = await SharedPreferences.getInstance();
-    return SettingsService(prefs);
+    const secureStorage = FlutterSecureStorage();
+    final secureApiKeys = <String, String>{};
+    for (final key in _apiKeyStorageKeys) {
+      try {
+        final secureValue = (await secureStorage.read(key: key))?.trim();
+        final legacyValue = prefs.getString(key)?.trim();
+        if (secureValue != null && secureValue.isNotEmpty) {
+          secureApiKeys[key] = secureValue;
+        } else if (legacyValue != null && legacyValue.isNotEmpty) {
+          secureApiKeys[key] = legacyValue;
+          try {
+            await secureStorage.write(key: key, value: legacyValue);
+          } catch (_) {}
+        }
+        if (legacyValue != null) {
+          await prefs.remove(key);
+        }
+      } catch (_) {
+        final legacyValue = prefs.getString(key)?.trim();
+        if (legacyValue != null && legacyValue.isNotEmpty) {
+          secureApiKeys[key] = legacyValue;
+        }
+      }
+    }
+    return SettingsService(
+      prefs,
+      secureStorage: secureStorage,
+      secureApiKeys: secureApiKeys,
+    );
   }
 
   static double _normalizeLyricsFontScale(double value) {
@@ -2319,9 +2376,9 @@ class SettingsService extends ChangeNotifier {
       smallWindowBottomPanelMode != SmallWindowBottomPanelMode.collapsed;
 
   Size get savedRegularWindowSize => Size(
-        _regularWindowWidthProperty.value.clamp(400.0, 99999.0),
-        _regularWindowHeightProperty.value.clamp(650.0, 99999.0),
-      );
+    _regularWindowWidthProperty.value.clamp(400.0, 99999.0),
+    _regularWindowHeightProperty.value.clamp(650.0, 99999.0),
+  );
 
   set savedRegularWindowSize(Size size) {
     _regularWindowWidthProperty.value = size.width.clamp(400.0, 99999.0);

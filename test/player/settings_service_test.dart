@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 
@@ -202,6 +203,54 @@ void main() {
             reason: 'Should default to true on $platform');
       }
       debugDefaultTargetPlatformOverride = null;
+    });
+  });
+
+  group('SettingsService - Secure API Key Storage & Migration', () {
+    test('migrates legacy SharedPreferences API keys to secure storage on init', () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({
+        'gemini_api_key': 'legacy-gemini-key',
+        'openrouter_api_key': 'legacy-openrouter-key',
+      });
+
+      final settings = await SettingsService.init();
+
+      expect(settings.geminiApiKey, 'legacy-gemini-key');
+      expect(settings.openRouterApiKey, 'legacy-openrouter-key');
+      expect(settings.hasCustomGoogleAiStudioApiKey, isTrue);
+      expect(settings.hasCustomOpenRouterApiKey, isTrue);
+
+      // Verify that legacy keys are removed from SharedPreferences
+      expect(settings.prefs.containsKey('gemini_api_key'), isFalse);
+      expect(settings.prefs.containsKey('openrouter_api_key'), isFalse);
+
+      // Verify secure storage contains the values
+      const secureStorage = FlutterSecureStorage();
+      expect(await secureStorage.read(key: 'gemini_api_key'), 'legacy-gemini-key');
+      expect(await secureStorage.read(key: 'openrouter_api_key'), 'legacy-openrouter-key');
+    });
+
+    test('updating and clearing API keys updates secure storage', () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
+
+      final settings = await SettingsService.init();
+
+      expect(settings.doubaoApiKey, '');
+      expect(settings.hasCustomDoubaoApiKey, isFalse);
+
+      settings.doubaoApiKey = 'new-doubao-key';
+      expect(settings.doubaoApiKey, 'new-doubao-key');
+      expect(settings.hasCustomDoubaoApiKey, isTrue);
+
+      const secureStorage = FlutterSecureStorage();
+      expect(await secureStorage.read(key: 'doubao_api_key'), 'new-doubao-key');
+
+      settings.doubaoApiKey = '';
+      expect(settings.doubaoApiKey, '');
+      expect(settings.hasCustomDoubaoApiKey, isFalse);
+      expect(await secureStorage.read(key: 'doubao_api_key'), isNull);
     });
   });
 }
