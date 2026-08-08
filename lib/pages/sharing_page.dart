@@ -651,7 +651,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                           children: [
                             Expanded(
                               child: Text(
-                                'http://${serverState.localIp}:${serverState.httpPort}/',
+                                'http://${formatHostForUrl(serverState.localIp ?? '')}:${serverState.httpPort}/',
                                 style: TextStyle(
                                   color: theme.colorScheme.primary,
                                   fontSize: 14,
@@ -666,7 +666,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                                 Clipboard.setData(
                                   ClipboardData(
                                     text:
-                                        'http://${serverState.localIp}:${serverState.httpPort}/',
+                                        'http://${formatHostForUrl(serverState.localIp ?? '')}:${serverState.httpPort}/',
                                   ),
                                 );
                                 showToast(l10n.linkCopiedToClipboard);

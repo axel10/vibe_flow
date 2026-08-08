@@ -21,6 +21,16 @@ import 'web_share_html.dart';
 import 'package:vynody/main.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
 
+/// Formats an IP address or hostname for use in HTTP URLs.
+/// If [host] is an IPv6 address containing colons and not already enclosed in brackets,
+/// it will be returned enclosed in brackets, e.g. `[fe80::1]`.
+String formatHostForUrl(String host) {
+  if (host.contains(':') && !host.startsWith('[')) {
+    return '[$host]';
+  }
+  return host;
+}
+
 // Riverpod states for UI communication
 class IncomingRequestNotifier extends Notifier<IncomingTransferRequest?> {
   @override
@@ -453,7 +463,7 @@ class SharingService {
     // 1. Resolve Local IP
     _localIp = await _getLocalIpAddress();
     if (_localIp == null) {
-      debugPrint('[SharingService] No valid IPv4 local address found.');
+      debugPrint('[SharingService] No valid local IPv4/IPv6 address found.');
       return false;
     }
 
@@ -461,13 +471,27 @@ class SharingService {
     int port = 53536;
     while (_httpServer == null && port < 53600) {
       try {
-        _httpServer = await HttpServer.bind(InternetAddress.anyIPv4, port);
+        // Try IPv6 dual-stack binding (v6Only: false allows accepting both IPv4 & IPv6 requests)
+        _httpServer = await HttpServer.bind(
+          InternetAddress.anyIPv6,
+          port,
+          v6Only: false,
+        );
         _httpPort = port;
         debugPrint(
-          '[SharingService] HTTP Server running on $_localIp:$_httpPort',
+          '[SharingService] Dual-stack HTTP Server running on $_localIp:$_httpPort',
         );
       } catch (e) {
-        port++;
+        try {
+          // Fallback to IPv4-only binding if IPv6 dual-stack fails on this system
+          _httpServer = await HttpServer.bind(InternetAddress.anyIPv4, port);
+          _httpPort = port;
+          debugPrint(
+            '[SharingService] IPv4-only HTTP Server running on $_localIp:$_httpPort',
+          );
+        } catch (e2) {
+          port++;
+        }
       }
     }
 
@@ -532,11 +556,22 @@ class SharingService {
           final httpPort = resolvedService.port;
 
           String? resolvedIp;
+          // First pass: prefer IPv4 for highest network compatibility
           for (final addressStr in resolvedService.hostAddresses) {
             final addr = InternetAddress.tryParse(addressStr);
             if (addr != null && addr.type == InternetAddressType.IPv4) {
               resolvedIp = addressStr;
               break;
+            }
+          }
+          // Second pass: if no IPv4 address found, use IPv6 address
+          if (resolvedIp == null) {
+            for (final addressStr in resolvedService.hostAddresses) {
+              final addr = InternetAddress.tryParse(addressStr);
+              if (addr != null && addr.type == InternetAddressType.IPv6) {
+                resolvedIp = addressStr;
+                break;
+              }
             }
           }
 
@@ -611,7 +646,7 @@ class SharingService {
   Future<bool> checkLocalNetworkPermission() async {
     final ip = await _getLocalIpAddress();
     if (ip == null) {
-      debugPrint('[SharingService] No valid local IPv4 address found during permission check.');
+      debugPrint('[SharingService] No valid local IP address found during permission check.');
       return false;
     }
 
@@ -623,8 +658,14 @@ class SharingService {
         socket.send(Uint8List(0), InternetAddress('224.0.0.251'), 5353);
         socket.close();
       } catch (e) {
-        debugPrint('[SharingService] Socket binding/multicast failed: $e');
-        return false;
+        try {
+          final socketV6 = await RawDatagramSocket.bind(InternetAddress.anyIPv6, 0);
+          socketV6.send(Uint8List(0), InternetAddress('ff02::fb'), 5353);
+          socketV6.close();
+        } catch (eV6) {
+          debugPrint('[SharingService] Socket binding/multicast failed: $e, v6: $eV6');
+          return false;
+        }
       }
     }
     return true;
@@ -633,7 +674,7 @@ class SharingService {
   Future<String?> _getLocalIpAddress() async {
     try {
       final interfaces = await NetworkInterface.list(
-        type: InternetAddressType.IPv4,
+        type: InternetAddressType.any,
       );
 
       // Filter out unwanted interfaces (cellular, virtual, VPN, loopback, AWDL)
@@ -691,18 +732,37 @@ class SharingService {
         return 0;
       });
 
+      // 1. First pass: look for IPv4 non-loopback address across sorted filtered interfaces
       for (final interface in filteredInterfaces) {
         for (final addr in interface.addresses) {
-          if (!addr.isLoopback) {
+          if (!addr.isLoopback && addr.type == InternetAddressType.IPv4) {
             return addr.address;
           }
         }
       }
 
-      // Fallback
+      // 2. Second pass: look for IPv6 non-loopback address across sorted filtered interfaces
+      for (final interface in filteredInterfaces) {
+        for (final addr in interface.addresses) {
+          if (!addr.isLoopback && addr.type == InternetAddressType.IPv6) {
+            return addr.address;
+          }
+        }
+      }
+
+      // Fallback: IPv4
       for (final interface in interfaces) {
         for (final addr in interface.addresses) {
-          if (!addr.isLoopback) {
+          if (!addr.isLoopback && addr.type == InternetAddressType.IPv4) {
+            return addr.address;
+          }
+        }
+      }
+
+      // Fallback: IPv6
+      for (final interface in interfaces) {
+        for (final addr in interface.addresses) {
+          if (!addr.isLoopback && addr.type == InternetAddressType.IPv6) {
             return addr.address;
           }
         }
@@ -1572,8 +1632,9 @@ class SharingService {
 
     try {
       // 1. Post Preflight Request
+      final formattedHost = formatHostForUrl(targetDevice.ip);
       final requestUri = Uri.parse(
-        'http://${targetDevice.ip}:${targetDevice.httpPort}/api/transfer/request',
+        'http://$formattedHost:${targetDevice.httpPort}/api/transfer/request',
       );
       debugPrint('[SharingService] Sending preflight request to: $requestUri');
       final request = await client.postUrl(requestUri);
@@ -1663,8 +1724,9 @@ class SharingService {
             return;
           }
 
+          final formattedHost = formatHostForUrl(targetDevice.ip);
           final uploadUri = Uri.parse(
-            'http://${targetDevice.ip}:${targetDevice.httpPort}/api/transfer/upload',
+            'http://$formattedHost:${targetDevice.httpPort}/api/transfer/upload',
           );
           debugPrint(
             '[SharingService] Worker: Starting upload of "${fileInfo.relativeName}" '
@@ -2022,8 +2084,9 @@ class SharingService {
     final client = HttpClient();
     client.connectionTimeout = const Duration(seconds: 5);
     try {
+      final formattedHost = formatHostForUrl(targetDevice.ip);
       final uri = Uri.parse(
-        'http://${targetDevice.ip}:${targetDevice.httpPort}/api/lyrics/import',
+        'http://$formattedHost:${targetDevice.httpPort}/api/lyrics/import',
       );
       final request = await client.postUrl(uri);
       request.headers.contentType = ContentType.json;
@@ -2050,8 +2113,9 @@ class SharingService {
     final client = HttpClient();
     client.connectionTimeout = const Duration(seconds: 5);
     try {
+      final formattedHost = formatHostForUrl(targetDevice.ip);
       final uri = Uri.parse(
-        'http://${targetDevice.ip}:${targetDevice.httpPort}/api/lyrics/export',
+        'http://$formattedHost:${targetDevice.httpPort}/api/lyrics/export',
       );
       final request = await client.getUrl(uri);
       final response = await request.close();
