@@ -10,7 +10,6 @@ import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/widgets/lyrics_panel.dart';
 import 'package:vynody/widgets/playback_ui_tuning.dart';
 
-import 'playback/playback_progress_section.dart';
 import 'playback/playback_track_info.dart';
 import 'playback/playback_controls.dart';
 import 'playback/playback_album_art.dart';
@@ -500,51 +499,61 @@ class PlaybackHeroCard extends ConsumerWidget {
                           offset: optimize
                               ? Offset(infoTranslationX, infoTranslationY)
                               : Offset.zero,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: optimize
-                                ? Alignment.lerp(
-                                    Alignment.center,
-                                    Alignment.lerp(
-                                      Alignment.center,
-                                      Alignment.centerLeft,
-                                      targetTLyrics,
-                                    )!,
-                                    tLand,
-                                  )!
-                                : Alignment.lerp(
-                                    Alignment.center,
-                                    Alignment.lerp(
-                                      Alignment.center,
-                                      Alignment.centerLeft,
-                                      tLyrics,
-                                    )!,
-                                    tLand,
-                                  )!,
-                            child: SizedBox(
-                              width: optimize
-                                  ? targetLayout.info.width
-                                  : layout.info.width,
-                              child: PlaybackTrackInfo(
-                                currentMusic: currentMusic,
-                                align: optimize
-                                    ? targetLayout.trackInfoAlign
-                                    : layout.trackInfoAlign,
-                                lyricsModeT: optimize ? targetTLyrics : tLyrics,
-                                landscapeT: tLand,
-                                controlsScale: optimize
-                                    ? targetLayout.controlsScale
-                                    : layout.controlsScale,
-                                showVisualizerToggle: showVisualizerToggle,
-                                onShowMoreMenu: onShowMoreMenu,
-                                onCyclePlaylistMode: onCyclePlaylistMode,
-                                onToggleVisualizer: onToggleVisualizer,
-                                onTagCompletionTap: onTagCompletionTap,
-                                onSleepTimerTap: onSleepTimerTap,
-                                onEqualizerTap: onEqualizerTap,
-                                onVolumeTap: onVolumeTap,
-                              ),
-                            ),
+                          child: Builder(
+                            builder: (context) {
+                              final Alignment targetInfoAlignment =
+                                  (collapseButtonsInLandscapeLyrics ||
+                                          !effectiveIsLandscape)
+                                      ? Alignment.centerLeft
+                                      : Alignment.center;
+                              return FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: optimize
+                                    ? Alignment.lerp(
+                                        Alignment.center,
+                                        Alignment.lerp(
+                                          Alignment.center,
+                                          targetInfoAlignment,
+                                          targetTLyrics,
+                                        )!,
+                                        tLand,
+                                      )!
+                                    : Alignment.lerp(
+                                        Alignment.center,
+                                        Alignment.lerp(
+                                          Alignment.center,
+                                          targetInfoAlignment,
+                                          tLyrics,
+                                        )!,
+                                        tLand,
+                                      )!,
+                                child: SizedBox(
+                                  width: optimize
+                                      ? targetLayout.info.width
+                                      : layout.info.width,
+                                  child: PlaybackTrackInfo(
+                                    currentMusic: currentMusic,
+                                    align: optimize
+                                        ? targetLayout.trackInfoAlign
+                                        : layout.trackInfoAlign,
+                                    lyricsModeT:
+                                        optimize ? targetTLyrics : tLyrics,
+                                    landscapeT: tLand,
+                                    controlsScale: optimize
+                                        ? targetLayout.controlsScale
+                                        : layout.controlsScale,
+                                    showVisualizerToggle: showVisualizerToggle,
+                                    onShowMoreMenu: onShowMoreMenu,
+                                    onCyclePlaylistMode: onCyclePlaylistMode,
+                                    onToggleVisualizer: onToggleVisualizer,
+                                    onTagCompletionTap: onTagCompletionTap,
+                                    onSleepTimerTap: onSleepTimerTap,
+                                    onEqualizerTap: onEqualizerTap,
+                                    onVolumeTap: onVolumeTap,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
