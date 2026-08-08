@@ -1046,12 +1046,39 @@ class SharingService {
     // Always normalize relativePath to forward slashes for cross-platform compatibility
     relativePath = relativePath.replaceAll('\\', '/');
 
-    // Build targetPath using path segments to safely construct nested directories across OS platforms
+    // Build targetPath using sanitized path segments to prevent path traversal
     final pathSegments = relativePath
         .split('/')
-        .where((s) => s.isNotEmpty)
+        .where((s) => s.isNotEmpty && s != '.' && s != '..')
+        .map((s) => s.replaceAll(RegExp(r'[:*?"<>|]'), '_'))
         .toList();
-    String targetPath = p.joinAll([_sharingFolderPath, ...pathSegments]);
+
+    if (pathSegments.isEmpty) {
+      request.response.statusCode = HttpStatus.badRequest;
+      request.response.write(jsonEncode({'error': 'Invalid file name'}));
+      await request.response.close();
+      return;
+    }
+
+    String targetPath = p.normalize(p.joinAll([_sharingFolderPath, ...pathSegments]));
+
+    // Security boundary check: Ensure targetPath is strictly within _sharingFolderPath
+    final canonicalSharingDir = p.canonicalize(_sharingFolderPath);
+    final canonicalTargetPath = p.canonicalize(targetPath);
+
+    if (!p.isWithin(canonicalSharingDir, canonicalTargetPath) &&
+        !p.equals(canonicalSharingDir, canonicalTargetPath)) {
+      debugPrint(
+        '[SharingService] Receiver: Path traversal blocked for $relativePath -> $targetPath',
+      );
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.write(
+        jsonEncode({'error': 'Access denied: Path outside sharing directory'}),
+      );
+      await request.response.close();
+      return;
+    }
+
     debugPrint(
       '[SharingService] Receiver: Incoming file upload request for $relativePath -> $targetPath',
     );
