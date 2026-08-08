@@ -771,10 +771,13 @@ class SharingService {
 
   String _deriveSessionName(List<TransferFileItem> files) {
     if (files.isEmpty) return '未命名传输';
-    if (files.length == 1) return files[0].name;
+    if (files.length == 1) {
+      final name = files[0].name.replaceAll('\\', '/');
+      return p.basename(name);
+    }
 
-    final firstPath = files[0].name;
-    final parts = p.split(firstPath);
+    final firstPath = files[0].name.replaceAll('\\', '/');
+    final parts = firstPath.split('/').where((s) => s.isNotEmpty).toList();
     if (parts.length > 1) {
       return parts[0];
     }
@@ -945,16 +948,18 @@ class SharingService {
       } catch (_) {}
     }
 
+    // Always normalize relativePath to forward slashes for cross-platform compatibility
+    relativePath = relativePath.replaceAll('\\', '/');
 
-
-    // Resolve target path (which may contain relative subfolders)
-    String targetPath = p.join(_sharingFolderPath, relativePath);
-    debugPrint('[SharingService] Receiver: Incoming file upload request for $relativePath');
+    // Build targetPath using path segments to safely construct nested directories across OS platforms
+    final pathSegments = relativePath.split('/').where((s) => s.isNotEmpty).toList();
+    String targetPath = p.joinAll([_sharingFolderPath, ...pathSegments]);
+    debugPrint('[SharingService] Receiver: Incoming file upload request for $relativePath -> $targetPath');
 
     final fileItem = metadata.files.firstWhere(
-      (f) => f.name == relativePath,
+      (f) => f.name.replaceAll('\\', '/') == relativePath,
       orElse: () => metadata.files.firstWhere(
-        (f) => p.basename(f.name) == p.basename(relativePath),
+        (f) => p.basename(f.name.replaceAll('\\', '/')) == p.basename(relativePath),
         orElse: () => TransferFileItem(name: '', size: 0, durationMs: 0),
       ),
     );
@@ -1039,15 +1044,20 @@ class SharingService {
     }
 
     if (fileExists && !shouldSkip && !shouldOverwrite) {
-      final extension = p.extension(relativePath);
-      final dirName = p.dirname(relativePath);
-      final baseName = p.basenameWithoutExtension(relativePath);
+      final lastSlashIndex = relativePath.lastIndexOf('/');
+      final dirName = lastSlashIndex != -1 ? relativePath.substring(0, lastSlashIndex) : '';
+      final fileNameOnly = lastSlashIndex != -1 ? relativePath.substring(lastSlashIndex + 1) : relativePath;
+
+      final extension = p.extension(fileNameOnly);
+      final baseName = p.basenameWithoutExtension(fileNameOnly);
       int counter = 1;
       while (true) {
-        final newRelative = dirName == '.'
+        final newRelative = dirName.isEmpty
             ? '$baseName ($counter)$extension'
-            : p.join(dirName, '$baseName ($counter)$extension');
-        targetPath = p.join(_sharingFolderPath, newRelative);
+            : '$dirName/$baseName ($counter)$extension';
+        
+        final newSegments = newRelative.split('/').where((s) => s.isNotEmpty).toList();
+        targetPath = p.joinAll([_sharingFolderPath, ...newSegments]);
         
         bool currentExists = false;
         if (useSaf && treeUri != null) {
@@ -1075,7 +1085,7 @@ class SharingService {
         metadata.completedFiles.add(relativePath);
 
         // Check if all files in the metadata session are completed
-        final allFiles = metadata.files.map((f) => f.name).toSet();
+        final allFiles = metadata.files.map((f) => f.name.replaceAll('\\', '/')).toSet();
         final isFinished =
             metadata.completedFiles.containsAll(allFiles) ||
             metadata.completedFiles.length >= metadata.files.length;
@@ -1130,8 +1140,8 @@ class SharingService {
     final targetFile = useSaf ? tempFile : File(targetPath);
 
     if (!useSaf) {
-      // Ensure parent directories exist for normal file writes
-      final parentDir = targetFile.parent;
+      // Ensure parent directories exist for normal file writes across all platforms
+      final parentDir = Directory(p.dirname(targetPath));
       if (!parentDir.existsSync()) {
         parentDir.createSync(recursive: true);
       }
@@ -1235,9 +1245,9 @@ class SharingService {
       // Save lyrics package if available
       try {
         final fileItem = metadata.files.firstWhere(
-          (f) => f.name == relativePath,
+          (f) => f.name.replaceAll('\\', '/') == relativePath,
           orElse: () => metadata.files.firstWhere(
-            (f) => p.basename(f.name) == p.basename(relativePath),
+            (f) => p.basename(f.name.replaceAll('\\', '/')) == p.basename(relativePath),
             orElse: () => TransferFileItem(name: '', size: 0, durationMs: 0),
           ),
         );
@@ -1265,7 +1275,7 @@ class SharingService {
       metadata.completedFiles.add(relativePath);
 
       // Check if all files in the metadata session are completed
-      final allFiles = metadata.files.map((f) => f.name).toSet();
+      final allFiles = metadata.files.map((f) => f.name.replaceAll('\\', '/')).toSet();
       final isFinished =
           metadata.completedFiles.containsAll(allFiles) ||
           metadata.completedFiles.length >= metadata.files.length;
@@ -1423,6 +1433,7 @@ class SharingService {
       if (baseSourcePath != null) {
         relativeName = p.relative(path, from: baseSourcePath);
       }
+      relativeName = relativeName.replaceAll('\\', '/');
 
       Map<String, dynamic>? lyricsPackage;
       SongMetadata? song;
@@ -1496,6 +1507,7 @@ class SharingService {
           if (baseSourcePath != null) {
             lrcRelativeName = p.relative(lrcFile.path, from: baseSourcePath);
           }
+          lrcRelativeName = lrcRelativeName.replaceAll('\\', '/');
 
           filesPayload.add({
             'name': lrcRelativeName,
@@ -1525,8 +1537,8 @@ class SharingService {
     if (filesToSend.isEmpty) return false;
 
     // Derive display name for progress dialog
-    final firstRelPath = filesToSend[0].relativeName;
-    final parts = p.split(firstRelPath);
+    final firstRelPath = filesToSend[0].relativeName.replaceAll('\\', '/');
+    final parts = firstRelPath.split('/').where((s) => s.isNotEmpty).toList();
     final sessionName = parts.length > 1
         ? parts[0]
         : p.basename(filesToSend[0].path);
