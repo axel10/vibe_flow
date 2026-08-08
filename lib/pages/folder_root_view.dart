@@ -16,6 +16,7 @@ import '../widgets/song_thumbnail.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/folder_helpers.dart';
+import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_content_slivers.dart';
 import '../widgets/folder_layout_utils.dart';
 
@@ -588,170 +589,14 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   }
 
   Widget _buildRootTopHeader(BuildContext context, {bool isOverlay = true}) {
-    final settings = ref.watch(settingsServiceProvider);
-    final l10n = AppLocalizations.of(context)!;
-    final currentMusic = ref.watch(audioCurrentMusicProvider);
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-    final statusBarHeight = MediaQuery.of(context).padding.top;
-    final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
-    final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0);
-    final isRootSelectionMode = ref.watch(librarySelectionScopeProvider) == LibrarySelectionScope.folderRoot;
+    final isRootSelectionMode =
+        ref.watch(librarySelectionScopeProvider) == LibrarySelectionScope.folderRoot;
 
-    final iconColor = isOverlay ? Colors.white : Theme.of(context).colorScheme.onSurface;
-    final textColor = isOverlay ? Colors.white : Theme.of(context).colorScheme.onSurface;
-    final shadows = isOverlay
-        ? const [Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87)]
-        : null;
-
-    return Container(
-      padding: EdgeInsets.only(
-        top: topPadding,
-        bottom: 8,
-        left: isOverlay ? 0 : 16,
-        right: isOverlay ? 0 : 16,
-      ),
-      child: Row(
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.home_rounded,
-                    size: 20,
-                    color: iconColor,
-                    shadows: shadows,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    l10n.scanDirectory,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                      shadows: shadows,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          if (isPortrait)
-            PopupMenuButton<String>(
-              icon: Icon(
-                Icons.more_vert_rounded,
-                color: iconColor,
-                shadows: shadows,
-              ),
-              onSelected: (value) {
-                if (value == 'locate') {
-                  widget.onLocateCurrentSong();
-                } else if (value == 'sort') {
-                  widget.onToggleRootSelectionMode();
-                } else if (value == 'view_mode') {
-                  settings.folderViewMode = switch (settings.folderViewMode) {
-                    FolderViewMode.list => FolderViewMode.hybrid,
-                    FolderViewMode.hybrid => FolderViewMode.grid,
-                    FolderViewMode.grid => FolderViewMode.list,
-                  };
-                }
-              },
-              itemBuilder: (context) => [
-                if (currentMusic != null)
-                  PopupMenuItem(
-                    value: 'locate',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.my_location_rounded, size: 20),
-                        const SizedBox(width: 12),
-                        Text(l10n.locateCurrentSong),
-                      ],
-                    ),
-                  ),
-                PopupMenuItem(
-                  value: 'sort',
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.sort,
-                        size: 20,
-                        color: isRootSelectionMode ? Theme.of(context).colorScheme.primary : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(l10n.sort),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'view_mode',
-                  child: Row(
-                    children: [
-                      Icon(
-                        switch (settings.folderViewMode) {
-                          FolderViewMode.list => Icons.grid_view_rounded,
-                          FolderViewMode.hybrid => Icons.view_module_rounded,
-                          FolderViewMode.grid => Icons.view_list_rounded,
-                        },
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        switch (settings.folderViewMode) {
-                          FolderViewMode.list => l10n.hybridView,
-                          FolderViewMode.hybrid => l10n.gridView,
-                          FolderViewMode.grid => l10n.listView,
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            )
-          else ...[
-            if (currentMusic != null) ...[
-              IconButton(
-                icon: Icon(Icons.my_location_rounded, color: iconColor),
-                onPressed: widget.onLocateCurrentSong,
-                tooltip: l10n.locateCurrentSong,
-              ),
-            ],
-            IconButton(
-              icon: Icon(
-                switch (settings.folderViewMode) {
-                  FolderViewMode.list => Icons.grid_view_rounded,
-                  FolderViewMode.hybrid => Icons.view_module_rounded,
-                  FolderViewMode.grid => Icons.view_list_rounded,
-                },
-                color: iconColor,
-              ),
-              onPressed: () {
-                settings.folderViewMode = switch (settings.folderViewMode) {
-                  FolderViewMode.list => FolderViewMode.hybrid,
-                  FolderViewMode.hybrid => FolderViewMode.grid,
-                  FolderViewMode.grid => FolderViewMode.list,
-                };
-              },
-              tooltip: switch (settings.folderViewMode) {
-                FolderViewMode.list => l10n.hybridView,
-                FolderViewMode.hybrid => l10n.gridView,
-                FolderViewMode.grid => l10n.listView,
-              },
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.sort,
-                color: isRootSelectionMode ? Theme.of(context).colorScheme.primary : iconColor,
-              ),
-              onPressed: widget.onToggleRootSelectionMode,
-              tooltip: l10n.sort,
-            ),
-          ],
-        ],
-      ),
+    return FolderHeaderNavBar(
+      isOverlay: isOverlay,
+      onLocateCurrentSong: widget.onLocateCurrentSong,
+      onSortPressed: widget.onToggleRootSelectionMode,
+      isSortActive: isRootSelectionMode,
     );
   }
 }
