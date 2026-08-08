@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -202,8 +203,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                 final itemWidth = (constraints.maxWidth - 32 - (crossAxisCount - 1) * 16) / crossAxisCount;
                 final childAspectRatio = itemWidth / (itemWidth + textHeight);
 
+                final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
                 final bottomPadding = 120.0 + (isSelectionMode ? 220.0 : 0.0);
-                final bottomOffset = (currentMusic != null ? 140.0 : 40.0) + (isSelectionMode ? 220.0 : 0.0);
+                final bottomOffset = (currentMusic != null ? (isLandscape ? 96.0 : 140.0) : 40.0) + (isSelectionMode ? 220.0 : 0.0);
 
                 final toolbar = _AlbumsToolbar(
                   searchController: _searchController,
@@ -1354,9 +1356,13 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
         final stageWidth = constraints.maxWidth;
         final stageHeight = constraints.maxHeight;
 
-        final double availableHeight = (stageHeight - widget.bottomOffset).clamp(100.0, stageHeight);
+        final double minAvailable = math.min(100.0, math.max(0.0, stageHeight));
+        final double availableHeight = (stageHeight - widget.bottomOffset).clamp(minAvailable, math.max(minAvailable, stageHeight));
         final isWide = stageWidth >= 780;
-        final double coverSize = (isWide ? 260.0 : 200.0).clamp(140.0, availableHeight * 0.46);
+        final double maxCoverRatio = availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.38 : 0.44);
+        final double maxAllowedCover = math.max(60.0, availableHeight * maxCoverRatio);
+        final double minAllowedCover = math.min(110.0, maxAllowedCover);
+        final double coverSize = (isWide ? 260.0 : 200.0).clamp(minAllowedCover, maxAllowedCover);
 
         final double shuffleVal = _shuffleAnimController.value;
         double gatherFactor = 0.0;
@@ -1383,7 +1389,12 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
           return distB.compareTo(distA);
         });
 
-        final double stageCenterY = (availableHeight * 0.38).clamp(coverSize * 0.52, availableHeight * 0.48);
+        final double centerRatio = availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.36 : 0.38);
+        final double minY = coverSize * 0.52;
+        final double maxY = math.max(minY, availableHeight * 0.44);
+        final double stageCenterY = (availableHeight * centerRatio).clamp(minY, maxY);
+        final double infoBottomPadding = ((availableHeight - 300.0) / (600.0 - 300.0) * 52.0 + 8.0).clamp(8.0, 60.0);
+        final bool isCompactHeight = availableHeight < 420.0;
 
         return Focus(
           focusNode: _focusNode,
@@ -1584,7 +1595,7 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                   Positioned(
                     left: 24,
                     right: 24,
-                    bottom: widget.bottomOffset + 12.0,
+                    bottom: widget.bottomOffset + infoBottomPadding,
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 580),
@@ -1603,7 +1614,7 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: isCompactHeight ? 2 : 4),
                               Text(
                                 '${activeAlbum.artist}  ·  ${l10n.songCount(activeAlbum.trackCount)}',
                                 maxLines: 1,
@@ -1613,11 +1624,10 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              const SizedBox(height: 14),
-                              Wrap(
-                                spacing: 12,
-                                runSpacing: 8,
-                                alignment: WrapAlignment.center,
+                              SizedBox(height: isCompactHeight ? 8 : 14),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   FilledButton.icon(
                                     onPressed: () {
@@ -1633,6 +1643,7 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                     icon: const Icon(Icons.play_arrow_rounded),
                                     label: Text(l10n.playAll),
                                   ),
+                                  const SizedBox(width: 12),
                                   FilledButton.tonalIcon(
                                     onPressed: () {
                                       audio.playPlaylist(
@@ -1647,22 +1658,25 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                     icon: const Icon(Icons.shuffle_rounded),
                                     label: Text(l10n.shufflePlay),
                                   ),
-                                  OutlinedButton.icon(
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute<void>(
-                                          builder: (_) =>
-                                              AlbumDetailPage(album: activeAlbum),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.album_rounded),
-                                    label: Text(
-                                      Localizations.localeOf(context).languageCode == 'zh'
-                                          ? '查看详情'
-                                          : 'Details',
+                                  if (stageWidth >= 450) ...[
+                                    const SizedBox(width: 12),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute<void>(
+                                            builder: (_) =>
+                                                AlbumDetailPage(album: activeAlbum),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.album_rounded),
+                                      label: Text(
+                                        Localizations.localeOf(context).languageCode == 'zh'
+                                            ? '查看详情'
+                                            : 'Details',
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ],
