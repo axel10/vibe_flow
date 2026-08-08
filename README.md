@@ -120,7 +120,6 @@ Vynody includes built-in local area network sharing capabilities to transfer mus
 - Sends individual music files.
 - Sends entire music folders while preserving the relative folder structures.
 - Bi-directionally syncs lyric caches and translation caches between devices.
-- Provides a web-based portal accessible via any browser for uploading and downloading files.
 
 Perfect for syncing or migrating your local library between computers and mobile devices.
 
@@ -342,7 +341,6 @@ Vynody 内置局域网共享能力，可在同一网络下与其他设备交换�
 
 - UDP 广播发现局域网设备
 - 内置 HTTP 共享服务
-- 浏览器网页传输入口
 - 歌词缓存导入、导出与冲突处理
 
 ## 开发与运行

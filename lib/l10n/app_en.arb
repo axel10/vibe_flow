@@ -1046,8 +1046,6 @@
   },
   "receiveDirectoryUpdated": "Receive directory updated to: {path}",
   "receiveDirectoryTitle": "Receive Directory",
-  "webShareTitle": "Web Share",
-  "webShareDescription": "Other devices on the same LAN can open the link below in a browser to upload or download music directly.",
   "linkCopiedToClipboard": "Link copied to clipboard",
   "nearbyDevices": "Nearby Devices",
   "searchingDevices": "Searching for other devices on the LAN...",
@@ -1379,4 +1377,3 @@
   "btnVisualizer": "Visualizer",
   "btnVolume": "Volume"
 }
-

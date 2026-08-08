@@ -1038,8 +1038,6 @@
   },
   "receiveDirectoryUpdated": "Empfangsverzeichnis aktualisiert auf: {path}",
   "receiveDirectoryTitle": "Empfangsverzeichnis",
-  "webShareTitle": "Web-Freigabe",
-  "webShareDescription": "Andere Geräte im selben LAN können den Link öffnen, um Musik hoch- oder herunterzuladen.",
   "linkCopiedToClipboard": "Link in die Zwischenablage kopiert",
   "nearbyDevices": "Geräte in der Nähe",
   "searchingDevices": "Suche nach anderen Geräten im LAN...",

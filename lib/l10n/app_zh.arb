@@ -1512,8 +1512,6 @@
   },
   "receiveDirectoryUpdated": "接收目录已更新为: {path}",
   "receiveDirectoryTitle": "接收文件保存目录",
-  "webShareTitle": "浏览器网页传输 (Web Share)",
-  "webShareDescription": "同一局域网的手机/电脑可通过浏览器打开下方链接，直接向本设备上传或下载音乐：",
   "linkCopiedToClipboard": "链接已复制到剪贴板",
   "nearbyDevices": "附近的设备",
   "searchingDevices": "正在寻找局域网内其他设备...",
@@ -1827,4 +1825,3 @@
   "btnVisualizer": "律动/频谱",
   "btnVolume": "音量"
 }
-

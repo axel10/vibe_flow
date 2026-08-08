@@ -1038,8 +1038,6 @@
   },
   "receiveDirectoryUpdated": "Directorio de recepción actualizado a: {path}",
   "receiveDirectoryTitle": "Directorio de recepción de archivos",
-  "webShareTitle": "Transferencia web (Web Share)",
-  "webShareDescription": "Los dispositivos en la misma LAN pueden abrir el enlace en un navegador para subir o descargar música.",
   "linkCopiedToClipboard": "Enlace copiado al portapapeles",
   "nearbyDevices": "Dispositivos cercanos",
   "searchingDevices": "Buscando otros dispositivos en la LAN...",

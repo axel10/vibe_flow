@@ -1038,8 +1038,6 @@
   },
   "receiveDirectoryUpdated": "Répertoire de réception mis à jour : {path}",
   "receiveDirectoryTitle": "Répertoire de réception",
-  "webShareTitle": "Partage Web",
-  "webShareDescription": "Les autres appareils sur le même réseau local (LAN) peuvent ouvrir le lien ci-dessous dans un navigateur pour envoyer ou télécharger de la musique directement.",
   "linkCopiedToClipboard": "Lien copié dans le presse-papier",
   "nearbyDevices": "Appareils à proximité",
   "searchingDevices": "Recherche d'autres appareils sur le LAN...",

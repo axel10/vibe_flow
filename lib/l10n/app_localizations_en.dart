@@ -2760,13 +2760,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiveDirectoryTitle => 'Receive Directory';
 
   @override
-  String get webShareTitle => 'Web Share';
-
-  @override
-  String get webShareDescription =>
-      'Other devices on the same LAN can open the link below in a browser to upload or download music directly.';
-
-  @override
   String get linkCopiedToClipboard => 'Link copied to clipboard';
 
   @override

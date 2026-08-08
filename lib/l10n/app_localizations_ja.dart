@@ -2666,13 +2666,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get receiveDirectoryTitle => '受信ディレクトリ';
 
   @override
-  String get webShareTitle => 'Web共有';
-
-  @override
-  String get webShareDescription =>
-      '同じLAN上のデバイスは、ブラウザで以下のリンクを開いて音楽をアップロードまたはダウンロードできます。';
-
-  @override
   String get linkCopiedToClipboard => 'リンクをクリップボードにコピーしました';
 
   @override

@@ -5017,18 +5017,6 @@ abstract class AppLocalizations {
   /// **'接收文件保存目录'**
   String get receiveDirectoryTitle;
 
-  /// No description provided for @webShareTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'浏览器网页传输 (Web Share)'**
-  String get webShareTitle;
-
-  /// No description provided for @webShareDescription.
-  ///
-  /// In zh, this message translates to:
-  /// **'同一局域网的手机/电脑可通过浏览器打开下方链接，直接向本设备上传或下载音乐：'**
-  String get webShareDescription;
-
   /// No description provided for @linkCopiedToClipboard.
   ///
   /// In zh, this message translates to:

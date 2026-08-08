@@ -2794,13 +2794,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get receiveDirectoryTitle => 'Directorio de recepción de archivos';
 
   @override
-  String get webShareTitle => 'Transferencia web (Web Share)';
-
-  @override
-  String get webShareDescription =>
-      'Los dispositivos en la misma LAN pueden abrir el enlace en un navegador para subir o descargar música.';
-
-  @override
   String get linkCopiedToClipboard => 'Enlace copiado al portapapeles';
 
   @override

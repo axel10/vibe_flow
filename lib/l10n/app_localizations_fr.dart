@@ -2794,13 +2794,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get receiveDirectoryTitle => 'Répertoire de réception';
 
   @override
-  String get webShareTitle => 'Partage Web';
-
-  @override
-  String get webShareDescription =>
-      'Les autres appareils sur le même réseau local (LAN) peuvent ouvrir le lien ci-dessous dans un navigateur pour envoyer ou télécharger de la musique directement.';
-
-  @override
   String get linkCopiedToClipboard => 'Lien copié dans le presse-papier';
 
   @override

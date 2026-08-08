@@ -7,8 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vynody/player/library/music_file_utils.dart';
-import 'package:vynody/player/scanner/scanner_repository.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
@@ -17,7 +15,6 @@ import 'package:vynody/player/lyrics/lyrics_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:bonsoir/bonsoir.dart';
 import 'lan_device.dart';
-import 'web_share_html.dart';
 import 'package:vynody/main.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
 
@@ -57,8 +54,6 @@ final sharingWarningProvider =
       SharingWarningNotifier.new,
     );
 
-
-
 class ActiveTransfersNotifier extends Notifier<List<TransferSession>> {
   @override
   List<TransferSession> build() => [];
@@ -91,7 +86,10 @@ class ActiveTransfersNotifier extends Notifier<List<TransferSession>> {
   void updateStatus(String id, TransferStatus status, {String? cancelReason}) {
     state = [
       for (final s in state)
-        if (s.id == id) s.copyWith(status: status, cancelReason: cancelReason) else s,
+        if (s.id == id)
+          s.copyWith(status: status, cancelReason: cancelReason)
+        else
+          s,
     ];
   }
 
@@ -241,13 +239,19 @@ class SharingService {
   final Map<String, List<HttpRequest>> _currentReceiverRequests = {};
 
   void cancelTransfer(String sessionId) {
-    debugPrint('[SharingService] cancelTransfer called for session: $sessionId');
-    _ref.read(activeTransfersProvider.notifier).updateStatus(sessionId, TransferStatus.cancelled);
+    debugPrint(
+      '[SharingService] cancelTransfer called for session: $sessionId',
+    );
+    _ref
+        .read(activeTransfersProvider.notifier)
+        .updateStatus(sessionId, TransferStatus.cancelled);
 
     // Abort sender requests if any
     final sendReqs = _currentUploadRequests[sessionId];
     if (sendReqs != null) {
-      debugPrint('[SharingService] Aborting sender upload requests for session: $sessionId');
+      debugPrint(
+        '[SharingService] Aborting sender upload requests for session: $sessionId',
+      );
       for (final req in List.from(sendReqs)) {
         try {
           req.abort();
@@ -261,7 +265,9 @@ class SharingService {
     // Abort receiver requests if any
     final recvReqs = _currentReceiverRequests[sessionId];
     if (recvReqs != null) {
-      debugPrint('[SharingService] Aborting receiver upload requests for session: $sessionId');
+      debugPrint(
+        '[SharingService] Aborting receiver upload requests for session: $sessionId',
+      );
       for (final req in List.from(recvReqs)) {
         try {
           req.response.statusCode = HttpStatus.internalServerError;
@@ -343,6 +349,7 @@ class SharingService {
     // 3. Resolve Sharing Path
     await _resolveSharingPath();
   }
+
   Future<void> _resolveSharingPath() async {
     String basePath = '';
     final settings = _ref.read(settingsServiceProvider);
@@ -646,7 +653,9 @@ class SharingService {
   Future<bool> checkLocalNetworkPermission() async {
     final ip = await _getLocalIpAddress();
     if (ip == null) {
-      debugPrint('[SharingService] No valid local IP address found during permission check.');
+      debugPrint(
+        '[SharingService] No valid local IP address found during permission check.',
+      );
       return false;
     }
 
@@ -659,11 +668,16 @@ class SharingService {
         socket.close();
       } catch (e) {
         try {
-          final socketV6 = await RawDatagramSocket.bind(InternetAddress.anyIPv6, 0);
+          final socketV6 = await RawDatagramSocket.bind(
+            InternetAddress.anyIPv6,
+            0,
+          );
           socketV6.send(Uint8List(0), InternetAddress('ff02::fb'), 5353);
           socketV6.close();
         } catch (eV6) {
-          debugPrint('[SharingService] Socket binding/multicast failed: $e, v6: $eV6');
+          debugPrint(
+            '[SharingService] Socket binding/multicast failed: $e, v6: $eV6',
+          );
           return false;
         }
       }
@@ -799,19 +813,10 @@ class SharingService {
     }
 
     try {
-      if (method == 'GET' && path == '/') {
-        // Serve Web UI
-        request.response.headers.contentType = ContentType.html;
-        request.response.write(webShareHtmlContent);
-        await request.response.close();
-      } else if (method == 'POST' && path == '/api/transfer/request') {
+      if (method == 'POST' && path == '/api/transfer/request') {
         await _handleTransferRequest(request);
       } else if (method == 'POST' && path == '/api/transfer/upload') {
         await _handleTransferUpload(request);
-      } else if (method == 'GET' && path == '/api/songs') {
-        await _handleGetSongsList(request);
-      } else if (method == 'GET' && path == '/api/download') {
-        await _handleDownloadSong(request);
       } else if (method == 'GET' && path == '/api/lyrics/export') {
         await _handleExportLyrics(request);
       } else if (method == 'POST' && path == '/api/lyrics/import') {
@@ -867,15 +872,13 @@ class SharingService {
 
     if (Platform.isAndroid &&
         !_ref.read(settingsServiceProvider).hasLanSharingFolderPath) {
-      _ref.read(sharingWarningProvider.notifier).setWarning(
-          '有设备尝试向您发送文件，但您尚未设置接收文件保存目录，请先设置。');
+      _ref
+          .read(sharingWarningProvider.notifier)
+          .setWarning('有设备尝试向您发送文件，但您尚未设置接收文件保存目录，请先设置。');
 
       request.response.statusCode = HttpStatus.ok;
       request.response.write(
-        jsonEncode({
-          'accepted': false,
-          'reason': '接收端设备未设置文件保存目录',
-        }),
+        jsonEncode({'accepted': false, 'reason': '接收端设备未设置文件保存目录'}),
       );
       await request.response.close();
       return;
@@ -883,14 +886,13 @@ class SharingService {
 
     final folderExists = await _isSharingFolderValid();
     if (!folderExists) {
-      _ref.read(sharingWarningProvider.notifier).setWarning('接收文件保存目录已不存在，请重新设置。');
+      _ref
+          .read(sharingWarningProvider.notifier)
+          .setWarning('接收文件保存目录已不存在，请重新设置。');
 
       request.response.statusCode = HttpStatus.ok;
       request.response.write(
-        jsonEncode({
-          'accepted': false,
-          'reason': '接收端文件保存目录已不存在',
-        }),
+        jsonEncode({'accepted': false, 'reason': '接收端文件保存目录已不存在'}),
       );
       await request.response.close();
       return;
@@ -986,9 +988,13 @@ class SharingService {
     }
 
     final sessionId = token;
-    final isCancelled = _ref.read(activeTransfersProvider).any((s) => s.id == sessionId && s.status == TransferStatus.cancelled);
+    final isCancelled = _ref
+        .read(activeTransfersProvider)
+        .any((s) => s.id == sessionId && s.status == TransferStatus.cancelled);
     if (isCancelled) {
-      debugPrint('[SharingService] Receiver: Session $sessionId is cancelled. Rejecting incoming upload.');
+      debugPrint(
+        '[SharingService] Receiver: Session $sessionId is cancelled. Rejecting incoming upload.',
+      );
       _activeTokens.remove(token);
       _checkAndResumeScanner();
       request.response.statusCode = HttpStatus.badRequest;
@@ -1012,14 +1018,21 @@ class SharingService {
     relativePath = relativePath.replaceAll('\\', '/');
 
     // Build targetPath using path segments to safely construct nested directories across OS platforms
-    final pathSegments = relativePath.split('/').where((s) => s.isNotEmpty).toList();
+    final pathSegments = relativePath
+        .split('/')
+        .where((s) => s.isNotEmpty)
+        .toList();
     String targetPath = p.joinAll([_sharingFolderPath, ...pathSegments]);
-    debugPrint('[SharingService] Receiver: Incoming file upload request for $relativePath -> $targetPath');
+    debugPrint(
+      '[SharingService] Receiver: Incoming file upload request for $relativePath -> $targetPath',
+    );
 
     final fileItem = metadata.files.firstWhere(
       (f) => f.name.replaceAll('\\', '/') == relativePath,
       orElse: () => metadata.files.firstWhere(
-        (f) => p.basename(f.name.replaceAll('\\', '/')) == p.basename(relativePath),
+        (f) =>
+            p.basename(f.name.replaceAll('\\', '/')) ==
+            p.basename(relativePath),
         orElse: () => TransferFileItem(name: '', size: 0, durationMs: 0),
       ),
     );
@@ -1032,11 +1045,13 @@ class SharingService {
     );
 
     _currentReceiverRequests.putIfAbsent(sessionId, () => []).add(request);
-    _ref.read(activeTransfersProvider.notifier).updateProgress(
-      sessionId,
-      metadata.bytesTransferredCumulative,
-      activeFiles: metadata.activeFilesMap.values.toList(),
-    );
+    _ref
+        .read(activeTransfersProvider.notifier)
+        .updateProgress(
+          sessionId,
+          metadata.bytesTransferredCumulative,
+          activeFiles: metadata.activeFilesMap.values.toList(),
+        );
 
     bool useSaf = false;
     String? treeUri;
@@ -1051,7 +1066,10 @@ class SharingService {
     bool fileExists = false;
     if (useSaf && treeUri != null) {
       final relativeFileName = p.relative(targetPath, from: _sharingFolderPath);
-      fileExists = await AndroidSafStorageHelper.fileExists(treeUri, relativeFileName);
+      fileExists = await AndroidSafStorageHelper.fileExists(
+        treeUri,
+        relativeFileName,
+      );
     } else {
       fileExists = File(targetPath).existsSync();
     }
@@ -1072,14 +1090,21 @@ class SharingService {
       } else {
         final context = navigatorKey.currentContext;
         if (context != null && context.mounted) {
-          debugPrint('[SharingService] Receiver: Prompting conflict dialog for $relativePath');
-          
+          debugPrint(
+            '[SharingService] Receiver: Prompting conflict dialog for $relativePath',
+          );
+
           final completer = Completer<void>();
           metadata.activeConflictFuture = completer.future;
 
           try {
-            final action = await showConflictDialog(context, p.basename(relativePath));
-            debugPrint('[SharingService] Receiver: User chose $action for $relativePath');
+            final action = await showConflictDialog(
+              context,
+              p.basename(relativePath),
+            );
+            debugPrint(
+              '[SharingService] Receiver: User chose $action for $relativePath',
+            );
             if (action == 'skip') {
               shouldSkip = true;
             } else if (action == 'skip_all') {
@@ -1098,15 +1123,21 @@ class SharingService {
             completer.complete();
           }
         } else {
-          debugPrint('[SharingService] Receiver: Global context not available. Falling back to counter renaming.');
+          debugPrint(
+            '[SharingService] Receiver: Global context not available. Falling back to counter renaming.',
+          );
         }
       }
     }
 
     if (fileExists && !shouldSkip && !shouldOverwrite) {
       final lastSlashIndex = relativePath.lastIndexOf('/');
-      final dirName = lastSlashIndex != -1 ? relativePath.substring(0, lastSlashIndex) : '';
-      final fileNameOnly = lastSlashIndex != -1 ? relativePath.substring(lastSlashIndex + 1) : relativePath;
+      final dirName = lastSlashIndex != -1
+          ? relativePath.substring(0, lastSlashIndex)
+          : '';
+      final fileNameOnly = lastSlashIndex != -1
+          ? relativePath.substring(lastSlashIndex + 1)
+          : relativePath;
 
       final extension = p.extension(fileNameOnly);
       final baseName = p.basenameWithoutExtension(fileNameOnly);
@@ -1115,37 +1146,49 @@ class SharingService {
         final newRelative = dirName.isEmpty
             ? '$baseName ($counter)$extension'
             : '$dirName/$baseName ($counter)$extension';
-        
-        final newSegments = newRelative.split('/').where((s) => s.isNotEmpty).toList();
+
+        final newSegments = newRelative
+            .split('/')
+            .where((s) => s.isNotEmpty)
+            .toList();
         targetPath = p.joinAll([_sharingFolderPath, ...newSegments]);
-        
+
         bool currentExists = false;
         if (useSaf && treeUri != null) {
-          currentExists = await AndroidSafStorageHelper.fileExists(treeUri, newRelative);
+          currentExists = await AndroidSafStorageHelper.fileExists(
+            treeUri,
+            newRelative,
+          );
         } else {
           currentExists = File(targetPath).existsSync();
         }
-        
+
         if (!currentExists) {
           break;
         }
         counter++;
       }
-      debugPrint('[SharingService] Receiver: Duplicate file renamed to $targetPath');
+      debugPrint(
+        '[SharingService] Receiver: Duplicate file renamed to $targetPath',
+      );
     }
 
     if (shouldSkip) {
-      debugPrint('[SharingService] Receiver: Skipping file $relativePath. Discarding request body...');
+      debugPrint(
+        '[SharingService] Receiver: Skipping file $relativePath. Discarding request body...',
+      );
       try {
         await for (final _ in request) {
           // Just discard chunks
         }
-        
+
         // Track completed file
         metadata.completedFiles.add(relativePath);
 
         // Check if all files in the metadata session are completed
-        final allFiles = metadata.files.map((f) => f.name.replaceAll('\\', '/')).toSet();
+        final allFiles = metadata.files
+            .map((f) => f.name.replaceAll('\\', '/'))
+            .toSet();
         final isFinished =
             metadata.completedFiles.containsAll(allFiles) ||
             metadata.completedFiles.length >= metadata.files.length;
@@ -1177,11 +1220,17 @@ class SharingService {
         }
 
         request.response.statusCode = HttpStatus.ok;
-        request.response.write(jsonEncode({'success': true, 'path': targetPath, 'skipped': true}));
+        request.response.write(
+          jsonEncode({'success': true, 'path': targetPath, 'skipped': true}),
+        );
       } catch (e) {
-        debugPrint('[SharingService] Receiver: Error while skipping/discarding file $relativePath: $e');
+        debugPrint(
+          '[SharingService] Receiver: Error while skipping/discarding file $relativePath: $e',
+        );
         request.response.statusCode = HttpStatus.internalServerError;
-        request.response.write(jsonEncode({'error': 'Error skipping file: $e'}));
+        request.response.write(
+          jsonEncode({'error': 'Error skipping file: $e'}),
+        );
       } finally {
         if (_currentReceiverRequests[sessionId] != null) {
           _currentReceiverRequests[sessionId]!.remove(request);
@@ -1196,7 +1245,12 @@ class SharingService {
     }
 
     final tempDir = await getTemporaryDirectory();
-    final tempFile = File(p.join(tempDir.path, 'temp_transfer_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}'));
+    final tempFile = File(
+      p.join(
+        tempDir.path,
+        'temp_transfer_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}',
+      ),
+    );
     final targetFile = useSaf ? tempFile : File(targetPath);
 
     if (!useSaf) {
@@ -1210,7 +1264,9 @@ class SharingService {
     final ioSink = targetFile.openWrite();
 
     try {
-      debugPrint('[SharingService] Receiver: Starting to write to file: ${targetFile.path}');
+      debugPrint(
+        '[SharingService] Receiver: Starting to write to file: ${targetFile.path}',
+      );
       int fileBytesReceived = 0;
       DateTime lastLogTime = DateTime.now();
 
@@ -1230,7 +1286,9 @@ class SharingService {
           ),
         );
         if (currentSession.status == TransferStatus.cancelled) {
-          debugPrint('[SharingService] Receiver: Transfer was cancelled by user during download of $relativePath');
+          debugPrint(
+            '[SharingService] Receiver: Transfer was cancelled by user during download of $relativePath',
+          );
           throw Exception('Cancelled by user');
         }
 
@@ -1272,21 +1330,31 @@ class SharingService {
       // This handles all underlying write/open errors on the main thread inside the try-catch block!
       await ioSink.addStream(progressStream);
 
-      debugPrint('[SharingService] Receiver: Finished reading request stream for $relativePath. Flushing and closing file...');
+      debugPrint(
+        '[SharingService] Receiver: Finished reading request stream for $relativePath. Flushing and closing file...',
+      );
       await ioSink.flush();
       await ioSink.close();
 
       if (useSaf && treeUri != null) {
-        debugPrint('[SharingService] Receiver: Writing temp file to SAF folder: $targetPath');
-        final relativeFileName = p.relative(targetPath, from: _sharingFolderPath);
-        final methodChannel = const MethodChannel('com.example.audio_converter/saf');
+        debugPrint(
+          '[SharingService] Receiver: Writing temp file to SAF folder: $targetPath',
+        );
+        final relativeFileName = p.relative(
+          targetPath,
+          from: _sharingFolderPath,
+        );
+        final methodChannel = const MethodChannel(
+          'com.example.audio_converter/saf',
+        );
         final result = await methodChannel.invokeMapMethod<String, Object?>(
           'saveFileToDirectory',
           <String, Object?>{
             'treeUri': treeUri,
             'sourcePath': tempFile.path,
             'fileName': relativeFileName.replaceAll('\\', '/'),
-            'overwrite': true, // We already handled conflict renaming/overwrite choice above
+            'overwrite':
+                true, // We already handled conflict renaming/overwrite choice above
           },
         );
 
@@ -1294,9 +1362,13 @@ class SharingService {
         if (savedUri == null || savedUri.isEmpty) {
           throw Exception('Failed to write via SAF');
         }
-        debugPrint('[SharingService] Receiver: Saved file successfully via SAF: $targetPath');
+        debugPrint(
+          '[SharingService] Receiver: Saved file successfully via SAF: $targetPath',
+        );
       } else {
-        debugPrint('[SharingService] Receiver: Saved file successfully: $targetPath');
+        debugPrint(
+          '[SharingService] Receiver: Saved file successfully: $targetPath',
+        );
       }
 
       // Ensure the sharing folder is added to scanner now that we have received a file
@@ -1307,7 +1379,9 @@ class SharingService {
         final fileItem = metadata.files.firstWhere(
           (f) => f.name.replaceAll('\\', '/') == relativePath,
           orElse: () => metadata.files.firstWhere(
-            (f) => p.basename(f.name.replaceAll('\\', '/')) == p.basename(relativePath),
+            (f) =>
+                p.basename(f.name.replaceAll('\\', '/')) ==
+                p.basename(relativePath),
             orElse: () => TransferFileItem(name: '', size: 0, durationMs: 0),
           ),
         );
@@ -1335,7 +1409,9 @@ class SharingService {
       metadata.completedFiles.add(relativePath);
 
       // Check if all files in the metadata session are completed
-      final allFiles = metadata.files.map((f) => f.name.replaceAll('\\', '/')).toSet();
+      final allFiles = metadata.files
+          .map((f) => f.name.replaceAll('\\', '/'))
+          .toSet();
       final isFinished =
           metadata.completedFiles.containsAll(allFiles) ||
           metadata.completedFiles.length >= metadata.files.length;
@@ -1369,7 +1445,9 @@ class SharingService {
       request.response.statusCode = HttpStatus.ok;
       request.response.write(jsonEncode({'success': true, 'path': targetPath}));
     } catch (e) {
-      debugPrint('[SharingService] Receiver: Error uploading file $relativePath: $e');
+      debugPrint(
+        '[SharingService] Receiver: Error uploading file $relativePath: $e',
+      );
       try {
         await ioSink.close();
       } catch (_) {}
@@ -1379,15 +1457,18 @@ class SharingService {
         } catch (_) {}
       }
       final currentSessionsInner = _ref.read(activeTransfersProvider);
-      final currentSessionInner = currentSessionsInner.firstWhere((s) => s.id == sessionId, orElse: () => TransferSession(
-        id: '',
-        fileName: '',
-        totalBytes: 0,
-        bytesTransferred: 0,
-        isSending: true,
-        deviceName: '',
-        status: TransferStatus.failed,
-      ));
+      final currentSessionInner = currentSessionsInner.firstWhere(
+        (s) => s.id == sessionId,
+        orElse: () => TransferSession(
+          id: '',
+          fileName: '',
+          totalBytes: 0,
+          bytesTransferred: 0,
+          isSending: true,
+          deviceName: '',
+          status: TransferStatus.failed,
+        ),
+      );
       if (currentSessionInner.status != TransferStatus.cancelled) {
         _ref
             .read(activeTransfersProvider.notifier)
@@ -1413,58 +1494,6 @@ class SharingService {
       }
     }
     await request.response.close();
-  }
-
-  Future<void> _handleGetSongsList(HttpRequest request) async {
-    final repo = ScannerRepository();
-    final songs = await repo.getAllSongMetadata();
-
-    final list = songs.map((s) {
-      return {
-        'path': s.path,
-        'name': p.basename(s.path),
-        'title': s.title.isNotEmpty
-            ? s.title
-            : p.basenameWithoutExtension(s.path),
-        'artist': s.artist,
-        'album': s.album,
-      };
-    }).toList();
-
-    request.response.headers.contentType = ContentType.json;
-    request.response.write(jsonEncode(list));
-    await request.response.close();
-  }
-
-  Future<void> _handleDownloadSong(HttpRequest request) async {
-    final path = request.uri.queryParameters['id'] ?? '';
-    if (path.isEmpty ||
-        !File(path).existsSync() ||
-        !MusicFileUtils.isMusicFilePath(path)) {
-      request.response.statusCode = HttpStatus.notFound;
-      await request.response.close();
-      return;
-    }
-
-    final file = File(path);
-    final size = file.lengthSync();
-
-    request.response.headers.contentType = ContentType(
-      'audio',
-      'mpeg',
-      charset: 'utf-8',
-    );
-    request.response.headers.contentLength = size;
-    request.response.headers.add(
-      'Content-Disposition',
-      'attachment; filename="${Uri.encodeComponent(p.basename(path))}"',
-    );
-
-    try {
-      await file.openRead().pipe(request.response);
-    } catch (_) {
-      // Stream interrupted
-    }
   }
 
   // --- Sending File to Remote App ---
@@ -1648,7 +1677,9 @@ class SharingService {
       );
 
       final response = await request.close();
-      debugPrint('[SharingService] Preflight response status: ${response.statusCode}');
+      debugPrint(
+        '[SharingService] Preflight response status: ${response.statusCode}',
+      );
       if (response.statusCode != HttpStatus.ok) {
         await response.drain();
         _ref
@@ -1665,15 +1696,21 @@ class SharingService {
       if (!accepted) {
         final reason = responseJson['reason'] as String?;
         if (reason == '接收端设备未设置文件保存目录') {
-          _ref.read(sharingWarningProvider.notifier).setWarning(
-              '接收端设备未设置文件保存目录，无法接收您的文件');
+          _ref
+              .read(sharingWarningProvider.notifier)
+              .setWarning('接收端设备未设置文件保存目录，无法接收您的文件');
         } else if (reason == '接收端文件保存目录已不存在') {
-          _ref.read(sharingWarningProvider.notifier).setWarning(
-              '接收端文件保存目录已不存在，无法接收您的文件');
+          _ref
+              .read(sharingWarningProvider.notifier)
+              .setWarning('接收端文件保存目录已不存在，无法接收您的文件');
         }
         _ref
             .read(activeTransfersProvider.notifier)
-            .updateStatus(sessionId, TransferStatus.cancelled, cancelReason: reason);
+            .updateStatus(
+              sessionId,
+              TransferStatus.cancelled,
+              cancelReason: reason,
+            );
         return false;
       }
 
@@ -1707,18 +1744,20 @@ class SharingService {
           final fileInfo = filesToSend[fileIndex];
 
           // Check cancellation
-          final currentSession = _ref.read(activeTransfersProvider).firstWhere(
-            (s) => s.id == sessionId,
-            orElse: () => TransferSession(
-              id: '',
-              fileName: '',
-              totalBytes: 0,
-              bytesTransferred: 0,
-              isSending: true,
-              deviceName: '',
-              status: TransferStatus.failed,
-            ),
-          );
+          final currentSession = _ref
+              .read(activeTransfersProvider)
+              .firstWhere(
+                (s) => s.id == sessionId,
+                orElse: () => TransferSession(
+                  id: '',
+                  fileName: '',
+                  totalBytes: 0,
+                  bytesTransferred: 0,
+                  isSending: true,
+                  deviceName: '',
+                  status: TransferStatus.failed,
+                ),
+              );
           if (currentSession.status == TransferStatus.cancelled) {
             isCancelled = true;
             return;
@@ -1736,7 +1775,9 @@ class SharingService {
           HttpClientRequest? uploadRequest;
           try {
             uploadRequest = await client.postUrl(uploadUri);
-            _currentUploadRequests.putIfAbsent(sessionId, () => []).add(uploadRequest);
+            _currentUploadRequests
+                .putIfAbsent(sessionId, () => [])
+                .add(uploadRequest);
 
             uploadRequest.headers.add('Authorization', 'Bearer $token');
             uploadRequest.headers.add(
@@ -1752,20 +1793,32 @@ class SharingService {
               totalBytes: fileInfo.size,
             );
 
-            _ref.read(activeTransfersProvider.notifier).updateProgress(
-              sessionId,
-              totalBytesSent,
-              completedFilesCount: completedFilesCount,
-              activeFiles: localActiveFiles.values.toList(),
-            );
+            _ref
+                .read(activeTransfersProvider.notifier)
+                .updateProgress(
+                  sessionId,
+                  totalBytesSent,
+                  completedFilesCount: completedFilesCount,
+                  activeFiles: localActiveFiles.values.toList(),
+                );
 
             final fileStream = File(fileInfo.path).openRead();
 
             await for (final chunk in fileStream) {
-              final currentSessionInner = _ref.read(activeTransfersProvider).firstWhere(
-                (s) => s.id == sessionId,
-                orElse: () => TransferSession(id: '', fileName: '', totalBytes: 0, bytesTransferred: 0, isSending: true, deviceName: '', status: TransferStatus.failed),
-              );
+              final currentSessionInner = _ref
+                  .read(activeTransfersProvider)
+                  .firstWhere(
+                    (s) => s.id == sessionId,
+                    orElse: () => TransferSession(
+                      id: '',
+                      fileName: '',
+                      totalBytes: 0,
+                      bytesTransferred: 0,
+                      isSending: true,
+                      deviceName: '',
+                      status: TransferStatus.failed,
+                    ),
+                  );
               if (currentSessionInner.status == TransferStatus.cancelled) {
                 isCancelled = true;
                 uploadRequest.abort();
@@ -1782,35 +1835,49 @@ class SharingService {
                 totalBytes: current.totalBytes,
               );
 
-              _ref.read(activeTransfersProvider.notifier).updateProgress(
-                sessionId,
-                totalBytesSent,
-                completedFilesCount: completedFilesCount,
-                activeFiles: localActiveFiles.values.toList(),
-              );
+              _ref
+                  .read(activeTransfersProvider.notifier)
+                  .updateProgress(
+                    sessionId,
+                    totalBytesSent,
+                    completedFilesCount: completedFilesCount,
+                    activeFiles: localActiveFiles.values.toList(),
+                  );
             }
 
-            debugPrint('[SharingService] Request stream completed for ${fileInfo.relativeName}. Waiting for response...');
-            final uploadResponse = await uploadRequest.close().timeout(const Duration(seconds: 120));
-            debugPrint('[SharingService] Response received for ${fileInfo.relativeName}: ${uploadResponse.statusCode}');
+            debugPrint(
+              '[SharingService] Request stream completed for ${fileInfo.relativeName}. Waiting for response...',
+            );
+            final uploadResponse = await uploadRequest.close().timeout(
+              const Duration(seconds: 120),
+            );
+            debugPrint(
+              '[SharingService] Response received for ${fileInfo.relativeName}: ${uploadResponse.statusCode}',
+            );
 
             await uploadResponse.drain();
 
             if (uploadResponse.statusCode != HttpStatus.ok) {
-              throw Exception('Upload failed with status code ${uploadResponse.statusCode}');
+              throw Exception(
+                'Upload failed with status code ${uploadResponse.statusCode}',
+              );
             }
 
             localActiveFiles.remove(fileInfo.relativeName);
             completedFilesCount++;
 
-            _ref.read(activeTransfersProvider.notifier).updateProgress(
-              sessionId,
-              totalBytesSent,
-              completedFilesCount: completedFilesCount,
-              activeFiles: localActiveFiles.values.toList(),
-            );
+            _ref
+                .read(activeTransfersProvider.notifier)
+                .updateProgress(
+                  sessionId,
+                  totalBytesSent,
+                  completedFilesCount: completedFilesCount,
+                  activeFiles: localActiveFiles.values.toList(),
+                );
           } catch (e) {
-            debugPrint('[SharingService] Error uploading file ${fileInfo.relativeName}: $e');
+            debugPrint(
+              '[SharingService] Error uploading file ${fileInfo.relativeName}: $e',
+            );
             hasError = true;
             errorMessage = e.toString();
             try {
@@ -1856,15 +1923,18 @@ class SharingService {
     } catch (e) {
       debugPrint('[SharingService] Failed to send files: $e');
       final currentSessionsInner = _ref.read(activeTransfersProvider);
-      final currentSessionInner = currentSessionsInner.firstWhere((s) => s.id == sessionId, orElse: () => TransferSession(
-        id: '',
-        fileName: '',
-        totalBytes: 0,
-        bytesTransferred: 0,
-        isSending: true,
-        deviceName: '',
-        status: TransferStatus.failed,
-      ));
+      final currentSessionInner = currentSessionsInner.firstWhere(
+        (s) => s.id == sessionId,
+        orElse: () => TransferSession(
+          id: '',
+          fileName: '',
+          totalBytes: 0,
+          bytesTransferred: 0,
+          isSending: true,
+          deviceName: '',
+          status: TransferStatus.failed,
+        ),
+      );
       if (currentSessionInner.status != TransferStatus.cancelled) {
         _ref
             .read(activeTransfersProvider.notifier)

@@ -2669,13 +2669,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get receiveDirectoryTitle => '수신 디렉토리';
 
   @override
-  String get webShareTitle => '웹 공유';
-
-  @override
-  String get webShareDescription =>
-      '같은 LAN에 있는 다른 기기는 브라우저에서 아래 링크를 열어 음악을 업로드하거나 다운로드할 수 있습니다.';
-
-  @override
   String get linkCopiedToClipboard => '클립보드에 링크가 복사되었습니다';
 
   @override

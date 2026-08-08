@@ -1137,8 +1137,6 @@
   },
   "receiveDirectoryUpdated": "受信ディレクトリが更新されました: {path}",
   "receiveDirectoryTitle": "受信ディレクトリ",
-  "webShareTitle": "Web共有",
-  "webShareDescription": "同じLAN上のデバイスは、ブラウザで以下のリンクを開いて音楽をアップロードまたはダウンロードできます。",
   "linkCopiedToClipboard": "リンクをクリップボードにコピーしました",
   "nearbyDevices": "近くのデバイス",
   "searchingDevices": "LAN上の他のデバイスを検索中...",

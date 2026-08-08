@@ -2629,12 +2629,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get receiveDirectoryTitle => '接收文件保存目录';
 
   @override
-  String get webShareTitle => '浏览器网页传输 (Web Share)';
-
-  @override
-  String get webShareDescription => '同一局域网的手机/电脑可通过浏览器打开下方链接，直接向本设备上传或下载音乐：';
-
-  @override
   String get linkCopiedToClipboard => '链接已复制到剪贴板';
 
   @override
@@ -5813,12 +5807,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get receiveDirectoryTitle => '接收檔案儲存目錄';
-
-  @override
-  String get webShareTitle => '瀏覽器網頁傳輸 (Web Share)';
-
-  @override
-  String get webShareDescription => '同一區域網路的手機／電腦可透過瀏覽器開啟下方連結，直接向本裝置上傳或下載音樂：';
 
   @override
   String get linkCopiedToClipboard => '連結已複製到剪貼簿';
