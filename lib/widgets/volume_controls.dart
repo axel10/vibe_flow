@@ -7,6 +7,8 @@ class VolumeSliderOverlay extends StatelessWidget {
   const VolumeSliderOverlay({
     super.key,
     required this.volume,
+    this.isMuted = false,
+    this.onToggleMute,
     required this.onVolumeChanged,
     required this.onDismiss,
     required this.isLandscape,
@@ -17,6 +19,8 @@ class VolumeSliderOverlay extends StatelessWidget {
   });
 
   final double volume;
+  final bool isMuted;
+  final VoidCallback? onToggleMute;
   final ValueChanged<double> onVolumeChanged;
   final VoidCallback onDismiss;
   final bool isLandscape;
@@ -70,7 +74,7 @@ class VolumeSliderOverlay extends StatelessWidget {
                                       final width = constraints.maxWidth;
                                       final height = constraints.maxHeight;
 
-                                      final percent = (volume / 100.0).clamp(0.0, 1.0);
+                                      final percent = isMuted ? 0.0 : (volume / 100.0).clamp(0.0, 1.0);
                                       final fillWidth = percent * width;
 
                                       Widget buildContent({required Color color}) {
@@ -82,13 +86,20 @@ class VolumeSliderOverlay extends StatelessWidget {
                                             child: Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Icon(
-                                                  getVolumeIcon(volume),
-                                                  color: color,
-                                                  size: 20,
+                                                GestureDetector(
+                                                  behavior: HitTestBehavior.opaque,
+                                                  onTap: () {
+                                                    onInteraction();
+                                                    onToggleMute?.call();
+                                                  },
+                                                  child: Icon(
+                                                    isMuted ? Icons.volume_off : getVolumeIcon(volume),
+                                                    color: color,
+                                                    size: 20,
+                                                  ),
                                                 ),
                                                 Text(
-                                                  '${volume.round()}%',
+                                                  isMuted ? '0%' : '${volume.round()}%',
                                                   style: TextStyle(
                                                     color: color,
                                                     fontWeight: FontWeight.bold,
@@ -126,8 +137,12 @@ class VolumeSliderOverlay extends StatelessWidget {
                                             onInteraction();
                                             final box = context.findRenderObject() as RenderBox;
                                             final localPos = box.globalToLocal(details.globalPosition);
-                                            final nextPercent = (localPos.dx / width).clamp(0.0, 1.0);
-                                            onVolumeChanged(nextPercent * 100.0);
+                                            if (localPos.dx < 48 && onToggleMute != null) {
+                                              onToggleMute!();
+                                            } else {
+                                              final nextPercent = (localPos.dx / width).clamp(0.0, 1.0);
+                                              onVolumeChanged(nextPercent * 100.0);
+                                            }
                                           },
                                           child: Stack(
                                             children: [
@@ -205,9 +220,10 @@ class _VolumeRectClipper extends CustomClipper<Rect> {
 
 
 class VolumeHUD extends StatelessWidget {
-  const VolumeHUD({super.key, required this.volume});
+  const VolumeHUD({super.key, required this.volume, this.isMuted = false});
 
   final double volume;
+  final bool isMuted;
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +246,7 @@ class VolumeHUD extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  volume > 0 ? Icons.volume_up : Icons.volume_off,
+                  isMuted ? Icons.volume_off : (volume > 0 ? Icons.volume_up : Icons.volume_off),
                   color: Colors.white,
                 ),
                 const SizedBox(width: 12),
@@ -243,7 +259,7 @@ class VolumeHUD extends StatelessWidget {
                       style: const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                     Text(
-                      '${volume.round()}%',
+                      isMuted ? '0%' : '${volume.round()}%',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

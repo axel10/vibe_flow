@@ -159,6 +159,10 @@ final audioVolumeProvider = Provider<double>((ref) {
   return ref.watch(audioSnapshotProvider.select((snapshot) => snapshot.volume));
 });
 
+final audioIsMutedProvider = Provider<bool>((ref) {
+  return ref.watch(audioSnapshotProvider.select((snapshot) => snapshot.isMuted));
+});
+
 final audioPositionProvider = Provider<Duration>((ref) {
   return ref.watch(
     audioSnapshotProvider.select((snapshot) => snapshot.position),

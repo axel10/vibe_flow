@@ -114,7 +114,10 @@ class _MiniPlayerWrapperState extends ConsumerState<MiniPlayerWrapper> {
           ),
         ),
         if (uiState.showVolumeHud)
-          VolumeHUD(volume: ref.read(audioServiceProvider).volume),
+          VolumeHUD(
+            volume: ref.watch(audioVolumeProvider),
+            isMuted: ref.watch(audioIsMutedProvider),
+          ),
       ],
     );
   }

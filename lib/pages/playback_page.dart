@@ -1256,8 +1256,15 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                   Builder(
                     builder: (context) {
                       final volume = ref.watch(audioVolumeProvider);
+                      final isMuted = ref.watch(audioIsMutedProvider);
                       return VolumeSliderOverlay(
                         volume: volume,
+                        isMuted: isMuted,
+                        onToggleMute: () {
+                          _handleInteraction();
+                          _startVolumeSliderTimer();
+                          audio.toggleMute();
+                        },
                         onVolumeChanged: (val) {
                           _handleInteraction();
                           _startVolumeSliderTimer();

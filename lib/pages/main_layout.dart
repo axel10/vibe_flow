@@ -1413,7 +1413,10 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                         ),
                       ),
                       if (uiState.showVolumeHud)
-                        VolumeHUD(volume: _audioService.volume),
+                        VolumeHUD(
+                          volume: ref.watch(audioVolumeProvider),
+                          isMuted: ref.watch(audioIsMutedProvider),
+                        ),
                       if (useOverlayBottomNav)
                         Positioned(
                           left: 0,

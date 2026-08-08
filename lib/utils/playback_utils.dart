@@ -38,7 +38,8 @@ String getPlaylistModeName(AppPlaybackMode mode, AppLocalizations l10n) {
   }
 }
 
-IconData getVolumeIcon(double volume) {
+IconData getVolumeIcon(double volume, {bool isMuted = false}) {
+  if (isMuted) return Icons.volume_off;
   if (volume <= 0) return Icons.volume_mute;
   if (volume < 75) return Icons.volume_down;
   return Icons.volume_up;

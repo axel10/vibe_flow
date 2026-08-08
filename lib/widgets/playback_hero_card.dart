@@ -422,6 +422,11 @@ class PlaybackHeroCard extends ConsumerWidget {
         const SizedBox(width: 4),
         MiniInlineVolumeControl(
           volume: ref.watch(audioVolumeProvider),
+          isMuted: ref.watch(audioIsMutedProvider),
+          onToggleMute: () {
+            ref.read(settingsServiceProvider).resetInactivity();
+            ref.read(audioServiceProvider).toggleMute();
+          },
           showSlider: showMiniVolumeSlider,
           onTap: onVolumeTap,
           onChanged: onVolumeChanged,
@@ -2288,7 +2293,7 @@ class PlaybackHeroCard extends ConsumerWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: Icon(
-                    getVolumeIcon(volume),
+                    getVolumeIcon(volume, isMuted: ref.watch(audioIsMutedProvider)),
                     size: PlaybackHeroCardUiTuning.topButtonsIconSize * controlsScale,
                     color: Colors.white70,
                   ),
@@ -2428,7 +2433,10 @@ class PlaybackHeroCard extends ConsumerWidget {
                   }
                 },
                 child: Icon(
-                  getVolumeIcon(ref.watch(audioVolumeProvider)),
+                  getVolumeIcon(
+                    ref.watch(audioVolumeProvider),
+                    isMuted: ref.watch(audioIsMutedProvider),
+                  ),
                   size: (isWhiteBg ? 22 : 24) * controlsScale,
                   color: color,
                 ),
@@ -3662,7 +3670,10 @@ Widget _buildLyricsHeaderRightButton({
       iconColor = showVisualizerToggle ? Theme.of(context).colorScheme.primary : Colors.white70;
       break;
     case 'volume':
-      iconData = getVolumeIcon(ref.watch(audioVolumeProvider));
+      iconData = getVolumeIcon(
+        ref.watch(audioVolumeProvider),
+        isMuted: ref.watch(audioIsMutedProvider),
+      );
       tooltipMsg = l10n.volume;
       onTapAction = onVolumeTap;
       iconColor = Colors.white70;

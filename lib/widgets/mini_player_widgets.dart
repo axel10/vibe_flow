@@ -7,6 +7,7 @@ import 'package:audio_core/audio_core.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/utils/playback_utils.dart';
+import '../l10n/app_localizations.dart';
 
 class MiniArtwork extends ConsumerWidget {
   const MiniArtwork({super.key});
@@ -106,6 +107,8 @@ class MiniInlineVolumeControl extends StatelessWidget {
   const MiniInlineVolumeControl({
     super.key,
     required this.volume,
+    this.isMuted = false,
+    this.onToggleMute,
     required this.showSlider,
     required this.onTap,
     required this.onChanged,
@@ -115,6 +118,8 @@ class MiniInlineVolumeControl extends StatelessWidget {
   });
 
   final double volume;
+  final bool isMuted;
+  final VoidCallback? onToggleMute;
   final bool showSlider;
   final VoidCallback? onTap;
   final ValueChanged<double>? onChanged;
@@ -124,6 +129,11 @@ class MiniInlineVolumeControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final buttonTooltip = isMuted
+        ? (l10n?.unmute ?? 'Unmute')
+        : (tooltip ?? l10n?.volume ?? 'Volume');
+
     return Listener(
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent && onScroll != null) {
@@ -134,69 +144,78 @@ class MiniInlineVolumeControl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           MiniControlButton(
-            icon: getVolumeIcon(volume),
-            onPressed: onTap,
-            tooltip: tooltip,
+            icon: getVolumeIcon(volume, isMuted: isMuted),
+            onPressed: () {
+              if (onToggleMute != null) {
+                onToggleMute!();
+                if (!showSlider && onTap != null) {
+                  onTap!();
+                }
+              } else {
+                onTap?.call();
+              }
+            },
+            tooltip: buttonTooltip,
             iconSize: iconSize,
           ),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 180),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          transitionBuilder: (child, animation) {
-            return SizeTransition(
-              sizeFactor: animation,
-              axis: Axis.horizontal,
-              child: FadeTransition(opacity: animation, child: child),
-            );
-          },
-          child: showSlider
-              ? SizedBox(
-                  key: const ValueKey('mini-inline-volume-slider'),
-                  width: 118,
-                  child: SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      trackHeight: 2.5,
-                      thumbShape: const RoundSliderThumbShape(
-                        enabledThumbRadius: 6,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              return SizeTransition(
+                sizeFactor: animation,
+                axis: Axis.horizontal,
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: showSlider
+                ? SizedBox(
+                    key: const ValueKey('mini-inline-volume-slider'),
+                    width: 118,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 2.5,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 6,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 12,
+                        ),
+                        activeTrackColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black87,
+                        inactiveTrackColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white24
+                            : Colors.black12,
+                        thumbColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black,
+                        overlayColor:
+                            (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black)
+                                .withValues(alpha: 0.15),
                       ),
-                      overlayShape: const RoundSliderOverlayShape(
-                        overlayRadius: 12,
+                      child: Slider(
+                        value: (isMuted ? 0.0 : volume).clamp(0.0, 100.0),
+                        min: 0,
+                        max: 100,
+                        onChanged: onChanged,
                       ),
-                      activeTrackColor:
-                          Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black87,
-                      inactiveTrackColor:
-                          Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white24
-                          : Colors.black12,
-                      thumbColor:
-                          Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
-                      overlayColor:
-                          (Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black)
-                              .withValues(alpha: 0.15),
                     ),
-                    child: Slider(
-                      value: volume.clamp(0.0, 100.0),
-                      min: 0,
-                      max: 100,
-                      onChanged: onChanged,
-                    ),
+                  )
+                : const SizedBox(
+                    key: ValueKey('mini-inline-volume-slider-collapsed'),
                   ),
-                )
-              : const SizedBox(
-                  key: ValueKey('mini-inline-volume-slider-collapsed'),
-                ),
-        ),
-      ],
-    ),
-  );
-}
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class MiniSpectrumBackground extends ConsumerWidget {
