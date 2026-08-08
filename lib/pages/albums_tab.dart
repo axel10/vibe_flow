@@ -16,6 +16,7 @@ import '../widgets/scroll_to_top_wrapper.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
 import '../models/music_file.dart';
+import '../dialogs/sort_options_dialog.dart';
 
 enum _AlbumSortField { artist, title, trackCount, duration, recentAdded }
 
@@ -226,16 +227,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                       _searchQuery = '';
                     });
                   },
-                  onSortFieldSelected: (field) {
+                  onSortChanged: (field, sortAscending) {
                     setState(() {
                       _sortField = field;
-                      _isShuffledMode = false;
-                      _shuffledAlbums = null;
-                    });
-                  },
-                  onSortOrderToggled: () {
-                    setState(() {
-                      _sortAscending = !_sortAscending;
+                      _sortAscending = sortAscending;
                       _isShuffledMode = false;
                       _shuffledAlbums = null;
                     });
@@ -959,8 +954,7 @@ class _AlbumsToolbar extends StatelessWidget {
     required this.is3DView,
     required this.onSearchChanged,
     required this.onSearchCleared,
-    required this.onSortFieldSelected,
-    required this.onSortOrderToggled,
+    required this.onSortChanged,
     required this.onViewModeToggled,
     this.onShufflePressed,
   });
@@ -974,8 +968,7 @@ class _AlbumsToolbar extends StatelessWidget {
   final bool is3DView;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchCleared;
-  final ValueChanged<_AlbumSortField> onSortFieldSelected;
-  final VoidCallback onSortOrderToggled;
+  final void Function(_AlbumSortField field, bool sortAscending) onSortChanged;
   final VoidCallback onViewModeToggled;
   final VoidCallback? onShufflePressed;
 
@@ -1065,79 +1058,51 @@ class _AlbumsToolbar extends StatelessWidget {
             onPressed: onShufflePressed,
             icon: const Icon(Icons.shuffle_rounded),
           ),
-        PopupMenuButton<_AlbumSortField>(
-          tooltip: l10n.albumSort,
-          onSelected: onSortFieldSelected,
-          itemBuilder: (context) => [
-            buildContextMenuItem<_AlbumSortField>(
-              value: _AlbumSortField.artist,
-              label: l10n.sortArtistAsc,
-              icon: Icons.person_rounded,
-              context: context,
-            ),
-            buildContextMenuItem<_AlbumSortField>(
-              value: _AlbumSortField.title,
-              label: l10n.sortTitleAsc,
-              icon: Icons.title_rounded,
-              context: context,
-            ),
-            buildContextMenuItem<_AlbumSortField>(
-              value: _AlbumSortField.trackCount,
-              label: l10n.sortTrackCount,
-              icon: Icons.format_list_numbered_rounded,
-              context: context,
-            ),
-            buildContextMenuItem<_AlbumSortField>(
-              value: _AlbumSortField.duration,
-              label: l10n.sortDuration,
-              icon: Icons.access_time_rounded,
-              context: context,
-            ),
-            buildContextMenuItem<_AlbumSortField>(
-              value: _AlbumSortField.recentAdded,
-              label: l10n.sortRecentAdded,
-              icon: Icons.add_circle_outline_rounded,
-              context: context,
-            ),
-          ],
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.sort_rounded,
-                  size: 18,
-                  color: theme.colorScheme.onSecondaryContainer,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _sortFieldLabel(l10n, sortField),
-                  style: TextStyle(
-                    color: theme.colorScheme.onSecondaryContainer,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         IconButton.filledTonal(
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           padding: EdgeInsets.zero,
-          tooltip: sortAscending ? l10n.sortAscending : l10n.sortDescending,
-          onPressed: onSortOrderToggled,
-          icon: Icon(
-            sortAscending
-                ? Icons.arrow_upward_rounded
-                : Icons.arrow_downward_rounded,
-          ),
+          tooltip: l10n.albumSort,
+          onPressed: () async {
+            final result = await showDialog<SortResult<_AlbumSortField>>(
+              context: context,
+              builder: (context) => SortOptionsDialog<_AlbumSortField>(
+                title: l10n.albumSort,
+                currentField: sortField,
+                sortAscending: sortAscending,
+                options: [
+                  SortOptionItem(
+                    value: _AlbumSortField.artist,
+                    label: l10n.sortArtistAsc,
+                    icon: Icons.person_rounded,
+                  ),
+                  SortOptionItem(
+                    value: _AlbumSortField.title,
+                    label: l10n.sortTitleAsc,
+                    icon: Icons.album_rounded,
+                  ),
+                  SortOptionItem(
+                    value: _AlbumSortField.trackCount,
+                    label: l10n.sortTrackCount,
+                    icon: Icons.format_list_numbered_rounded,
+                  ),
+                  SortOptionItem(
+                    value: _AlbumSortField.duration,
+                    label: l10n.sortDuration,
+                    icon: Icons.access_time_rounded,
+                  ),
+                  SortOptionItem(
+                    value: _AlbumSortField.recentAdded,
+                    label: l10n.sortRecentAdded,
+                    icon: Icons.add_circle_outline_rounded,
+                  ),
+                ],
+              ),
+            );
+            if (result != null) {
+              onSortChanged(result.field, result.sortAscending);
+            }
+          },
+          icon: const Icon(Icons.sort_rounded),
         ),
       ],
     );
@@ -1175,16 +1140,6 @@ class _AlbumsToolbar extends StatelessWidget {
               ],
             ),
     );
-  }
-
-  String _sortFieldLabel(AppLocalizations l10n, _AlbumSortField field) {
-    return switch (field) {
-      _AlbumSortField.artist => l10n.sortArtistAsc,
-      _AlbumSortField.title => l10n.sortTitleAsc,
-      _AlbumSortField.trackCount => l10n.sortTrackCount,
-      _AlbumSortField.duration => l10n.sortDuration,
-      _AlbumSortField.recentAdded => l10n.sortRecentAdded,
-    };
   }
 }
 

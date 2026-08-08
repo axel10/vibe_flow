@@ -14,6 +14,7 @@ import '../utils/song_context_menu_utils.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
 import '../models/music_file.dart';
+import '../dialogs/sort_options_dialog.dart';
 
 enum _ArtistSortField { artist, songCount }
 
@@ -217,14 +218,10 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                         _searchQuery = '';
                       });
                     },
-                    onSortFieldSelected: (field) {
+                    onSortChanged: (field, sortAscending) {
                       setState(() {
                         _sortField = field;
-                      });
-                    },
-                    onSortOrderToggled: () {
-                      setState(() {
-                        _sortAscending = !_sortAscending;
+                        _sortAscending = sortAscending;
                       });
                     },
                   ),
@@ -303,14 +300,10 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                             _searchQuery = '';
                           });
                         },
-                        onSortFieldSelected: (field) {
+                        onSortChanged: (field, sortAscending) {
                           setState(() {
                             _sortField = field;
-                          });
-                        },
-                        onSortOrderToggled: () {
-                          setState(() {
-                            _sortAscending = !_sortAscending;
+                            _sortAscending = sortAscending;
                           });
                         },
                       ),
@@ -975,8 +968,7 @@ class _ArtistsToolbar extends StatelessWidget {
     required this.isWide,
     required this.onSearchChanged,
     required this.onSearchCleared,
-    required this.onSortFieldSelected,
-    required this.onSortOrderToggled,
+    required this.onSortChanged,
   });
 
   final TextEditingController searchController;
@@ -988,8 +980,7 @@ class _ArtistsToolbar extends StatelessWidget {
   final bool isWide;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchCleared;
-  final ValueChanged<_ArtistSortField> onSortFieldSelected;
-  final VoidCallback onSortOrderToggled;
+  final void Function(_ArtistSortField field, bool sortAscending) onSortChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -997,68 +988,36 @@ class _ArtistsToolbar extends StatelessWidget {
     final theme = Theme.of(context);
     final searchArtistsLabel = l10n.searchArtists;
     final artistCountLabel = '$artistCount $artistsLabel';
-    final sortControls = Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        PopupMenuButton<_ArtistSortField>(
-          tooltip: l10n.albumSort,
-          onSelected: onSortFieldSelected,
-          itemBuilder: (context) => [
-            buildContextMenuItem<_ArtistSortField>(
-              value: _ArtistSortField.artist,
-              label: l10n.sortArtistAsc,
-              icon: Icons.person_rounded,
-              context: context,
-            ),
-            buildContextMenuItem<_ArtistSortField>(
-              value: _ArtistSortField.songCount,
-              label: l10n.sortTrackCount,
-              icon: Icons.format_list_numbered_rounded,
-              context: context,
-            ),
-          ],
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.secondaryContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.sort_rounded,
-                  size: 18,
-                  color: theme.colorScheme.onSecondaryContainer,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _sortFieldLabel(l10n, sortField),
-                  style: TextStyle(
-                    color: theme.colorScheme.onSecondaryContainer,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+    final sortControls = IconButton.filledTonal(
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      padding: EdgeInsets.zero,
+      tooltip: l10n.albumSort,
+      onPressed: () async {
+        final result = await showDialog<SortResult<_ArtistSortField>>(
+          context: context,
+          builder: (context) => SortOptionsDialog<_ArtistSortField>(
+            title: l10n.albumSort,
+            currentField: sortField,
+            sortAscending: sortAscending,
+            options: [
+              SortOptionItem(
+                value: _ArtistSortField.artist,
+                label: l10n.sortArtistAsc,
+                icon: Icons.person_rounded,
+              ),
+              SortOptionItem(
+                value: _ArtistSortField.songCount,
+                label: l10n.sortTrackCount,
+                icon: Icons.format_list_numbered_rounded,
+              ),
+            ],
           ),
-        ),
-        IconButton.filledTonal(
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          padding: EdgeInsets.zero,
-          tooltip: sortAscending ? l10n.sortAscending : l10n.sortDescending,
-          onPressed: onSortOrderToggled,
-          icon: Icon(
-            sortAscending
-                ? Icons.arrow_upward_rounded
-                : Icons.arrow_downward_rounded,
-          ),
-        ),
-      ],
+        );
+        if (result != null) {
+          onSortChanged(result.field, result.sortAscending);
+        }
+      },
+      icon: const Icon(Icons.sort_rounded),
     );
 
     Widget buildTextField() {
@@ -1175,12 +1134,5 @@ class _ArtistsToolbar extends StatelessWidget {
               ],
             ),
     );
-  }
-
-  String _sortFieldLabel(AppLocalizations? l10n, _ArtistSortField field) {
-    return switch (field) {
-      _ArtistSortField.artist => l10n!.sortArtistAsc,
-      _ArtistSortField.songCount => l10n!.sortTrackCount,
-    };
   }
 }
