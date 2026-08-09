@@ -446,7 +446,8 @@ class PlaybackHeroCard extends ConsumerWidget {
                         top: layout.controls.top,
                         left: layout.controls.left,
                         width: layout.controls.width,
-                        height: layout.controls.height,
+                        height: layout.controls.height +
+                            (effectiveIsLandscape ? 36.0 : 0.0),
                         child: IgnorePointer(
                           ignoring: layout.controls.opacity < 0.5,
                           child: FittedBox(
@@ -534,7 +535,10 @@ class PlaybackHeroCard extends ConsumerWidget {
                         top: optimize ? targetLayout.info.top : layout.info.top,
                         left: optimize ? targetLayout.info.left : layout.info.left,
                         width: optimize ? targetLayout.info.width : layout.info.width,
-                        height: optimize ? targetLayout.info.height : layout.info.height,
+                        height: (optimize
+                                ? targetLayout.info.height
+                                : layout.info.height) +
+                            (effectiveIsLandscape ? 24.0 : 0.0),
                         child: Transform.translate(
                           offset: optimize
                               ? Offset(infoTranslationX, infoTranslationY)
@@ -864,11 +868,9 @@ class PlaybackHeroCard extends ConsumerWidget {
 
     final double lLyricsInfoControlsScale = lLyricsSpaceControlsScale;
     final double lLyricsInfoHeight =
-        (height < 720.0
-            ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightSmall
-            : (collapseButtonsInLandscapeLyrics
-                ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightBase
-                : PlaybackHeroCardUiTuning.landscapeInfoHeightBase)) *
+        (collapseButtonsInLandscapeLyrics
+            ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightBase
+            : PlaybackHeroCardUiTuning.landscapeInfoHeightBase) *
         lLyricsInfoControlsScale;
 
     final double lLyricsControlsBaseIdealHeight =
@@ -893,9 +895,7 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsControlsBaseIdealHeight * lLyricsSpaceControlsScale;
 
     final double lLyricsCoverInfoSpacing =
-        (height < 720.0
-            ? 16.0
-            : PlaybackHeroCardUiTuning.landscapeLyricsCoverInfoGapBase) *
+        PlaybackHeroCardUiTuning.landscapeLyricsCoverInfoGapBase *
         lLyricsSpaceControlsScale;
     final double lLyricsInfoControlsSpacing =
         (collapseButtonsInLandscapeLyrics
@@ -943,10 +943,13 @@ class PlaybackHeroCard extends ConsumerWidget {
       maxCoverSide,
     );
 
-    final double maxItemWidth = maxHorizontalSpace;
-    final double upperItemWidth = math.max(lLyricsCoverSide, maxItemWidth);
-    final double lLyricsItemWidth = (lLyricsCoverSide * math.max(1.0, uiScale))
-        .clamp(lLyricsCoverSide, upperItemWidth);
+    final double minControlsWidth =
+        (collapseButtonsInLandscapeLyrics ? 280.0 : 360.0) *
+            lLyricsSpaceControlsScale;
+    final double lLyricsItemWidth = lLyricsCoverSide.clamp(
+      math.min(minControlsWidth, maxHorizontalSpace),
+      maxHorizontalSpace,
+    );
 
     final double lLyricsTotalContentHeight =
         lLyricsCoverSide +
