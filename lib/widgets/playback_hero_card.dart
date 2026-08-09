@@ -774,21 +774,20 @@ class PlaybackHeroCard extends ConsumerWidget {
                 spaceFactor * PlaybackHeroCardUiTuning.lLyricsMaxCoverExpansion) *
         highResControlsScale *
         math.max(1.0, uiScale * 0.95);
-    final double lLyricsSpaceControlsScale =
-        highResControlsScale *
-        (PlaybackHeroCardUiTuning.lLyricsBaseControlsScale +
-            (lyricsStyle == LyricsStyle.apple
-                ? 0.0
-                : spaceFactor *
-                    PlaybackHeroCardUiTuning.lLyricsMaxControlsExpansion)) *
-        uiScale;
+    final double lLyricsSpaceControlsScale = collapseButtonsInLandscapeLyrics
+        ? (highResControlsScale *
+            (PlaybackHeroCardUiTuning.lLyricsBaseControlsScale +
+                (lyricsStyle == LyricsStyle.apple
+                    ? 0.0
+                    : spaceFactor *
+                        PlaybackHeroCardUiTuning.lLyricsMaxControlsExpansion)) *
+            uiScale)
+        : lNormalControlsScale;
 
-    const lLyricsTopPadding = 16.0;
     const lLyricsOuterLeftPadding = 48.0;
     const lLyricsInnerLeftPadding = 16.0;
-    final double minVerticalReservedSpace = lyricsStyle == LyricsStyle.apple
-        ? PlaybackHeroCardUiTuning.appleLyricsMinVerticalReservedSpace
-        : (lLyricsTopPadding * 2);
+    final double minVerticalReservedSpace =
+        PlaybackHeroCardUiTuning.lLyricsVerticalMargin * 2.0;
     final lLyricsAvailableHeight = math.max(
       0.0,
       height - minVerticalReservedSpace,
@@ -858,9 +857,8 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsCoverInfoSpacing +
         lLyricsInfoControlsSpacing;
 
-    final double maxLeftAreaTotalHeight = lyricsStyle == LyricsStyle.apple
-        ? math.max(0.0, height - minVerticalReservedSpace)
-        : height * PlaybackHeroCardUiTuning.lLyricsMaxLeftAreaHeightRatio;
+    final double maxLeftAreaTotalHeight =
+        math.max(0.0, height - minVerticalReservedSpace);
     final double maxCoverHeightByTotalLimit = maxLeftAreaTotalHeight - nonCoverHeight;
 
     final double maxCoverSide = math.min(
@@ -888,7 +886,7 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsControlsHeight;
 
     final double lLyricsCoverTop = math.max(
-      16.0,
+      PlaybackHeroCardUiTuning.lLyricsVerticalMargin,
       (height - lLyricsTotalContentHeight) / 2,
     );
 

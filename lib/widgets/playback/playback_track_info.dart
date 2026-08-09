@@ -540,6 +540,14 @@ class PlaybackTrackInfo extends ConsumerWidget {
                   constraints: const BoxConstraints(),
                   style: IconButton.styleFrom(
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: Size.zero,
+                    fixedSize: Size(
+                      PlaybackHeroCardUiTuning.lLyricsTitleButtonHeight *
+                          buttonControlsScale,
+                      PlaybackHeroCardUiTuning.lLyricsTitleButtonHeight *
+                          buttonControlsScale,
+                    ),
+                    padding: EdgeInsets.zero,
                   ),
                   icon: Icon(
                     Icons.more_horiz,
