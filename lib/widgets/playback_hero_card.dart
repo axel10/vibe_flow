@@ -245,11 +245,13 @@ class PlaybackHeroCard extends ConsumerWidget {
     ref.listen<bool>(audioIsPlayingProvider, (previous, next) {
       if (previous == true && !next) {
         if (effectiveIsLandscape && effectiveIsLyricsMode) {
-          final windowHeight = size.height;
+          final renderBox = context.findRenderObject() as RenderBox?;
+          final double actualWidth = renderBox?.hasSize == true ? renderBox!.size.width : size.width;
+          final double actualHeight = renderBox?.hasSize == true ? renderBox!.size.height : size.height;
           final layout = _buildPlaybackCardLayout(
             context,
-            width: size.width,
-            height: size.height,
+            width: actualWidth,
+            height: actualHeight,
             tLyrics: 1.0,
             tLand: 1.0,
             isWaveformEnabled: settings.isWaveformProgressBarEnabled,
@@ -261,7 +263,7 @@ class PlaybackHeroCard extends ConsumerWidget {
           );
           final leftAreaHeight = layout.leftAreaTotalHeight;
           AppLog.log(
-            '[Playback] 横屏歌词模式暂停 -> 左侧控件区总高度: ${leftAreaHeight.toStringAsFixed(2)}, 窗口总高度: ${windowHeight.toStringAsFixed(2)}',
+            '[Playback] 横屏歌词模式暂停 -> 左侧控件区总高度: ${leftAreaHeight.toStringAsFixed(2)}, 卡片实际高度: ${actualHeight.toStringAsFixed(2)}, 窗口总高度: ${size.height.toStringAsFixed(2)}',
             mirrorToConsole: true,
           );
         }
@@ -462,36 +464,39 @@ class PlaybackHeroCard extends ConsumerWidget {
                                       : width *
                                             PlaybackHeroCardUiTuning
                                                 .portraitControlsWidthFactor),
-                                  child: PlaybackControls(
-                                    width: width,
-                                    layoutWidth: layoutWidth,
-                                    controlsScale: optimize
-                                        ? targetLayout.controlsScale
-                                        : layout.controlsScale,
-                                    tLyrics: optimize ? targetTLyrics : tLyrics,
-                                    isLandscape: effectiveIsLandscape,
-                                    showVisualizerToggle: showVisualizerToggle,
-                                    overrideProgress: overrideProgress,
-                                    overridePosition: overridePosition,
-                                    overrideWaveform: overrideWaveform,
-                                    onShowMoreMenu: onShowMoreMenu,
-                                    onCyclePlaylistMode: onCyclePlaylistMode,
-                                    onShowPlaylistModeSelector:
-                                        onShowPlaylistModeSelector,
-                                    onScrubbing: onScrubbing,
-                                    onSeek: onSeek,
-                                    onToggleVisualizer: onToggleVisualizer,
-                                    onTagCompletionTap: onTagCompletionTap,
-                                    onTagCompletionLongPress:
-                                        onTagCompletionLongPress,
-                                    onSleepTimerTap: onSleepTimerTap,
-                                    onEqualizerTap: onEqualizerTap,
-                                    onPrevious: onPrevious,
-                                    onPlayPause: onPlayPause,
-                                    onNext: onNext,
-                                    onVolumeTap: onVolumeTap,
-                                    onVolumeDrag: onVolumeDrag,
-                                    onVolumeScroll: onVolumeScroll,
+                                  child: SizeLogger(
+                                    name: 'Controls',
+                                    child: PlaybackControls(
+                                      width: width,
+                                      layoutWidth: layoutWidth,
+                                      controlsScale: optimize
+                                          ? targetLayout.controlsScale
+                                          : layout.controlsScale,
+                                      tLyrics: optimize ? targetTLyrics : tLyrics,
+                                      isLandscape: effectiveIsLandscape,
+                                      showVisualizerToggle: showVisualizerToggle,
+                                      overrideProgress: overrideProgress,
+                                      overridePosition: overridePosition,
+                                      overrideWaveform: overrideWaveform,
+                                      onShowMoreMenu: onShowMoreMenu,
+                                      onCyclePlaylistMode: onCyclePlaylistMode,
+                                      onShowPlaylistModeSelector:
+                                          onShowPlaylistModeSelector,
+                                      onScrubbing: onScrubbing,
+                                      onSeek: onSeek,
+                                      onToggleVisualizer: onToggleVisualizer,
+                                      onTagCompletionTap: onTagCompletionTap,
+                                      onTagCompletionLongPress:
+                                          onTagCompletionLongPress,
+                                      onSleepTimerTap: onSleepTimerTap,
+                                      onEqualizerTap: onEqualizerTap,
+                                      onPrevious: onPrevious,
+                                      onPlayPause: onPlayPause,
+                                      onNext: onNext,
+                                      onVolumeTap: onVolumeTap,
+                                      onVolumeDrag: onVolumeDrag,
+                                      onVolumeScroll: onVolumeScroll,
+                                    ),
                                   ),
                                 );
                               },
@@ -507,13 +512,16 @@ class PlaybackHeroCard extends ConsumerWidget {
                           height: layout.cover.height,
                           child: Consumer(
                             builder: (context, ref, child) {
-                              final Widget coverWidget = PlaybackAlbumArt(
-                                currentSize: layout.cover.width,
-                                cacheWidthSize: coverNormalLayout.cover.width,
-                                isNext: isNext,
-                                onCoverTap: onCoverTap,
-                                onCarouselAnimationComplete:
-                                    onCarouselAnimationComplete,
+                              final Widget coverWidget = SizeLogger(
+                                name: 'Cover',
+                                child: PlaybackAlbumArt(
+                                  currentSize: layout.cover.width,
+                                  cacheWidthSize: coverNormalLayout.cover.width,
+                                  isNext: isNext,
+                                  onCoverTap: onCoverTap,
+                                  onCarouselAnimationComplete:
+                                      onCarouselAnimationComplete,
+                                ),
                               );
                               return KeyedSubtree(
                                 key: coverKey,
@@ -563,25 +571,28 @@ class PlaybackHeroCard extends ConsumerWidget {
                                   width: optimize
                                       ? targetLayout.info.width
                                       : layout.info.width,
-                                  child: PlaybackTrackInfo(
-                                    currentMusic: currentMusic,
-                                    align: optimize
-                                        ? targetLayout.trackInfoAlign
-                                        : layout.trackInfoAlign,
-                                    lyricsModeT:
-                                        optimize ? targetTLyrics : tLyrics,
-                                    landscapeT: tLand,
-                                    controlsScale: optimize
-                                        ? targetLayout.controlsScale
-                                        : layout.controlsScale,
-                                    showVisualizerToggle: showVisualizerToggle,
-                                    onShowMoreMenu: onShowMoreMenu,
-                                    onCyclePlaylistMode: onCyclePlaylistMode,
-                                    onToggleVisualizer: onToggleVisualizer,
-                                    onTagCompletionTap: onTagCompletionTap,
-                                    onSleepTimerTap: onSleepTimerTap,
-                                    onEqualizerTap: onEqualizerTap,
-                                    onVolumeTap: onVolumeTap,
+                                  child: SizeLogger(
+                                    name: 'TrackInfo',
+                                    child: PlaybackTrackInfo(
+                                      currentMusic: currentMusic,
+                                      align: optimize
+                                          ? targetLayout.trackInfoAlign
+                                          : layout.trackInfoAlign,
+                                      lyricsModeT:
+                                          optimize ? targetTLyrics : tLyrics,
+                                      landscapeT: tLand,
+                                      controlsScale: optimize
+                                          ? targetLayout.controlsScale
+                                          : layout.controlsScale,
+                                      showVisualizerToggle: showVisualizerToggle,
+                                      onShowMoreMenu: onShowMoreMenu,
+                                      onCyclePlaylistMode: onCyclePlaylistMode,
+                                      onToggleVisualizer: onToggleVisualizer,
+                                      onTagCompletionTap: onTagCompletionTap,
+                                      onSleepTimerTap: onSleepTimerTap,
+                                      onEqualizerTap: onEqualizerTap,
+                                      onVolumeTap: onVolumeTap,
+                                    ),
                                   ),
                                 ),
                               );
@@ -763,9 +774,9 @@ class PlaybackHeroCard extends ConsumerWidget {
             ? PlaybackHeroCardUiTuning.waveformLandscapeHeight
             : 48.0) +
         PlaybackHeroCardUiTuning.controlsTimeGap +
-        PlaybackHeroCardUiTuning.controlsTimeRowHeight +
+        16.0 + // 实际时间行高度 (在 controlsScale 缩放前，实际 Text 高度约为 16.0)
         PlaybackHeroCardUiTuning.controlsRowLandscapeMainGap +
-        60.0;
+        60.0; // 实际主播放按钮行高度
 
     final double maxControlsHeight = math.max(
       height * 0.65,
@@ -853,9 +864,11 @@ class PlaybackHeroCard extends ConsumerWidget {
 
     final double lLyricsInfoControlsScale = lLyricsSpaceControlsScale;
     final double lLyricsInfoHeight =
-        (collapseButtonsInLandscapeLyrics
-            ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightBase
-            : PlaybackHeroCardUiTuning.landscapeInfoHeightBase) *
+        (height < 720.0
+            ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightSmall
+            : (collapseButtonsInLandscapeLyrics
+                ? PlaybackHeroCardUiTuning.landscapeLyricsInfoHeightBase
+                : PlaybackHeroCardUiTuning.landscapeInfoHeightBase)) *
         lLyricsInfoControlsScale;
 
     final double lLyricsControlsBaseIdealHeight =
@@ -864,17 +877,27 @@ class PlaybackHeroCard extends ConsumerWidget {
                     ? PlaybackHeroCardUiTuning.waveformLandscapeHeight
                     : 48.0) +
                 PlaybackHeroCardUiTuning.controlsTimeGap +
-                PlaybackHeroCardUiTuning.controlsTimeRowHeight +
+                16.0 + // 实际时间行高度
                 PlaybackHeroCardUiTuning.controlsRowLandscapeGap +
-                PlaybackHeroCardUiTuning.controlsMainButtonsHeight)
-            : lNormalControlsBaseIdealHeight;
-    final lLyricsControlsHeight =
+                60.0) // 实际主播放按钮行高度 (60.0)
+            : (PlaybackHeroCardUiTuning.controlsTopButtonsHeight +
+                PlaybackHeroCardUiTuning.controlsRowLandscapeGap +
+                (isWaveformEnabled
+                    ? PlaybackHeroCardUiTuning.waveformLandscapeHeight
+                    : 48.0) +
+                PlaybackHeroCardUiTuning.controlsTimeGap +
+                16.0 + // 实际时间行高度
+                PlaybackHeroCardUiTuning.controlsRowLandscapeGap + // 歌词模式下 gap 为 controlsRowLandscapeGap (12.0)
+                60.0); // 实际主播放按钮行高度
+    final double lLyricsControlsHeight =
         lLyricsControlsBaseIdealHeight * lLyricsSpaceControlsScale;
 
-    final lLyricsCoverInfoSpacing =
-        PlaybackHeroCardUiTuning.landscapeLyricsCoverInfoGapBase *
+    final double lLyricsCoverInfoSpacing =
+        (height < 720.0
+            ? 16.0
+            : PlaybackHeroCardUiTuning.landscapeLyricsCoverInfoGapBase) *
         lLyricsSpaceControlsScale;
-    final lLyricsInfoControlsSpacing =
+    final double lLyricsInfoControlsSpacing =
         (collapseButtonsInLandscapeLyrics
             ? PlaybackHeroCardUiTuning.landscapeLyricsInfoControlsGapCollapsed
             : PlaybackHeroCardUiTuning.landscapeLyricsInfoControlsGap) *
@@ -891,9 +914,19 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsCoverInfoSpacing +
         lLyricsInfoControlsSpacing;
 
+    double screenHeight = height;
+    try {
+      final display = View.of(context).display;
+      if (display.size.height > 0 && display.devicePixelRatio > 0) {
+        screenHeight = display.size.height / display.devicePixelRatio;
+      }
+    } catch (_) {
+      // Fallback to current window height if display query fails
+    }
+
     final double maxLeftAreaTotalHeight = math.min(
       lLyricsAvailableHeight,
-      height * PlaybackHeroCardUiTuning.lLyricsMaxHeightFactor,
+      screenHeight * PlaybackHeroCardUiTuning.lLyricsMaxHeightFactor,
     );
     final double maxCoverHeightByTotalLimit =
         maxLeftAreaTotalHeight - nonCoverHeight;
@@ -921,6 +954,20 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsInfoHeight +
         lLyricsInfoControlsSpacing +
         lLyricsControlsHeight;
+
+    AppLog.log(
+      '[Playback-Detail] lLyricsCoverSide: ${lLyricsCoverSide.toStringAsFixed(2)}, '
+      'lLyricsCoverInfoSpacing: ${lLyricsCoverInfoSpacing.toStringAsFixed(2)}, '
+      'lLyricsInfoHeight: ${lLyricsInfoHeight.toStringAsFixed(2)}, '
+      'lLyricsInfoControlsSpacing: ${lLyricsInfoControlsSpacing.toStringAsFixed(2)}, '
+      'lLyricsControlsHeight: ${lLyricsControlsHeight.toStringAsFixed(2)}, '
+      'lLyricsTotalContentHeight: ${lLyricsTotalContentHeight.toStringAsFixed(2)}, '
+      'maxLeftAreaTotalHeight: ${maxLeftAreaTotalHeight.toStringAsFixed(2)}, '
+      'maxCoverSide: ${maxCoverSide.toStringAsFixed(2)}, '
+      'maxHorizontalSpace: ${maxHorizontalSpace.toStringAsFixed(2)}, '
+      'nonCoverHeight: ${nonCoverHeight.toStringAsFixed(2)}',
+      mirrorToConsole: true,
+    );
 
     final double lLyricsCoverTop = math.max(
       PlaybackHeroCardUiTuning.lLyricsVerticalMargin,
@@ -1266,5 +1313,31 @@ class _LyricsPanelTransitionWrapperState
         );
       },
     );
+  }
+}
+
+class SizeLogger extends StatefulWidget {
+  final String name;
+  final Widget child;
+  const SizeLogger({required this.name, required this.child, super.key});
+  @override
+  State<SizeLogger> createState() => _SizeLoggerState();
+}
+
+class _SizeLoggerState extends State<SizeLogger> {
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final renderBox = context.findRenderObject() as RenderBox?;
+        if (renderBox != null && renderBox.hasSize) {
+          AppLog.log(
+            '[SizeLogger] ${widget.name} size: ${renderBox.size.width.toStringAsFixed(2)} x ${renderBox.size.height.toStringAsFixed(2)}',
+            mirrorToConsole: true,
+          );
+        }
+      }
+    });
+    return widget.child;
   }
 }
