@@ -840,7 +840,18 @@ class _WordWordLyricsWidgetState extends ConsumerState<WordWordLyricsWidget> wit
         setState(() {});
       }
     });
-    _ticker.start();
+  }
+
+  void _updateTickerState() {
+    if (_isPlaying) {
+      if (!_ticker.isActive) {
+        _ticker.start();
+      }
+    } else {
+      if (_ticker.isActive) {
+        _ticker.stop();
+      }
+    }
   }
 
   @override
@@ -858,6 +869,7 @@ class _WordWordLyricsWidgetState extends ConsumerState<WordWordLyricsWidget> wit
       _lastObservedPosition = position;
       _lastObservedAt = DateTime.now();
       _isPlaying = isPlaying;
+      _updateTickerState();
     }
 
     final Duration currentPosition;

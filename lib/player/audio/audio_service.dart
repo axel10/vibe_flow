@@ -1116,8 +1116,7 @@ class AudioService extends Notifier<AudioSnapshot> {
         force ||
         playbackChanged ||
         positionChangedSignificantly ||
-        (_isPlaying && elapsed >= const Duration(milliseconds: 120)) ||
-        (!_isPlaying && elapsed >= const Duration(milliseconds: 500));
+        (_isPlaying && elapsed >= const Duration(milliseconds: 120));
 
     if (!shouldNotify) return;
 
