@@ -128,6 +128,7 @@ class PlaybackHeroCardUiTuning {
   static const double lLyricsMaxCoverExpansion = 120.0; // 窗口空间充裕时封面最大额外扩大尺寸
   static const double lLyricsMaxControlsExpansion = 0.22; // 窗口空间充裕时控件区最大额外放大倍率
   static const double lLyricsVerticalMargin = 48.0; // 横屏歌词模式左侧控件区上下预留边距 (单位：像素，如 28.0px 即上下各留 28px)
+  static const double lLyricsMaxHeightFactor = 0.8; // 横屏歌词模式左侧控件区最大高度比例 (相对于窗口屏幕高度)
 
   static const double appleLyricsRightPanelRatio = 0.5; // 苹果样式下歌词模式占比
 

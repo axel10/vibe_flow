@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/utils/app_log.dart';
 import 'package:vynody/widgets/lyrics_panel.dart';
 import 'package:vynody/widgets/playback_ui_tuning.dart';
 
@@ -47,6 +48,7 @@ class _PlaybackCardLayout {
     required this.lyrics,
     required this.trackInfoAlign,
     required this.controlsScale,
+    this.leftAreaTotalHeight = 0.0,
   });
 
   final _PlaybackPaneLayout cover;
@@ -55,6 +57,7 @@ class _PlaybackCardLayout {
   final _PlaybackPaneLayout lyrics;
   final TextAlign trackInfoAlign;
   final double controlsScale;
+  final double leftAreaTotalHeight;
 }
 
 class PlaybackHeroCard extends ConsumerWidget {
@@ -190,6 +193,9 @@ class PlaybackHeroCard extends ConsumerWidget {
       trackInfoAlign: t < 0.5 ? start.trackInfoAlign : end.trackInfoAlign,
       controlsScale: lerpDouble(start.controlsScale, end.controlsScale, t) ??
           start.controlsScale,
+      leftAreaTotalHeight:
+          lerpDouble(start.leftAreaTotalHeight, end.leftAreaTotalHeight, t) ??
+              start.leftAreaTotalHeight,
     );
   }
 
@@ -235,6 +241,32 @@ class PlaybackHeroCard extends ConsumerWidget {
     );
     final bool effectiveIsLandscape = isLandscape && !isSmallWindow;
     final bool effectiveIsLyricsMode = isLyricsMode && !isSmallWindow;
+
+    ref.listen<bool>(audioIsPlayingProvider, (previous, next) {
+      if (previous == true && !next) {
+        if (effectiveIsLandscape && effectiveIsLyricsMode) {
+          final windowHeight = size.height;
+          final layout = _buildPlaybackCardLayout(
+            context,
+            width: size.width,
+            height: size.height,
+            tLyrics: 1.0,
+            tLand: 1.0,
+            isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+            isSmallWindow: isSmallWindow,
+            lyricsStyle: settings.lyricsStyle,
+            collapseButtonsInLandscapeLyrics:
+                settings.collapseButtonsInLandscapeLyrics,
+            uiScale: settings.uiScale,
+          );
+          final leftAreaHeight = layout.leftAreaTotalHeight;
+          AppLog.log(
+            '[Playback] 横屏歌词模式暂停 -> 左侧控件区总高度: ${leftAreaHeight.toStringAsFixed(2)}, 窗口总高度: ${windowHeight.toStringAsFixed(2)}',
+            mirrorToConsole: true,
+          );
+        }
+      }
+    });
 
     final isTransitioningNotifier = ValueNotifier<bool>(false);
     final lyricsPanelWidget = _LyricsPanelTransitionWrapper(
@@ -859,16 +891,19 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsCoverInfoSpacing +
         lLyricsInfoControlsSpacing;
 
-    final double maxLeftAreaTotalHeight =
-        math.max(0.0, height - minVerticalReservedSpace);
-    final double maxCoverHeightByTotalLimit = maxLeftAreaTotalHeight - nonCoverHeight;
+    final double maxLeftAreaTotalHeight = math.min(
+      lLyricsAvailableHeight,
+      height * PlaybackHeroCardUiTuning.lLyricsMaxHeightFactor,
+    );
+    final double maxCoverHeightByTotalLimit =
+        maxLeftAreaTotalHeight - nonCoverHeight;
 
     final double maxCoverSide = math.min(
       lLyricsPreferredCoverSide,
       math.min(math.max(140.0, maxCoverHeightByTotalLimit), maxHorizontalSpace),
     );
     final double availableCoverHeight =
-        lLyricsAvailableHeight - nonCoverHeight;
+        maxLeftAreaTotalHeight - nonCoverHeight;
 
     final double lLyricsCoverSide = availableCoverHeight.clamp(
       math.min(140.0, maxCoverSide),
@@ -1092,6 +1127,7 @@ class PlaybackHeroCard extends ConsumerWidget {
       lyrics: lyrics,
       trackInfoAlign: trackInfoAlign,
       controlsScale: currentControlsScale,
+      leftAreaTotalHeight: lLyricsTotalContentHeight,
     );
   }
 
