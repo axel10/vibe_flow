@@ -139,7 +139,7 @@ class PlaybackHeroCardUiTuning {
   static const double trackArtistStandardFont = 16.0;
   static const double trackArtistLandscapeLyricsFont = 19.0;
   static const double minTrackArtistFontSize = 12.0;
-  static const double trackInfoLandscapeLyricsGap = 10.0;
+  static const double trackInfoLandscapeLyricsGap = 5.0;
 
   // 横屏歌词模式下标题按钮区尺寸基准参数 (Base dimension for title button area in landscape lyrics mode)
   static const double lLyricsTitleButtonSize = 32.0;
@@ -184,6 +184,7 @@ class PlaybackHeroCardUiTuning {
   static const double portraitProgressBarWidthFactor = 1.0; // 竖屏进度条宽度比例
   static const double landscapeInfoControlsGap = 14.0; // 横屏普通模式下标题区到控件区的距离
   static const double landscapeLyricsInfoControlsGap = 0.0; // 横屏歌词模式下标题区到控件区的距离 (保持紧凑)
+  static const double landscapeLyricsInfoControlsGapCollapsed = 14.0; // 横屏歌词模式收起7按钮行时标题区距离波形进度条的距离
   static const double landscapeInfoHeightBase = 52.0;
   static const double landscapeLyricsInfoHeightBase = 64.0;
   static const double landscapeLyricsInfoHeightSmall = 46.0;

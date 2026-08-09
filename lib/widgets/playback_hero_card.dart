@@ -843,7 +843,9 @@ class PlaybackHeroCard extends ConsumerWidget {
         PlaybackHeroCardUiTuning.landscapeLyricsCoverInfoGapBase *
         lLyricsSpaceControlsScale;
     final lLyricsInfoControlsSpacing =
-        PlaybackHeroCardUiTuning.landscapeLyricsInfoControlsGap *
+        (collapseButtonsInLandscapeLyrics
+            ? PlaybackHeroCardUiTuning.landscapeLyricsInfoControlsGapCollapsed
+            : PlaybackHeroCardUiTuning.landscapeLyricsInfoControlsGap) *
         lLyricsSpaceControlsScale;
 
     final double maxHorizontalSpace =
