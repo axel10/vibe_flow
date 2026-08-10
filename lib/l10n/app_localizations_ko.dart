@@ -1114,20 +1114,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get apiKeySavedAcoustid => 'AcoustID API 키가 저장되었습니다';
 
   @override
-  String get generalSectionTitle => '인터페이스';
+  String get generalSectionTitle => '인터페이스 및 동작';
 
   @override
-  String get generalSectionDescription =>
-      '이 옵션들은 페이지 및 재생 UI의 전반적인 모양에 영향을 줍니다.';
+  String get generalSectionDescription => '모양, 재생 상호작용 및 창/시스템 동작을 설정합니다.';
 
   @override
-  String get uiAppearanceGroup => '外观与显示';
+  String get uiAppearanceGroup => '모양 및 디스플레이';
 
   @override
-  String get playbackBehaviorGroup => '播放与交互行为';
+  String get playbackBehaviorGroup => '재생 및 상호작용';
 
   @override
-  String get systemWindowBehaviorGroup => '窗口与系统行为';
+  String get systemWindowBehaviorGroup => '창 및 시스템 동작';
 
   @override
   String get interfaceLanguage => '인터페이스 언어';

@@ -433,8 +433,11 @@
     }
   },
   "apiKeySavedAcoustid": "AcoustID APIキーを保存しました",
-  "generalSectionTitle": "インターフェース",
-  "generalSectionDescription": "これらのオプションはページと再生UIの全体的な外観に影響します。",
+  "generalSectionTitle": "画面と動作",
+  "generalSectionDescription": "外観、再生インタラクション、およびウィンドウとシステムの動作を設定します。",
+  "uiAppearanceGroup": "外観と表示",
+  "playbackBehaviorGroup": "再生とインタラクション",
+  "systemWindowBehaviorGroup": "ウィンドウとシステム動作",
   "interfaceLanguage": "インターフェース言語",
   "interfaceLanguageDescription": "アプリケーションの表示言語を選択します。",
   "scanSectionTitle": "スキャン",

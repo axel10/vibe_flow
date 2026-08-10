@@ -433,8 +433,11 @@
     }
   },
   "apiKeySavedAcoustid": "Clé API AcoustID sauvegardée",
-  "generalSectionTitle": "Interface",
-  "generalSectionDescription": "Ces options affectent l'apparence générale des pages et de l'interface de lecture.",
+  "generalSectionTitle": "Interface et comportement",
+  "generalSectionDescription": "Configurez l'apparence, les interactions de lecture et le comportement des fenêtres système.",
+  "uiAppearanceGroup": "Apparence et affichage",
+  "playbackBehaviorGroup": "Lecture et interaction",
+  "systemWindowBehaviorGroup": "Comportement de la fenêtre et du système",
   "interfaceLanguage": "Langue de l'interface",
   "interfaceLanguageDescription": "Sélectionnez la langue d'affichage de l'application.",
   "scanSectionTitle": "Analyse",

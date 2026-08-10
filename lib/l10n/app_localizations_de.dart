@@ -1151,20 +1151,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get apiKeySavedAcoustid => 'AcoustID-API-Schlüssel gespeichert';
 
   @override
-  String get generalSectionTitle => 'Oberfläche';
+  String get generalSectionTitle => 'Oberfläche & Verhalten';
 
   @override
   String get generalSectionDescription =>
-      'Diese Optionen beeinflussen das allgemeine Erscheinungsbild der Seiten und der Wiedergabeoberfläche.';
+      'Konfigurieren Sie Erscheinungsbild, Wiedergabeinteraktionen und Fenster-Systemverhalten.';
 
   @override
-  String get uiAppearanceGroup => '外观与显示';
+  String get uiAppearanceGroup => 'Erscheinungsbild & Anzeige';
 
   @override
-  String get playbackBehaviorGroup => '播放与交互行为';
+  String get playbackBehaviorGroup => 'Wiedergabe & Interaktion';
 
   @override
-  String get systemWindowBehaviorGroup => '窗口与系统行为';
+  String get systemWindowBehaviorGroup => 'Fenster- & Systemverhalten';
 
   @override
   String get interfaceLanguage => 'Oberflächensprache';

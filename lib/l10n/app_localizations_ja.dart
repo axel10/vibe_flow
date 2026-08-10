@@ -1111,19 +1111,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get apiKeySavedAcoustid => 'AcoustID APIキーを保存しました';
 
   @override
-  String get generalSectionTitle => 'インターフェース';
+  String get generalSectionTitle => '画面と動作';
 
   @override
-  String get generalSectionDescription => 'これらのオプションはページと再生UIの全体的な外観に影響します。';
+  String get generalSectionDescription =>
+      '外観、再生インタラクション、およびウィンドウとシステムの動作を設定します。';
 
   @override
-  String get uiAppearanceGroup => '外观与显示';
+  String get uiAppearanceGroup => '外観と表示';
 
   @override
-  String get playbackBehaviorGroup => '播放与交互行为';
+  String get playbackBehaviorGroup => '再生とインタラクション';
 
   @override
-  String get systemWindowBehaviorGroup => '窗口与系统行为';
+  String get systemWindowBehaviorGroup => 'ウィンドウとシステム動作';
 
   @override
   String get interfaceLanguage => 'インターフェース言語';

@@ -433,8 +433,11 @@
     }
   },
   "apiKeySavedAcoustid": "AcoustID-API-Schlüssel gespeichert",
-  "generalSectionTitle": "Oberfläche",
-  "generalSectionDescription": "Diese Optionen beeinflussen das allgemeine Erscheinungsbild der Seiten und der Wiedergabeoberfläche.",
+  "generalSectionTitle": "Oberfläche & Verhalten",
+  "generalSectionDescription": "Konfigurieren Sie Erscheinungsbild, Wiedergabeinteraktionen und Fenster-Systemverhalten.",
+  "uiAppearanceGroup": "Erscheinungsbild & Anzeige",
+  "playbackBehaviorGroup": "Wiedergabe & Interaktion",
+  "systemWindowBehaviorGroup": "Fenster- & Systemverhalten",
   "interfaceLanguage": "Oberflächensprache",
   "interfaceLanguageDescription": "Wählen Sie die Anzeigesprache der Anwendung.",
   "scanSectionTitle": "Scannen",
