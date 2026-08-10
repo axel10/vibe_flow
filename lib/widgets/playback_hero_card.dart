@@ -918,10 +918,24 @@ class PlaybackHeroCard extends ConsumerWidget {
     try {
       final display = View.of(context).display;
       if (display.size.height > 0 && display.devicePixelRatio > 0) {
-        screenHeight = display.size.height / display.devicePixelRatio;
+        final double displayHeight = display.size.height / display.devicePixelRatio;
+        final platform = Theme.of(context).platform;
+        final isDesktop = platform == TargetPlatform.linux ||
+            platform == TargetPlatform.windows ||
+            platform == TargetPlatform.macOS;
+        
+        if (isDesktop && displayHeight <= 600.0) {
+          screenHeight = math.max(1080.0, height);
+        } else {
+          screenHeight = displayHeight;
+        }
       }
     } catch (_) {
-      // Fallback to current window height if display query fails
+      final platform = Theme.of(context).platform;
+      final isDesktop = platform == TargetPlatform.linux ||
+          platform == TargetPlatform.windows ||
+          platform == TargetPlatform.macOS;
+      screenHeight = isDesktop ? math.max(1080.0, height) : height;
     }
 
     final double maxLeftAreaTotalHeight = math.min(
