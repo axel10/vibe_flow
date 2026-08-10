@@ -988,9 +988,7 @@ class _ArtistsToolbar extends StatelessWidget {
     final theme = Theme.of(context);
     final searchArtistsLabel = l10n.searchArtists;
     final artistCountLabel = '$artistCount $artistsLabel';
-    final sortControls = IconButton.filledTonal(
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-      padding: EdgeInsets.zero,
+    final sortControls = IconButton(
       tooltip: l10n.albumSort,
       onPressed: () async {
         final result = await showDialog<SortResult<_ArtistSortField>>(

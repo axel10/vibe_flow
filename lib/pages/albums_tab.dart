@@ -1039,9 +1039,13 @@ class _AlbumsToolbar extends StatelessWidget {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        IconButton.filledTonal(
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          padding: EdgeInsets.zero,
+        if (is3DView)
+          IconButton(
+            tooltip: isZh ? '随机打乱专辑顺序' : 'Shuffle Album Order',
+            onPressed: onShufflePressed,
+            icon: const Icon(Icons.shuffle_rounded),
+          ),
+        IconButton(
           tooltip: is3DView
               ? (isZh ? '网格视图' : 'Grid View')
               : (isZh ? '3D 视图' : '3D View'),
@@ -1050,17 +1054,7 @@ class _AlbumsToolbar extends StatelessWidget {
             is3DView ? Icons.grid_view_rounded : Icons.view_carousel_rounded,
           ),
         ),
-        if (is3DView)
-          IconButton.filledTonal(
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            padding: EdgeInsets.zero,
-            tooltip: isZh ? '随机打乱专辑顺序' : 'Shuffle Album Order',
-            onPressed: onShufflePressed,
-            icon: const Icon(Icons.shuffle_rounded),
-          ),
-        IconButton.filledTonal(
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          padding: EdgeInsets.zero,
+        IconButton(
           tooltip: l10n.albumSort,
           onPressed: () async {
             final result = await showDialog<SortResult<_AlbumSortField>>(

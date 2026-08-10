@@ -634,7 +634,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
             ),
           ),
           if (hasSongs) ...[
-            IconButton.filledTonal(
+            IconButton(
               tooltip: l10n.clearPlaylist,
               onPressed: () {
                 if (currentPlaylist != null) {
