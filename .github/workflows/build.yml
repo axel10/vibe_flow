@@ -724,3 +724,40 @@ jobs:
           body_path: release_notes.md
           tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to AUR
+        if: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
+        env:
+          AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          TAG_NAME: ${{ github.event.inputs.tag_name || github.ref_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          DEB_FILE=$(ls release_assets/vynody-linux-*-amd64.deb 2>/dev/null | head -n 1)
+          if [[ -f "$DEB_FILE" ]]; then
+            echo "Preparing AUR release for version $VERSION..."
+            mkdir -p ~/.ssh
+            echo "$AUR_KEY" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh-keyscan -h aur.archlinux.org >> ~/.ssh/known_hosts
+
+            DEB_SHA256=$(sha256sum "$DEB_FILE" | awk '{print $1}')
+            mkdir -p /tmp/aur-build
+            bash scripts/generate_aur_package.sh "$VERSION" "$DEB_SHA256" /tmp/aur-build
+
+            git clone aur@aur.archlinux.org:vynody-bin.git /tmp/aur-repo
+            cp /tmp/aur-build/PKGBUILD /tmp/aur-repo/PKGBUILD
+            cp /tmp/aur-build/.SRCINFO /tmp/aur-repo/.SRCINFO
+
+            cd /tmp/aur-repo
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add PKGBUILD .SRCINFO
+            if ! git diff --staged --quiet; then
+              git commit -m "Update to $VERSION"
+              git push origin master
+            else
+              echo "No changes detected for AUR package."
+            fi
+          else
+            echo "Linux .deb release artifact not found. Skipping AUR publish."
+          fi
