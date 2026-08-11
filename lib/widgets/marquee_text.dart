@@ -131,18 +131,23 @@ class _MarqueeTextState extends State<MarqueeText> {
           WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndStartScroll());
         }
 
-        return SingleChildScrollView(
-          controller: _scrollController,
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: constraints.maxWidth),
-            child: Align(
-              alignment: widget.alignment,
-              child: Text(
-                widget.text,
-                style: widget.style,
-                maxLines: 1,
+        return Semantics(
+          label: widget.text,
+          child: ExcludeSemantics(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: Align(
+                  alignment: widget.alignment,
+                  child: Text(
+                    widget.text,
+                    style: widget.style,
+                    maxLines: 1,
+                  ),
+                ),
               ),
             ),
           ),
