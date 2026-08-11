@@ -27,9 +27,15 @@ optdepends=(
 options=('!strip')
 provides=("${_pkgname}=${pkgver}")
 conflicts=("${_pkgname}")
-source_x86_64=("${pkgname}-${pkgver}.deb::${url}/releases/download/${pkgver}/@APP_SLUG@-linux-${pkgver}-amd64.deb")
+source_x86_64=("${pkgname}-${pkgver}.deb::${url}/releases/download/@TAG_NAME@/@APP_SLUG@-linux-${pkgver}-amd64.deb")
 sha256sums_x86_64=('@DEB_SHA256@')
 
 package() {
-  bsdtar -xf data.tar.gz -C "${pkgdir}"
+  local data_archive
+  data_archive=$(find "${srcdir}" -maxdepth 1 -name "data.tar.*" | head -n 1)
+  if [[ -n "$data_archive" ]]; then
+    bsdtar -xf "${data_archive}" -C "${pkgdir}"
+  else
+    bsdtar -xf "${pkgname}-${pkgver}.deb" -C "${pkgdir}"
+  fi
 }

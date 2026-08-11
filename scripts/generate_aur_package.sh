@@ -8,10 +8,16 @@ APP_DESCRIPTION="Cross-platform music player built with Flutter"
 APP_LICENSE="GPL-3.0-or-later"
 GITHUB_REPO="${GITHUB_REPOSITORY:-axel10/vynody}"
 
-RAW_VERSION="${1:-$(sed -n 's/^version:[[:space:]]*//p' "$ROOT_DIR/pubspec.yaml" | head -n 1)}"
-VERSION="${RAW_VERSION//+/-}"
-SHA256="${2:-}"
+RAW_TAG="${1:-$(sed -n 's/^version:[[:space:]]*//p' "$ROOT_DIR/pubspec.yaml" | head -n 1)}"
+if [[ "$RAW_TAG" == v* ]]; then
+  TAG_NAME="$RAW_TAG"
+  VERSION="${RAW_TAG#v}"
+else
+  VERSION="${RAW_TAG//+/-}"
+  TAG_NAME="v${VERSION}"
+fi
 
+SHA256="${2:-}"
 OUTPUT_DIR="${3:-$ROOT_DIR/packaging/aur}"
 
 if [[ -z "$SHA256" ]]; then
@@ -22,7 +28,7 @@ if [[ -z "$SHA256" ]]; then
 fi
 
 if [[ -z "$SHA256" ]]; then
-  echo "Usage: $0 [VERSION] [SHA256] [OUTPUT_DIR]" >&2
+  echo "Usage: $0 [TAG_NAME/VERSION] [SHA256] [OUTPUT_DIR]" >&2
   echo "Error: SHA256 sum not provided and deb package not found." >&2
   exit 1
 fi
@@ -32,6 +38,7 @@ mkdir -p "$OUTPUT_DIR"
 SED_EXPR=(
   -e "s|@APP_SLUG@|${APP_SLUG}|g"
   -e "s|@VERSION@|${VERSION}|g"
+  -e "s|@TAG_NAME@|${TAG_NAME}|g"
   -e "s|@APP_DESCRIPTION@|${APP_DESCRIPTION}|g"
   -e "s|@GITHUB_REPO@|${GITHUB_REPO}|g"
   -e "s|@APP_LICENSE@|${APP_LICENSE}|g"
