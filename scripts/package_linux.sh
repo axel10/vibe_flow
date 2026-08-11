@@ -3,12 +3,12 @@
 set -euo pipefail
 
 APP_NAME="Vynody"
-APP_ID="app.vynody.player"
+APP_ID="io.github.axel10.vynody"
 APP_SLUG="vynody"
 BINARY_NAME="vynody"
 APP_DESCRIPTION="Cross-platform music player built with Flutter"
 APP_VENDOR="Vynody"
-APP_LICENSE="Proprietary"
+APP_LICENSE="GPL-3.0-or-later"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUNDLE_DIR="${BUNDLE_DIR:-$ROOT_DIR/build/linux/x64/release/bundle}"
@@ -173,6 +173,14 @@ EOF
   rm -rf "$APPIMAGE_STAGE_DIR"
 else
   echo "appimagetool not found, skipping AppImage packaging."
+fi
+
+DEB_PACKAGE="$OUTPUT_DIR/${APP_SLUG}-linux-${VERSION}-${DEB_ARCH}.deb"
+if [[ -f "$DEB_PACKAGE" && -f "$ROOT_DIR/packaging/aur/PKGBUILD.in" ]]; then
+  echo "Generating AUR package files (PKGBUILD and .SRCINFO)..."
+  AUR_DIR="$OUTPUT_DIR/aur"
+  DEB_SHA256="$(sha256sum "$DEB_PACKAGE" | awk '{print $1}')"
+  bash "$ROOT_DIR/scripts/generate_aur_package.sh" "$VERSION" "$DEB_SHA256" "$AUR_DIR"
 fi
 
 echo "Linux packages created:"
