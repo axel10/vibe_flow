@@ -729,7 +729,7 @@ jobs:
         env:
           AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           TAG_NAME: ${{ github.event.inputs.tag_name || github.ref_name }}
-        if: env.AUR_KEY != ''
+        if: ${{ env.AUR_KEY != '' }}
         run: |
           DEB_FILE=$(ls release_assets/vynody-linux-*-amd64.deb 2>/dev/null | head -n 1)
           if [[ -f "$DEB_FILE" ]]; then
@@ -737,7 +737,7 @@ jobs:
             mkdir -p ~/.ssh
             echo "$AUR_KEY" > ~/.ssh/id_ed25519
             chmod 600 ~/.ssh/id_ed25519
-            ssh-keyscan -h aur.archlinux.org >> ~/.ssh/known_hosts
+            ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
 
             DEB_SHA256=$(sha256sum "$DEB_FILE" | awk '{print $1}')
             mkdir -p /tmp/aur-build
