@@ -972,19 +972,19 @@ class PlaybackHeroCard extends ConsumerWidget {
         lLyricsInfoControlsSpacing +
         lLyricsControlsHeight;
 
-    AppLog.log(
-      '[Playback-Detail] lLyricsCoverSide: ${lLyricsCoverSide.toStringAsFixed(2)}, '
-      'lLyricsCoverInfoSpacing: ${lLyricsCoverInfoSpacing.toStringAsFixed(2)}, '
-      'lLyricsInfoHeight: ${lLyricsInfoHeight.toStringAsFixed(2)}, '
-      'lLyricsInfoControlsSpacing: ${lLyricsInfoControlsSpacing.toStringAsFixed(2)}, '
-      'lLyricsControlsHeight: ${lLyricsControlsHeight.toStringAsFixed(2)}, '
-      'lLyricsTotalContentHeight: ${lLyricsTotalContentHeight.toStringAsFixed(2)}, '
-      'maxLeftAreaTotalHeight: ${maxLeftAreaTotalHeight.toStringAsFixed(2)}, '
-      'maxCoverSide: ${maxCoverSide.toStringAsFixed(2)}, '
-      'maxHorizontalSpace: ${maxHorizontalSpace.toStringAsFixed(2)}, '
-      'nonCoverHeight: ${nonCoverHeight.toStringAsFixed(2)}',
-      mirrorToConsole: true,
-    );
+    // AppLog.log(
+    //   '[Playback-Detail] lLyricsCoverSide: ${lLyricsCoverSide.toStringAsFixed(2)}, '
+    //   'lLyricsCoverInfoSpacing: ${lLyricsCoverInfoSpacing.toStringAsFixed(2)}, '
+    //   'lLyricsInfoHeight: ${lLyricsInfoHeight.toStringAsFixed(2)}, '
+    //   'lLyricsInfoControlsSpacing: ${lLyricsInfoControlsSpacing.toStringAsFixed(2)}, '
+    //   'lLyricsControlsHeight: ${lLyricsControlsHeight.toStringAsFixed(2)}, '
+    //   'lLyricsTotalContentHeight: ${lLyricsTotalContentHeight.toStringAsFixed(2)}, '
+    //   'maxLeftAreaTotalHeight: ${maxLeftAreaTotalHeight.toStringAsFixed(2)}, '
+    //   'maxCoverSide: ${maxCoverSide.toStringAsFixed(2)}, '
+    //   'maxHorizontalSpace: ${maxHorizontalSpace.toStringAsFixed(2)}, '
+    //   'nonCoverHeight: ${nonCoverHeight.toStringAsFixed(2)}',
+    //   mirrorToConsole: true,
+    // );
 
     final double lLyricsCoverTop = math.max(
       PlaybackHeroCardUiTuning.lLyricsVerticalMargin,
@@ -1344,17 +1344,17 @@ class SizeLogger extends StatefulWidget {
 class _SizeLoggerState extends State<SizeLogger> {
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final renderBox = context.findRenderObject() as RenderBox?;
-        if (renderBox != null && renderBox.hasSize) {
-          AppLog.log(
-            '[SizeLogger] ${widget.name} size: ${renderBox.size.width.toStringAsFixed(2)} x ${renderBox.size.height.toStringAsFixed(2)}',
-            mirrorToConsole: true,
-          );
-        }
-      }
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (mounted) {
+    //     final renderBox = context.findRenderObject() as RenderBox?;
+    //     if (renderBox != null && renderBox.hasSize) {
+    //       AppLog.log(
+    //         '[SizeLogger] ${widget.name} size: ${renderBox.size.width.toStringAsFixed(2)} x ${renderBox.size.height.toStringAsFixed(2)}',
+    //         mirrorToConsole: true,
+    //       );
+    //     }
+    //   }
+    // });
     return widget.child;
   }
 }
