@@ -749,27 +749,30 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: (heroTag != null && !isWideOrSquare)
-                                  ? HeroMode(
-                                      enabled: isHeroModeEnabled,
-                                      child: Hero(
-                                        tag: heroTag!,
-                                        createRectTween: (begin, end) => SmoothRectTween(
-                                          begin: begin,
-                                          end: end,
-                                          curve: Curves.fastOutSlowIn,
-                                        ),
+                            child: (heroTag != null && !isWideOrSquare)
+                                ? HeroMode(
+                                    enabled: isHeroModeEnabled,
+                                    child: Hero(
+                                      tag: heroTag!,
+                                      createRectTween: (begin, end) => SmoothRectTween(
+                                        begin: begin,
+                                        end: end,
+                                        curve: Curves.fastOutSlowIn,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
                                         child: hasImage
                                             ? Image.file(coverFile!, fit: BoxFit.cover)
                                             : coverWidget,
                                       ),
-                                    )
-                                  : (hasImage
-                                      ? Image.file(coverFile!, fit: BoxFit.cover)
-                                      : coverWidget),
-                            ),
+                                    ),
+                                  )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: hasImage
+                                        ? Image.file(coverFile!, fit: BoxFit.cover)
+                                        : coverWidget,
+                                  ),
                           ),
                           Expanded(
                             child: _BannerInfoColumn(
@@ -857,18 +860,18 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: heroTag != null
-                                  ? HeroMode(
-                                      enabled: isHeroModeEnabled,
-                                      child: Hero(
-                                        tag: heroTag!,
-                                        createRectTween: (begin, end) => SmoothRectTween(
-                                          begin: begin,
-                                          end: end,
-                                          curve: Curves.fastOutSlowIn,
-                                        ),
+                            child: heroTag != null
+                                ? HeroMode(
+                                    enabled: isHeroModeEnabled,
+                                    child: Hero(
+                                      tag: heroTag!,
+                                      createRectTween: (begin, end) => SmoothRectTween(
+                                        begin: begin,
+                                        end: end,
+                                        curve: Curves.fastOutSlowIn,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
                                         child: hasImage
                                             ? Image.file(
                                                 coverFile!,
@@ -876,14 +879,17 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                               )
                                             : coverWidget,
                                       ),
-                                    )
-                                  : (hasImage
-                                      ? Image.file(
-                                          coverFile!,
-                                          fit: BoxFit.contain,
-                                        )
-                                      : coverWidget),
-                            ),
+                                    ),
+                                  )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: hasImage
+                                        ? Image.file(
+                                            coverFile!,
+                                            fit: BoxFit.contain,
+                                          )
+                                        : coverWidget,
+                                  ),
                           ),
                         ),
                       ],
