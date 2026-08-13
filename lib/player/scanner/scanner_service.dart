@@ -613,6 +613,11 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   void notifyListeners() {
     if (_isDisposed) return;
 
+    for (final folder in _rootFolders) {
+      folder.invalidateCache();
+    }
+    _systemMediaFolder?.invalidateCache();
+
     if (isScanning != _lastNotifiedScanningState) {
       _lastNotifiedScanningState = isScanning;
       _scanNotifyTimer?.cancel();

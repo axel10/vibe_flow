@@ -6,13 +6,19 @@ import 'package:vynody/player/scanner/scanner_service.dart';
 const double folderPageMaxWidth = 1700.0;
 
 MusicFile? findRepresentativeSong(MusicFolder folder) {
+  if (folder.representativeSongCache != null) return folder.representativeSongCache;
+  if (folder.isEmpty) return null;
+
   final fileWithArtwork = folder.files.firstWhereOrNull(
     (s) =>
         (s.artworkPath != null && s.artworkPath!.isNotEmpty) ||
         (s.thumbnailPath != null && s.thumbnailPath!.isNotEmpty) ||
         (s.artworkBytes != null && s.artworkBytes!.isNotEmpty),
   );
-  if (fileWithArtwork != null) return fileWithArtwork;
+  if (fileWithArtwork != null) {
+    folder.representativeSongCache = fileWithArtwork;
+    return fileWithArtwork;
+  }
 
   final allSongWithArtwork = folder.allSongs.firstWhereOrNull(
     (s) =>
@@ -20,13 +26,20 @@ MusicFile? findRepresentativeSong(MusicFolder folder) {
         (s.thumbnailPath != null && s.thumbnailPath!.isNotEmpty) ||
         (s.artworkBytes != null && s.artworkBytes!.isNotEmpty),
   );
-  if (allSongWithArtwork != null) return allSongWithArtwork;
+  if (allSongWithArtwork != null) {
+    folder.representativeSongCache = allSongWithArtwork;
+    return allSongWithArtwork;
+  }
 
   if (folder.files.isNotEmpty) {
-    return folder.files.first;
+    final rep = folder.files.first;
+    folder.representativeSongCache = rep;
+    return rep;
   }
   if (folder.allSongs.isNotEmpty) {
-    return folder.allSongs.first;
+    final rep = folder.allSongs.first;
+    folder.representativeSongCache = rep;
+    return rep;
   }
   return null;
 }
