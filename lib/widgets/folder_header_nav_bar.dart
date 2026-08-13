@@ -10,6 +10,7 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   const FolderHeaderNavBar({
     super.key,
     required this.isOverlay,
+    this.scrollProgress = 0.0,
     this.currentFolder,
     this.navigationHistory = const [],
     this.onGoBack,
@@ -21,6 +22,7 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   });
 
   final bool isOverlay;
+  final double scrollProgress;
   final MusicFolder? currentFolder;
   final List<MusicFolder> navigationHistory;
   final VoidCallback? onGoBack;
@@ -50,22 +52,38 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final useWhiteText = widget.isOverlay && isDark;
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final progress = widget.scrollProgress.clamp(0.0, 1.0);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final settings = ref.watch(settingsServiceProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    final iconColor = useWhiteText
-        ? Colors.white
-        : theme.colorScheme.onSurface.withValues(alpha: 0.85);
-    final chevronColor = useWhiteText
-        ? Colors.white.withValues(alpha: 0.6)
-        : theme.colorScheme.onSurface.withValues(alpha: 0.4);
-    final folderTextColor = useWhiteText
-        ? Colors.white.withValues(alpha: 0.9)
-        : theme.colorScheme.onSurface.withValues(alpha: 0.85);
-    final shadows = useWhiteText
-        ? const [Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87)]
+    final targetSurface = theme.colorScheme.surface;
+    final navBackgroundColor = widget.isOverlay
+        ? Color.lerp(targetSurface.withValues(alpha: 0.0), targetSurface, progress)!
+        : theme.scaffoldBackgroundColor;
+
+    final overlayIconColor = isDark ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.85);
+    final solidIconColor = theme.colorScheme.onSurface.withValues(alpha: 0.85);
+    final iconColor = widget.isOverlay
+        ? (Color.lerp(overlayIconColor, solidIconColor, progress) ?? solidIconColor)
+        : solidIconColor;
+
+    final overlayChevronColor = isDark ? Colors.white.withValues(alpha: 0.6) : theme.colorScheme.onSurface.withValues(alpha: 0.4);
+    final solidChevronColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
+    final chevronColor = widget.isOverlay
+        ? (Color.lerp(overlayChevronColor, solidChevronColor, progress) ?? solidChevronColor)
+        : solidChevronColor;
+
+    final overlayFolderTextColor = isDark ? Colors.white.withValues(alpha: 0.9) : theme.colorScheme.onSurface.withValues(alpha: 0.85);
+    final solidFolderTextColor = theme.colorScheme.onSurface.withValues(alpha: 0.85);
+    final folderTextColor = widget.isOverlay
+        ? (Color.lerp(overlayFolderTextColor, solidFolderTextColor, progress) ?? solidFolderTextColor)
+        : solidFolderTextColor;
+
+    final shadowAlpha = 1.0 - progress;
+    final shadows = (widget.isOverlay && isDark && shadowAlpha > 0.05)
+        ? [Shadow(offset: const Offset(0, 1), blurRadius: 4, color: Colors.black.withValues(alpha: 0.87 * shadowAlpha))]
         : null;
 
     final isFirstItemBack = widget.onGoBack != null;
@@ -227,7 +245,6 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
       );
     }
 
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
     final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0);
@@ -236,16 +253,28 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
       padding: EdgeInsets.only(
         top: topPadding,
         bottom: 8,
-        left: widget.isOverlay ? 0 : 16,
-        right: widget.isOverlay ? 0 : 16,
+        left: 16,
+        right: 16,
       ),
       decoration: BoxDecoration(
-        color: widget.isOverlay ? Colors.transparent : theme.scaffoldBackgroundColor,
-        border: widget.isOverlay
-            ? null
-            : Border(
-                bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.05)),
-              ),
+        color: navBackgroundColor,
+        border: Border(
+          bottom: BorderSide(
+            color: widget.isOverlay
+                ? theme.dividerColor.withValues(alpha: 0.12 * progress)
+                : theme.dividerColor.withValues(alpha: 0.05),
+          ),
+        ),
+        boxShadow: widget.isOverlay && progress > 0.05
+            ? [
+                BoxShadow(
+                  color: (isDark ? Colors.black : theme.colorScheme.shadow)
+                      .withValues(alpha: 0.1 * progress),
+                  blurRadius: 8 * progress,
+                  offset: Offset(0, 2 * progress),
+                ),
+              ]
+            : null,
       ),
       child: Row(
         children: [

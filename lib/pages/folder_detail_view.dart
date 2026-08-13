@@ -74,6 +74,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   String? _lastHighlightedPath;
   bool _isCoverVisible = true;
   bool _showStatusBarOverlay = false;
+  double _scrollProgress = 0.0;
   String? _cachedFolderKey;
   int? _cachedTotalDurationMs;
 
@@ -117,6 +118,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     final targetOffset = ref.read(scannerServiceProvider).getFolderScrollOffset(_effectiveFolder.path);
     _localScrollController = ScrollController(initialScrollOffset: targetOffset);
     _isCoverVisible = targetOffset < 160.0;
+    _scrollProgress = (targetOffset / 160.0).clamp(0.0, 1.0);
     _localScrollController.addListener(_onScroll);
 
     if (widget.highlightedSongPath != null) {
@@ -145,9 +147,11 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
       offset,
     );
     final isVisible = offset < 160.0;
-    if (isVisible != _isCoverVisible) {
+    final progress = (offset / 160.0).clamp(0.0, 1.0);
+    if (isVisible != _isCoverVisible || (progress - _scrollProgress).abs() > 0.01) {
       setState(() {
         _isCoverVisible = isVisible;
+        _scrollProgress = progress;
       });
     }
 
@@ -336,19 +340,16 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     final showSearchLoading = _searchQuery.isNotEmpty && _isSearchLoading && matchedFolders.isEmpty && matchedSongs.isEmpty;
     final noResults = _searchQuery.isNotEmpty && matchedFolders.isEmpty && matchedSongs.isEmpty && !_isSearchLoading;
 
+    final double headerHeight = 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0));
+
     final Widget scrollBody = CustomScrollView(
       key: ValueKey(folder.path),
       controller: _localScrollController,
       cacheExtent: 1000.0,
       slivers: [
         if (!isPortrait)
-          SliverPersistentHeader(
-            delegate: _BreadcrumbsHeaderDelegate(
-              child: _buildBreadcrumbs(folder, scanner, isOverlay: false),
-              height: 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0)),
-            ),
-            pinned: !Platform.isAndroid && !Platform.isIOS,
-            floating: Platform.isAndroid || Platform.isIOS,
+          SliverToBoxAdapter(
+            child: SizedBox(height: headerHeight),
           ),
         SliverToBoxAdapter(
           child: FolderHeaderBanner(
@@ -357,7 +358,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             songsCount: folder.allSongs.length,
             totalDuration: Duration(milliseconds: totalDurationMs),
             coverImagePath: representativeSong?.thumbnailPath ?? (representativeSong != null ? scanner.metadataMap[representativeSong.path]?.thumbnailPath : null),
-            topHeader: isPortrait ? _buildBreadcrumbs(folder, scanner, isOverlay: true) : null,
+            topHeader: isPortrait ? SizedBox(height: headerHeight) : null,
             coverWidget: representativeSong != null
                 ? SongThumbnail(
                     path: representativeSong.path,
@@ -633,6 +634,17 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
                 ],
               ),
               Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
+                    child: _buildBreadcrumbs(folder, scanner, isOverlay: true),
+                  ),
+                ),
+              ),
+              Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
@@ -678,21 +690,6 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
                         ),
                 ),
               ),
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: MediaQuery.of(context).padding.top,
-                child: IgnorePointer(
-                  child: AnimatedOpacity(
-                    opacity: _showStatusBarOverlay ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.25),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -703,6 +700,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   Widget _buildBreadcrumbs(MusicFolder current, ScannerService scanner, {bool isOverlay = false}) {
     return FolderHeaderNavBar(
       isOverlay: isOverlay,
+      scrollProgress: _scrollProgress,
       currentFolder: current,
       navigationHistory: scanner.navigationHistory,
       onGoBack: widget.onGoBack,

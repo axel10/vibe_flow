@@ -61,6 +61,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   List<MusicFile> _matchedSongs = [];
   List<MusicFolder> _matchedFolders = [];
   Timer? _searchDebounce;
+  double _scrollProgress = 0.0;
 
   void _performSearch(String query) {
     _searchDebounce?.cancel();
@@ -95,6 +96,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     _searchController = TextEditingController();
     final targetOffset = ref.read(scannerServiceProvider).getFolderScrollOffset('root');
     _localScrollController = ScrollController(initialScrollOffset: targetOffset);
+    _scrollProgress = (targetOffset / 160.0).clamp(0.0, 1.0);
     _localScrollController.addListener(_onScroll);
   }
 
@@ -107,6 +109,13 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
       'root',
       offset,
     );
+
+    final progress = (offset / 160.0).clamp(0.0, 1.0);
+    if ((progress - _scrollProgress).abs() > 0.01) {
+      setState(() {
+        _scrollProgress = progress;
+      });
+    }
 
     bool showOverlay = false;
     if (offset > headerHeight) {
@@ -311,6 +320,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
       final double foldersBottomPadding = matchedSongs.isEmpty ? 160.0 : 16.0;
 
       final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+      final double headerHeight = 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0));
 
       rootList = CustomScrollView(
         key: const ValueKey('root_folders_scroll_view'),
@@ -319,7 +329,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
         slivers: [
           if (!isPortrait)
             SliverToBoxAdapter(
-              child: _buildRootTopHeader(context, isOverlay: false),
+              child: SizedBox(height: headerHeight),
             ),
           SliverToBoxAdapter(
             child: FolderHeaderBanner(
@@ -328,7 +338,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               songsCount: totalSongsCount,
               totalDuration: Duration(milliseconds: totalDurationMs),
               coverImagePath: representativeSong?.thumbnailPath ?? (representativeSong != null ? scanner.metadataMap[representativeSong.path]?.thumbnailPath : null),
-              topHeader: isPortrait ? _buildRootTopHeader(context, isOverlay: true) : null,
+              topHeader: isPortrait ? SizedBox(height: headerHeight) : null,
               coverWidget: representativeSong != null
                   ? SongThumbnail(
                       path: representativeSong.path,
@@ -515,6 +525,17 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               ),
             ),
             Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
+                  child: _buildRootTopHeader(context, isOverlay: true),
+                ),
+              ),
+            ),
+            Positioned(
               left: 0,
               right: 0,
               bottom: 0,
@@ -567,21 +588,6 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
                       ),
               ),
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.of(context).padding.top,
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: _showStatusBarOverlay ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.25),
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -594,10 +600,44 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
 
     return FolderHeaderNavBar(
       isOverlay: isOverlay,
+      scrollProgress: _scrollProgress,
       onLocateCurrentSong: widget.onLocateCurrentSong,
       onSortPressed: widget.onToggleRootSelectionMode,
       isSortActive: isRootSelectionMode,
     );
+  }
+}
+
+class _RootBreadcrumbsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double height;
+
+  _RootBreadcrumbsHeaderDelegate({
+    required this.child,
+    required this.height,
+  });
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return SizedBox(
+      height: height,
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _RootBreadcrumbsHeaderDelegate oldDelegate) {
+    return oldDelegate.child != child || oldDelegate.height != height;
   }
 }
 

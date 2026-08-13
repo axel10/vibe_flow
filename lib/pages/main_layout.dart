@@ -1273,7 +1273,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                                             ? const SizedBox(height: 32)
                                             : null,
                                         backgroundColor: Color.lerp(
-                                          Colors.transparent,
+                                          navBgBaseColor.withValues(alpha: 0.0),
                                           navBgBaseColor,
                                           animatedOpacity,
                                         ),
@@ -1282,7 +1282,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                                             _onDestinationSelected,
                                         labelType: NavigationRailLabelType.none,
                                         indicatorColor: Color.lerp(
-                                          Colors.transparent,
+                                          navIndicatorBaseColor.withValues(alpha: 0.0),
                                           navIndicatorBaseColor,
                                           animatedOpacity,
                                         ),
@@ -1582,13 +1582,13 @@ class _MainLayoutState extends ConsumerState<MainLayout>
               labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
               selectedIndex: _currentIndex,
               backgroundColor: Color.lerp(
-                Colors.transparent,
+                navBgBaseColor.withValues(alpha: 0.0),
                 navBgBaseColor,
                 animatedOpacity,
               ),
               elevation: 0,
               indicatorColor: Color.lerp(
-                Colors.transparent,
+                navIndicatorBaseColor.withValues(alpha: 0.0),
                 navIndicatorBaseColor,
                 animatedOpacity,
               ),
