@@ -91,15 +91,14 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
         ? [Shadow(offset: const Offset(0, 1), blurRadius: 4, color: Colors.black.withValues(alpha: 0.87 * shadowAlpha))]
         : null;
 
-    final isFirstItemBack = widget.onGoBack != null;
-
     final backButton = Material(
       color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+      child: InkResponse(
+        radius: 18,
+        highlightShape: BoxShape.circle,
         onTap: widget.onGoBack,
         child: Padding(
-          padding: const EdgeInsets.only(left: 0, right: 4, top: 6, bottom: 6),
+          padding: const EdgeInsets.all(8),
           child: Icon(
             Icons.arrow_back_rounded,
             size: 20,
@@ -126,20 +125,16 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
     breadcrumbItems.add(
       Material(
         color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+        child: InkResponse(
+          radius: 18,
+          highlightShape: BoxShape.circle,
           onTap: () {
             final scanner = ref.read(scannerServiceProvider);
             scanner.setNavigationState(null, []);
             widget.onClearAllSelection?.call();
           },
           child: Padding(
-            padding: EdgeInsets.only(
-              left: isFirstItemBack ? 4 : 0,
-              right: 6,
-              top: 6,
-              bottom: 6,
-            ),
+            padding: const EdgeInsets.all(8),
             child: Icon(
               Icons.home_rounded,
               size: 20,
@@ -258,8 +253,8 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
       padding: EdgeInsets.only(
         top: topPadding,
         bottom: 8,
-        left: 16,
-        right: 16,
+        left: 8,
+        right: 8,
       ),
       decoration: BoxDecoration(
         color: navBackgroundColor,
@@ -308,16 +303,13 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
           const SizedBox(width: 8),
           if (isPortrait)
             PopupMenuButton<String>(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.all(8),
               constraints: const BoxConstraints(),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 6, right: 0, top: 6, bottom: 6),
-                child: Icon(
-                  Icons.more_vert_rounded,
-                  size: 20,
-                  color: iconColor,
-                  shadows: shadows,
-                ),
+              icon: Icon(
+                Icons.more_vert_rounded,
+                size: 20,
+                color: iconColor,
+                shadows: shadows,
               ),
               onSelected: (value) {
                 if (value == 'locate') {
@@ -389,11 +381,12 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
             if (currentMusic != null) ...[
               Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
+                child: InkResponse(
+                  radius: 18,
+                  highlightShape: BoxShape.circle,
                   onTap: widget.onLocateCurrentSong,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                    padding: const EdgeInsets.all(8),
                     child: Icon(
                       Icons.my_location_rounded,
                       size: 20,
@@ -403,12 +396,12 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
             ],
             Material(
               color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
+              child: InkResponse(
+                radius: 18,
+                highlightShape: BoxShape.circle,
                 onTap: () {
                   settings.folderViewMode = switch (settings.folderViewMode) {
                     FolderViewMode.list => FolderViewMode.hybrid,
@@ -417,7 +410,7 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
                   };
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                  padding: const EdgeInsets.all(8),
                   child: Icon(
                     switch (settings.folderViewMode) {
                       FolderViewMode.list => Icons.grid_view_rounded,
@@ -431,14 +424,14 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
                 ),
               ),
             ),
-            const SizedBox(width: 4),
             Material(
               color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8),
+              child: InkResponse(
+                radius: 18,
+                highlightShape: BoxShape.circle,
                 onTap: widget.onSortPressed,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 6, right: 0, top: 6, bottom: 6),
+                  padding: const EdgeInsets.all(8),
                   child: Icon(
                     Icons.sort,
                     size: 20,
