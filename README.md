@@ -1,3 +1,5 @@
+
+
 # Vynody
 
 <p align="center">
@@ -161,9 +163,10 @@ Platform-specific setup requirements:
 ### Cloning the Project
 
 ```bash
-git clone https://github.com/axel10/vynody
+git clone --recurse-submodules https://github.com/axel10/vynody
 cd vynody
 ```
+> 💡 *If you already cloned the repository without `--recurse-submodules`, run `git submodule update --init` to initialize the `audio_core` module before building.*
 
 ### Running the App
 
@@ -361,9 +364,10 @@ Vynody 内置局域网共享能力，可在同一网络下与其他设备交换�
 ### 拉取项目
 
 ```bash
-git clone https://github.com/axel10/vynody
+git clone --recurse-submodules https://github.com/axel10/vynody
 cd vynody
 ```
+> 💡 *如果您之前已经克隆了仓库但未使用 `--recurse-submodules`，请在构建前运行 `git submodule update --init` 以初始化 `audio_core` 模块。*
 
 ### 运行
 
