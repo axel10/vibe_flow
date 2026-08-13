@@ -74,7 +74,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   String? _lastHighlightedPath;
   bool _isCoverVisible = true;
   bool _showStatusBarOverlay = false;
-  double _scrollProgress = 0.0;
+  final ValueNotifier<double> _scrollProgress = ValueNotifier<double>(0.0);
   String? _cachedFolderKey;
   int? _cachedTotalDurationMs;
 
@@ -118,7 +118,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     final targetOffset = ref.read(scannerServiceProvider).getFolderScrollOffset(_effectiveFolder.path);
     _localScrollController = ScrollController(initialScrollOffset: targetOffset);
     _isCoverVisible = targetOffset < 160.0;
-    _scrollProgress = (targetOffset / 160.0).clamp(0.0, 1.0);
+    _scrollProgress.value = (targetOffset / 160.0).clamp(0.0, 1.0);
     _localScrollController.addListener(_onScroll);
 
     if (widget.highlightedSongPath != null) {
@@ -148,10 +148,10 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     );
     final isVisible = offset < 160.0;
     final progress = (offset / 160.0).clamp(0.0, 1.0);
-    if (isVisible != _isCoverVisible || (progress - _scrollProgress).abs() > 0.01) {
+    _scrollProgress.value = progress;
+    if (isVisible != _isCoverVisible) {
       setState(() {
         _isCoverVisible = isVisible;
-        _scrollProgress = progress;
       });
     }
 
@@ -183,6 +183,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     _localScrollController.removeListener(_onScroll);
     _localScrollController.dispose();
     _breadcrumbsScrollController.dispose();
+    _scrollProgress.dispose();
     super.dispose();
   }
 

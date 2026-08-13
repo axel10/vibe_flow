@@ -61,7 +61,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   List<MusicFile> _matchedSongs = [];
   List<MusicFolder> _matchedFolders = [];
   Timer? _searchDebounce;
-  double _scrollProgress = 0.0;
+  final ValueNotifier<double> _scrollProgress = ValueNotifier<double>(0.0);
 
   void _performSearch(String query) {
     _searchDebounce?.cancel();
@@ -96,7 +96,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     _searchController = TextEditingController();
     final targetOffset = ref.read(scannerServiceProvider).getFolderScrollOffset('root');
     _localScrollController = ScrollController(initialScrollOffset: targetOffset);
-    _scrollProgress = (targetOffset / 160.0).clamp(0.0, 1.0);
+    _scrollProgress.value = (targetOffset / 160.0).clamp(0.0, 1.0);
     _localScrollController.addListener(_onScroll);
   }
 
@@ -111,11 +111,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     );
 
     final progress = (offset / 160.0).clamp(0.0, 1.0);
-    if ((progress - _scrollProgress).abs() > 0.01) {
-      setState(() {
-        _scrollProgress = progress;
-      });
-    }
+    _scrollProgress.value = progress;
 
     bool showOverlay = false;
     if (offset > headerHeight) {
@@ -144,6 +140,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     _searchController.dispose();
     _localScrollController.removeListener(_onScroll);
     _localScrollController.dispose();
+    _scrollProgress.dispose();
     super.dispose();
   }
 

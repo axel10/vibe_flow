@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/models/music_folder.dart';
@@ -10,7 +11,7 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   const FolderHeaderNavBar({
     super.key,
     required this.isOverlay,
-    this.scrollProgress = 0.0,
+    required this.scrollProgress,
     this.currentFolder,
     this.navigationHistory = const [],
     this.onGoBack,
@@ -22,7 +23,7 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   });
 
   final bool isOverlay;
-  final double scrollProgress;
+  final ValueListenable<double> scrollProgress;
   final MusicFolder? currentFolder;
   final List<MusicFolder> navigationHistory;
   final VoidCallback? onGoBack;
@@ -50,13 +51,17 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-    final progress = widget.scrollProgress.clamp(0.0, 1.0);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final settings = ref.watch(settingsServiceProvider);
-    final l10n = AppLocalizations.of(context)!;
+
+    return ValueListenableBuilder<double>(
+      valueListenable: widget.scrollProgress,
+      builder: (context, progressValue, child) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+        final progress = progressValue.clamp(0.0, 1.0);
+        final l10n = AppLocalizations.of(context)!;
 
     final targetSurface = theme.colorScheme.surface;
     final navBackgroundColor = widget.isOverlay
@@ -448,6 +453,8 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
           ],
         ],
       ),
+    );
+      },
     );
   }
 }
