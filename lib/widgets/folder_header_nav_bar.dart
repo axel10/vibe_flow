@@ -247,7 +247,7 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
 
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
-    final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 32.0 : 8.0);
+    final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 44.0 : 8.0);
 
     return Container(
       padding: EdgeInsets.only(
