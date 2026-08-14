@@ -251,6 +251,8 @@ msix_config:
     - .wav
 
 dependency_overrides:
+  # window_manager:
+  #   path: ./window_manager/packages/window_manager
   permission_handler_windows:
     git:
       url: https://github.com/localsend/permission_handler_windows_noop.git

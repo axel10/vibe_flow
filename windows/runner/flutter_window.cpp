@@ -47,14 +47,12 @@ bool FlutterWindow::OnCreate() {
         }
       });
 
-  flutter_controller_->engine()->SetNextFrameCallback([&]() {
-    this->Show();
-  });
-
-  // Flutter can complete the first frame before the "show window" callback is
-  // registered. The following call ensures a frame is pending to ensure the
-  // window is shown. It is a no-op if the first frame hasn't completed yet.
-  flutter_controller_->ForceRedraw();
+  // Note: Window display is managed by Dart via window_manager (waitUntilReadyToShow)
+  // to avoid premature display with native titlebar on Windows 10.
+  // flutter_controller_->engine()->SetNextFrameCallback([&]() {
+  //   this->Show();
+  // });
+  // flutter_controller_->ForceRedraw();
 
   return true;
 }

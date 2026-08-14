@@ -1784,7 +1784,7 @@ packages:
     description:
       path: "packages/window_manager"
       ref: main
-      resolved-ref: dfd346723469fab54c6c9e94da24fadfc358f3e2
+      resolved-ref: "2ce213c03de85654bae826b7993d362e67075344"
       url: "https://github.com/axel10/window_manager"
     source: git
     version: "0.5.2"
