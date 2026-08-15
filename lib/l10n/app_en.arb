@@ -1416,6 +1416,23 @@
     }
   },
   "remotePinInvalid": "Invalid or expired PIN. Please try again.",
+  "remotePinCooldown": "Incorrect PIN, please retry in {seconds}s",
+  "@remotePinCooldown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "remotePinAttemptsRemaining": "({count} attempts remaining)",
+  "@remotePinAttemptsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remotePinTooManyAttempts": "Too many failed attempts. Pairing session expired, please reconnect.",
   "remoteConnected": "Connected",
   "remoteConnecting": "Connecting...",
   "remoteDisconnect": "Disconnect",

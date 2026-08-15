@@ -1864,6 +1864,23 @@
     }
   },
   "remotePinInvalid": "验证码错误或已失效，请重试",
+  "remotePinCooldown": "验证码错误，请在 {seconds} 秒后重试",
+  "@remotePinCooldown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "remotePinAttemptsRemaining": "（剩余 {count} 次机会）",
+  "@remotePinAttemptsRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "remotePinTooManyAttempts": "错误次数过多，配对已失效，请重新连接",
   "remoteConnected": "已连接",
   "remoteConnecting": "正在连接...",
   "remoteDisconnect": "断开连接",

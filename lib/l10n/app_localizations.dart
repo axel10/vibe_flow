@@ -6099,6 +6099,24 @@ abstract class AppLocalizations {
   /// **'验证码错误或已失效，请重试'**
   String get remotePinInvalid;
 
+  /// No description provided for @remotePinCooldown.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码错误，请在 {seconds} 秒后重试'**
+  String remotePinCooldown(int seconds);
+
+  /// No description provided for @remotePinAttemptsRemaining.
+  ///
+  /// In zh, this message translates to:
+  /// **'（剩余 {count} 次机会）'**
+  String remotePinAttemptsRemaining(int count);
+
+  /// No description provided for @remotePinTooManyAttempts.
+  ///
+  /// In zh, this message translates to:
+  /// **'错误次数过多，配对已失效，请重新连接'**
+  String get remotePinTooManyAttempts;
+
   /// No description provided for @remoteConnected.
   ///
   /// In zh, this message translates to:

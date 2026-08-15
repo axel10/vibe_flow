@@ -3283,6 +3283,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get remotePinInvalid => 'PINコードが無効または期限切れです。もう一度お試しください';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'PINコードが違います。$seconds秒後にお試しください';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '(残り$count回試行可能)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts => '試行回数が上限を超えました。ペアリングが無効になりました';
+
+  @override
   String get remoteConnected => '接続済み';
 
   @override

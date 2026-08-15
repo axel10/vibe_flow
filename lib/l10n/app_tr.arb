@@ -1471,6 +1471,9 @@
     }
   },
   "remotePinInvalid": "Geçersiz veya süresi dolmuş PIN. Lütfen tekrar deneyin.",
+  "remotePinCooldown": "Yanlış PIN, {seconds} sn sonra tekrar deneyin",
+  "remotePinAttemptsRemaining": "(Kalan deneme hakkı: {count})",
+  "remotePinTooManyAttempts": "Çok fazla başarısız deneme. Eşleştirme oturumu sona erdi.",
   "remoteConnected": "Bağlandı",
   "remoteConnecting": "Bağlanıyor...",
   "remoteDisconnect": "Bağlantıyı Kes",

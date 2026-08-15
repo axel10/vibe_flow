@@ -3286,6 +3286,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get remotePinInvalid => 'PIN 코드가 잘못되었거나 만료되었습니다. 다시 시도해 주세요';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'PIN 번호가 올바르지 않습니다. $seconds초 후 다시 시도하세요';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '(남은 시도 횟수: $count회)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts => '시도 횟수를 초과했습니다. 페어링이 만료되었습니다';
+
+  @override
   String get remoteConnected => '연결됨';
 
   @override

@@ -3452,6 +3452,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Code PIN non valide ou expiré. Veuillez réessayer.';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'Code PIN incorrect, réessayez dans $seconds s';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '($count tentatives restantes)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts =>
+      'Trop de tentatives échouées. Session d\'appairage expirée.';
+
+  @override
   String get remoteConnected => 'Connecté';
 
   @override

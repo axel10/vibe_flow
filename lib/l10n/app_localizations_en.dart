@@ -3399,6 +3399,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remotePinInvalid => 'Invalid or expired PIN. Please try again.';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'Incorrect PIN, please retry in ${seconds}s';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '($count attempts remaining)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts =>
+      'Too many failed attempts. Pairing session expired, please reconnect.';
+
+  @override
   String get remoteConnected => 'Connected';
 
   @override

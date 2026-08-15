@@ -98,6 +98,8 @@ class _PendingPairSession {
   final Completer<bool> completer;
   final DateTime createdAt;
   bool rememberDevice;
+  int failedAttempts = 0;
+  DateTime? lastFailedAt;
 
   _PendingPairSession({
     required this.senderId,
@@ -373,38 +375,112 @@ class RemoteControlService {
         request.response.statusCode = HttpStatus.badRequest;
         request.response.write(jsonEncode({
           'success': false,
+          'invalidated': true,
           'reason': 'Session expired or not found',
         }));
         await request.response.close();
         return;
       }
 
-      bool verified = false;
-      bool isRejected = false;
+      // Check session TTL (90 seconds timeout)
+      if (DateTime.now().difference(session.createdAt).inSeconds > 90) {
+        _pendingPairSessions.remove(sessionToken);
+        if (!session.completer.isCompleted) {
+          session.completer.complete(false);
+        }
+        _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
+
+        request.response.statusCode = HttpStatus.badRequest;
+        request.response.write(jsonEncode({
+          'success': false,
+          'invalidated': true,
+          'reason': 'Session timed out',
+        }));
+        await request.response.close();
+        return;
+      }
+
+      // 1. Host already decided directly via dialog button
       if (session.completer.isCompleted) {
-        // Already decided via host dialog directly
         final decision = await session.completer.future;
         if (decision) {
-          verified = true;
+          _pendingPairSessions.remove(sessionToken);
+          final token = 'auth_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000000)}';
+          
+          if (session.rememberDevice) {
+            _trustedDevices.removeWhere((d) => d.id == session.senderId);
+            _trustedDevices.add(
+              TrustedRemoteDevice(
+                id: session.senderId,
+                name: session.senderName,
+                deviceType: session.deviceType,
+                token: token,
+                pairedAt: DateTime.now(),
+              ),
+            );
+            await _saveTrustedDevices();
+          } else {
+            _temporaryAuthTokens[token] = session.senderId;
+          }
+
+          request.response.statusCode = HttpStatus.ok;
+          request.response.write(jsonEncode({
+            'success': true,
+            'token': token,
+            'is_trusted': session.rememberDevice,
+          }));
         } else {
-          isRejected = true;
+          _pendingPairSessions.remove(sessionToken);
+          request.response.statusCode = HttpStatus.forbidden;
+          request.response.write(jsonEncode({
+            'success': false,
+            'rejected': true,
+            'reason': 'rejected_by_host',
+          }));
         }
-      } else {
-        // Verify PIN if input is provided
-        if (inputPin.isNotEmpty && session.pinCode == inputPin) {
-          verified = true;
-          session.completer.complete(true);
-          _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
+        await request.response.close();
+        return;
+      }
+
+      // 2. Polling check (empty PIN) -> Still waiting for host decision
+      if (inputPin.isEmpty) {
+        request.response.statusCode = HttpStatus.ok;
+        request.response.write(jsonEncode({
+          'success': false,
+          'pending': true,
+          'reason': 'waiting_host_decision',
+        }));
+        await request.response.close();
+        return;
+      }
+
+      // 3. Rate limiting / Cooldown check (2 seconds from last failed attempt)
+      if (session.lastFailedAt != null) {
+        final elapsedMs = DateTime.now().difference(session.lastFailedAt!).inMilliseconds;
+        if (elapsedMs < 2000) {
+          final remainingSec = ((2000 - elapsedMs) / 1000.0).ceil();
+          request.response.statusCode = HttpStatus.tooManyRequests;
+          request.response.write(jsonEncode({
+            'success': false,
+            'cooldown': true,
+            'cooldown_seconds': remainingSec > 0 ? remainingSec : 1,
+            'remaining_attempts': 5 - session.failedAttempts,
+            'reason': 'Rate limited, please wait',
+          }));
+          await request.response.close();
+          return;
         }
       }
 
-      if (verified) {
+      // 4. Verify PIN
+      if (session.pinCode == inputPin) {
         _pendingPairSessions.remove(sessionToken);
+        session.completer.complete(true);
+        _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
 
         final token = 'auth_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000000)}';
         
         if (session.rememberDevice) {
-          // Add to trusted devices permanently
           _trustedDevices.removeWhere((d) => d.id == session.senderId);
           _trustedDevices.add(
             TrustedRemoteDevice(
@@ -417,7 +493,6 @@ class RemoteControlService {
           );
           await _saveTrustedDevices();
         } else {
-          // One-time temporary token
           _temporaryAuthTokens[token] = session.senderId;
         }
 
@@ -427,20 +502,39 @@ class RemoteControlService {
           'token': token,
           'is_trusted': session.rememberDevice,
         }));
-      } else if (isRejected) {
-        _pendingPairSessions.remove(sessionToken);
-        request.response.statusCode = HttpStatus.forbidden;
-        request.response.write(jsonEncode({
-          'success': false,
-          'rejected': true,
-          'reason': 'rejected_by_host',
-        }));
       } else {
-        request.response.statusCode = HttpStatus.unauthorized;
-        request.response.write(jsonEncode({
-          'success': false,
-          'reason': 'Invalid PIN',
-        }));
+        // Failed attempt
+        session.failedAttempts += 1;
+        session.lastFailedAt = DateTime.now();
+
+        const maxAttempts = 5;
+        final remainingAttempts = maxAttempts - session.failedAttempts;
+
+        if (remainingAttempts <= 0) {
+          // Max attempts exceeded -> invalidate session and dismiss host dialog
+          _pendingPairSessions.remove(sessionToken);
+          if (!session.completer.isCompleted) {
+            session.completer.complete(false);
+          }
+          _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
+
+          request.response.statusCode = HttpStatus.forbidden;
+          request.response.write(jsonEncode({
+            'success': false,
+            'invalidated': true,
+            'remaining_attempts': 0,
+            'reason': 'too_many_attempts',
+          }));
+        } else {
+          request.response.statusCode = HttpStatus.unauthorized;
+          request.response.write(jsonEncode({
+            'success': false,
+            'cooldown': true,
+            'cooldown_seconds': 2,
+            'remaining_attempts': remainingAttempts,
+            'reason': 'Invalid PIN',
+          }));
+        }
       }
       await request.response.close();
     } catch (e) {
@@ -739,7 +833,13 @@ class RemoteControlService {
     }
   }
 
-  Future<({bool success, bool rejected})> verifyPinAndGetToken({
+  Future<({
+    bool success,
+    bool rejected,
+    bool invalidated,
+    int cooldownSeconds,
+    int? remainingAttempts,
+  })> verifyPinAndGetToken({
     required LanDevice targetDevice,
     required String sessionToken,
     required String pin,
@@ -783,13 +883,38 @@ class RemoteControlService {
           _trustedDevices.removeWhere((d) => d.id == targetDevice.id);
           await _saveTrustedDevices();
         }
-        return (success: true, rejected: false);
+        return (
+          success: true,
+          rejected: false,
+          invalidated: false,
+          cooldownSeconds: 0,
+          remainingAttempts: null,
+        );
       }
       final rejected = json['rejected'] == true || json['reason'] == 'rejected_by_host';
-      return (success: false, rejected: rejected);
+      final invalidated = json['invalidated'] == true ||
+          json['reason'] == 'too_many_attempts' ||
+          json['reason'] == 'Session expired or not found' ||
+          json['reason'] == 'Session timed out';
+      final cooldownSeconds = (json['cooldown_seconds'] as num?)?.toInt() ?? (json['cooldown'] == true ? 2 : 0);
+      final remainingAttempts = (json['remaining_attempts'] as num?)?.toInt();
+
+      return (
+        success: false,
+        rejected: rejected,
+        invalidated: invalidated,
+        cooldownSeconds: cooldownSeconds,
+        remainingAttempts: remainingAttempts,
+      );
     } catch (e) {
       debugPrint('[RemoteControlService] Error verifying PIN: $e');
-      return (success: false, rejected: false);
+      return (
+        success: false,
+        rejected: false,
+        invalidated: false,
+        cooldownSeconds: 0,
+        remainingAttempts: null,
+      );
     } finally {
       client.close();
     }

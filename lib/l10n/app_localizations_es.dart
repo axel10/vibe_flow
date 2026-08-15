@@ -3448,6 +3448,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'PIN no válido o caducado. Inténtalo de nuevo.';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'PIN incorrecto, reintentar en $seconds s';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '($count intentos restantes)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts =>
+      'Demasiados intentos fallidos. Sesión de emparejamiento expirada.';
+
+  @override
   String get remoteConnected => 'Conectado';
 
   @override

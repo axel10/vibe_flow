@@ -3440,6 +3440,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ungültige oder abgelaufene PIN. Bitte versuche es erneut.';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'Falsche PIN, erneuter Versuch in ${seconds}s';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '(noch $count Versuche)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts =>
+      'Zu viele Fehlversuche. Kopplungssitzung abgelaufen.';
+
+  @override
   String get remoteConnected => 'Verbunden';
 
   @override

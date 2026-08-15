@@ -3411,6 +3411,20 @@ class AppLocalizationsTr extends AppLocalizations {
       'Geçersiz veya süresi dolmuş PIN. Lütfen tekrar deneyin.';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return 'Yanlış PIN, $seconds sn sonra tekrar deneyin';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '(Kalan deneme hakkı: $count)';
+  }
+
+  @override
+  String get remotePinTooManyAttempts =>
+      'Çok fazla başarısız deneme. Eşleştirme oturumu sona erdi.';
+
+  @override
   String get remoteConnected => 'Bağlandı';
 
   @override

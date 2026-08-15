@@ -3234,6 +3234,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get remotePinInvalid => '验证码错误或已失效，请重试';
 
   @override
+  String remotePinCooldown(int seconds) {
+    return '验证码错误，请在 $seconds 秒后重试';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '（剩余 $count 次机会）';
+  }
+
+  @override
+  String get remotePinTooManyAttempts => '错误次数过多，配对已失效，请重新连接';
+
+  @override
   String get remoteConnected => '已连接';
 
   @override
@@ -6521,6 +6534,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get remotePinInvalid => '驗證碼錯誤或已失效，請重試';
+
+  @override
+  String remotePinCooldown(int seconds) {
+    return '驗證碼錯誤，請在 $seconds 秒後重試';
+  }
+
+  @override
+  String remotePinAttemptsRemaining(int count) {
+    return '（剩餘 $count 次機會）';
+  }
+
+  @override
+  String get remotePinTooManyAttempts => '錯誤次數過多，配對已失效，請重新連接';
 
   @override
   String get remoteConnected => '已連線';

@@ -236,7 +236,13 @@ class _IncomingRemotePairDialogContentState
 Future<bool?> showRemotePinInputDialog(
   BuildContext context, {
   required String deviceName,
-  required Future<({bool success, bool rejected})> Function(String pin) onVerify,
+  required Future<({
+    bool success,
+    bool rejected,
+    bool invalidated,
+    int cooldownSeconds,
+    int? remainingAttempts,
+  })> Function(String pin) onVerify,
 }) {
   return showDialog<bool>(
     context: context,
@@ -250,7 +256,13 @@ Future<bool?> showRemotePinInputDialog(
 
 class _RemotePinInputDialogContent extends StatefulWidget {
   final String deviceName;
-  final Future<({bool success, bool rejected})> Function(String pin) onVerify;
+  final Future<({
+    bool success,
+    bool rejected,
+    bool invalidated,
+    int cooldownSeconds,
+    int? remainingAttempts,
+  })> Function(String pin) onVerify;
 
   const _RemotePinInputDialogContent({
     required this.deviceName,
@@ -267,7 +279,10 @@ class _RemotePinInputDialogContentState
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _isVerifying = false;
-  String? _errorMessage;
+  bool _isInvalidated = false;
+  int _cooldownSeconds = 0;
+  int? _remainingAttempts;
+  Timer? _cooldownTimer;
   Timer? _pollTimer;
 
   @override
@@ -278,13 +293,13 @@ class _RemotePinInputDialogContentState
     });
     // Poll to check if host clicked Direct Allow or Reject
     _pollTimer = Timer.periodic(const Duration(milliseconds: 1200), (_) async {
-      if (!mounted || _isVerifying) return;
+      if (!mounted || _isVerifying || _isInvalidated) return;
       final result = await widget.onVerify('');
       if (!mounted) return;
       if (result.success) {
         _pollTimer?.cancel();
         Navigator.of(context).pop(true);
-      } else if (result.rejected) {
+      } else if (result.rejected || result.invalidated) {
         _pollTimer?.cancel();
         Navigator.of(context).pop(false);
       }
@@ -294,17 +309,43 @@ class _RemotePinInputDialogContentState
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _cooldownTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
+  void _startCooldown(int seconds) {
+    _cooldownTimer?.cancel();
+    setState(() {
+      _cooldownSeconds = seconds;
+    });
+
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_cooldownSeconds <= 1) {
+        timer.cancel();
+        setState(() {
+          _cooldownSeconds = 0;
+        });
+        if (!_isInvalidated) {
+          _focusNode.requestFocus();
+        }
+      } else {
+        setState(() {
+          _cooldownSeconds--;
+        });
+      }
+    });
+  }
+
   Future<void> _submitPin(String pin) async {
-    if (pin.length != 4 || _isVerifying) return;
+    if (pin.length != 4 || _isVerifying || _cooldownSeconds > 0 || _isInvalidated) {
+      return;
+    }
 
     setState(() {
       _isVerifying = true;
-      _errorMessage = null;
     });
 
     final result = await widget.onVerify(pin);
@@ -312,24 +353,55 @@ class _RemotePinInputDialogContentState
 
     if (result.success) {
       _pollTimer?.cancel();
+      _cooldownTimer?.cancel();
       Navigator.of(context).pop(true);
     } else if (result.rejected) {
       _pollTimer?.cancel();
+      _cooldownTimer?.cancel();
       Navigator.of(context).pop(false);
+    } else if (result.invalidated) {
+      _pollTimer?.cancel();
+      _cooldownTimer?.cancel();
+      setState(() {
+        _isVerifying = false;
+        _isInvalidated = true;
+        _remainingAttempts = 0;
+        _controller.clear();
+      });
     } else {
       setState(() {
         _isVerifying = false;
-        _errorMessage = AppLocalizations.of(context)!.remotePinInvalid;
+        _remainingAttempts = result.remainingAttempts;
         _controller.clear();
       });
-      _focusNode.requestFocus();
+      final cd = result.cooldownSeconds > 0 ? result.cooldownSeconds : 2;
+      _startCooldown(cd);
     }
+  }
+
+  String? _getErrorMessage(AppLocalizations l10n) {
+    if (_isInvalidated) {
+      return l10n.remotePinTooManyAttempts;
+    }
+    if (_cooldownSeconds > 0) {
+      final cdText = l10n.remotePinCooldown(_cooldownSeconds);
+      if (_remainingAttempts != null && _remainingAttempts! > 0) {
+        return '$cdText ${l10n.remotePinAttemptsRemaining(_remainingAttempts!)}';
+      }
+      return cdText;
+    }
+    if (_remainingAttempts != null) {
+      return '${l10n.remotePinInvalid} ${l10n.remotePinAttemptsRemaining(_remainingAttempts!)}';
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final errorMessage = _getErrorMessage(l10n);
+    final isDisabled = _cooldownSeconds > 0 || _isInvalidated;
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
@@ -377,6 +449,7 @@ class _RemotePinInputDialogContentState
                     child: TextField(
                       controller: _controller,
                       focusNode: _focusNode,
+                      enabled: !isDisabled,
                       keyboardType: TextInputType.number,
                       enableInteractiveSelection: false,
                       inputFormatters: [
@@ -393,7 +466,11 @@ class _RemotePinInputDialogContentState
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => _focusNode.requestFocus(),
+                  onTap: () {
+                    if (!isDisabled) {
+                      _focusNode.requestFocus();
+                    }
+                  },
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Row(
@@ -403,20 +480,23 @@ class _RemotePinInputDialogContentState
                         final char = index < _controller.text.length
                             ? _controller.text[index]
                             : '';
-                        final isCurrent = index == _controller.text.length;
+                        final isCurrent = index == _controller.text.length && !isDisabled;
 
                         return Container(
                           width: 44,
                           height: 52,
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.5),
+                            color: isDisabled
+                                ? theme.colorScheme.surfaceContainerHighest
+                                    .withValues(alpha: 0.25)
+                                : theme.colorScheme.surfaceContainerHighest
+                                    .withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isCurrent
                                   ? theme.colorScheme.primary
-                                  : (_errorMessage != null
+                                  : (errorMessage != null
                                       ? theme.colorScheme.error
                                       : theme.colorScheme.outlineVariant
                                           .withValues(alpha: 0.6)),
@@ -429,7 +509,9 @@ class _RemotePinInputDialogContentState
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onSurface,
+                              color: isDisabled
+                                  ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
+                                  : theme.colorScheme.onSurface,
                             ),
                           ),
                         );
@@ -439,11 +521,18 @@ class _RemotePinInputDialogContentState
                 ),
               ],
             ),
-            if (_errorMessage != null) ...[
+            if (errorMessage != null) ...[
               const SizedBox(height: 12),
               Text(
-                _errorMessage!,
-                style: TextStyle(color: theme.colorScheme.error, fontSize: 12),
+                errorMessage,
+                style: TextStyle(
+                  color: _isInvalidated || _cooldownSeconds > 0
+                      ? theme.colorScheme.error
+                      : theme.colorScheme.error,
+                  fontSize: 12,
+                  fontWeight: _cooldownSeconds > 0 ? FontWeight.w600 : FontWeight.normal,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
             if (_isVerifying) ...[
