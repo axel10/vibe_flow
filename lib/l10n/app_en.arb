@@ -1430,6 +1430,7 @@
     }
   },
   "trustedDevicesTitle": "Trusted Remote Devices",
+  "manageTrustedDevicesTitle": "Manage Trusted Remote Devices",
   "removeTrustedDevice": "Remove Trust",
   "noMusicPlaying": "No music playing",
   "previousSong": "Previous",
@@ -1437,7 +1438,9 @@
   "shufflePlayback": "Shuffle",
   "allowRemoteControlTitle": "Allow Remote Control",
   "allowRemoteControlSubtitle": "Allow other devices on the local network to control music playback after pairing",
-  "remoteControlDisabledOnHost": "Remote control is disabled on the target device"
+  "remoteControlDisabledOnHost": "Remote control is disabled on the target device",
+  "trustThisDevice": "Trust this device and allow automatically in the future",
+  "remoteRequestRejected": "The connection request was rejected by the target device."
 }
 
 

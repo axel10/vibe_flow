@@ -3419,6 +3419,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trustedDevicesTitle => 'Trusted Remote Devices';
 
   @override
+  String get manageTrustedDevicesTitle => 'Manage Trusted Remote Devices';
+
+  @override
   String get removeTrustedDevice => 'Remove Trust';
 
   @override
@@ -3443,4 +3446,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remoteControlDisabledOnHost =>
       'Remote control is disabled on the target device';
+
+  @override
+  String get trustThisDevice =>
+      'Trust this device and allow automatically in the future';
+
+  @override
+  String get remoteRequestRejected =>
+      'The connection request was rejected by the target device.';
 }

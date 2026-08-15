@@ -3306,6 +3306,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get trustedDevicesTitle => '已信任遥控设备';
 
   @override
+  String get manageTrustedDevicesTitle => '管理已信任遥控设备';
+
+  @override
   String get removeTrustedDevice => '移除信任';
 
   @override
@@ -3329,4 +3332,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get remoteControlDisabledOnHost => '상대 기기에서 원격 제어가 비활성화되어 있습니다';
+
+  @override
+  String get trustThisDevice => '이 기기를 신뢰하고 앞으로 자동으로 연결 허용';
+
+  @override
+  String get remoteRequestRejected => '상대 기기에서 연결 요청을 거부했습니다';
 }

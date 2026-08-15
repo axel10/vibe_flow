@@ -1878,6 +1878,7 @@
     }
   },
   "trustedDevicesTitle": "已信任遥控设备",
+  "manageTrustedDevicesTitle": "管理已信任遥控设备",
   "removeTrustedDevice": "移除信任",
   "noMusicPlaying": "当前未在播放",
   "previousSong": "上一首",
@@ -1885,7 +1886,9 @@
   "shufflePlayback": "随机播放",
   "allowRemoteControlTitle": "允许被远程控制",
   "allowRemoteControlSubtitle": "允许局域网内的其他设备在配对后控制本机音乐播放",
-  "remoteControlDisabledOnHost": "对方设备未开启允许远程控制"
+  "remoteControlDisabledOnHost": "对方设备未开启允许远程控制",
+  "trustThisDevice": "信任该设备，以后默认允许连接",
+  "remoteRequestRejected": "对方已拒绝连接请求"
 }
 
 

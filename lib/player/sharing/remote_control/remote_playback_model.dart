@@ -259,3 +259,27 @@ class TrustedRemoteDevice {
     );
   }
 }
+
+class ConnectedHostClient {
+  final String name;
+  final bool isTrusted;
+  final String deviceType;
+
+  const ConnectedHostClient({
+    required this.name,
+    this.isTrusted = false,
+    this.deviceType = 'unknown',
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConnectedHostClient &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          isTrusted == other.isTrusted &&
+          deviceType == other.deviceType;
+
+  @override
+  int get hashCode => name.hashCode ^ isTrusted.hashCode ^ deviceType.hashCode;
+}

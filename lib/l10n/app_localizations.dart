@@ -6133,6 +6133,12 @@ abstract class AppLocalizations {
   /// **'已信任遥控设备'**
   String get trustedDevicesTitle;
 
+  /// No description provided for @manageTrustedDevicesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理已信任遥控设备'**
+  String get manageTrustedDevicesTitle;
+
   /// No description provided for @removeTrustedDevice.
   ///
   /// In zh, this message translates to:
@@ -6180,6 +6186,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'对方设备未开启允许远程控制'**
   String get remoteControlDisabledOnHost;
+
+  /// No description provided for @trustThisDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'信任该设备，以后默认允许连接'**
+  String get trustThisDevice;
+
+  /// No description provided for @remoteRequestRejected.
+  ///
+  /// In zh, this message translates to:
+  /// **'对方已拒绝连接请求'**
+  String get remoteRequestRejected;
 }
 
 class _AppLocalizationsDelegate

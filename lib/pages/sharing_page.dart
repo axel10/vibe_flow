@@ -481,6 +481,12 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                 builder: (context) {
                   final hostClients = ref.watch(hostConnectedClientsProvider);
                   if (hostClients.isEmpty) return const SizedBox.shrink();
+
+                  final fullText = l10n.controlledByRemoteDevices('__CLIENTS__');
+                  final parts = fullText.split('__CLIENTS__');
+                  final prefix = parts[0];
+                  final suffix = parts.length > 1 ? parts[1] : '';
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.symmetric(
@@ -505,13 +511,43 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            l10n.controlledByRemoteDevices(
-                              hostClients.join(', '),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                          child: Text.rich(
+                            TextSpan(
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              children: [
+                                TextSpan(text: prefix),
+                                for (int i = 0; i < hostClients.length; i++) ...[
+                                  if (i > 0) const TextSpan(text: ', '),
+                                  TextSpan(
+                                    text: hostClients[i].name,
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  if (hostClients[i].isTrusted) ...[
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 3.0),
+                                        child: Tooltip(
+                                          message: l10n.trustedDevicesTitle,
+                                          child: InkWell(
+                                            onTap: () => showTrustedDevicesDialog(context),
+                                            borderRadius: BorderRadius.circular(10),
+                                            child: Icon(
+                                              Icons.verified_rounded,
+                                              size: 16,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                                if (suffix.isNotEmpty) TextSpan(text: suffix),
+                              ],
                             ),
                           ),
                         ),
@@ -759,57 +795,128 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                     ),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.1,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.settings_remote_rounded,
+                              color: theme.colorScheme.primary,
+                              size: 26,
+                            ),
                           ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.settings_remote_rounded,
-                          color: theme.colorScheme.primary,
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.allowRemoteControlTitle,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              l10n.allowRemoteControlSubtitle,
-                              style: TextStyle(
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.allowRemoteControlTitle,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                fontSize: 12,
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.allowRemoteControlSubtitle,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.6,
+                                    ),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: settings.allowRemoteControl,
+                            onChanged: (value) {
+                              settings.allowRemoteControl = value;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Builder(
+                      builder: (context) {
+                        final trustedDevices = ref.watch(trustedDevicesProvider);
+                        return InkWell(
+                          onTap: () => showTrustedDevicesDialog(context),
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(20),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                              vertical: 12.0,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                top: BorderSide(
+                                  color: theme.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.2),
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      Switch(
-                        value: settings.allowRemoteControl,
-                        onChanged: (value) {
-                          settings.allowRemoteControl = value;
-                        },
-                      ),
-                    ],
-                  ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    l10n.manageTrustedDevicesTitle,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                                if (trustedDevices.isNotEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    margin: const EdgeInsets.only(right: 6),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primaryContainer
+                                          .withValues(alpha: 0.7),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${trustedDevices.length}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 18,
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.6),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -1080,83 +1187,6 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                     ),
                   ),
                 ),
-              ),
-
-              // 3. Trusted Devices Section (if any)
-              Builder(
-                builder: (context) {
-                  final trustedDevices = ref.watch(trustedDevicesProvider);
-                  if (trustedDevices.isEmpty) return const SizedBox.shrink();
-
-                  return Container(
-                    margin: const EdgeInsets.only(top: 12, bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: theme.colorScheme.outlineVariant
-                            .withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.verified_user_rounded,
-                              size: 16,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.trustedDevicesTitle,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ...trustedDevices.map((d) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _getPlatformIcon(d.deviceType),
-                                  size: 16,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    d.name,
-                                    style: const TextStyle(fontSize: 12),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close_rounded, size: 16),
-                                  tooltip: l10n.removeTrustedDevice,
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () {
-                                    ref
-                                        .read(remoteControlServiceProvider)
-                                        .removeTrustedDevice(d.id);
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  );
-                },
               ),
             ],
           ),

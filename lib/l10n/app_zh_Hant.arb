@@ -1063,5 +1063,7 @@
   "btnVolume": "音量",
   "allowRemoteControlTitle": "允許被遠端控制",
   "allowRemoteControlSubtitle": "允許區域網路內的其他裝置在配對後控制本機音樂播放",
-  "remoteControlDisabledOnHost": "對方裝置未開啟允許遠端控制"
+  "remoteControlDisabledOnHost": "對方裝置未開啟允許遠端控制",
+  "trustThisDevice": "信任該裝置，以後預設允許連線",
+  "remoteRequestRejected": "對方已拒絕連線請求"
 }

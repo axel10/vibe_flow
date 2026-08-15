@@ -3254,6 +3254,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trustedDevicesTitle => '已信任遥控设备';
 
   @override
+  String get manageTrustedDevicesTitle => '管理已信任遥控设备';
+
+  @override
   String get removeTrustedDevice => '移除信任';
 
   @override
@@ -3276,6 +3279,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get remoteControlDisabledOnHost => '对方设备未开启允许远程控制';
+
+  @override
+  String get trustThisDevice => '信任该设备，以后默认允许连接';
+
+  @override
+  String get remoteRequestRejected => '对方已拒绝连接请求';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -6484,4 +6493,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get remoteControlDisabledOnHost => '對方裝置未開啟允許遠端控制';
+
+  @override
+  String get trustThisDevice => '信任該裝置，以後預設允許連線';
+
+  @override
+  String get remoteRequestRejected => '對方已拒絕連線請求';
 }

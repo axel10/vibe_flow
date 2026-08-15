@@ -1368,5 +1368,7 @@
   "btnVolume": "Volume",
   "allowRemoteControlTitle": "Autoriser le contrôle à distance",
   "allowRemoteControlSubtitle": "Permet aux autres appareils du réseau de contrôler la lecture après l'appairage",
-  "remoteControlDisabledOnHost": "Le contrôle à distance est désactivé sur l'appareil cible"
+  "remoteControlDisabledOnHost": "Le contrôle à distance est désactivé sur l'appareil cible",
+  "trustThisDevice": "Faire confiance à cet appareil et l'autoriser automatiquement à l'avenir",
+  "remoteRequestRejected": "La demande de connexion a été refusée par l'appareil cible."
 }

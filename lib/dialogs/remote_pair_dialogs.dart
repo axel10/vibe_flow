@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
+import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 
 void showIncomingRemotePairDialog(
@@ -46,6 +47,7 @@ class _IncomingRemotePairDialogContentState
     extends ConsumerState<_IncomingRemotePairDialogContent> {
   int _countdown = 60;
   Timer? _timer;
+  bool _rememberDevice = false;
 
   @override
   void initState() {
@@ -55,7 +57,7 @@ class _IncomingRemotePairDialogContentState
       if (_countdown <= 1) {
         t.cancel();
         Navigator.of(context, rootNavigator: true).pop();
-        widget.request.onDecision(false);
+        widget.request.onDecision(false, false);
       } else {
         setState(() => _countdown--);
       }
@@ -149,6 +151,42 @@ class _IncomingRemotePairDialogContentState
               ),
             ),
             const SizedBox(height: 12),
+            InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                setState(() => _rememberDevice = !_rememberDevice);
+                widget.request.onRememberChanged(_rememberDevice);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Checkbox(
+                      value: _rememberDevice,
+                      onChanged: (val) {
+                        final v = val ?? false;
+                        setState(() => _rememberDevice = v);
+                        widget.request.onRememberChanged(v);
+                      },
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        l10n.trustThisDevice,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             Text(
               '${l10n.remotePinExpiresIn} $_countdown s',
               style: TextStyle(
@@ -168,7 +206,7 @@ class _IncomingRemotePairDialogContentState
             ),
             onPressed: () {
               Navigator.of(context, rootNavigator: true).pop();
-              request.onDecision(false);
+              widget.request.onDecision(false, _rememberDevice);
             },
             child: Text(l10n.reject),
           ),
@@ -181,7 +219,7 @@ class _IncomingRemotePairDialogContentState
             ),
             onPressed: () {
               Navigator.of(context, rootNavigator: true).pop();
-              request.onDecision(true);
+              widget.request.onDecision(true, _rememberDevice);
             },
             child: Text(l10n.allowDirectly),
           ),
@@ -194,7 +232,7 @@ class _IncomingRemotePairDialogContentState
 Future<bool?> showRemotePinInputDialog(
   BuildContext context, {
   required String deviceName,
-  required Future<bool> Function(String pin) onVerify,
+  required Future<({bool success, bool rejected})> Function(String pin) onVerify,
 }) {
   return showDialog<bool>(
     context: context,
@@ -208,7 +246,7 @@ Future<bool?> showRemotePinInputDialog(
 
 class _RemotePinInputDialogContent extends StatefulWidget {
   final String deviceName;
-  final Future<bool> Function(String pin) onVerify;
+  final Future<({bool success, bool rejected})> Function(String pin) onVerify;
 
   const _RemotePinInputDialogContent({
     required this.deviceName,
@@ -226,6 +264,7 @@ class _RemotePinInputDialogContentState
   final FocusNode _focusNode = FocusNode();
   bool _isVerifying = false;
   String? _errorMessage;
+  Timer? _pollTimer;
 
   @override
   void initState() {
@@ -233,10 +272,24 @@ class _RemotePinInputDialogContentState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
+    // Poll to check if host clicked Direct Allow or Reject
+    _pollTimer = Timer.periodic(const Duration(milliseconds: 1200), (_) async {
+      if (!mounted || _isVerifying) return;
+      final result = await widget.onVerify('');
+      if (!mounted) return;
+      if (result.success) {
+        _pollTimer?.cancel();
+        Navigator.of(context).pop(true);
+      } else if (result.rejected) {
+        _pollTimer?.cancel();
+        Navigator.of(context).pop(false);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -250,11 +303,15 @@ class _RemotePinInputDialogContentState
       _errorMessage = null;
     });
 
-    final success = await widget.onVerify(pin);
+    final result = await widget.onVerify(pin);
     if (!mounted) return;
 
-    if (success) {
+    if (result.success) {
+      _pollTimer?.cancel();
       Navigator.of(context).pop(true);
+    } else if (result.rejected) {
+      _pollTimer?.cancel();
+      Navigator.of(context).pop(false);
     } else {
       setState(() {
         _isVerifying = false;
@@ -391,6 +448,210 @@ class _RemotePinInputDialogContentState
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(l10n.cancel),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void showTrustedDevicesDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (ctx) => const _TrustedDevicesDialogContent(),
+  );
+}
+
+class _TrustedDevicesDialogContent extends ConsumerWidget {
+  const _TrustedDevicesDialogContent();
+
+  IconData _getPlatformIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'macos':
+      case 'ios':
+        return Icons.apple;
+      case 'windows':
+        return Icons.laptop_windows;
+      case 'android':
+        return Icons.phone_android;
+      case 'linux':
+        return Icons.terminal;
+      default:
+        return Icons.devices;
+    }
+  }
+
+  String _formatDate(DateTime dt) {
+    final y = dt.year;
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final h = dt.hour.toString().padLeft(2, '0');
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $h:$min';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final trustedDevices = ref.watch(trustedDevicesProvider);
+    final remoteService = ref.read(remoteControlServiceProvider);
+
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+          ),
+        ),
+        titlePadding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.verified_user_rounded,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.trustedDevicesTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '已信任 ${trustedDevices.length} 台设备',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+        content: SizedBox(
+          width: 440,
+          child: trustedDevices.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.devices_other_rounded,
+                        size: 48,
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        '暂无已信任的设备',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '在接受配对时勾选“记住该设备”后将在此显示',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 360),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: trustedDevices.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (ctx, i) {
+                      final d = trustedDevices[i];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _getPlatformIcon(d.deviceType),
+                            size: 20,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        title: Text(
+                          d.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '配对时间: ${_formatDate(d.pairedAt)}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(
+                            Icons.delete_outline_rounded,
+                            size: 20,
+                            color: theme.colorScheme.error,
+                          ),
+                          tooltip: l10n.removeTrustedDevice,
+                          onPressed: () {
+                            remoteService.removeTrustedDevice(d.id);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        actions: [
+          if (trustedDevices.isNotEmpty)
+            TextButton.icon(
+              icon: const Icon(Icons.delete_sweep_rounded, size: 18),
+              label: Text(l10n.clear),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+              onPressed: () {
+                for (final d in trustedDevices.toList()) {
+                  remoteService.removeTrustedDevice(d.id);
+                }
+              },
+            ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.confirm),
           ),
         ],
       ),

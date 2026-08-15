@@ -1467,5 +1467,7 @@
   "btnVolume": "音量",
   "allowRemoteControlTitle": "リモート操作を許可",
   "allowRemoteControlSubtitle": "ペアリング後、LAN内の他のデバイスによる本機の音楽再生操作を許可します",
-  "remoteControlDisabledOnHost": "相手のデバイスでリモート操作が無効になっています"
+  "remoteControlDisabledOnHost": "相手のデバイスでリモート操作が無効になっています",
+  "trustThisDevice": "このデバイスを信頼し、次回から自動的に接続を許可する",
+  "remoteRequestRejected": "相手のデバイスに接続要求が拒否されました"
 }

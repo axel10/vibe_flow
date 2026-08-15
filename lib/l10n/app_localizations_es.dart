@@ -3466,6 +3466,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trustedDevicesTitle => '已信任遥控设备';
 
   @override
+  String get manageTrustedDevicesTitle => '管理已信任遥控设备';
+
+  @override
   String get removeTrustedDevice => '移除信任';
 
   @override
@@ -3490,4 +3493,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get remoteControlDisabledOnHost =>
       'El control remoto está desactivado en el dispositivo de destino';
+
+  @override
+  String get trustThisDevice =>
+      'Confiar en este dispositivo y permitirlo automáticamente en el futuro';
+
+  @override
+  String get remoteRequestRejected =>
+      'La solicitud de conexión fue rechazada por el dispositivo de destino.';
 }

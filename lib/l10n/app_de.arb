@@ -1368,5 +1368,7 @@
   "btnVolume": "Lautstärke",
   "allowRemoteControlTitle": "Fernsteuerung zulassen",
   "allowRemoteControlSubtitle": "Ermöglicht anderen LAN-Geräten nach der Kopplung die Steuerung der Musikwiedergabe",
-  "remoteControlDisabledOnHost": "Fernsteuerung ist auf dem Zielgerät deaktiviert"
+  "remoteControlDisabledOnHost": "Fernsteuerung ist auf dem Zielgerät deaktiviert",
+  "trustThisDevice": "Diesem Gerät vertrauen und künftig automatisch zulassen",
+  "remoteRequestRejected": "Die Verbindungsanfrage wurde vom Zielgerät abgelehnt."
 }

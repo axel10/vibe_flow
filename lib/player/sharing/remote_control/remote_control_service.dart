@@ -18,7 +18,8 @@ class IncomingRemotePairRequest {
   final String senderName;
   final String deviceType;
   final String pinCode;
-  final void Function(bool accepted) onDecision;
+  final void Function(bool accepted, bool rememberDevice) onDecision;
+  final void Function(bool rememberDevice) onRememberChanged;
 
   IncomingRemotePairRequest({
     required this.senderId,
@@ -26,6 +27,7 @@ class IncomingRemotePairRequest {
     required this.deviceType,
     required this.pinCode,
     required this.onDecision,
+    required this.onRememberChanged,
   });
 }
 
@@ -62,16 +64,17 @@ final activeControllingDeviceProvider =
   ConnectedRemoteDeviceNotifier.new,
 );
 
-class HostConnectedClientsNotifier extends Notifier<List<String>> {
+class HostConnectedClientsNotifier extends Notifier<List<ConnectedHostClient>> {
   @override
-  List<String> build() => [];
-  void addClient(String name) => state = [...state, name];
-  void removeClient(String name) => state = state.where((n) => n != name).toList();
+  List<ConnectedHostClient> build() => [];
+  void addClient(ConnectedHostClient client) => state = [...state, client];
+  void removeClient(ConnectedHostClient client) =>
+      state = state.where((c) => c != client).toList();
   void clear() => state = [];
 }
 
 final hostConnectedClientsProvider =
-    NotifierProvider<HostConnectedClientsNotifier, List<String>>(
+    NotifierProvider<HostConnectedClientsNotifier, List<ConnectedHostClient>>(
   HostConnectedClientsNotifier.new,
 );
 
@@ -94,6 +97,7 @@ class _PendingPairSession {
   final String sessionToken;
   final Completer<bool> completer;
   final DateTime createdAt;
+  bool rememberDevice;
 
   _PendingPairSession({
     required this.senderId,
@@ -103,6 +107,7 @@ class _PendingPairSession {
     required this.sessionToken,
     required this.completer,
     required this.createdAt,
+    this.rememberDevice = false,
   });
 }
 
@@ -111,8 +116,9 @@ class RemoteControlService {
 
   // Host state
   final Map<String, _PendingPairSession> _pendingPairSessions = {};
-  final Map<WebSocket, String> _hostClientSockets = {};
+  final Map<WebSocket, ConnectedHostClient> _hostClientSockets = {};
   final List<TrustedRemoteDevice> _trustedDevices = [];
+  final Map<String, String> _temporaryAuthTokens = {};
   ProviderSubscription<AudioSnapshot>? _audioSubscription;
 
   // Client state
@@ -136,6 +142,7 @@ class RemoteControlService {
   void dispose() {
     _audioSubscription?.close();
     _audioSubscription = null;
+    _temporaryAuthTokens.clear();
     disconnectClient();
     _closeAllHostSockets();
   }
@@ -247,9 +254,9 @@ class RemoteControlService {
       }
     }
     for (final dead in deadSockets) {
-      final name = _hostClientSockets.remove(dead);
-      if (name != null) {
-        _ref.read(hostConnectedClientsProvider.notifier).removeClient(name);
+      final client = _hostClientSockets.remove(dead);
+      if (client != null) {
+        _ref.read(hostConnectedClientsProvider.notifier).removeClient(client);
       }
       try {
         dead.close();
@@ -306,6 +313,7 @@ class RemoteControlService {
         sessionToken: sessionToken,
         completer: completer,
         createdAt: DateTime.now(),
+        rememberDevice: false,
       );
 
       _pendingPairSessions[sessionToken] = session;
@@ -317,11 +325,19 @@ class RemoteControlService {
           senderName: senderName,
           deviceType: deviceType,
           pinCode: pin,
-          onDecision: (accepted) {
+          onDecision: (accepted, remember) {
+            session.rememberDevice = remember;
             if (!completer.isCompleted) {
               completer.complete(accepted);
             }
+            if (!accepted) {
+              removeTrustedDevice(senderId);
+              _pendingPairSessions.remove(sessionToken);
+            }
             _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
+          },
+          onRememberChanged: (remember) {
+            session.rememberDevice = remember;
           },
         ),
       );
@@ -350,7 +366,7 @@ class RemoteControlService {
       final json = jsonDecode(content) as Map<String, dynamic>;
 
       final sessionToken = json['session_token'] as String? ?? '';
-      final inputPin = json['pin'] as String? ?? '';
+      final inputPin = (json['pin'] as String? ?? '').trim();
 
       final session = _pendingPairSessions[sessionToken];
       if (session == null) {
@@ -364,12 +380,18 @@ class RemoteControlService {
       }
 
       bool verified = false;
+      bool isRejected = false;
       if (session.completer.isCompleted) {
-        // Already accepted via host dialog directly
-        verified = await session.completer.future;
+        // Already decided via host dialog directly
+        final decision = await session.completer.future;
+        if (decision) {
+          verified = true;
+        } else {
+          isRejected = true;
+        }
       } else {
-        // Verify PIN
-        if (session.pinCode == inputPin.trim()) {
+        // Verify PIN if input is provided
+        if (inputPin.isNotEmpty && session.pinCode == inputPin) {
           verified = true;
           session.completer.complete(true);
           _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
@@ -381,23 +403,37 @@ class RemoteControlService {
 
         final token = 'auth_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(1000000)}';
         
-        // Add to trusted devices
-        _trustedDevices.removeWhere((d) => d.id == session.senderId);
-        _trustedDevices.add(
-          TrustedRemoteDevice(
-            id: session.senderId,
-            name: session.senderName,
-            deviceType: session.deviceType,
-            token: token,
-            pairedAt: DateTime.now(),
-          ),
-        );
-        await _saveTrustedDevices();
+        if (session.rememberDevice) {
+          // Add to trusted devices permanently
+          _trustedDevices.removeWhere((d) => d.id == session.senderId);
+          _trustedDevices.add(
+            TrustedRemoteDevice(
+              id: session.senderId,
+              name: session.senderName,
+              deviceType: session.deviceType,
+              token: token,
+              pairedAt: DateTime.now(),
+            ),
+          );
+          await _saveTrustedDevices();
+        } else {
+          // One-time temporary token
+          _temporaryAuthTokens[token] = session.senderId;
+        }
 
         request.response.statusCode = HttpStatus.ok;
         request.response.write(jsonEncode({
           'success': true,
           'token': token,
+          'is_trusted': session.rememberDevice,
+        }));
+      } else if (isRejected) {
+        _pendingPairSessions.remove(sessionToken);
+        request.response.statusCode = HttpStatus.forbidden;
+        request.response.write(jsonEncode({
+          'success': false,
+          'rejected': true,
+          'reason': 'rejected_by_host',
         }));
       } else {
         request.response.statusCode = HttpStatus.unauthorized;
@@ -426,9 +462,11 @@ class RemoteControlService {
 
     final token = request.uri.queryParameters['token'] ?? '';
     final senderName = request.uri.queryParameters['senderName'] ?? 'Remote Device';
+    final deviceType = request.uri.queryParameters['deviceType'] ?? 'unknown';
 
     final isTrusted = _trustedDevices.any((d) => d.token == token);
-    if (!isTrusted) {
+    final isTemporary = _temporaryAuthTokens.containsKey(token);
+    if (!isTrusted && !isTemporary) {
       request.response.statusCode = HttpStatus.unauthorized;
       await request.response.close();
       return;
@@ -436,8 +474,16 @@ class RemoteControlService {
 
     try {
       final socket = await WebSocketTransformer.upgrade(request);
-      _hostClientSockets[socket] = senderName;
-      _ref.read(hostConnectedClientsProvider.notifier).addClient(senderName);
+      final clientInfo = ConnectedHostClient(
+        name: senderName,
+        isTrusted: isTrusted,
+        deviceType: deviceType,
+      );
+      _hostClientSockets[socket] = clientInfo;
+      _ref.read(hostConnectedClientsProvider.notifier).addClient(clientInfo);
+      if (isTemporary) {
+        _temporaryAuthTokens.remove(token);
+      }
 
       // Send initial playback state immediately
       final initialSnapshot = _ref.read(audioSnapshotProvider);
@@ -461,15 +507,15 @@ class RemoteControlService {
           }
         },
         onDone: () {
-          final name = _hostClientSockets.remove(socket);
-          if (name != null) {
-            _ref.read(hostConnectedClientsProvider.notifier).removeClient(name);
+          final client = _hostClientSockets.remove(socket);
+          if (client != null) {
+            _ref.read(hostConnectedClientsProvider.notifier).removeClient(client);
           }
         },
         onError: (err) {
-          final name = _hostClientSockets.remove(socket);
-          if (name != null) {
-            _ref.read(hostConnectedClientsProvider.notifier).removeClient(name);
+          final client = _hostClientSockets.remove(socket);
+          if (client != null) {
+            _ref.read(hostConnectedClientsProvider.notifier).removeClient(client);
           }
         },
       );
@@ -684,7 +730,7 @@ class RemoteControlService {
         return json['session_token'] as String; // Needs PIN input
       }
 
-      return null;
+      throw Exception(json['reason'] as String? ?? 'Pairing initialization failed');
     } catch (e) {
       debugPrint('[RemoteControlService] Error initiating pairing: $e');
       rethrow;
@@ -693,7 +739,7 @@ class RemoteControlService {
     }
   }
 
-  Future<bool> verifyPinAndGetToken({
+  Future<({bool success, bool rejected})> verifyPinAndGetToken({
     required LanDevice targetDevice,
     required String sessionToken,
     required String pin,
@@ -718,24 +764,32 @@ class RemoteControlService {
 
       if (json['success'] == true && json['token'] != null) {
         _clientAuthToken = json['token'] as String;
-        // Save to trusted devices on client side as well
-        _trustedDevices.removeWhere((d) => d.id == targetDevice.id);
-        _trustedDevices.add(
-          TrustedRemoteDevice(
-            id: targetDevice.id,
-            name: targetDevice.name,
-            deviceType: targetDevice.deviceType,
-            token: _clientAuthToken!,
-            pairedAt: DateTime.now(),
-          ),
-        );
-        await _saveTrustedDevices();
-        return true;
+        final isTrusted = json['is_trusted'] == true;
+        if (isTrusted) {
+          // Save to trusted devices on client side
+          _trustedDevices.removeWhere((d) => d.id == targetDevice.id);
+          _trustedDevices.add(
+            TrustedRemoteDevice(
+              id: targetDevice.id,
+              name: targetDevice.name,
+              deviceType: targetDevice.deviceType,
+              token: _clientAuthToken!,
+              pairedAt: DateTime.now(),
+            ),
+          );
+          await _saveTrustedDevices();
+        } else {
+          // If not trusted by host, remove from client trusted list as well
+          _trustedDevices.removeWhere((d) => d.id == targetDevice.id);
+          await _saveTrustedDevices();
+        }
+        return (success: true, rejected: false);
       }
-      return false;
+      final rejected = json['rejected'] == true || json['reason'] == 'rejected_by_host';
+      return (success: false, rejected: rejected);
     } catch (e) {
       debugPrint('[RemoteControlService] Error verifying PIN: $e');
-      return false;
+      return (success: false, rejected: false);
     } finally {
       client.close();
     }
@@ -745,13 +799,14 @@ class RemoteControlService {
     required LanDevice targetDevice,
     required String senderName,
   }) async {
-    if (_clientAuthToken == null) return false;
+    final token = _clientAuthToken;
+    if (token == null || token.isEmpty) return false;
 
     try {
-      disconnectClient();
+      disconnectClient(clearToken: false);
 
       final wsUrl =
-          'ws://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/ws?token=$_clientAuthToken&senderName=${Uri.encodeComponent(senderName)}';
+          'ws://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/ws?token=${Uri.encodeComponent(token)}&senderName=${Uri.encodeComponent(senderName)}&deviceType=${Uri.encodeComponent(Platform.operatingSystem)}';
       
       final socket = await WebSocket.connect(wsUrl).timeout(
         const Duration(seconds: 6),
@@ -826,7 +881,7 @@ class RemoteControlService {
   void clearQueue() => sendCommand(RemoteCommand.clearQueue());
   void setVolume(double volume) => sendCommand(RemoteCommand.setVolume(volume));
 
-  void disconnectClient() {
+  void disconnectClient({bool clearToken = true}) {
     _pingTimer?.cancel();
     _pingTimer = null;
     try {
@@ -834,6 +889,9 @@ class RemoteControlService {
     } catch (_) {}
     _clientSocket = null;
     _controllingDevice = null;
+    if (clearToken) {
+      _clientAuthToken = null;
+    }
     _ref.read(activeControllingDeviceProvider.notifier).setDevice(null);
     _ref.read(remotePlaybackStateProvider.notifier).setState(null);
   }

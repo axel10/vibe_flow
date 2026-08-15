@@ -1368,5 +1368,7 @@
   "btnVolume": "Volumen",
   "allowRemoteControlTitle": "Permitir control remoto",
   "allowRemoteControlSubtitle": "Permitir que otros dispositivos LAN controlen la reproducción tras el emparejamiento",
-  "remoteControlDisabledOnHost": "El control remoto está desactivado en el dispositivo de destino"
+  "remoteControlDisabledOnHost": "El control remoto está desactivado en el dispositivo de destino",
+  "trustThisDevice": "Confiar en este dispositivo y permitirlo automáticamente en el futuro",
+  "remoteRequestRejected": "La solicitud de conexión fue rechazada por el dispositivo de destino."
 }
