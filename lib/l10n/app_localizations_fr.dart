@@ -3419,73 +3419,77 @@ class AppLocalizationsFr extends AppLocalizations {
   String get btnVolume => 'Volume';
 
   @override
-  String get remoteControlAction => '远程控制';
+  String get remoteControlAction => 'Contrôle à distance';
 
   @override
-  String get remoteControlRequestTitle => '远程控制请求';
+  String get remoteControlRequestTitle => 'Demande de contrôle à distance';
 
   @override
   String remoteControlRequestFrom(String name) {
-    return '设备「$name」请求控制本机播放';
+    return 'L\'appareil \"$name\" demande à contrôler la lecture';
   }
 
   @override
-  String get remotePinPairHint => '请在控制端输入以下配对验证码：';
+  String get remotePinPairHint =>
+      'Veuillez saisir le code PIN d\'appairage suivant sur l\'appareil de contrôle :';
 
   @override
-  String get remotePinExpiresIn => '验证码有效期：';
+  String get remotePinExpiresIn => 'Le code PIN expire dans :';
 
   @override
-  String get allowDirectly => '直接允许';
+  String get allowDirectly => 'Autoriser directement';
 
   @override
-  String get enterRemotePinTitle => '设备配对';
+  String get enterRemotePinTitle => 'Appairage d\'appareils';
 
   @override
   String enterRemotePinPrompt(String name) {
-    return '请输入设备「$name」屏幕上显示的 4 位配对验证码：';
+    return 'Saisissez le code PIN à 4 chiffres affiché sur « $name » :';
   }
 
   @override
-  String get remotePinInvalid => '验证码错误或已失效，请重试';
+  String get remotePinInvalid =>
+      'Code PIN non valide ou expiré. Veuillez réessayer.';
 
   @override
-  String get remoteConnected => '已连接';
+  String get remoteConnected => 'Connecté';
 
   @override
-  String get remoteConnecting => '正在连接...';
+  String get remoteConnecting => 'Connexion en cours...';
 
   @override
-  String get remoteDisconnect => '断开连接';
+  String get remoteDisconnect => 'Déconnecter';
 
   @override
-  String get remoteConnectFailed => '远程连接失败';
+  String get remoteConnectFailed => 'Échec de la connexion à distance';
 
   @override
   String controlledByRemoteDevices(String devices) {
-    return '正在接受以下设备的远程控制: $devices';
+    return 'Contrôlé par le ou les appareils distants suivants : $devices';
   }
 
   @override
-  String get trustedDevicesTitle => '已信任遥控设备';
+  String get trustedDevicesTitle =>
+      'Appareils de contrôle à distance de confiance';
 
   @override
-  String get manageTrustedDevicesTitle => '管理已信任遥控设备';
+  String get manageTrustedDevicesTitle =>
+      'Gérer les appareils de contrôle à distance de confiance';
 
   @override
-  String get removeTrustedDevice => '移除信任';
+  String get removeTrustedDevice => 'Supprimer la confiance';
 
   @override
-  String get noMusicPlaying => '当前未在播放';
+  String get noMusicPlaying => 'Aucune musique en cours de lecture';
 
   @override
-  String get previousSong => '上一首';
+  String get previousSong => 'Piste précédente';
 
   @override
-  String get nextSong => '下一首';
+  String get nextSong => 'Piste suivante';
 
   @override
-  String get shufflePlayback => '随机播放';
+  String get shufflePlayback => 'Lecture aléatoire';
 
   @override
   String get allowRemoteControlTitle => 'Autoriser le contrôle à distance';

@@ -6486,6 +6486,75 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get btnVolume => '音量';
 
   @override
+  String get remoteControlAction => '遠端控制';
+
+  @override
+  String get remoteControlRequestTitle => '遠端控制請求';
+
+  @override
+  String remoteControlRequestFrom(String name) {
+    return '裝置「$name」請求控制本機播放';
+  }
+
+  @override
+  String get remotePinPairHint => '請在控制端輸入以下配對驗證碼：';
+
+  @override
+  String get remotePinExpiresIn => '驗證碼有效期限：';
+
+  @override
+  String get allowDirectly => '直接允許';
+
+  @override
+  String get enterRemotePinTitle => '裝置配對';
+
+  @override
+  String enterRemotePinPrompt(String name) {
+    return '請輸入裝置「$name」螢幕上顯示的 4 位配對驗證碼：';
+  }
+
+  @override
+  String get remotePinInvalid => '驗證碼錯誤或已失效，請重試';
+
+  @override
+  String get remoteConnected => '已連線';
+
+  @override
+  String get remoteConnecting => '正在連線...';
+
+  @override
+  String get remoteDisconnect => '中斷連線';
+
+  @override
+  String get remoteConnectFailed => '遠端連線失敗';
+
+  @override
+  String controlledByRemoteDevices(String devices) {
+    return '正在接受以下裝置的遠端控制: $devices';
+  }
+
+  @override
+  String get trustedDevicesTitle => '已信任遙控裝置';
+
+  @override
+  String get manageTrustedDevicesTitle => '管理已信任遙控裝置';
+
+  @override
+  String get removeTrustedDevice => '移除信任';
+
+  @override
+  String get noMusicPlaying => '目前未在播放';
+
+  @override
+  String get previousSong => '上一首';
+
+  @override
+  String get nextSong => '下一首';
+
+  @override
+  String get shufflePlayback => '隨機播放';
+
+  @override
   String get allowRemoteControlTitle => '允許被遠端控制';
 
   @override

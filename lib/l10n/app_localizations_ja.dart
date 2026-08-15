@@ -3252,73 +3252,73 @@ class AppLocalizationsJa extends AppLocalizations {
   String get btnVolume => '音量';
 
   @override
-  String get remoteControlAction => '远程控制';
+  String get remoteControlAction => 'リモート操作';
 
   @override
-  String get remoteControlRequestTitle => '远程控制请求';
+  String get remoteControlRequestTitle => 'リモート操作リクエスト';
 
   @override
   String remoteControlRequestFrom(String name) {
-    return '设备「$name」请求控制本机播放';
+    return 'デバイス「$name」が本機の再生制御を要求しています';
   }
 
   @override
-  String get remotePinPairHint => '请在控制端输入以下配对验证码：';
+  String get remotePinPairHint => '操作側のデバイスで以下のペアリングPINコードを入力してください：';
 
   @override
-  String get remotePinExpiresIn => '验证码有效期：';
+  String get remotePinExpiresIn => 'PINコード有効期限：';
 
   @override
-  String get allowDirectly => '直接允许';
+  String get allowDirectly => '直接許可';
 
   @override
-  String get enterRemotePinTitle => '设备配对';
+  String get enterRemotePinTitle => 'デバイスのペアリング';
 
   @override
   String enterRemotePinPrompt(String name) {
-    return '请输入设备「$name」屏幕上显示的 4 位配对验证码：';
+    return 'デバイス「$name」の画面に表示されている4桁のPINコードを入力してください：';
   }
 
   @override
-  String get remotePinInvalid => '验证码错误或已失效，请重试';
+  String get remotePinInvalid => 'PINコードが無効または期限切れです。もう一度お試しください';
 
   @override
-  String get remoteConnected => '已连接';
+  String get remoteConnected => '接続済み';
 
   @override
-  String get remoteConnecting => '正在连接...';
+  String get remoteConnecting => '接続中...';
 
   @override
-  String get remoteDisconnect => '断开连接';
+  String get remoteDisconnect => '切断';
 
   @override
-  String get remoteConnectFailed => '远程连接失败';
+  String get remoteConnectFailed => 'リモート接続に失敗しました';
 
   @override
   String controlledByRemoteDevices(String devices) {
-    return '正在接受以下设备的远程控制: $devices';
+    return '次のデバイスからリモート操作されています: $devices';
   }
 
   @override
-  String get trustedDevicesTitle => '已信任遥控设备';
+  String get trustedDevicesTitle => '信頼済みのリモートデバイス';
 
   @override
-  String get manageTrustedDevicesTitle => '管理已信任遥控设备';
+  String get manageTrustedDevicesTitle => '信頼済みリモートデバイスの管理';
 
   @override
-  String get removeTrustedDevice => '移除信任';
+  String get removeTrustedDevice => '信頼を解除';
 
   @override
-  String get noMusicPlaying => '当前未在播放';
+  String get noMusicPlaying => '現在再生していません';
 
   @override
-  String get previousSong => '上一首';
+  String get previousSong => '前の曲';
 
   @override
-  String get nextSong => '下一首';
+  String get nextSong => '次の曲';
 
   @override
-  String get shufflePlayback => '随机播放';
+  String get shufflePlayback => 'シャッフル再生';
 
   @override
   String get allowRemoteControlTitle => 'リモート操作を許可';
