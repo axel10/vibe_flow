@@ -513,10 +513,13 @@ class PlaybackHeroCard extends ConsumerWidget {
                           height: layout.cover.height,
                           child: Consumer(
                             builder: (context, ref, child) {
+                              final double currentSize = optimize
+                                  ? coverNormalLayout.cover.width
+                                  : layout.cover.width;
                               final Widget coverWidget = SizeLogger(
                                 name: 'Cover',
                                 child: PlaybackAlbumArt(
-                                  currentSize: layout.cover.width,
+                                  currentSize: currentSize,
                                   cacheWidthSize: coverNormalLayout.cover.width,
                                   isNext: isNext,
                                   onCoverTap: onCoverTap,
@@ -524,6 +527,19 @@ class PlaybackHeroCard extends ConsumerWidget {
                                       onCarouselAnimationComplete,
                                 ),
                               );
+                              if (optimize) {
+                                return KeyedSubtree(
+                                  key: coverKey,
+                                  child: FittedBox(
+                                    fit: BoxFit.fill,
+                                    child: SizedBox(
+                                      width: coverNormalLayout.cover.width,
+                                      height: coverNormalLayout.cover.height,
+                                      child: coverWidget,
+                                    ),
+                                  ),
+                                );
+                              }
                               return KeyedSubtree(
                                 key: coverKey,
                                 child: coverWidget,
