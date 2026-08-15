@@ -31,6 +31,25 @@ class _RemoteControlSheetContent extends ConsumerStatefulWidget {
 class _RemoteControlSheetContentState
     extends ConsumerState<_RemoteControlSheetContent> {
   double? _draggingSliderValue;
+  Timer? _progressTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (!mounted) return;
+      final state = ref.read(remotePlaybackStateProvider);
+      if (state != null && state.isPlaying && _draggingSliderValue == null) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _progressTimer?.cancel();
+    super.dispose();
+  }
 
   String _formatDuration(int milliseconds) {
     final dur = Duration(milliseconds: milliseconds);
@@ -93,9 +112,9 @@ class _RemoteControlSheetContentState
     final activeDevice = ref.watch(activeControllingDeviceProvider);
 
     final isConnected = activeDevice != null;
-    final state = remoteState ?? const RemotePlaybackState();
+    final state = remoteState ?? RemotePlaybackState();
 
-    final currentPositionMs = state.positionMs;
+    final currentPositionMs = state.estimatedPositionMs;
     final totalDurationMs = state.durationMs > 0 ? state.durationMs : 1;
     final sliderMax = totalDurationMs.toDouble();
     final sliderValue = (_draggingSliderValue ?? currentPositionMs.toDouble())

@@ -52,6 +52,7 @@ class RemotePlaybackState {
   final List<RemoteQueueItem> queue;
   final int currentIndex;
   final double volume;
+  final DateTime? syncedAt;
 
   const RemotePlaybackState({
     this.title = '',
@@ -67,7 +68,18 @@ class RemotePlaybackState {
     this.queue = const [],
     this.currentIndex = -1,
     this.volume = 100.0,
+    this.syncedAt,
   });
+
+  int get estimatedPositionMs {
+    if (!isPlaying || durationMs <= 0) return positionMs;
+    final timestamp = syncedAt;
+    if (timestamp == null) return positionMs;
+    final elapsedMs = DateTime.now().difference(timestamp).inMilliseconds;
+    if (elapsedMs <= 0) return positionMs;
+    final est = positionMs + elapsedMs;
+    return est.clamp(0, durationMs);
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -119,6 +131,7 @@ class RemotePlaybackState {
       queue: queue,
       currentIndex: json['currentIndex'] as int? ?? -1,
       volume: (json['volume'] as num?)?.toDouble() ?? 100.0,
+      syncedAt: DateTime.now(),
     );
   }
 
@@ -136,6 +149,7 @@ class RemotePlaybackState {
     List<RemoteQueueItem>? queue,
     int? currentIndex,
     double? volume,
+    DateTime? syncedAt,
   }) {
     return RemotePlaybackState(
       title: title ?? this.title,
@@ -151,6 +165,7 @@ class RemotePlaybackState {
       queue: queue ?? this.queue,
       currentIndex: currentIndex ?? this.currentIndex,
       volume: volume ?? this.volume,
+      syncedAt: syncedAt ?? this.syncedAt,
     );
   }
 }
