@@ -13,8 +13,8 @@ import desktop_drop
 import device_info_plus
 import file_picker
 import file_selector_macos
+import flutter_desktop_tray
 import flutter_secure_storage_macos
-import flutter_tray
 import mobile_storage_listener
 import package_info_plus
 import pasteboard
@@ -34,8 +34,8 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
-  FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   FlutterTrayPlugin.register(with: registry.registrar(forPlugin: "FlutterTrayPlugin"))
+  FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   MobileStorageListenerPlugin.register(with: registry.registrar(forPlugin: "MobileStorageListenerPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PasteboardPlugin.register(with: registry.registrar(forPlugin: "PasteboardPlugin"))

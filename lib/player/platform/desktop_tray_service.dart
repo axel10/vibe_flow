@@ -8,7 +8,7 @@ import 'package:vynody/utils/localized_text.dart';
 import 'package:path/path.dart' as path;
 import 'package:vynody/main.dart';
 import 'package:vynody/utils/app_log.dart';
-import 'package:flutter_tray/flutter_tray.dart' as ft;
+import 'package:flutter_desktop_tray/flutter_desktop_tray.dart' as ft;
 
 class DesktopTrayService with WindowListener {
   final AudioService audioService;

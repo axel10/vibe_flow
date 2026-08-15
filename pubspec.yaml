@@ -116,9 +116,9 @@ dependencies:
   package_info_plus: ^9.0.1
   bonsoir: ^7.1.2
   audio_service_mpris: ^0.2.1
-  flutter_tray:
+  flutter_desktop_tray:
     git:
-      url: https://github.com/axel10/flutter_tray
+      url: https://github.com/axel10/flutter_desktop_tray
       ref: main
   dbus: ^0.7.14
   linux_directory_access:
@@ -267,8 +267,8 @@ dependency_overrides:
       url: https://github.com/axel10/Bonsoir
       path: packages/bonsoir_windows
       ref: main
-  # flutter_tray:
-  #     path: ./flutter_tray
+  # flutter_desktop_tray:
+  #     path: ./flutter_desktop_tray
   # bonsoir:
   #   path: ./Bonsoir/packages/bonsoir
   # bonsoir_windows:

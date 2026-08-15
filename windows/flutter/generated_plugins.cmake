@@ -6,8 +6,8 @@ list(APPEND FLUTTER_PLUGIN_LIST
   bonsoir_windows
   desktop_drop
   file_selector_windows
+  flutter_desktop_tray
   flutter_secure_storage_windows
-  flutter_tray
   mobile_storage_listener
   pasteboard
   permission_handler_windows

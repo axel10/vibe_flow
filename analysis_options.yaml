@@ -11,7 +11,7 @@ analyzer:
     - "audio_core/**"
     - "audio_metadata_reader/**"
     - "flutter_taglib/**"
-    - "flutter_tray/**"
+    - "flutter_desktop_tray/**"
     - "linux_directory_access/**"
     - "mesh-gradient/**"
     - "mobile_storage_listener/**"

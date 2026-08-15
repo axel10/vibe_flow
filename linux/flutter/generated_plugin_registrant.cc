@@ -8,8 +8,8 @@
 
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <file_selector_linux/file_selector_plugin.h>
+#include <flutter_desktop_tray/flutter_tray_plugin.h>
 #include <flutter_secure_storage_linux/flutter_secure_storage_linux_plugin.h>
-#include <flutter_tray/flutter_tray_plugin.h>
 #include <linux_directory_access/linux_directory_access_plugin.h>
 #include <mobile_storage_listener/mobile_storage_listener_plugin.h>
 #include <pasteboard/pasteboard_plugin.h>
@@ -24,12 +24,12 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) file_selector_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FileSelectorPlugin");
   file_selector_plugin_register_with_registrar(file_selector_linux_registrar);
+  g_autoptr(FlPluginRegistrar) flutter_desktop_tray_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterTrayPlugin");
+  flutter_tray_plugin_register_with_registrar(flutter_desktop_tray_registrar);
   g_autoptr(FlPluginRegistrar) flutter_secure_storage_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterSecureStorageLinuxPlugin");
   flutter_secure_storage_linux_plugin_register_with_registrar(flutter_secure_storage_linux_registrar);
-  g_autoptr(FlPluginRegistrar) flutter_tray_registrar =
-      fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterTrayPlugin");
-  flutter_tray_plugin_register_with_registrar(flutter_tray_registrar);
   g_autoptr(FlPluginRegistrar) linux_directory_access_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "LinuxDirectoryAccessPlugin");
   linux_directory_access_plugin_register_with_registrar(linux_directory_access_registrar);
