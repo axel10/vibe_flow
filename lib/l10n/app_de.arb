@@ -1020,7 +1020,7 @@
   },
   "syncingLyricsFromDevice": "Songtexte von {deviceName} empfangen...",
   "transferInProgressDoNotLeave": "Übertragung läuft. Bitte verlassen Sie die Freigabeseite nicht.",
-  "lanSharingTitle": "LAN-Dateifreigabe",
+  "lanSharingTitle": "LAN-Verbindung",
   "lanSharingEnabledStatus": "LAN-Freigabe aktiviert",
   "lanSharingDisabledStatus": "LAN-Freigabe deaktiviert",
   "@lanSharingRunningStatus": {
@@ -1365,5 +1365,8 @@
   "btnSleepTimer": "Sleeptimer",
   "btnEqualizer": "Equalizer",
   "btnVisualizer": "Visualizer",
-  "btnVolume": "Lautstärke"
+  "btnVolume": "Lautstärke",
+  "allowRemoteControlTitle": "Fernsteuerung zulassen",
+  "allowRemoteControlSubtitle": "Ermöglicht anderen LAN-Geräten nach der Kopplung die Steuerung der Musikwiedergabe",
+  "remoteControlDisabledOnHost": "Fernsteuerung ist auf dem Zielgerät deaktiviert"
 }

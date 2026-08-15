@@ -2637,7 +2637,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transferInProgressDoNotLeave => '転送中です。共有ページから移動しないでください';
 
   @override
-  String get lanSharingTitle => 'LANファイル共有';
+  String get lanSharingTitle => 'LAN接続';
 
   @override
   String get lanSharingEnabledStatus => 'LAN共有が有効です';
@@ -3316,4 +3316,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get shufflePlayback => '随机播放';
+
+  @override
+  String get allowRemoteControlTitle => 'リモート操作を許可';
+
+  @override
+  String get allowRemoteControlSubtitle =>
+      'ペアリング後、LAN内の他のデバイスによる本機の音楽再生操作を許可します';
+
+  @override
+  String get remoteControlDisabledOnHost => '相手のデバイスでリモート操作が無効になっています';
 }

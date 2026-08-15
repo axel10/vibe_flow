@@ -1020,7 +1020,7 @@
   },
   "syncingLyricsFromDevice": "Réception des paroles de {deviceName}...",
   "transferInProgressDoNotLeave": "Transfert en cours. Ne quittez pas la page de partage.",
-  "lanSharingTitle": "Partage de fichiers en LAN",
+  "lanSharingTitle": "Connexion LAN",
   "lanSharingEnabledStatus": "Partage LAN activé",
   "lanSharingDisabledStatus": "Partage LAN désactivé",
   "@lanSharingRunningStatus": {
@@ -1365,5 +1365,8 @@
   "btnSleepTimer": "Minuteur de mise en veille",
   "btnEqualizer": "Égaliseur",
   "btnVisualizer": "Visualiseur",
-  "btnVolume": "Volume"
+  "btnVolume": "Volume",
+  "allowRemoteControlTitle": "Autoriser le contrôle à distance",
+  "allowRemoteControlSubtitle": "Permet aux autres appareils du réseau de contrôler la lecture après l'appairage",
+  "remoteControlDisabledOnHost": "Le contrôle à distance est désactivé sur l'appareil cible"
 }

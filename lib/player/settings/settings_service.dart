@@ -432,6 +432,7 @@ class SettingsService extends ChangeNotifier {
       'tag_completion_save_to_source_file';
   static const String _keyLanSharingEnabled = 'lan_sharing_enabled';
   static const String _keyLanSharingFolderPath = 'lan_sharing_folder_path';
+  static const String _keyAllowRemoteControl = 'allow_remote_control';
   static const String _keyFolderViewMode = 'folder_view_mode';
   static const String _keyUiScale = 'ui_scale';
   static const double defaultUiScale = 1.0;
@@ -496,6 +497,13 @@ class SettingsService extends ChangeNotifier {
   late final _lanSharingFolderPathProperty = SettingProperty<String>(
     key: _keyLanSharingFolderPath,
     defaultValue: '',
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _allowRemoteControlProperty = SettingProperty<bool>(
+    key: _keyAllowRemoteControl,
+    defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1396,6 +1404,10 @@ class SettingsService extends ChangeNotifier {
       _lanSharingFolderPathProperty.value = value;
 
   bool get hasLanSharingFolderPath => lanSharingFolderPath.trim().isNotEmpty;
+
+  bool get allowRemoteControl => _allowRemoteControlProperty.value;
+  set allowRemoteControl(bool value) =>
+      _allowRemoteControlProperty.value = value;
 
   ThemeMode get themeMode => _themeModeProperty.value;
   set themeMode(ThemeMode value) => _themeModeProperty.value = value;

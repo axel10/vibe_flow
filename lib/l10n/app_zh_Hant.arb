@@ -810,7 +810,7 @@
   "syncLyricsFailed": "同步歌詞失敗: {error}",
   "syncingLyricsFromDevice": "正在從 {deviceName} 同步歌詞...",
   "transferInProgressDoNotLeave": "正在傳輸檔案，請勿離開共用頁面",
-  "lanSharingTitle": "區域網路檔案共用",
+  "lanSharingTitle": "區域網路互聯",
   "lanSharingEnabledStatus": "區域網路共用已開啟",
   "lanSharingDisabledStatus": "區域網路共用未開啟",
   "lanSharingRunningStatus": "本機 IP: {ip}（連接埠: {port}）",
@@ -1060,5 +1060,8 @@
   "btnSleepTimer": "定時關閉",
   "btnEqualizer": "音效",
   "btnVisualizer": "律動/頻譜",
-  "btnVolume": "音量"
+  "btnVolume": "音量",
+  "allowRemoteControlTitle": "允許被遠端控制",
+  "allowRemoteControlSubtitle": "允許區域網路內的其他裝置在配對後控制本機音樂播放",
+  "remoteControlDisabledOnHost": "對方裝置未開啟允許遠端控制"
 }

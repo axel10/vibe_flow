@@ -2638,7 +2638,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get transferInProgressDoNotLeave => '전송 중입니다. 공유 페이지를 떠나지 마세요';
 
   @override
-  String get lanSharingTitle => 'LAN 파일 공유';
+  String get lanSharingTitle => 'LAN 연결';
 
   @override
   String get lanSharingEnabledStatus => 'LAN 공유가 활성화되었습니다';
@@ -3319,4 +3319,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get shufflePlayback => '随机播放';
+
+  @override
+  String get allowRemoteControlTitle => '원격 제어 허용';
+
+  @override
+  String get allowRemoteControlSubtitle =>
+      '페어링 후 LAN 내 다른 기기가 이 기기의 음악 재생을 제어하도록 허용';
+
+  @override
+  String get remoteControlDisabledOnHost => '상대 기기에서 원격 제어가 비활성화되어 있습니다';
 }

@@ -2764,7 +2764,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Transferencia en curso. No salgas de la página de uso compartido.';
 
   @override
-  String get lanSharingTitle => 'Uso compartido de archivos en LAN';
+  String get lanSharingTitle => 'Conexión LAN';
 
   @override
   String get lanSharingEnabledStatus => 'Uso compartido en LAN activado';
@@ -3479,4 +3479,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get shufflePlayback => '随机播放';
+
+  @override
+  String get allowRemoteControlTitle => 'Permitir control remoto';
+
+  @override
+  String get allowRemoteControlSubtitle =>
+      'Permitir que otros dispositivos LAN controlen la reproducción tras el emparejamiento';
+
+  @override
+  String get remoteControlDisabledOnHost =>
+      'El control remoto está desactivado en el dispositivo de destino';
 }

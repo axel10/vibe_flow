@@ -316,7 +316,13 @@ class _SharingPageState extends ConsumerState<SharingPage> {
       }
     } catch (e) {
       if (mounted) {
-        showToast('${l10n.remoteConnectFailed}: $e');
+        final errorStr = e.toString();
+        if (errorStr.contains('remote_control_disabled') ||
+            errorStr.contains('Remote control is disabled')) {
+          showToast(l10n.remoteControlDisabledOnHost);
+        } else {
+          showToast('${l10n.remoteConnectFailed}: $e');
+        }
       }
     }
   }
@@ -523,7 +529,225 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                 },
               ),
 
-              // 1. Local Device Status Card
+              // 1. Unified File Sharing & Receive Directory Card
+              Card(
+                elevation: 0,
+                color: theme.colorScheme.surfaceContainerLow,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.45,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Top part: Server Switch
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: (serverState.isRunning
+                                      ? Colors.green
+                                      : Colors.red)
+                                  .withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              serverState.isRunning
+                                  ? Icons.wifi_tethering
+                                  : Icons.portable_wifi_off,
+                              color: serverState.isRunning
+                                  ? Colors.green
+                                  : Colors.red,
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  serverState.isRunning
+                                      ? l10n.lanSharingEnabledStatus
+                                      : l10n.lanSharingDisabledStatus,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  serverState.isRunning
+                                      ? l10n.lanSharingRunningStatus(
+                                          serverState.localIp ?? '',
+                                          '${serverState.httpPort}',
+                                        )
+                                      : l10n.lanSharingDefaultOffHint,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: settings.lanSharingEnabled,
+                            onChanged: _setSharingEnabled,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 16,
+                      endIndent: 16,
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.25,
+                      ),
+                    ),
+                    // Bottom part: Receive Directory Picker
+                    InkWell(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
+                      onTap: () async {
+                        if (Platform.isAndroid) {
+                          final androidOutputDirectory = await ref
+                              .read(transcodeServiceProvider)
+                              .pickAndroidOutputDirectory();
+                          if (androidOutputDirectory != null) {
+                            await AndroidSafStorageHelper.saveMapping(
+                              androidOutputDirectory.displayPath,
+                              androidOutputDirectory.treeUri,
+                            );
+                            await ref
+                                .read(sharingServiceProvider)
+                                .updateSharingFolderPath(
+                                  androidOutputDirectory.displayPath,
+                                );
+                            showToast(
+                              l10n.receiveDirectoryUpdated(
+                                androidOutputDirectory.displayPath,
+                              ),
+                            );
+                            setState(() {});
+                          }
+                        } else {
+                          final dirPath = await _getDirectoryPath();
+                          if (dirPath != null) {
+                            await ref
+                                .read(sharingServiceProvider)
+                                .updateSharingFolderPath(dirPath);
+                            showToast(l10n.receiveDirectoryUpdated(dirPath));
+                            setState(() {});
+                          }
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 12.0,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.folder_open,
+                                color: theme.colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.receiveDirectoryTitle,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    settings.lanSharingFolderPath.isNotEmpty
+                                        ? settings.lanSharingFolderPath
+                                        : ref
+                                            .watch(sharingServiceProvider)
+                                            .sharingFolderPath,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  if (Platform.isAndroid &&
+                                      !settings.hasLanSharingFolderPath) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      l10n.receiveDirectoryNotSetWarning,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: theme.colorScheme.error
+                                            .withValues(alpha: 0.8),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            if (Platform.isWindows ||
+                                Platform.isMacOS ||
+                                Platform.isLinux) ...[
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.folder_open_outlined,
+                                  size: 20,
+                                ),
+                                tooltip: l10n.openFolderLocation,
+                                onPressed: _handleOpenReceiveDirectory,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Icon(
+                              Icons.chevron_right,
+                              size: 20,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // 2. Remote Control Toggle Card
               Card(
                 elevation: 0,
                 color: theme.colorScheme.surfaceContainerLow,
@@ -536,196 +760,55 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color:
-                              (serverState.isRunning
-                                      ? Colors.green
-                                      : Colors.red)
-                                  .withValues(alpha: 0.1),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          serverState.isRunning
-                              ? Icons.wifi_tethering
-                              : Icons.portable_wifi_off,
-                          color: serverState.isRunning
-                              ? Colors.green
-                              : Colors.red,
-                          size: 32,
+                          Icons.settings_remote_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 26,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              serverState.isRunning
-                                  ? l10n.lanSharingEnabledStatus
-                                  : l10n.lanSharingDisabledStatus,
+                              l10n.allowRemoteControlTitle,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
-                              serverState.isRunning
-                                  ? l10n.lanSharingRunningStatus(
-                                      serverState.localIp ?? '',
-                                      '${serverState.httpPort}',
-                                    )
-                                  : l10n.lanSharingDefaultOffHint,
+                              l10n.allowRemoteControlSubtitle,
                               style: TextStyle(
                                 color: theme.colorScheme.onSurface.withValues(
                                   alpha: 0.6,
                                 ),
-                                fontSize: 13,
+                                fontSize: 12,
                               ),
                             ),
-                            if (Platform.isAndroid &&
-                                !settings.hasLanSharingFolderPath) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                l10n.receiveDirectoryNotSetWarning,
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ),
                       Switch(
-                        value: settings.lanSharingEnabled,
-                        onChanged: _setSharingEnabled,
+                        value: settings.allowRemoteControl,
+                        onChanged: (value) {
+                          settings.allowRemoteControl = value;
+                        },
                       ),
                     ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Receive Directory Configuration Card
-              Card(
-                elevation: 0,
-                color: theme.colorScheme.surfaceContainerLow,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.45,
-                    ),
-                  ),
-                ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () async {
-                    if (Platform.isAndroid) {
-                      final androidOutputDirectory = await ref
-                          .read(transcodeServiceProvider)
-                          .pickAndroidOutputDirectory();
-                      if (androidOutputDirectory != null) {
-                        await AndroidSafStorageHelper.saveMapping(
-                          androidOutputDirectory.displayPath,
-                          androidOutputDirectory.treeUri,
-                        );
-                        await ref
-                            .read(sharingServiceProvider)
-                            .updateSharingFolderPath(
-                              androidOutputDirectory.displayPath,
-                            );
-                        showToast(
-                          l10n.receiveDirectoryUpdated(
-                            androidOutputDirectory.displayPath,
-                          ),
-                        );
-                        setState(() {});
-                      }
-                    } else {
-                      final dirPath = await _getDirectoryPath();
-                      if (dirPath != null) {
-                        await ref
-                            .read(sharingServiceProvider)
-                            .updateSharingFolderPath(dirPath);
-                        showToast(l10n.receiveDirectoryUpdated(dirPath));
-                        setState(() {});
-                      }
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withValues(
-                              alpha: 0.1,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.folder_open,
-                            color: theme.colorScheme.primary,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.receiveDirectoryTitle,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                settings.lanSharingFolderPath.isNotEmpty
-                                    ? settings.lanSharingFolderPath
-                                    : ref
-                                          .watch(sharingServiceProvider)
-                                          .sharingFolderPath,
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.6,
-                                  ),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (Platform.isWindows ||
-                            Platform.isMacOS ||
-                            Platform.isLinux) ...[
-                          IconButton(
-                            icon: const Icon(Icons.folder_open_outlined),
-                            tooltip: l10n.openFolderLocation,
-                            onPressed: _handleOpenReceiveDirectory,
-                          ),
-                          const SizedBox(width: 4),
-                        ],
-                        Icon(
-                          Icons.chevron_right,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.4,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),

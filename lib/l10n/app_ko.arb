@@ -1020,7 +1020,7 @@
   },
   "syncingLyricsFromDevice": "{deviceName}에서 가사 동기화 중...",
   "transferInProgressDoNotLeave": "전송 중입니다. 공유 페이지를 떠나지 마세요",
-  "lanSharingTitle": "LAN 파일 공유",
+  "lanSharingTitle": "LAN 연결",
   "lanSharingEnabledStatus": "LAN 공유가 활성화되었습니다",
   "lanSharingDisabledStatus": "LAN 공유가 비활성화되었습니다",
   "@lanSharingRunningStatus": {
@@ -1365,5 +1365,8 @@
   "btnSleepTimer": "취침 타이머",
   "btnEqualizer": "이퀄라이저",
   "btnVisualizer": "비주얼라이저",
-  "btnVolume": "음량"
+  "btnVolume": "음량",
+  "allowRemoteControlTitle": "원격 제어 허용",
+  "allowRemoteControlSubtitle": "페어링 후 LAN 내 다른 기기가 이 기기의 음악 재생을 제어하도록 허용",
+  "remoteControlDisabledOnHost": "상대 기기에서 원격 제어가 비활성화되어 있습니다"
 }

@@ -2765,7 +2765,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Transfert en cours. Ne quittez pas la page de partage.';
 
   @override
-  String get lanSharingTitle => 'Partage de fichiers en LAN';
+  String get lanSharingTitle => 'Connexion LAN';
 
   @override
   String get lanSharingEnabledStatus => 'Partage LAN activé';
@@ -3483,4 +3483,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shufflePlayback => '随机播放';
+
+  @override
+  String get allowRemoteControlTitle => 'Autoriser le contrôle à distance';
+
+  @override
+  String get allowRemoteControlSubtitle =>
+      'Permet aux autres appareils du réseau de contrôler la lecture après l\'appairage';
+
+  @override
+  String get remoteControlDisabledOnHost =>
+      'Le contrôle à distance est désactivé sur l\'appareil cible';
 }

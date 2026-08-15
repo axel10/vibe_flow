@@ -1491,7 +1491,7 @@
   },
   "syncingLyricsFromDevice": "正在从 {deviceName} 同步歌词...",
   "transferInProgressDoNotLeave": "正在传输文件，请勿离开共享页",
-  "lanSharingTitle": "局域网文件共享",
+  "lanSharingTitle": "局域网互联",
   "lanSharingEnabledStatus": "局域网共享已开启",
   "lanSharingDisabledStatus": "局域网共享未开启",
   "@lanSharingRunningStatus": {
@@ -1882,7 +1882,10 @@
   "noMusicPlaying": "当前未在播放",
   "previousSong": "上一首",
   "nextSong": "下一首",
-  "shufflePlayback": "随机播放"
+  "shufflePlayback": "随机播放",
+  "allowRemoteControlTitle": "允许被远程控制",
+  "allowRemoteControlSubtitle": "允许局域网内的其他设备在配对后控制本机音乐播放",
+  "remoteControlDisabledOnHost": "对方设备未开启允许远程控制"
 }
 
 

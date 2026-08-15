@@ -259,6 +259,17 @@ class RemoteControlService {
 
   Future<void> handlePairRequest(HttpRequest request) async {
     try {
+      final settings = _ref.read(settingsServiceProvider);
+      if (!settings.allowRemoteControl) {
+        request.response.statusCode = HttpStatus.forbidden;
+        request.response.write(jsonEncode({
+          'success': false,
+          'reason': 'remote_control_disabled',
+        }));
+        await request.response.close();
+        return;
+      }
+
       final content = await utf8.decoder.bind(request).join();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
@@ -406,6 +417,13 @@ class RemoteControlService {
   }
 
   Future<void> handleWebSocketUpgrade(HttpRequest request) async {
+    final settings = _ref.read(settingsServiceProvider);
+    if (!settings.allowRemoteControl) {
+      request.response.statusCode = HttpStatus.forbidden;
+      await request.response.close();
+      return;
+    }
+
     final token = request.uri.queryParameters['token'] ?? '';
     final senderName = request.uri.queryParameters['senderName'] ?? 'Remote Device';
 
@@ -651,6 +669,11 @@ class RemoteControlService {
       final res = await req.close();
       final body = await utf8.decoder.bind(res).join();
       final json = jsonDecode(body) as Map<String, dynamic>;
+
+      if (res.statusCode == HttpStatus.forbidden || json['success'] == false) {
+        final reason = json['reason'] as String? ?? 'remote_control_disabled';
+        throw Exception(reason);
+      }
 
       if (json['trusted'] == true && json['token'] != null) {
         _clientAuthToken = json['token'] as String;

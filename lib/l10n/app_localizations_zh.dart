@@ -2601,7 +2601,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transferInProgressDoNotLeave => '正在传输文件，请勿离开共享页';
 
   @override
-  String get lanSharingTitle => '局域网文件共享';
+  String get lanSharingTitle => '局域网互联';
 
   @override
   String get lanSharingEnabledStatus => '局域网共享已开启';
@@ -3267,6 +3267,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get shufflePlayback => '随机播放';
+
+  @override
+  String get allowRemoteControlTitle => '允许被远程控制';
+
+  @override
+  String get allowRemoteControlSubtitle => '允许局域网内的其他设备在配对后控制本机音乐播放';
+
+  @override
+  String get remoteControlDisabledOnHost => '对方设备未开启允许远程控制';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -5867,7 +5876,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get transferInProgressDoNotLeave => '正在傳輸檔案，請勿離開共用頁面';
 
   @override
-  String get lanSharingTitle => '區域網路檔案共用';
+  String get lanSharingTitle => '區域網路互聯';
 
   @override
   String get lanSharingEnabledStatus => '區域網路共用已開啟';
@@ -6466,4 +6475,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get btnVolume => '音量';
+
+  @override
+  String get allowRemoteControlTitle => '允許被遠端控制';
+
+  @override
+  String get allowRemoteControlSubtitle => '允許區域網路內的其他裝置在配對後控制本機音樂播放';
+
+  @override
+  String get remoteControlDisabledOnHost => '對方裝置未開啟允許遠端控制';
 }

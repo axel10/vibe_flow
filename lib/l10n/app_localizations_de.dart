@@ -2759,7 +2759,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Übertragung läuft. Bitte verlassen Sie die Freigabeseite nicht.';
 
   @override
-  String get lanSharingTitle => 'LAN-Dateifreigabe';
+  String get lanSharingTitle => 'LAN-Verbindung';
 
   @override
   String get lanSharingEnabledStatus => 'LAN-Freigabe aktiviert';
@@ -3471,4 +3471,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shufflePlayback => '随机播放';
+
+  @override
+  String get allowRemoteControlTitle => 'Fernsteuerung zulassen';
+
+  @override
+  String get allowRemoteControlSubtitle =>
+      'Ermöglicht anderen LAN-Geräten nach der Kopplung die Steuerung der Musikwiedergabe';
+
+  @override
+  String get remoteControlDisabledOnHost =>
+      'Fernsteuerung ist auf dem Zielgerät deaktiviert';
 }

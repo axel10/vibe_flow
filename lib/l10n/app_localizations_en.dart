@@ -2730,7 +2730,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Transfer in progress, please do not leave the sharing page';
 
   @override
-  String get lanSharingTitle => 'LAN File Sharing';
+  String get lanSharingTitle => 'LAN Connect';
 
   @override
   String get lanSharingEnabledStatus => 'LAN sharing is enabled';
@@ -3432,4 +3432,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shufflePlayback => 'Shuffle';
+
+  @override
+  String get allowRemoteControlTitle => 'Allow Remote Control';
+
+  @override
+  String get allowRemoteControlSubtitle =>
+      'Allow other devices on the local network to control music playback after pairing';
+
+  @override
+  String get remoteControlDisabledOnHost =>
+      'Remote control is disabled on the target device';
 }

@@ -4972,7 +4972,7 @@ abstract class AppLocalizations {
   /// No description provided for @lanSharingTitle.
   ///
   /// In zh, this message translates to:
-  /// **'局域网文件共享'**
+  /// **'局域网互联'**
   String get lanSharingTitle;
 
   /// No description provided for @lanSharingEnabledStatus.
@@ -6162,6 +6162,24 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'随机播放'**
   String get shufflePlayback;
+
+  /// No description provided for @allowRemoteControlTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许被远程控制'**
+  String get allowRemoteControlTitle;
+
+  /// No description provided for @allowRemoteControlSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'允许局域网内的其他设备在配对后控制本机音乐播放'**
+  String get allowRemoteControlSubtitle;
+
+  /// No description provided for @remoteControlDisabledOnHost.
+  ///
+  /// In zh, this message translates to:
+  /// **'对方设备未开启允许远程控制'**
+  String get remoteControlDisabledOnHost;
 }
 
 class _AppLocalizationsDelegate

@@ -1025,7 +1025,7 @@
   },
   "syncingLyricsFromDevice": "Syncing lyrics from {deviceName}...",
   "transferInProgressDoNotLeave": "Transfer in progress, please do not leave the sharing page",
-  "lanSharingTitle": "LAN File Sharing",
+  "lanSharingTitle": "LAN Connect",
   "lanSharingEnabledStatus": "LAN sharing is enabled",
   "lanSharingDisabledStatus": "LAN sharing is disabled",
   "@lanSharingRunningStatus": {
@@ -1434,7 +1434,10 @@
   "noMusicPlaying": "No music playing",
   "previousSong": "Previous",
   "nextSong": "Next",
-  "shufflePlayback": "Shuffle"
+  "shufflePlayback": "Shuffle",
+  "allowRemoteControlTitle": "Allow Remote Control",
+  "allowRemoteControlSubtitle": "Allow other devices on the local network to control music playback after pairing",
+  "remoteControlDisabledOnHost": "Remote control is disabled on the target device"
 }
 
 
