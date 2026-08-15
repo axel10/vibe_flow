@@ -524,10 +524,10 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: d771c7e438bf78a6977667261fda7292b949a62d
+      resolved-ref: fd97a5b9204b5279e9ad39be752e34ef8306e946
       url: "https://github.com/axel10/flutter_desktop_tray"
     source: git
-    version: "1.0.0"
+    version: "1.0.1"
   flutter_driver:
     dependency: transitive
     description: flutter
