@@ -562,16 +562,15 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final hasSongs = currentPlaylist?.songs.isNotEmpty == true;
-    final horizontalPadding =
-        MediaQuery.of(context).orientation == Orientation.portrait
-        ? 12.0
-        : 16.0;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+    final horizontalPadding = isPortrait ? 20.0 : 32.0;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
         horizontalPadding,
         16,
-        horizontalPadding + 16,
+        horizontalPadding,
         12,
       ),
       decoration: BoxDecoration(
