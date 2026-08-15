@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
@@ -7,6 +9,7 @@ import 'package:vynody/player/sharing/remote_control/remote_control_service.dart
 import 'package:vynody/player/sharing/remote_control/remote_playback_model.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
+import 'package:vynody/widgets/desktop_window_title_bar.dart';
 import 'package:vynody/widgets/playing_equalizer_icon.dart';
 
 class RemoteControlPage extends ConsumerStatefulWidget {
@@ -25,8 +28,32 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _queueScrollController = ScrollController();
+  final Set<int> _selectedIndices = {};
+  bool get _isSelectionMode => _selectedIndices.isNotEmpty;
   double? _draggingSliderValue;
   double? _draggingVolumeValue;
+  Timer? _volumeThrottleTimer;
+  DateTime _lastVolumeSent = DateTime.fromMillisecondsSinceEpoch(0);
+
+  void _toggleSelectAll(int totalCount) {
+    setState(() {
+      if (_selectedIndices.length == totalCount) {
+        _selectedIndices.clear();
+      } else {
+        _selectedIndices.clear();
+        _selectedIndices.addAll(List.generate(totalCount, (i) => i));
+      }
+    });
+  }
+
+  void _deleteSelected(RemoteControlService remoteService) {
+    if (_selectedIndices.isEmpty) return;
+    final sorted = _selectedIndices.toList()..sort((a, b) => b.compareTo(a));
+    for (final idx in sorted) {
+      remoteService.removeFromQueue(idx);
+    }
+    setState(() => _selectedIndices.clear());
+  }
 
   @override
   void initState() {
@@ -38,6 +65,7 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
   void dispose() {
     _tabController.dispose();
     _queueScrollController.dispose();
+    _volumeThrottleTimer?.cancel();
     super.dispose();
   }
 
@@ -136,6 +164,31 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
     }
   }
 
+  void _onVolumeChanged(double val, RemoteControlService remoteService) {
+    setState(() => _draggingVolumeValue = val);
+    final now = DateTime.now();
+    if (now.difference(_lastVolumeSent).inMilliseconds >= 50) {
+      _lastVolumeSent = now;
+      _volumeThrottleTimer?.cancel();
+      _volumeThrottleTimer = null;
+      remoteService.setVolume(val);
+    } else {
+      _volumeThrottleTimer?.cancel();
+      _volumeThrottleTimer = Timer(const Duration(milliseconds: 50), () {
+        if (!mounted) return;
+        _lastVolumeSent = DateTime.now();
+        remoteService.setVolume(val);
+      });
+    }
+  }
+
+  void _onVolumeChangeEnd(double val, RemoteControlService remoteService) {
+    _volumeThrottleTimer?.cancel();
+    _volumeThrottleTimer = null;
+    remoteService.setVolume(val);
+    setState(() => _draggingVolumeValue = null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -160,37 +213,51 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
         ? 'http://${formatHostForUrl(widget.device.ip)}:${widget.device.httpPort}/api/remote/cover?t=${Uri.encodeComponent(state.title)}_${Uri.encodeComponent(state.artist)}'
         : '';
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: theme.brightness == Brightness.dark
-                ? [
-                    theme.colorScheme.surface,
-                    theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                    theme.colorScheme.primary.withValues(alpha: 0.08),
-                  ]
-                : [
-                    theme.colorScheme.surface,
-                    theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
-                    theme.colorScheme.surfaceContainerLowest,
-                  ],
+    final showCustomTitleBar =
+        Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+    return PopScope(
+      canPop: !_isSelectionMode,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isSelectionMode) {
+          setState(() => _selectedIndices.clear());
+        }
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: theme.brightness == Brightness.dark
+                  ? [
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      theme.colorScheme.primary.withValues(alpha: 0.08),
+                    ]
+                  : [
+                      theme.colorScheme.surface,
+                      theme.colorScheme.primaryContainer.withValues(alpha: 0.2),
+                      theme.colorScheme.surfaceContainerLowest,
+                    ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top Navigation & Device Bar
-              _buildTopBar(
-                context,
-                theme,
-                l10n,
-                remoteService,
-                isConnected,
-                state.hostDeviceName ?? widget.device.name,
-              ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                if (showCustomTitleBar)
+                  DesktopWindowTitleBar(
+                    brightness: theme.brightness,
+                  ),
+                // Top Navigation & Device Bar
+                _buildTopBar(
+                  context,
+                  theme,
+                  l10n,
+                  remoteService,
+                  isConnected,
+                  state.hostDeviceName ?? widget.device.name,
+                ),
 
               // Main Content: Split view on wide screen, TabView on narrow screen
               Expanded(
@@ -204,24 +271,39 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                           // Left Panel: Now Playing Player
                           Expanded(
                             flex: 5,
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: 480),
-                                  child: _buildPlayerCard(
-                                    context,
-                                    theme,
-                                    l10n,
-                                    remoteService,
-                                    state,
-                                    coverUrl,
-                                    sliderValue,
-                                    sliderMax,
-                                    volumeValue,
+                            child: LayoutBuilder(
+                              builder: (context, leftConstraints) {
+                                return SingleChildScrollView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: leftConstraints.maxHeight,
+                                    ),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24.0,
+                                          vertical: 20.0,
+                                        ),
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(maxWidth: 480),
+                                          child: _buildPlayerCard(
+                                            context,
+                                            theme,
+                                            l10n,
+                                            remoteService,
+                                            state,
+                                            coverUrl,
+                                            sliderValue,
+                                            sliderMax,
+                                            volumeValue,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ),
                           VerticalDivider(
@@ -277,12 +359,26 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                               ),
                               tabs: [
                                 Tab(
-                                  icon: const Icon(Icons.music_note_rounded, size: 16),
-                                  text: l10n.play,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.music_note_rounded, size: 16),
+                                      const SizedBox(width: 6),
+                                      Text(l10n.play),
+                                    ],
+                                  ),
                                 ),
                                 Tab(
-                                  icon: const Icon(Icons.queue_music_rounded, size: 16),
-                                  text: '${l10n.queueTab} (${state.queue.length})',
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.queue_music_rounded, size: 16),
+                                      const SizedBox(width: 6),
+                                      Text('${l10n.queueTab} (${state.queue.length})'),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -294,19 +390,39 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                             controller: _tabController,
                             children: [
                               // Tab 1: Player View
-                              SingleChildScrollView(
-                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                                child: _buildPlayerCard(
-                                  context,
-                                  theme,
-                                  l10n,
-                                  remoteService,
-                                  state,
-                                  coverUrl,
-                                  sliderValue,
-                                  sliderMax,
-                                  volumeValue,
-                                ),
+                              LayoutBuilder(
+                                builder: (context, tabConstraints) {
+                                  return SingleChildScrollView(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minHeight: tabConstraints.maxHeight,
+                                      ),
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 16,
+                                          ),
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(maxWidth: 480),
+                                            child: _buildPlayerCard(
+                                              context,
+                                              theme,
+                                              l10n,
+                                              remoteService,
+                                              state,
+                                              coverUrl,
+                                              sliderValue,
+                                              sliderMax,
+                                              volumeValue,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                               // Tab 2: Queue View
                               _buildQueueView(
@@ -328,8 +444,9 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTopBar(
     BuildContext context,
@@ -353,7 +470,13 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
           IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-            onPressed: () => Navigator.of(context).maybePop(),
+            onPressed: () {
+              if (_isSelectionMode) {
+                setState(() => _selectedIndices.clear());
+              } else {
+                Navigator.of(context).maybePop();
+              }
+            },
           ),
           const SizedBox(width: 6),
           Container(
@@ -445,8 +568,6 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 12),
-
         // Album Artwork
         Center(
           child: Container(
@@ -748,13 +869,8 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                     value: volumeValue,
                     min: 0.0,
                     max: 100.0,
-                    onChanged: (val) {
-                      setState(() => _draggingVolumeValue = val);
-                    },
-                    onChangeEnd: (val) {
-                      setState(() => _draggingVolumeValue = null);
-                      remoteService.setVolume(val);
-                    },
+                    onChanged: (val) => _onVolumeChanged(val, remoteService),
+                    onChangeEnd: (val) => _onVolumeChangeEnd(val, remoteService),
                   ),
                 ),
               ),
@@ -786,34 +902,83 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
     final queue = state.queue;
     final currentIndex = state.currentIndex;
 
+    if (_selectedIndices.isNotEmpty) {
+      _selectedIndices.removeWhere((idx) => idx >= queue.length);
+    }
+
     return Column(
       children: [
         // Queue Header Bar
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 16, 8),
-          child: Row(
-            children: [
-              Text(
-                '${l10n.queue} (${queue.length})',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.fromLTRB(16, 6, 12, 6),
+          color: _isSelectionMode
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
+              : Colors.transparent,
+          child: _isSelectionMode
+              ? Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                      tooltip: l10n.cancel,
+                      onPressed: () => setState(() => _selectedIndices.clear()),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.selectedSongs(_selectedIndices.length),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(
+                        _selectedIndices.length == queue.length
+                            ? Icons.deselect_rounded
+                            : Icons.select_all_rounded,
+                        size: 20,
+                      ),
+                      tooltip: _selectedIndices.length == queue.length
+                          ? l10n.deselectAll
+                          : l10n.selectAll,
+                      onPressed: () => _toggleSelectAll(queue.length),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        size: 20,
+                        color: theme.colorScheme.error,
+                      ),
+                      tooltip: l10n.delete,
+                      onPressed: () => _deleteSelected(remoteService),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    const SizedBox(width: 4),
+                    Text(
+                      '${l10n.queue} (${queue.length})',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (queue.isNotEmpty) ...[
+                      IconButton(
+                        icon: const Icon(Icons.my_location_rounded, size: 18),
+                        tooltip: l10n.locateCurrentSong,
+                        onPressed: () => _scrollToCurrentTrack(currentIndex),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.clear_all_rounded, size: 20),
+                        tooltip: l10n.clearQueue,
+                        onPressed: () => _confirmClearQueue(context, remoteService, l10n),
+                      ),
+                    ],
+                  ],
                 ),
-              ),
-              const Spacer(),
-              if (queue.isNotEmpty) ...[
-                IconButton(
-                  icon: const Icon(Icons.my_location_rounded, size: 18),
-                  tooltip: l10n.locateCurrentSong,
-                  onPressed: () => _scrollToCurrentTrack(currentIndex),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.clear_all_rounded, size: 20),
-                  tooltip: l10n.clearQueue,
-                  onPressed: () => _confirmClearQueue(context, remoteService, l10n),
-                ),
-              ],
-            ],
-          ),
         ),
         const Divider(height: 1, thickness: 0.5),
 
@@ -841,17 +1006,21 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                 )
               : ReorderableListView.builder(
                   scrollController: _queueScrollController,
+                  buildDefaultDragHandles: false,
                   itemCount: queue.length,
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  onReorder: (oldIndex, newIndex) {
-                    if (oldIndex < newIndex) {
-                      newIndex -= 1;
-                    }
-                    remoteService.reorderQueue(oldIndex, newIndex);
-                  },
+                  onReorder: _isSelectionMode
+                      ? (_, _) {}
+                      : (oldIndex, newIndex) {
+                          if (oldIndex < newIndex) {
+                            newIndex -= 1;
+                          }
+                          remoteService.reorderQueue(oldIndex, newIndex);
+                        },
                   itemBuilder: (context, index) {
                     final item = queue[index];
                     final isCurrent = index == currentIndex;
+                    final isSelected = _selectedIndices.contains(index);
 
                     return _RemoteQueueListTile(
                       key: ValueKey('remote_queue_${item.id}_$index'),
@@ -859,7 +1028,30 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                       item: item,
                       isCurrent: isCurrent,
                       isPlaying: state.isPlaying,
-                      onTap: () => remoteService.playQueueIndex(index),
+                      isSelectionMode: _isSelectionMode,
+                      isSelected: isSelected,
+                      onTap: () {
+                        if (_isSelectionMode) {
+                          setState(() {
+                            if (_selectedIndices.contains(index)) {
+                              _selectedIndices.remove(index);
+                            } else {
+                              _selectedIndices.add(index);
+                            }
+                          });
+                        } else {
+                          remoteService.playQueueIndex(index);
+                        }
+                      },
+                      onLongPress: () {
+                        setState(() {
+                          if (_selectedIndices.contains(index)) {
+                            _selectedIndices.remove(index);
+                          } else {
+                            _selectedIndices.add(index);
+                          }
+                        });
+                      },
                       onRemove: () => remoteService.removeFromQueue(index),
                     );
                   },
@@ -875,7 +1067,10 @@ class _RemoteQueueListTile extends StatefulWidget {
   final RemoteQueueItem item;
   final bool isCurrent;
   final bool isPlaying;
+  final bool isSelectionMode;
+  final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
   final VoidCallback onRemove;
 
   const _RemoteQueueListTile({
@@ -884,7 +1079,10 @@ class _RemoteQueueListTile extends StatefulWidget {
     required this.item,
     required this.isCurrent,
     required this.isPlaying,
+    required this.isSelectionMode,
+    required this.isSelected,
     required this.onTap,
+    required this.onLongPress,
     required this.onRemove,
   });
 
@@ -917,18 +1115,25 @@ class _RemoteQueueListTileState extends State<_RemoteQueueListTile> {
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         decoration: BoxDecoration(
-          color: widget.isCurrent
-              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-              : (_isHovered
-                  ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)
-                  : Colors.transparent),
+          color: widget.isSelected
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+              : (widget.isCurrent
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+                  : (_isHovered
+                      ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)
+                      : Colors.transparent)),
           borderRadius: BorderRadius.circular(12),
-          border: widget.isCurrent
+          border: widget.isSelected
               ? Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                  width: 1,
+                  color: theme.colorScheme.primary,
+                  width: 1.5,
                 )
-              : null,
+              : (widget.isCurrent
+                  ? Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                      width: 1,
+                    )
+                  : null),
         ),
         child: Material(
           color: Colors.transparent,
@@ -936,28 +1141,39 @@ class _RemoteQueueListTileState extends State<_RemoteQueueListTile> {
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: widget.onTap,
+            onLongPress: widget.onLongPress,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  // Track Index or Equalizer
+                  // Track Index or Equalizer or Selection Checkbox
                   SizedBox(
                     width: 32,
                     child: Center(
-                      child: widget.isCurrent
-                          ? PlayingEqualizerIcon(
-                              color: theme.colorScheme.primary,
-                              size: 16,
-                              isPlaying: widget.isPlaying,
+                      child: widget.isSelectionMode
+                          ? Icon(
+                              widget.isSelected
+                                  ? Icons.check_circle_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              color: widget.isSelected
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                              size: 20,
                             )
-                          : Text(
-                              '${widget.index + 1}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
+                          : (widget.isCurrent
+                              ? PlayingEqualizerIcon(
+                                  color: theme.colorScheme.primary,
+                                  size: 16,
+                                  isPlaying: widget.isPlaying,
+                                )
+                              : Text(
+                                  '${widget.index + 1}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: theme.colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                )),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -976,10 +1192,10 @@ class _RemoteQueueListTileState extends State<_RemoteQueueListTile> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: widget.isCurrent
+                            fontWeight: (widget.isCurrent || widget.isSelected)
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            color: widget.isCurrent
+                            color: (widget.isCurrent || widget.isSelected)
                                 ? theme.colorScheme.primary
                                 : theme.colorScheme.onSurface,
                           ),
@@ -1003,16 +1219,36 @@ class _RemoteQueueListTileState extends State<_RemoteQueueListTile> {
                   ),
                   const SizedBox(width: 8),
 
-                  // Duration or Delete button on hover
-                  if (_isHovered)
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18),
-                      color: theme.colorScheme.error,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: widget.onRemove,
-                    )
-                  else
+                  // Duration or Delete button on hover (when not in selection mode)
+                  if (!widget.isSelectionMode) ...[
+                    if (_isHovered)
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        color: theme.colorScheme.error,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: widget.onRemove,
+                      )
+                    else
+                      Text(
+                        _formatDuration(widget.item.durationMs),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+
+                    // Reorder drag handle
+                    ReorderableDragStartListener(
+                      index: widget.index,
+                      child: Icon(
+                        Icons.drag_handle_rounded,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ] else ...[
                     Text(
                       _formatDuration(widget.item.durationMs),
                       style: TextStyle(
@@ -1020,18 +1256,7 @@ class _RemoteQueueListTileState extends State<_RemoteQueueListTile> {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-
-                  const SizedBox(width: 8),
-
-                  // Reorder drag handle
-                  ReorderableDragStartListener(
-                    index: widget.index,
-                    child: Icon(
-                      Icons.drag_handle_rounded,
-                      size: 20,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    ),
-                  ),
+                  ],
                 ],
               ),
             ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 
@@ -25,7 +26,7 @@ void showIncomingRemotePairDialog(
   );
 }
 
-class _IncomingRemotePairDialogContent extends StatefulWidget {
+class _IncomingRemotePairDialogContent extends ConsumerStatefulWidget {
   final IncomingRemotePairRequest request;
   final ThemeData theme;
   final AppLocalizations l10n;
@@ -37,12 +38,12 @@ class _IncomingRemotePairDialogContent extends StatefulWidget {
   });
 
   @override
-  State<_IncomingRemotePairDialogContent> createState() =>
+  ConsumerState<_IncomingRemotePairDialogContent> createState() =>
       _IncomingRemotePairDialogContentState();
 }
 
 class _IncomingRemotePairDialogContentState
-    extends State<_IncomingRemotePairDialogContent> {
+    extends ConsumerState<_IncomingRemotePairDialogContent> {
   int _countdown = 60;
   Timer? _timer;
 
@@ -69,6 +70,17 @@ class _IncomingRemotePairDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<IncomingRemotePairRequest?>(incomingRemotePairProvider, (
+      previous,
+      next,
+    ) {
+      if (next == null || next != widget.request) {
+        if (mounted && Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      }
+    });
+
     final theme = widget.theme;
     final l10n = widget.l10n;
     final request = widget.request;
