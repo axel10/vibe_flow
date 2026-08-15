@@ -41,7 +41,7 @@
   "rebuildDatabase": "Rebuild Database",
   "confirmRebuildDatabase": "Are you sure you want to manually refresh all song tag information? This may take some time to reload covers and metadata.",
   "cancel": "Cancel",
-  "confirm": "Confirm",
+  "confirm": "OK",
   "rebuildingDatabase": "Rebuilding song tag database...",
   "sortBy": "Sort By",
   "sortScope": "Scope",
@@ -1361,7 +1361,6 @@
       }
     }
   },
-  "confirm": "OK",
   "audioSettings": "Audio Settings",
   "audioSettingsDescription": "Manage audio playback, equalizer bands, and speed configurations",
   "equalizerBandCount": "Equalizer Band Count",
@@ -1440,7 +1439,7 @@
   "allowRemoteControlSubtitle": "Allow other devices on the local network to control music playback after pairing",
   "remoteControlDisabledOnHost": "Remote control is disabled on the target device",
   "trustThisDevice": "Trust this device and allow automatically in the future",
-  "remoteRequestRejected": "The connection request was rejected by the target device."
+  "remoteRequestRejected": "The connection request was rejected by the target device.",
+  "turkishLanguage": "Turkish",
+  "nativeLanguageTr": "Türkçe"
 }
-
-

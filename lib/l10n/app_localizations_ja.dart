@@ -3335,4 +3335,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get remoteRequestRejected => '相手のデバイスに接続要求が拒否されました';
+
+  @override
+  String get turkishLanguage => 'トルコ語';
+
+  @override
+  String get nativeLanguageTr => 'Türkçe';
 }

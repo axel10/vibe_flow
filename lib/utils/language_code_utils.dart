@@ -17,6 +17,7 @@ class LanguageCodeUtils {
     'es',
     'pt',
     'ru',
+    'tr',
   ];
 
   static String currentSystemLanguageCode() {
@@ -77,6 +78,8 @@ class LanguageCodeUtils {
         return _l10n().portugueseLanguage;
       case 'ru':
         return _l10n().russianLanguage;
+      case 'tr':
+        return _l10n().turkishLanguage;
       default:
         return normalized.isEmpty
             ? _l10n().systemLanguage

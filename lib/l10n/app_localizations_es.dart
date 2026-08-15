@@ -3504,4 +3504,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get remoteRequestRejected =>
       'La solicitud de conexión fue rechazada por el dispositivo de destino.';
+
+  @override
+  String get turkishLanguage => 'Turco';
+
+  @override
+  String get nativeLanguageTr => 'Türkçe';
 }

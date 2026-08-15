@@ -1391,5 +1391,7 @@
   "allowRemoteControlSubtitle": "페어링 후 LAN 내 다른 기기가 이 기기의 음악 재생을 제어하도록 허용",
   "remoteControlDisabledOnHost": "상대 기기에서 원격 제어가 비활성화되어 있습니다",
   "trustThisDevice": "이 기기를 신뢰하고 앞으로 자동으로 연결 허용",
-  "remoteRequestRejected": "상대 기기에서 연결 요청을 거부했습니다"
+  "remoteRequestRejected": "상대 기기에서 연결 요청을 거부했습니다",
+  "turkishLanguage": "터키어",
+  "nativeLanguageTr": "Türkçe"
 }

@@ -870,6 +870,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           label: l10n.nativeLanguageDe,
         ),
         _DropdownOption(
+          value: 'tr',
+          label: l10n.nativeLanguageTr,
+        ),
+        _DropdownOption(
           value: 'en',
           label: l10n.nativeLanguageEn,
         ),

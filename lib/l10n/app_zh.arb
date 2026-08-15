@@ -1705,7 +1705,7 @@
   "tapCoverToEnterLyricsMode": "点击封面可以进入歌词模式",
   "longPressLyricsPanelToOpenMenu": "长按歌词面板可以调出菜单",
   "gotIt": "我知道了",
-  "scanToastHiddenHint": "扫描状态提示已隐藏，可在\u201c设置 - 界面\u201d中重新打开",
+  "scanToastHiddenHint": "扫描状态提示已隐藏，可在“设置 - 界面”中重新打开",
   "doubleSpeedPlayingSwipeUpToLock": "快进播放中... 往上滑动锁定",
   "doubleSpeedLockedSwipeDownToUnlock": "已锁定快进播放。长按并向下滑动解锁",
   "doubleSpeedUnlocked": "已解除快进锁定",
@@ -1809,7 +1809,6 @@
       }
     }
   },
-  "confirm": "确定",
   "audioSettings": "音频",
   "audioSettingsDescription": "管理音频播放、均衡器频段与播放速度相关配置",
   "equalizerBandCount": "均衡器频段数量",
@@ -1888,7 +1887,7 @@
   "allowRemoteControlSubtitle": "允许局域网内的其他设备在配对后控制本机音乐播放",
   "remoteControlDisabledOnHost": "对方设备未开启允许远程控制",
   "trustThisDevice": "信任该设备，以后默认允许连接",
-  "remoteRequestRejected": "对方已拒绝连接请求"
+  "remoteRequestRejected": "对方已拒绝连接请求",
+  "turkishLanguage": "土耳其文",
+  "nativeLanguageTr": "Türkçe"
 }
-
-

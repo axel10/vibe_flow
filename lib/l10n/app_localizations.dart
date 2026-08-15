@@ -11,6 +11,7 @@ import 'app_localizations_es.dart';
 import 'app_localizations_fr.dart';
 import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_tr.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -105,6 +106,7 @@ abstract class AppLocalizations {
     Locale('fr'),
     Locale('ja'),
     Locale('ko'),
+    Locale('tr'),
     Locale('zh'),
     Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
   ];
@@ -6198,6 +6200,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'对方已拒绝连接请求'**
   String get remoteRequestRejected;
+
+  /// No description provided for @turkishLanguage.
+  ///
+  /// In zh, this message translates to:
+  /// **'土耳其文'**
+  String get turkishLanguage;
+
+  /// No description provided for @nativeLanguageTr.
+  ///
+  /// In zh, this message translates to:
+  /// **'Türkçe'**
+  String get nativeLanguageTr;
 }
 
 class _AppLocalizationsDelegate
@@ -6217,6 +6231,7 @@ class _AppLocalizationsDelegate
     'fr',
     'ja',
     'ko',
+    'tr',
     'zh',
   ].contains(locale.languageCode);
 
@@ -6251,6 +6266,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
+    case 'tr':
+      return AppLocalizationsTr();
     case 'zh':
       return AppLocalizationsZh();
   }

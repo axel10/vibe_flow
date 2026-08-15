@@ -262,6 +262,8 @@ final class LyricsAiTranslationTextHelper {
         return _l10n().portugueseLanguage;
       case 'ru':
         return _l10n().russianLanguage;
+      case 'tr':
+        return _l10n().turkishLanguage;
       default:
         return languageCode.trim().isEmpty
             ? _l10n().targetLanguage

@@ -3338,4 +3338,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get remoteRequestRejected => '상대 기기에서 연결 요청을 거부했습니다';
+
+  @override
+  String get turkishLanguage => '터키어';
+
+  @override
+  String get nativeLanguageTr => 'Türkçe';
 }

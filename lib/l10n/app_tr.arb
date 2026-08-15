@@ -1,0 +1,1500 @@
+{
+  "@@locale": "tr",
+  "appTitle": "Vynody",
+  "alwaysOnTop": "Her Zaman Üstte",
+  "systemMediaLibrary": "Sistem Medya Kitaplığı",
+  "scanningDirectory": "Dizin taranıyor...",
+  "filesPreprocessed": "{count} ön işlendi",
+  "@filesPreprocessed": {
+    "description": "Scanning progress toast message showing how many files have had text metadata preprocessed",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "filesDiscovered": "{count} bulundu",
+  "@filesDiscovered": {
+    "description": "Scanning progress toast message showing how many files have been discovered",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "filesFullyProcessed": "{count} tamamen işlendi",
+  "@filesFullyProcessed": {
+    "description": "Scanning progress toast message showing how many songs have been fully processed with thumbnails and theme colors",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "directoryAddedSuccess": "Dizin başarıyla eklendi",
+  "directoryAddedNoMusic": "Dizin eklendi, ancak çalınabilir ses dosyası bulunamadı",
+  "scanDirectory": "Dizini Tara",
+  "sort": "Sırala",
+  "addRootDirectory": "Kök Dizin Ekle",
+  "goBack": "Geri Dön",
+  "noMediaLibraryPermission": "Medya kitaplığı erişim izni yok",
+  "grantPermission": "İzin Ver",
+  "needPermissionToScan": "Yerel müzikleri taramak için izin gerekli",
+  "rebuildTagDatabase": "Etiket Veritabanını Yeniden Oluştur",
+  "rebuildDatabase": "Veritabanını Yeniden Oluştur",
+  "confirmRebuildDatabase": "Tüm şarkıların etiket bilgilerini manuel olarak yenilemek istediğinizden emin misiniz? Kapakların ve meta verilerin yeniden yüklenmesi biraz zaman alabilir.",
+  "cancel": "İptal",
+  "confirm": "Tamam",
+  "rebuildingDatabase": "Şarkı etiket veritabanı yeniden oluşturuluyor...",
+  "sortBy": "Sıralama Ölçütü",
+  "sortScope": "Kapsam",
+  "sortOrder": "Sıralama Düzeni",
+  "title": "Başlık",
+  "fileName": "Dosya Adı",
+  "trackNumber": "Parça Numarası",
+  "ascending": "Artan",
+  "descending": "Azalan",
+  "currentFolderScope": "Geçerli Klasör",
+  "globalScope": "Genel",
+  "visualizerSettings": "Çalma Sayfası Ayarları",
+  "algorithm": "Spektrum",
+  "appearance": "Görünüm",
+  "spectrumAppearanceGroup": "Spektrum Görünümü",
+  "spectrumAdvancedOptions": "Gelişmiş Spektrum Seçenekleri",
+  "resetAlgorithm": "Algoritmayı Sıfırla",
+  "resetAppearance": "Görünümü Sıfırla",
+  "smoothing": "Yumuşatma (Smoothing)",
+  "gravity": "Yerçekimi (Gravity)",
+  "logScale": "Logaritmik Ölçek (Log Scale)",
+  "contrast": "Kontrast (Contrast)",
+  "normalization": "Normalizasyon (Normalization)",
+  "multiplier": "Kazanç Çarpanı (Multiplier)",
+  "skipHighFrequency": "Yüksek Frekansları Atla",
+  "frequencyGroups": "Frekans Grupları (Frequency Groups)",
+  "aggregationMode": "Toplama Modu (Aggregation Mode)",
+  "opacity": "Opaklık (Opacity)",
+  "enableGradient": "Degradeleri Etkinleştir",
+  "startColor": "Başlangıç Rengi",
+  "endColor": "Bitiş Rengi",
+  "gradientRangeStop1": "Degrade Aralığı Stop 1",
+  "gradientRangeStop2": "Degrade Aralığı Stop 2",
+  "gradientRepeatMode": "Degrade Tekrar Modu (TileMode)",
+  "color": "Renk",
+  "followCoverColor": "Kapak Rengine Uyarla",
+  "selectColor": "Renk Seç",
+  "volume": "Ses Düzeyi",
+  "clearQueue": "Sırayı Temizle",
+  "confirmClearQueue": "Geçerli sırayı temizlemek istediğinizden emin misiniz?",
+  "queueCleared": "Sıra temizlendi",
+  "locateCurrentSong": "Şu An Çalanı Bul",
+  "songNotInScannedFolders": "Şu an çalan şarkı taranan dizinlerde yok",
+  "queue": "Sıra",
+  "queueEmpty": "Sıra boş",
+  "selectedSongs": "{count} şarkı seçildi",
+  "@selectedSongs": {
+    "description": "Selected songs count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unknownArtist": "Bilinmeyen Sanatçı",
+  "deletedSongs": "{count} şarkı silindi",
+  "@deletedSongs": {
+    "description": "Deleted songs count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "delete": "Sil",
+  "createPlaylist": "Çalma Listesi Oluştur",
+  "playlistName": "Çalma Listesi Adı",
+  "enterPlaylistName": "Çalma listesi adı girin",
+  "playlistNameExists": "Çalma listesi adı zaten mevcut",
+  "renamePlaylist": "Çalma Listesini Yeniden Adlandır",
+  "deletePlaylist": "Çalma Listesini Sil",
+  "confirmDeletePlaylist": "\"{name}\" çalma listesini silmek istediğinizden emin misiniz?",
+  "@confirmDeletePlaylist": {
+    "description": "Confirm delete playlist message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addToPlaylist": "Çalma Listesine Ekle",
+  "selectAll": "Tümünü Seç",
+  "addToQueue": "Sıraya Ekle",
+  "addedToQueue": "Sıraya eklendi",
+  "songCount": "{count} şarkı",
+  "@songCount": {
+    "description": "Song count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addedToPlaylist": "{count} şarkı \"{playlist}\" listesine eklendi",
+  "@addedToPlaylist": {
+    "description": "Added to playlist message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "playlist": {
+        "type": "String"
+      }
+    }
+  },
+  "createNewList": "Yeni Liste Oluştur",
+  "createdPlaylist": "\"{name}\" oluşturuldu ve {count} şarkı eklendi",
+  "@createdPlaylist": {
+    "description": "Created playlist message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rename": "Yeniden Adlandır",
+  "playlist": "Çalma Listesi",
+  "mostPlayed": "En Çok Çalınanlar",
+  "recentlyPlayed": "Son Çalınanlar",
+  "recentlyAdded": "Son Eklenenler",
+  "albums": "Albümler",
+  "artists": "Sanatçılar",
+  "mostPlayedDescription": "Tamamlanan çalma sayısına göre",
+  "recentlyPlayedDescription": "Harici dosyalar dahil en son çalınma zamanına göre",
+  "recentlyAddedDescription": "Kitaplığa eklenme zamanına göre",
+  "allTime": "Tüm Zamanlar",
+  "pastWeek": "Geçen Hafta",
+  "pastMonth": "Geçen Ay",
+  "past90Days": "Son 90 Gün",
+  "noPlayHistory": "Henüz çalma geçmişi yok",
+  "noPlayHistoryInRange": "Bu zaman aralığında çalma geçmişi yok",
+  "noRecentlyPlayedSongs": "Henüz çalma geçmişi yok",
+  "noRecentlyPlayedInRange": "Bu zaman aralığında çalma geçmişi yok",
+  "noRecentlyAddedSongs": "Kitaplıkta henüz şarkı yok",
+  "noRecentlyAddedInRange": "Bu zaman aralığında eklenen şarkı yok",
+  "addedOn": "Eklenme Tarihi",
+  "externalSourceTag": "Harici",
+  "lastPlayed": "Son Çalma",
+  "playCountLabel": "{count} kez",
+  "@playCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playAll": "Tümünü Çal",
+  "shufflePlay": "Karışık Çal",
+  "noAlbums": "Henüz görüntülenecek albüm yok",
+  "noArtists": "Henüz görüntülenecek sanatçı yok",
+  "searchAlbums": "Albüm veya sanatçı ara",
+  "searchArtists": "Sanatçı ara",
+  "albumSort": "Sırala",
+  "sortArtistAsc": "Sanatçı A-Z",
+  "sortTitleAsc": "Albüm Adı A-Z",
+  "sortTrackCount": "Şarkı Sayısı",
+  "sortDuration": "Toplam Süre",
+  "sortRecentAdded": "Son Eklenenler",
+  "sortAscending": "Artan",
+  "sortDescending": "Azalan",
+  "playNext": "Sonrakini Çal",
+  "addToFavorites": "Favorilere Ekle",
+  "removeFromFavorites": "Favorilerden Kaldır",
+  "viewAlbumDetails": "Albüm Ayrıntılarını Görüntüle",
+  "viewArtistDetails": "Sanatçı Ayrıntılarını Görüntüle",
+  "openFileLocation": "Dosya Konumunu Aç",
+  "copyAlbumTitle": "Albüm Adını Kopyala",
+  "copyArtistName": "Sanatçı Adını Kopyala",
+  "albumCount": "{count} albüm",
+  "@albumCount": {
+    "description": "Album count summary",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emptyList": "Liste boş",
+  "dragToAddMusic": "Müzik eklemek için dosya veya klasörleri buraya sürükleyin",
+  "unknownAlbum": "Bilinmeyen Albüm",
+  "managePlaylists": "Çalma Listelerini Yönet",
+  "createNewPlaylist": "Yeni Çalma Listesi Oluştur",
+  "defaultList": "Varsayılan Liste",
+  "playbackMode": "Çalma Modu",
+  "playbackOptions": "Oynatma Seçenekleri",
+  "setVisualizerDisplay": "Spektrum Görünümünü Ayarla",
+  "noPlaybackContent": "Şu anda çalan içerik yok",
+  "file": "Dosya",
+  "play": "Çal",
+  "list": "Kitaplık",
+  "queueTab": "Sıra",
+  "more": "Daha Fazla",
+  "settings": "Ayarlar",
+  "themeMode": "Tema Modu",
+  "themeModeSystem": "Sistem",
+  "themeModeLight": "Açık",
+  "themeModeDark": "Koyu",
+  "immersiveTabBar": "Sürükleyici Sekme Çubuğu",
+  "immersiveTabBarDescription": "Fare hareket ettiğinde gezinti çubuğunu göster, 3 saniye hareketsizlikten sonra gizle",
+  "collapseButtonsInLandscapeLyrics": "Yatay şarkı sözü modunda düğmeleri daralt",
+  "collapseButtonsInLandscapeLyricsDescription": "Yatay sözler modunda 7 düğmeli satırı daralt, başlığı sola hizala ve sağda işlem düğmelerini göster",
+  "sampleStride": "Örnekleme Adımı",
+  "sampleStrideDescription": "Daha büyük değerler daha hızlı tarar ancak dalga formu hassasiyetini düşürür (varsayılan: 4)",
+  "waveformSegments": "Dalga Formu Dilimleri",
+  "waveformSegmentsDescription": "Görüntülenecek dalga formu çubuklarının sayısı (varsayılan: 80)",
+  "showDeveloperOptions": "Geliştirici Seçeneklerini Göster",
+  "playbackBackground": "Oynatma Arka Planı",
+  "playbackRadialGradient": "Merkez Koyu Degrade",
+  "blurIntensity": "Bulanıklık Yoğunluğu",
+  "blurredArtwork": "Bulanık Kapak Resmi (Varsayılan)",
+  "dynamicMesh": "Dinamik Akışkan Gradyan",
+  "solidColor": "Düz Renk",
+  "customImage": "Özel Resim",
+  "presetColors": "Önceden Tanımlı Renkler",
+  "customColor": "Özel Renk",
+  "uploadImage": "Resim Seç",
+  "normalOpacity": "Normal Koyu Katman Opaklığı",
+  "lyricsOpacity": "Şarkı Sözü Koyu Katman Opaklığı",
+  "chooseImageError": "Resim seçilemedi",
+  "noImageSelected": "Resim seçilmedi",
+  "unknown": "Bilinmeyen",
+  "playlistModeSingle": "Tek Parça",
+  "playlistModeSingleLoop": "Tek Parça Tekrar",
+  "playlistModeQueue": "Çalma Sırası",
+  "playlistModeQueueLoop": "Sıra Tekrarı",
+  "playlistModeAutoQueueLoop": "Otomatik Sıra Tekrarı",
+  "visualizer": "Görselleştirici",
+  "previous": "Önceki",
+  "next": "Sonraki",
+  "pause": "Duraklat",
+  "autoMode": "Otomatik Mod",
+  "advancedOptions": "Gelişmiş Seçenekler",
+  "spectrumQuantity": "Spektrum Çubuk Sayısı",
+  "speed": "Hız",
+  "quantityHigh": "Yüksek",
+  "quantityMedium": "Orta",
+  "quantityLow": "Düşük",
+  "speedFast": "Hızlı",
+  "speedMedium": "Orta",
+  "speedSlow": "Yavaş",
+  "portraitFrequencyGroups": "Dikey Frekans Grupları",
+  "landscapeFrequencyGroups": "Yatay Frekans Grupları",
+  "portraitGap": "Dikey Aralık",
+  "landscapeGap": "Yatay Aralık",
+  "enableWaveformProgressBar": "Dalga Formu İlerleme Çubuğunu Etkinleştir",
+  "enableWaveformProgressBarDescription": "Klasik ilerleme çubuğu yerine parçanın gerçek dalga formunu göster",
+  "waveformLongPressSeekSpeed": "Dalga Formu Uzun Basarak Sarma Hızı",
+  "waveformLongPressSeekSpeedDescription": "Dalga formuna uzun basıldığında sarma hızını ayarlar",
+  "enableWaveformLongPressSeek": "Dalga Formuna Uzun Basarak Sarmayı Etkinleştir",
+  "enableWaveformLongPressSeekDescription": "Dalga formuna basılı tutarak hızlı ileri/geri sarın",
+  "randomMode": "Rastgele Modu",
+  "randomHistory": "Rastgele Çalma Geçmişi",
+  "randomRange": "Rastgele Kapsamı",
+  "randomMethod": "Rastgele Çalma Yöntemi",
+  "currentQueue": "Geçerli Sıra",
+  "globalRange": "Genel Kitaplık",
+  "completeRandom": "Tamamen Rastgele",
+  "shuffleRandom": "Karışık Rastgele",
+  "randomQueue": "Rastgele Sıra",
+  "notSelected": "Seçilmedi",
+  "saveTagsToFile": "Etiketleri Dosyaya Kaydet",
+  "saveCurrentTagsToFile": "Geçerli Etiketleri Dosyaya Kaydet",
+  "saveQueueTagsToFile": "Sıradaki Etiketleri Dosyaya Kaydet",
+  "tagsSaved": "Etiketler kaydedildi",
+  "tagsSavedCount": "Etiketler kaydedildi ({count} şarkı)",
+  "tagsSaveFailed": "Etiketler kaydedilemedi",
+  "tagsSaveFailedCount": "{count} şarkı kaydedilemedi",
+  "unsupportedFormat": "{count} şarkı etiket kaydetmeyi desteklemiyor (OGG/Opus)",
+  "unsupportedFormatSingle": "Bu ses formatı etiket kaydetmeyi desteklemiyor (OGG/Opus)",
+  "savingTags": "Etiketler kaydediliyor...",
+  "noModifiedTagsToSave": "Kaydedilecek değiştirilmiş etiket yok",
+  "clearPlaylist": "Çalma Listesini Temizle",
+  "copyTitle": "Başlığı Kopyala",
+  "transcodeAction": "Dönüştür",
+  "transcodeSectionTitle": "Ses Dönüştürme (Transcode)",
+  "transcodeSectionDescription": "Ses formatı dönüştürme ve FFmpeg motoru ayarlarını yapılandırın.",
+  "transcodeDefaultFormat": "Varsayılan Format",
+  "transcodeDefaultQuality": "Varsayılan Kalite",
+  "transcodeTitle": "Dönüştür (Transcode)",
+  "transcodeSongCount": "{count} şarkı",
+  "@transcodeSongCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transcodeCompletedCount": "{count} dosya dönüştürüldü",
+  "@transcodeCompletedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transcodeCompletedWithFailures": "{success} / {total} dosya dönüştürüldü, {failed} başarısız",
+  "@transcodeCompletedWithFailures": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "transcodeFailedGeneric": "Dönüştürme başarısız oldu",
+  "transcodePreparing": "Hazırlanıyor...",
+  "transcodeProgress": "Dönüştürülüyor: {current} / {total}",
+  "@transcodeProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transcoding": "Dönüştürülüyor...",
+  "startTranscode": "Dönüştürmeyi Başlat",
+  "transcodeEngine": "Motor: {engine}",
+  "@transcodeEngine": {
+    "placeholders": {
+      "engine": {}
+    }
+  },
+  "transcodeUsingSystemFfmpeg": "Sistem FFmpeg kullanılıyor",
+  "transcodeUsingCustomFfmpeg": "Özel FFmpeg kullanılıyor: {path}",
+  "@transcodeUsingCustomFfmpeg": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "transcodeFormat": "Format",
+  "transcodeQualityPreset": "Kalite Önayarı",
+  "transcodeQualityLow": "Düşük (128 kbps)",
+  "transcodeQualityMedium": "Orta (192 kbps)",
+  "transcodeQualityHigh": "Yüksek (320 kbps)",
+  "transcodeQualityExtreme": "En Yüksek Kalite",
+  "transcodeLosslessPresetHint": "Kayıpsız formatlar (FLAC/WAV) orijinal ses kalitesini korur.",
+  "transcodeAdvancedOptions": "Gelişmiş Dönüştürme Seçenekleri",
+  "transcodeAdvancedCustomized": "Özel Parametreler",
+  "transcodeAdvancedFollowingPreset": "Önayarı Takip Ediyor",
+  "transcodeLosslessAdvancedHint": "Kayıpsız formatlarda bit hızı ayarı gerekmez.",
+  "transcodeBitRateInvalid": "Geçersiz bit hızı değeri",
+  "transcodeBitRate": "Bit Hızı",
+  "transcodeBitRateMode": "Bit Hızı Modu (CBR/VBR)",
+  "transcodeEncodingEngine": "Kodlama Motoru",
+  "transcodeSystemEncoder": "Sistem Kodlayıcısı",
+  "transcodeFfmpegRustEncoder": "Rust Native FFmpeg",
+  "transcodeAacEncoder": "AAC Kodlayıcı",
+  "transcodeSampleRate": "Örnekleme Hızı",
+  "transcodeChannels": "Kanallar",
+  "transcodeResetToPreset": "Önayara Sıfırla",
+  "transcodeResetLosslessOptions": "Kayıpsız Seçenekleri Sıfırla",
+  "transcodeOutputDirectory": "Çıktı Dizini",
+  "transcodeOutputPreview": "Çıktı Önizlemesi",
+  "transcodeChooseDirectory": "Dizin Seçin",
+  "transcodeUseSourceDirectory": "Kaynak Dizinini Kullan",
+  "transcodeKeepSource": "Kaynak Dosyayı Koru",
+  "transcodeMono": "Mono (Tek Kanal)",
+  "transcodeStereo": "Stereo (Çift Kanal)",
+  "openFolderLocation": "Klasör Konumunu Aç",
+  "songTagsSavedToSourceFileAndApp": "Etiketler kaynak dosyaya ve uygulamaya kaydedildi",
+  "songTagsSavedToApp": "Etiketler uygulamaya kaydedildi",
+  "durationZero": "0:00",
+  "generateLyrics": "Söz Oluştur",
+  "generateTimeline": "Zaman Çizelgesi Oluştur",
+  "queueGenerateLyrics": "Sıradaki İçin Söz Oluştur",
+  "pauseAutoScroll": "Otomatik Kaydırmayı Duraklat",
+  "resumeAutoScroll": "Otomatik Kaydırmayı Sürdür",
+  "translateLyrics": "Sözleri Çevir",
+  "clearLyricsCache": "Söz Önbelleğini Temizle",
+  "clearTranslationCache": "Çeviri Önbelleğini Temizle",
+  "requery": "Yeniden Sorgula",
+  "sleepTimerTitle": "Uyku Zamanlayıcısı",
+  "sleepTimerDescription": "Belirli bir süre sonra oynatmayı durdurun.",
+  "sleepTimerRunningTitle": "Uyku Zamanlayıcısı Çalışıyor",
+  "sleepTimerRunningDescription": "Kalan süre dolduğunda oynatma otomatik olarak duracaktır.",
+  "sleepTimerStopAfterCurrentSong": "Geçerli Şarkı Bitince Durdur",
+  "remainingTime": "Kalan Süre",
+  "startCountdown": "Geri Sayımı Başlat",
+  "end": "Bitir",
+  "equalizer": "Ekolayzer",
+  "equalizerEnabledStatus": "Ekolayzer etkinleştirildi",
+  "equalizerDisabledStatus": "Ekolayzer devre dışı bırakıldı",
+  "effects": "Efektler",
+  "playbackSpeed": "Oynatma Hızı",
+  "normal": "Normal",
+  "bassBoost": "Bas Güçlendirme",
+  "preampGain": "Ön Kazanç",
+  "reset": "Sıfırla",
+  "close": "Kapat",
+  "timelineAdjustmentTitle": "Zaman Çizelgesi Ayarı",
+  "timelineAdjustmentDescription": "Şarkı sözlerinin zamanlamasını milisaniye cinsinden kaydırın.",
+  "timelineOffsetEarlier": "{seconds}s ileri",
+  "@timelineOffsetEarlier": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "timelineOffsetLater": "{seconds}s geri",
+  "@timelineOffsetLater": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "timelineOffsetCurrent": "Mevcut kayma: 0.0s",
+  "enterAcoustidApiKeyTitle": "AcoustID API Anahtarını Girin",
+  "acoustidApiKeyDescription": "Ses parmak izi alma için kullanılır. Boş bırakırsanız yerleşik varsayılan anahtar kullanılır.",
+  "acoustidApiKeyHint": "AcoustID API Anahtarınızı yapıştırın",
+  "apiKey": "API Anahtarı",
+  "save": "Kaydet",
+  "enterLyricsTitle": "Şarkı Sözlerini Girin",
+  "lyricsInputHint": "Şarkı sözlerini buraya yapıştırın veya yazın. Çok satırlı metin desteklenir.",
+  "enterGoogleAiStudioApiKeyTitle": "Google AI Studio API Anahtarını Girin",
+  "googleAiStudioApiKeyDescription": "Google AI Studio'da söz oluşturma, zaman çizelgesi hizalama ve çeviri için kullanılır.",
+  "pasteGoogleAiStudioApiKey": "Google AI Studio API Anahtarını yapıştırın",
+  "enterOpenRouterApiKeyTitle": "OpenRouter API Anahtarını Girin",
+  "openRouterApiKeyDescription": "OpenRouter'da söz oluşturma ve zaman çizelgesi hizalama için kullanılır. Çeviri her zaman Gemini kullanır.",
+  "pasteOpenRouterApiKey": "OpenRouter API Anahtarını yapıştırın",
+  "enterGeminiApiKeyTitle": "Gemini API Anahtarını Girin",
+  "geminiApiKeyDescription": "Şarkı sözü çevirisi için kullanılır.",
+  "pasteGeminiApiKey": "Gemini API Anahtarını yapıştırın",
+  "testConnection": "Bağlantıyı Test Et",
+  "enterApiKey": "API anahtarınızı girin",
+  "testingConnection": "Bağlantı test ediliyor...",
+  "getKey": "Anahtar al",
+  "editSongTagsTitle": "Şarkı Etiketlerini Düzenle",
+  "changeArtwork": "Kapağı Değiştir",
+  "clearArtwork": "Kapağı Temizle",
+  "editSongTagsDescription": "Değişiklikleri yalnızca uygulamaya kaydedebilir veya kaynak ses dosyasına da yazabilirsiniz.",
+  "artistLabel": "Sanatçı",
+  "albumLabel": "Albüm",
+  "trackNumberLabel": "Parça Numarası",
+  "trackNumberMustBeInteger": "Parça numarası bir tam sayı olmalıdır",
+  "leaveBlankKeepsCurrentValue": "Bu alanı temizlemek için boş bırakın",
+  "currentFileFormatCannotWriteBack": "Bu dosya formatı kaynak dosyaya yazmayı desteklemiyor. Değişiklikler yalnızca uygulamaya kaydedilir.",
+  "leaveBlankDoesNotClearOriginalValue": "İpucu: Bir alanı boş bırakmak değerini temizler.",
+  "saveToApp": "Uygulamaya Kaydet",
+  "saveToSourceFileAndApp": "Kaynak Dosyaya ve Uygulamaya Kaydet",
+  "saveToSourceFileFailed": "Kaynak dosyaya kaydedilemedi. Dosya formatının yazmayı desteklediğinden ve kullanımda olmadığından emin olun.",
+  "fileOccupiedByOtherApp": "Dosya başka bir uygulama tarafından kullanılıyor ve yazılamıyor",
+  "saveFailed": "Kaydetme başarısız oldu. Lütfen daha sonra tekrar deneyin.",
+  "apiKeySaved": "{provider} API anahtarı kaydedildi",
+  "@apiKeySaved": {
+    "placeholders": {
+      "provider": {}
+    }
+  },
+  "apiKeySavedAcoustid": "AcoustID API anahtarı kaydedildi",
+  "generalSectionTitle": "Arayüz ve Davranış",
+  "generalSectionDescription": "Görünüm, oynatma etkileşimleri ve pencere sistemi davranışlarını yapılandırın.",
+  "uiAppearanceGroup": "Görünüm ve Ekran",
+  "playbackBehaviorGroup": "Oynatma ve Etkileşim",
+  "systemWindowBehaviorGroup": "Pencere ve Sistem Davranışı",
+  "interfaceLanguage": "Arayüz Dili",
+  "interfaceLanguageDescription": "Uygulama dilini değiştirin",
+  "scanSectionTitle": "Tarama",
+  "scanSectionDescription": "Bu seçenekler kitaplık taramasının ses dosyalarını nasıl ele alacağını denetler.",
+  "skipShortAudioDuringScan": "Tarama sırasında kısa sesleri atla",
+  "skipShortAudioDuringScanDescription": "Eşik değerinden kısa sesler kitaplığa eklenmez.",
+  "shortAudioScanThreshold": "Kısa Ses Dosyalarını Filtrele",
+  "shortAudioScanThresholdDescription": "Belirtilen süreden kısa ses dosyalarını atla",
+  "shortAudioScanThresholdValue": "{seconds} sn",
+  "@shortAudioScanThresholdValue": {
+    "placeholders": {
+      "seconds": {}
+    }
+  },
+  "shortcutSettingsTitle": "Kısayol Ayarları",
+  "shortcutSettingsDescription": "Oynatıcı eylemleri için kısayolları yeniden atamak ve kaydetmek için tıklayın.",
+  "edit": "Düzenle",
+  "lyricsSectionTitle": "Şarkı Sözleri",
+  "lyricsSectionDescription": "Bu ayarlar yalnızca söz oluşturma ve zaman çizelgesi hizalamayı etkiler.",
+  "lyricsTranslationTargetLanguageLabel": "Çeviri hedef dili",
+  "lyricsTranslationTargetLanguageDescription": "Varsayılan olarak sistem dilini kullanır veya manuel olarak seçebilirsiniz.",
+  "lyricsSaveMethodLabel": "Şarkı Sözü Depolama Yeri",
+  "lyricsSaveMethodDescription": "Dosyaya yazarken sözlerin nereye kaydedileceğini seçin.",
+  "lyricsSaveMethodOriginal": "Kaynak Gibi",
+  "lyricsSaveMethodEmbedded": "Gömülü",
+  "lyricsSaveMethodLrcFile": "LRC Dosyası",
+  "lyricsStyleLabel": "Şarkı Sözü Panel Stili",
+  "lyricsStyleDescription": "Şarkı sözü paneli için görüntüleme ve etkileşim stilini seçin.",
+  "lyricsStyleTraditional": "Geleneksel",
+  "lyricsStyleApple": "Satır Satır Odaklı",
+  "resumeLyricsSync": "Eşitlemeyi Sürdür",
+  "followSystemLanguage": "Sistem Dilini Takip Et",
+  "autoSwitchLyricsProvider": "Şarkı sözü sağlayıcısını otomatik değiştir",
+  "autoSwitchLyricsProviderEnabledDesc": "Önce Google AI Studio denenir. Birincil ve yedek modeller 429 veya 5xx hatası verirse uygulama otomatik olarak OpenRouter'a geçer.",
+  "autoSwitchLyricsProviderDisabledDesc": "Otomatik geçişi etkinleştirmeden önce hem Google AI Studio hem de OpenRouter için API anahtarları gereklidir.",
+  "lyricsAiProviderTitle": "Şarkı Sözü AI Sağlayıcısı",
+  "lyricsAiProviderDescription": "Bu yalnızca söz oluşturma ve zaman çizelgesi hizalamayı etkiler. Çeviri her zaman Google AI Studio kullanır.",
+  "googleAiStudioApiKeySaved": "Google AI Studio API anahtarı kaydedildi",
+  "googleAiStudioApiKeyMissing": "Henüz Google AI Studio API anahtarı kaydedilmedi. Söz ve zaman çizelgesi oluşturma sizden anahtar isteyecektir.",
+  "openRouterApiKeySaved": "OpenRouter API anahtarı kaydedildi",
+  "openRouterApiKeyMissing": "Henüz OpenRouter API anahtarı kaydedilmedi. Söz ve zaman çizelgesi oluşturma sizden anahtar isteyecektir.",
+  "apiKeySavedStatus": "Kaydedildi",
+  "apiKeyMissingStatus": "Doldurulmadı",
+  "platformApiKeysSectionTitle": "Platform API Anahtarları",
+  "fill": "Doldur",
+  "modify": "Değiştir",
+  "geminiModelsSectionTitle": "Model Seç",
+  "geminiModelsSectionDescription": "Bu modeller Google AI Studio'da söz oluşturma, zaman çizelgesi hizalama ve çeviri için kullanılır.",
+  "primaryModelLabel": "Birincil model",
+  "backupModelLabel": "Yedek model",
+  "translationModelLabel": "Çeviri modeli",
+  "fetching": "Getiriliyor...",
+  "fetchModelList": "Model listesini getir",
+  "restoreDefault": "Varsayılana dön",
+  "acoustidSectionTitle": "Parmak İzi Alma",
+  "acoustidApiKeyTitle": "AcoustID API Anahtarı",
+  "acoustidApiKeyHelp": "AcoustID ses parmak izi alma için kullanılır. Kendi API anahtarınızı kullanmanızı öneririz.",
+  "acoustidApiKeySaved": "AcoustID API anahtarı kaydedildi",
+  "acoustidApiKeyDefault": "Şu anda yerleşik varsayılan anahtar kullanılıyor. Kendi anahtarınızla değiştirmenizi öneririz.",
+  "applyForApiKey": "API anahtarı edinin: https://acoustid.org/new-application",
+  "queueTabBarFavoriteAdded": "Favorilere eklendi",
+  "queueTabBarFavoriteRemoved": "Favorilerden kaldırıldı",
+  "tagCompletion": "Etiket tamamlama",
+  "tagCompletionDescription": "Etiketleri AcoustID ve MusicBrainz sonuçlarıyla eşleştirin",
+  "goToSettings": "Ayarlara Git",
+  "searchReleaseTitles": "Yayın başlıklarını ara",
+  "closeSearch": "Aramayı kapat",
+  "refreshResults": "Sonuçları yenile",
+  "filterMusicBrainzReleaseTitle": "MusicBrainz yayın başlıklarını filtrele",
+  "clearSearch": "Aramayı temizle",
+  "localTitle": "Yerel başlık",
+  "queryConditions": "Sorgu koşulları",
+  "musicBrainzLoading": "MusicBrainz yükleniyor",
+  "musicBrainzLoadingWithResults": "Mevcut sonuçlar panelde kalacaktır",
+  "musicBrainzLoadingHint": "Lütfen bekleyin",
+  "musicBrainzQueryFailed": "MusicBrainz sorgusu başarısız",
+  "musicBrainzNetworkErrorHint": "İstek başarısız oldu; genellikle kararsız ağ, zaman aşımı veya sunucu reddinden kaynaklanır. Daha sonra tekrar deneyin.",
+  "musicBrainzFilteredEmptyHint": "Geçerli filtreler altında bu anahtar kelimeyi içeren yayın başlığı bulunamadı.",
+  "musicBrainzEmptyHint": "MusicBrainz kullanılabilir sonuç döndürmedi. Başlık, sanatçı veya albüm filtrelerini gevşetmeyi deneyin.",
+  "musicBrainzEmptyMoreCompleteHint": "Daha sonra tekrar deneyin veya mevcut başlık/sanatçı bilgisinin eksiksiz olduğunu doğrulayın.",
+  "retry": "Yeniden Dene",
+  "noMatchingRelease": "Eşleşen yayın sürümü bulunamadı",
+  "noMatchingResults": "Eşleşen sonuç bulunamadı",
+  "networkConnectionFailed": "Ağ bağlantısı başarısız oldu",
+  "searchAgain": "Tekrar ara",
+  "acoustidRecognitionRecords": "AcoustID tanıma kayıtları",
+  "musicBrainzRecordings": "MusicBrainz kayıtları",
+  "noExpandableReleaseGroups": "Genişletilebilir yayın grubu yok",
+  "noExpandableReleases": "Genişletilebilir yayın sürümü yok",
+  "noMatchingResultHint": "Daha sonra tekrar deneyebilir veya şarkı başlığı/sanatçı bilgisinin doğruluğunu kontrol edebilirsiniz.",
+  "releaseCountLabel": "{count} yayın sürümü",
+  "@releaseCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recordingCountLabel": "{count} kayıt",
+  "@recordingCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trackCountShort": "{count} parça",
+  "@trackCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scoreLabel": "Skor: {score}",
+  "@scoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "matchScoreLabel": "Eşleşme %{score}",
+  "@matchScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "editQueryCondition": "Sorgu Koşulunu Düzenle",
+  "enterNewQueryText": "Yeni sorgu metnini girin",
+  "durationLabel": "Süre",
+  "customShortcuts": "Özel Kısayollar",
+  "pressShortcutCombo": "Lütfen kısayol tuş kombinasyonuna basın",
+  "clickToRecord": "Kaydetmek için tıklayın",
+  "searchingLyrics": "Şarkı sözleri aranıyor...",
+  "noLyrics": "Şarkı sözü bulunamadı",
+  "providerLabel": "Sağlayıcı",
+  "modelLabel": "Model",
+  "unspecified": "Belirtilmemiş",
+  "targetTimeLabel": "Hedef süre: {duration}",
+  "@targetTimeLabel": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "songDeletedSkipped": "Şarkı silindi, atlandı",
+  "songDeleted": "Şarkı silindi",
+  "lyricsTaskUploading": "Yükleniyor",
+  "lyricsTaskWaiting": "Hazır olması bekleniyor",
+  "lyricsTaskRequesting": "İstek gönderiliyor",
+  "lyricsTaskGenerating": "Oluşturuluyor",
+  "lyricsTaskRetrying": "Yeniden deneniyor",
+  "lyricsTaskProcessing": "İşleniyor",
+  "unknownModel": "Bilinmeyen model",
+  "selectedFolders": "{count} klasör seçildi",
+  "@selectedFolders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foldersDeleted": "{count} klasör silindi",
+  "@foldersDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "persistentAccessDenied": "Kalıcı klasör erişim izni reddedildi.",
+  "folderAddFailed": "Klasör ekleme başarısız oldu.",
+  "sleepTimer": "Uyku Zamanlayıcısı",
+  "sleepTimerRemaining": "Uyku zamanlayıcısı: {duration}",
+  "@sleepTimerRemaining": {
+    "placeholders": {
+      "duration": {}
+    }
+  },
+  "unknownArtistOrAlbum": "Bilinmeyen",
+  "pressAgainToExit": "Çıkmak için tekrar basın",
+  "tagCompletionSuccessWithCover": "Etiketler tamamlandı ve kaydedildi, kapak resmi geçici dizine indirildi",
+  "tagCompletionSuccess": "Etiketler tamamlandı ve kaydedildi",
+  "selectOnlineLyrics": "Çevrimiçi söz seçin",
+  "increaseLyricsFont": "Söz yazı boyutunu artır",
+  "decreaseLyricsFont": "Söz yazı boyutunu azalt",
+  "restoreDefaultSize": "Varsayılan Boyuta Sıfırla",
+  "adjustLyricsFont": "Söz Yazı Tipini Ayarla",
+  "searchingOnlineLyrics": "Çevrimiçi sözler aranıyor...",
+  "onlineLyricsResults": "Çevrimiçi Söz Sonuçları",
+  "untitledLyrics": "Başlıksız sözler",
+  "hasTimeline": "Zaman çizgili",
+  "viewLyricsDetails": "Söz ayrıntılarını görüntüle",
+  "lyricsDetails": "Şarkı Sözü Ayrıntıları",
+  "lyricsContent": "Şarkı Sözü İçeriği",
+  "noLyricsContent": "Söz içeriği yok",
+  "queryContentLabel": "İçerik",
+  "yes": "Evet",
+  "no": "Hayır",
+  "dropAddedSongs": "{addedCount} şarkı eklendi",
+  "@dropAddedSongs": {
+    "placeholders": {
+      "addedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "dropAddedSongsWithExisting": "{addedCount} şarkı eklendi, {existingCount} zaten mevcuttu",
+  "@dropAddedSongsWithExisting": {
+    "placeholders": {
+      "addedCount": {
+        "type": "int"
+      },
+      "existingCount": {
+        "type": "int"
+      }
+    }
+  },
+  "copyCover": "Kapağı Panoya Kopyala",
+  "copyCoverSuccess": "Kapak resmi panoya kopyalandı",
+  "searchLyricsPlaceholder": "Aramak için şarkı adı, sanatçı veya söz girin",
+  "share": "Paylaş",
+  "windowsSettingsTitle": "Windows Özel Ayarları",
+  "fileAssociationTitle": "Dosya İlişkilendirmesi",
+  "fileAssociationDescription": "Yaygın müzik formatlarını (mp3, flac, wav vb.) bu uygulamayla ilişkilendirerek çift tıklamayla açın.",
+  "associateButton": "İlişkilendir",
+  "disassociateButton": "İlişkilendirmeyi Kaldır",
+  "associationSuccess": "İlişkilendirme başarılı! Çift tıklama çalışmazsa Windows Varsayılan Uygulamalar ayarlarından Vynody'yi seçin.",
+  "disassociationSuccess": "Dosya ilişkilendirmesi başarıyla kaldırıldı.",
+  "associationFailed": "İlişkilendirme başarısız: {error}",
+  "@associationFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "onboardingTitle": "Hoş Geldiniz",
+  "onboardingSubtitle": "Müzik yolculuğunuza başlamak için birkaç basit adım.",
+  "onboardingStepFileAssociation": "Dosya Türlerini İlişkilendir",
+  "onboardingFileAssociationDesc": "Yaygın müzik formatlarını (mp3, flac, wav vb.) Vynody ile ilişkilendirerek dosya yöneticisinden çift tıklamayla doğrudan çalın.",
+  "onboardingFileAssociationTip": "İlişkilendirmenin ardından sistem 'Birlikte aç' menüsü gösterebilir. Listeden 'Vynody'yi seçtiğinizden ve 'Her zaman bu uygulamayı kullan'ı işaretlediğinizden emin olun.",
+  "onboardingStepRootDirectory": "Müzik Kök Dizinini Ekle",
+  "onboardingRootDirectoryDesc": "Müzik dosyalarınızın saklandığı klasörü seçin. Vynody yerel müzik kitaplığınızı otomatik olarak tarayacak ve oluşturacaktır.",
+  "onboardingAndroidPermissionTip": "Not: Android'de yerel müzikleri içe aktarmak ve taramak için medya kitaplığı erişim izni vermeniz gerekir. [Klasör Seç] düğmesine bastığınızda izin istenecektir, lütfen izin verin.",
+  "onboardingSelectDirectory": "Klasör Seç",
+  "onboardingSuccessTitle": "Her Şey Hazır!",
+  "onboardingSuccessDesc": "Medya kitaplığınız başarıyla eklendi. Müziğin keyfini çıkarmaya başlayalım!",
+  "onboardingStartButton": "Vynody'ye Başla",
+  "onboardingSkip": "Daha Sonra Kur",
+  "onboardingNext": "İleri",
+  "onboardingBack": "Geri",
+  "resetOnboarding": "Başlangıç Rehberini Sıfırla",
+  "resetOnboardingDesc": "İlk açılış rehberi durumunu sıfırlar. Uygulama bir sonraki başlatmada başlangıç rehberini tekrar gösterir.",
+  "songProperties": "Şarkı Özellikleri",
+  "failedToLoadDetails": "Ayrıntılar alınamadı",
+  "noPropertiesAvailable": "Ayrıntılı şarkı özelliği bulunamadı",
+  "detailFilePath": "Dosya Yolu",
+  "detailFormat": "Format",
+  "detailCodec": "Kod Çözücü (Codec)",
+  "detailDuration": "Süre",
+  "detailFileSize": "Dosya Boyutu",
+  "detailBitrate": "Bit Hızı",
+  "detailSampleRate": "Örnekleme Hızı",
+  "detailChannels": "Kanal Sayısı",
+  "detailBitDepth": "Örnekleme Derinliği",
+  "detailMono": "Tek Kanal (Mono)",
+  "detailStereo": "Çift Kanal (Stereo)",
+  "detailChannelsCount": "{count} Kanal",
+  "@detailChannelsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "localNetworkPermissionDeniedTitle": "Yerel Ağ Erişimi Kısıtlandı",
+  "localNetworkPermissionDeniedMessage": "Yerel IP adresi bulunamadı veya yerel ağ erişim izni reddedildi.\n\nLütfen şunları kontrol edin:\n1. Cihazınızın Wi-Fi veya yerel bir ağa bağlı olduğundan emin olun.\n2. Sistem ayarlarında uygulamanın yerel ağa erişmesine izin verildiğinden emin olun:\n   - iOS/macOS: Ayarlar > Gizlilik ve Güvenlik > Yerel Ağ bölümüne gidin ve Vynody'yi etkinleştirin.\n   - Windows: Bağlı olduğunuzdan emin olun ve Windows Güvenlik Duvarı'nın Vynody'ye izin verdiğini kontrol edin.",
+  "localNetworkPermissionWindowsMessage": "Yerel IP adresi algılanamadı.\n\nKontrol edin:\n1. Yerel ağ bağlantısı.\n2. Vynody'ye izin vermek için Windows Güvenlik Duvarı'nı kontrol edin.",
+  "openSettingsButton": "Ayarları Aç",
+  "closeButton": "Kapat",
+  "copyTranslationResults": "Çeviri sonuçlarını kopyala",
+  "writeLyricsToFile": "Sözleri dosyaya yaz",
+  "selectLyricSource": "Söz kaynağını seçin",
+  "regenerateLyrics": "Şarkı Sözlerini Yeniden Oluştur",
+  "regenerateLyricsConfirmation": "Mevcut sözler temizlenecek ve yeniden oluşturulacaktır. Devam edilsin mi?",
+  "regenerateTimeline": "Zaman Çizelgesini Yeniden Oluştur",
+  "regenerateTimelineConfirmation": "Mevcut zaman çizelgesi temizlenecek ve yeniden oluşturulacaktır. Devam edilsin mi?",
+  "retranslateLyrics": "Şarkı Sözlerini Yeniden Çevir",
+  "retranslateLyricsConfirmation": "Mevcut çeviri temizlenecek ve yeniden çevrilecektir. Devam edilsin mi?",
+  "translationCopiedToClipboard": "Çeviri sonuçları panoya kopyalandı",
+  "writingLyrics": "Sözler yazılıyor...",
+  "lyricsWrittenToFile": "Şarkı sözleri dosyaya başarıyla yazıldı",
+  "writeLyricsFailed": "Sözler dosyaya yazılamadı",
+  "externalLrcFile": "Aynı isimli harici LRC dosyası",
+  "embeddedLyrics": "Gömülü Şarkı Sözleri",
+  "manuallyAdjustedLyrics": "Manuel olarak düzenlenen sözler",
+  "lrclibOnlineLyrics": "LrcLib çevrimiçi sözleri",
+  "aiGeneratedLyrics": "AI ile oluşturulan sözler",
+  "matchScore": "Eşleşme Skoru",
+  "untitledRelease": "Başlıksız Yayın",
+  "localSongFileNotFoundForGeneration": "Yerel şarkı dosyası bulunamadı, söz oluşturulamıyor.",
+  "localSongFileNotFoundForTimeline": "Yerel şarkı dosyası bulunamadı, zaman çizelgesi oluşturulamıyor.",
+  "noLyricsForTimelineGeneration": "Kullanılabilir söz yok, zaman çizelgesi oluşturulamıyor.",
+  "noLyricsAvailableForTranslation": "Çeviri için uygun şarkı sözü bulunamadı.",
+  "noCurrentSongAvailable": "Şu anda çalınan şarkı yok.",
+  "invalidTargetLanguage": "Hedef dil geçersiz.",
+  "songAlreadyQueuedForTranslation": "Geçerli şarkının söz çevirisi zaten kuyrukta veya işleniyor.",
+  "songAlreadyQueuedForGeneration": "Geçerli şarkının söz oluşturma görevi zaten kuyrukta veya işleniyor.",
+  "songNoLongerExistsForTranslation": "Geçerli şarkı artık mevcut değil, sözler çevrilemiyor.",
+  "generationFailed": "Oluşturma başarısız oldu.",
+  "generatingLyrics": "AI şarkı sözlerini oluşturuyor...",
+  "generatingTimeline": "AI zaman çizelgesini oluşturuyor...",
+  "regeneratingLyrics": "Şarkı sözleri yeniden oluşturuluyor",
+  "translatingLyrics": "AI şarkı sözlerini çeviriyor...",
+  "transcodingSongFile": "Şarkı dosyası dönüştürülüyor",
+  "uploadingSongFile": "Şarkı dosyası yükleniyor",
+  "fileUploadedWaitingForReadiness": "Dosya yüklendi, hazır olması bekleniyor",
+  "waitingForFileReadiness": "Dosyanın hazır olması bekleniyor",
+  "requestingModelResponse": "Model yanıtı isteniyor",
+  "retryingTaskKindGeneration": "{taskKind} oluşturma yeniden deneniyor",
+  "retrying": "Yeniden deneniyor",
+  "processing": "İşleniyor",
+  "timeline": "zaman çizelgesi",
+  "lyrics": "Şarkı Sözleri",
+  "lyricGenerationError": "Söz oluşturulurken hata: {error}",
+  "timelineGenerationError": "Zaman çizelgesi oluşturulurken hata: {error}",
+  "unknownGenerationError": "Sözler oluşturulurken bilinmeyen bir hata meydana geldi.",
+  "unknownTimelineGenerationError": "Zaman çizelgesi oluşturulurken bilinmeyen bir hata meydana geldi.",
+  "unknownTranslationError": "Sözler çevrilirken bilinmeyen bir hata meydana geldi.",
+  "unknownError": "Bilinmeyen hata",
+  "modelRefusedToGenerateLyrics": "Model sözleri oluşturmayı reddetti.",
+  "modelRefusedToGenerateTimeline": "Model zaman çizelgesini oluşturmayı reddetti.",
+  "doubaoPreUploadTranscodingFailed": "Doubao yüklemesi öncesinde ses dönüştürme başarısız oldu.",
+  "doubaoTempTranscodeNotInTempDir": "Geçici dönüştürülen dosya geçici dizinde oluşturulamadı.",
+  "doubaoEmptyStreamingResponse": "Doubao boş bir akış yanıtı döndürdü.",
+  "doubaoEmptyResponse": "Doubao boş bir yanıt döndürdü.",
+  "geminiEmptyStreamingResponse": "Gemini boş bir akış yanıtı döndürdü.",
+  "geminiEmptyResponse": "Gemini boş bir yanıt döndürdü.",
+  "openRouterEmptyStreamingResponse": "OpenRouter boş bir akış yanıtı döndürdü.",
+  "openRouterEmptyResponse": "OpenRouter boş bir yanıt döndürdü.",
+  "deepseekEmptyStreamingResponse": "DeepSeek boş bir akış yanıtı döndürdü.",
+  "deepseekEmptyResponse": "DeepSeek boş bir yanıt döndürdü.",
+  "customProviderEmptyStreamingResponse": "Özel sağlayıcı boş bir akış yanıtı döndürdü.",
+  "customProviderEmptyResponse": "Özel sağlayıcı boş bir yanıt döndürdü.",
+  "fileUploadFailed": "Dosya yüklenemedi. Lütfen tekrar deneyin.",
+  "uploadedFileNotReady": "Yüklenen dosya henüz hazır değil. Lütfen biraz sonra tekrar deneyin.",
+  "audioTranscodingFailed": "Ses dönüştürme işlemi başarısız oldu.",
+  "tempTranscodeNotInTempDir": "Geçici dönüştürülen dosya geçici dizinde bulunamadı.",
+  "networkRequestFailedCheckProxy": "Ağ isteği başarısız oldu. Lütfen ağ ve vekil sunucu (proxy) ayarlarınızı kontrol edin.",
+  "quotaExhaustedToday": "Bugünkü kota tükendi. Lütfen yarın sıfırlandıktan sonra tekrar deneyin.",
+  "googleAiHeavyLoad": "Google AI sunucularında yoğunluk var ve geçici olarak kullanılamıyor.",
+  "lyricsGenerationFailedWithError": "Söz oluşturma başarısız: {error}",
+  "missingApiKeyForAction": "{providerName} API anahtarı bulunamadı, {action} kullanılamaz.",
+  "googleServerFlaky": "Google sunucuları şu anda yanıt vermekte zorlanıyor. Lütfen tekrar deneyin.",
+  "translateLyricsAction": "şarkı sözlerini çevir",
+  "generateLyricsAction": "şarkı sözü oluştur",
+  "generateTimelineAction": "zaman çizelgesi oluştur",
+  "deepseekOnlyTranslation": "DeepSeek yalnızca şarkı sözü çevirisi için kullanılabilir.",
+  "customProviderOnlyTranslation": "Özel sağlayıcı yalnızca şarkı sözü çevirisi için kullanılabilir.",
+  "customProviderNoBaseUrl": "Özel sağlayıcı API Base URL adresi yapılandırılmamış.",
+  "pleaseEnterApiKey": "Lütfen bir API anahtarı girin.",
+  "connectionSuccessVerificationPassed": "Bağlantı başarılı, doğrulama geçti.",
+  "connectionSuccessDetectedModels": "Bağlantı başarılı, {count} model algılandı.",
+  "testFailedWithStatus": "Test başarısız ({statusCode}): {message}",
+  "testFailedCheckNetworkOrApiKey": "Test başarısız oldu. Lütfen ağ bağlantınızı veya API anahtarınızı kontrol edin.",
+  "testFailedStatusCheckApiKey": "Test başarısız ({statusCode}). Lütfen API anahtarının geçerli olduğunu kontrol edin.",
+  "enterGoogleAiStudioApiKeyFirst": "Lütfen önce bir Google AI Studio API anahtarı girin.",
+  "enterDoubaoApiKeyFirst": "Lütfen önce bir Doubao API anahtarı girin.",
+  "enterDeepseekApiKeyFirst": "Lütfen önce bir DeepSeek API anahtarı girin.",
+  "enterCustomApiKeyAndBaseUrl": "Lütfen önce özel API anahtarını ve Base URL adresini girin.",
+  "fetchedCountModels": "{count} model başarıyla getirildi.",
+  "requestFailedWithStatus": "İstek başarısız ({statusCode}): {message}",
+  "requestFailedCheckNetwork": "İstek başarısız oldu. Ağ bağlantınızı kontrol edin.",
+  "requestFailedStatus": "İstek başarısız ({statusCode}).",
+  "doubao": "Doubao",
+  "custom": "Özel",
+  "noModelSelected": "Model seçilmedi",
+  "acoustidRequestFailed": "AcoustID isteği başarısız oldu",
+  "acoustidRequestReturnedStatus": "AcoustID isteği {statusCode} kodu döndürdü. Lütfen kendi AcoustID API anahtarınızı alın ve ayarlara girin.",
+  "writeTagDatabaseFailed": "Etiket veritabanına yazılamadı",
+  "playPause": "Çal / Duraklat",
+  "nextTrack": "Sonraki",
+  "previousTrack": "Önceki",
+  "volumeUp": "Sesi Artır",
+  "volumeDown": "Sesi Azalt",
+  "toggleMute": "Sesi Aç/Kapat",
+  "seekForward5s": "5s İleri Al",
+  "seekBackward5s": "5s Geri Al",
+  "toggleFullScreen": "Tam Ekranı Aç/Kapat",
+  "playPauseDescription": "Geçerli oynatma durumunu kontrol eder.",
+  "nextDescription": "Sonraki şarkıya geçer.",
+  "previousDescription": "Önceki şarkıya döner.",
+  "volumeUpDescription": "Ses düzeyini her seferinde %5 artırır.",
+  "volumeDownDescription": "Ses düzeyini her seferinde %5 azaltır.",
+  "toggleMuteDescription": "Sesi tamamen kapatır veya açar.",
+  "seekForward5sDescription": "Oynatmayı 5 saniye ileri sarar.",
+  "seekBackward5sDescription": "Oynatmayı 5 saniye geri sarar.",
+  "toggleFullScreenDescription": "Pencereli mod ile tam ekran modu arasında geçiş yapar.",
+  "unknownKey": "Bilinmeyen tuş",
+  "removeFromQueue": "Sıradan Kaldır",
+  "removeFromPlaylist": "Çalma Listesinden Kaldır",
+  "alreadyLatestVersion": "Zaten en güncel sürümü kullanıyorsunuz.",
+  "updateAvailable": "Güncelleme Mevcut",
+  "newVersionAvailable": "Yeni sürüm v{version} mevcut. GitHub Release sayfasından indirin.",
+  "openRelease": "Yayın Sayfasını Aç",
+  "checkUpdateFailedNetwork": "Güncellemeler denetlenemedi. Ağ sorunu veya GitHub hız sınırı olabilir.",
+  "tags": "Etiketler",
+  "about": "Hakkında",
+  "rebuildIndex": "Dizini Yeniden Oluştur",
+  "rebuildIndexDescription": "Harici kaynaklar hariç tüm şarkı kayıtlarını temizler ve tüm kök dizinleri yeniden tarar.",
+  "rebuildIndexConfirmation": "Harici kaynaklar hariç tüm şarkı kayıtlarını temizlemek ve tüm kök dizinleri yeniden taramak istediğinizden emin misiniz? Bu işlem biraz zaman alabilir.",
+  "rebuildIndexStarted": "Dizini yeniden oluşturma başlatıldı",
+  "rebuild": "Yeniden Oluştur",
+  "advanced": "Gelişmiş",
+  "advancedOptionsDescription": "Hata ayıklama ve davranış ayarlama seçenekleri.",
+  "showDeveloperOptionsDescription": "Hata ayıklamaya yönelik gelişmiş seçenekleri gösterir.",
+  "onboardingReset": "Başlangıç kurulumu sıfırlandı. Bir sonraki başlatmada geçerli olacaktır.",
+  "tagsSectionDescription": "Ses dosyası meta verilerini ve otomatik tamamlamayı yapılandırın.",
+  "autoSaveToSourceFile": "Kaynak Dosyaya Otomatik Kaydet",
+  "autoSaveToSourceFileDescription": "Tamamlandığında etiketleri otomatik olarak fiziksel ses dosyasına geri yazar.",
+  "aboutSectionDescription": "Sürüm bilgisi, proje bağlantıları ve ilgili ayrıntılar.",
+  "checkForUpdates": "Güncellemeleri Denetle",
+  "storeUpdateNotice": "Bu uygulamanın güncellemeleri Microsoft Store tarafından yönetilmektedir. En son sürümü Microsoft Store'dan kontrol edebilirsiniz.",
+  "openMicrosoftStore": "Microsoft Store'a Git",
+  "appStoreUpdateNotice": "Bu uygulamanın güncellemeleri App Store tarafından yönetilmektedir. En son sürümü App Store'dan kontrol edebilirsiniz.",
+  "openAppStore": "App Store'a Git",
+  "lyricsGenerationModel": "Şarkı Sözü Oluşturma Modeli",
+  "lyricsGenerationModelDescription": "AI ile söz oluşturma ve zaman çizelgesi hizalama için kullanılır.",
+  "lyricsTranslationModel": "Şarkı Sözü Çeviri Modeli",
+  "lyricsTranslationModelDescription": "Şarkı sözlerini hedef dile çevirmek için kullanılır.",
+  "onlyForLyricTranslation": "Yalnızca şarkı sözü çevirisi için",
+  "fillApiKeyFirstEnablesModels": "Model seçimini etkinleştirmek için lütfen en az bir API anahtarı girin.",
+  "customApiProvider": "Özel API Sağlayıcı",
+  "clearedGoogleAiStudioApiKey": "Google AI Studio API anahtarı temizlendi",
+  "clearedOpenRouterApiKey": "OpenRouter API anahtarı temizlendi",
+  "clearedDoubaoApiKey": "Doubao API anahtarı temizlendi",
+  "clearedDeepseekApiKey": "DeepSeek API anahtarı temizlendi",
+  "clearedCustomProviderConfig": "Özel sağlayıcı yapılandırması temizlendi",
+  "savedDoubaoApiKey": "Doubao API anahtarı kaydedildi",
+  "savedDeepseekApiKey": "DeepSeek API anahtarı kaydedildi",
+  "savedCustomProviderConfig": "Özel sağlayıcı yapılandırması kaydedildi",
+  "noMatchingFoldersOrSongs": "Eşleşen klasör veya şarkı bulunamadı",
+  "searching": "Aranıyor...",
+  "listView": "Liste Görünümü",
+  "gridView": "Izgara Görünümü",
+  "hybridView": "Karma Görünüm",
+  "songsCountFormat": "{count} şarkı",
+  "searchInFolderAndSubfolders": "Klasör ve alt klasörlerde ara...",
+  "shuffle": "Karışık Çal",
+  "search": "Ara",
+  "selectFolders": "Klasörleri Seç",
+  "removeDirectory": "Dizini Kaldır",
+  "removeRootDirectoryConfirmation": "\"{name}\" kök dizinini kaldırmak istediğinizden emin misiniz? Bu işlem diskteki fiziksel dosyaları silmez.",
+  "deselectAll": "Seçimi Kaldır",
+  "favorites": "Favoriler",
+  "aggregationPeak": "Tepe Değer (Peak)",
+  "aggregationMean": "Ortalama (Mean)",
+  "aggregationRms": "RMS",
+  "filesToTranscode": "Dönüştürülecek Dosyalar",
+  "chooseAndroidOutputDirectoryFirst": "Lütfen önce bir Android çıktı dizini seçin.",
+  "currentSongProgressPercent": "Geçerli şarkı %{percent}",
+  "overallProgressPercent": "Genel %{percent}",
+  "pleaseChooseOutputDirectory": "Lütfen önce bir çıktı dizini seçin.",
+  "selectedArtistsCount": "{count} sanatçı seçildi",
+  "selectedAlbumsCount": "{count} albüm seçildi",
+  "simplifiedChinese": "Basitleştirilmiş Çince",
+  "traditionalChinese": "Geleneksel Çince",
+  "chineseLanguage": "Çince",
+  "englishLanguage": "İngilizce",
+  "japaneseLanguage": "Japonca",
+  "koreanLanguage": "Korece",
+  "frenchLanguage": "Fransızca",
+  "germanLanguage": "Almanca",
+  "spanishLanguage": "İspanyolca",
+  "nativeLanguageZh": "简体中文",
+  "nativeLanguageZhHant": "繁體中文",
+  "nativeLanguageEn": "English",
+  "nativeLanguageJa": "日本語",
+  "nativeLanguageKo": "한국어",
+  "nativeLanguageFr": "Français",
+  "nativeLanguageDe": "Deutsch",
+  "nativeLanguageEs": "Español",
+  "portugueseLanguage": "Portekizce",
+  "russianLanguage": "Rusça",
+  "systemLanguage": "Sistem Dili",
+  "targetLanguage": "Hedef Dil",
+  "whatAreAiLyrics": "AI Şarkı Sözleri Nedir?",
+  "whatIsAiLyricTranslation": "AI Şarkı Sözü Çevirisi Nedir?",
+  "aiLyricsIntroGeneration": "AI, şarkı içeriğine göre sözleri oluşturabilir ve zaman çizelgesiyle otomatik eşleştirebilir.",
+  "aiLyricsIntroTranslation": "AI, şarkı sözlerini anlamanızı kolaylaştırmak için bildiğiniz bir dile çevirebilir.",
+  "whyNeedApiKey": "Neden bir API anahtarına ihtiyacım var?",
+  "apiKeyExplanation": "AI modellerini kullanabilmek için ilgili sağlayıcının (OpenRouter, DeepSeek vb.) API anahtarı gereklidir. Anahtarınız yerel olarak saklanır.",
+  "apiKeyLocalOnly": "API anahtarınız yalnızca cihazınızda yerel olarak saklanır ve asla harici sunuculara gönderilmez.",
+  "chooseAnAiProvider": "Bir AI sağlayıcısı seçin:",
+  "googleProviderPros": "Güçlü Gemini modelleri ve cömert ücretsiz kotalar sunan resmi Google kanalı.",
+  "googleProviderCons": "Yüksek trafik zaman zaman 429 hatasına neden olabilir. Bu durumda başka bir sağlayıcıya geçebilirsiniz.",
+  "openRouterProviderPros": "Birçok sağlayıcıya ve bazı ücretsiz modellere erişim sunan bir model toplayıcı.",
+  "openRouterProviderCons": "Bakiye yüklemeleri işlem ücreti içerebilir ve web sitesi yalnızca İngilizcedir.",
+  "doubaoProviderPros": "ByteDance tarafından geliştirilmiştir, Çince ve çoklu dilde güçlüdür. Yeni kullanıcılara model başına 500 bin ücretsiz belirteç verilir.",
+  "doubaoProviderCons": "Kayıt işlemi nispeten karmaşıktır ve gerçek isim doğrulaması gerektirir.",
+  "deepseekProviderPros": "İyi anlama yeteneği, düşük fiyatlandırma ve şarkı sözü çevirisi için çok uygundur.",
+  "deepseekProviderCons": "Yalnızca metin girişi destekler. Söz oluşturma ve zaman çizelgesi hizalama için başka bir sağlayıcıdan API anahtarı gerekir.",
+  "highlights": "Öne Çıkanlar",
+  "notes": "Notlar",
+  "enterProviderApiKey": "{provider} API anahtarınızı girin:",
+  "pasteYourApiKey": "API anahtarınızı buraya yapıştırın",
+  "getApiKey": "API anahtarı al",
+  "testConnectionButton": "Bağlantıyı test et",
+  "enableAiLyricGeneration": "AI Şarkı Sözü Oluşturmayı Etkinleştir",
+  "enableAiLyricTranslation": "AI Şarkı Sözü Çevirisini Etkinleştir",
+  "notNow": "Şimdi Değil",
+  "startSetup": "Kuruluma Başla",
+  "chooseAiProvider": "AI Sağlayıcısı Seçin",
+  "backStep": "Geri",
+  "continueAction": "Devam Et",
+  "nextStep": "İleri",
+  "configureApiKey": "API Anahtarını Yapılandır",
+  "saveAndFinish": "Kaydet ve Bitir",
+  "testing": "Test ediliyor...",
+  "noteTitle": "Not",
+  "deepseekTextInputOnlyNote": "DeepSeek yalnızca metin girişini destekler. Söz oluşturma ve zaman çizelgesi hizalama için başka bir sağlayıcıdan API anahtarı gerekir.",
+  "retryAttemptOfMax": "Yeniden deneme: {attempt} / {maxRetry}",
+  "generatingTaskKind": "{taskKind} oluşturuluyor",
+  "connectionTestException": "Bağlantı testi hatası: {error}",
+  "testingConnectionProgress": "Bağlantı test ediliyor...",
+  "clear": "Temizle",
+  "enterDoubaoApiKey": "Doubao API Anahtarını Girin",
+  "doubaoApiKeyDescription": "Söz oluşturma ve çeviri için lütfen Volcano/Doubao API anahtarınızı girin.",
+  "enterDeepseekApiKey": "DeepSeek API Anahtarını Girin",
+  "deepseekApiKeyDescription": "Yalnızca söz çevirisi için lütfen DeepSeek API anahtarınızı girin.",
+  "pleaseEnterApiKeyHint": "Lütfen API anahtarını girin",
+  "platform": "Platform",
+  "showRecommendedOnly": "Yalnızca önerilenleri göster",
+  "noAvailableChannels": "Kullanılabilir kanal yok",
+  "noMatchingModels": "Eşleşen model bulunamadı",
+  "leaveEmpty": "Boş bırak",
+  "leaveEmptyFallbackDescription": "Yedek model ayarlamamak için bunu seçin.",
+  "modelSearchHint": "Model adı veya ID girin",
+  "@sendFilesFailed": {
+    "description": "Toast when sending files fails",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "sendFilesFailed": "Dosya gönderme başarısız: {error}",
+  "scanningFolderMusic": "Klasördeki müzik dosyaları taranıyor...",
+  "@scanFolderFailed": {
+    "description": "Toast when scanning folder fails",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "scanFolderFailed": "Klasör tarama başarısız: {error}",
+  "noMusicFilesFound": "Bu klasörde desteklenen müzik dosyası bulunamadı",
+  "@sendFolderFailed": {
+    "description": "Toast when sending folder fails",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "sendFolderFailed": "Klasör gönderme başarısız: {error}",
+  "lanSharingStartFailed": "Yerel ağ paylaşımı başlatılamadı. Lütfen yerel ağ izinlerini kontrol edin.",
+  "@syncingLyricsToDevice": {
+    "description": "Toast when syncing lyrics to a device",
+    "placeholders": {
+      "deviceName": {}
+    }
+  },
+  "syncingLyricsToDevice": "{deviceName} cihazına şarkı sözleri senkronize ediliyor...",
+  "@syncLyricsSuccess": {
+    "description": "Toast when sync completes",
+    "placeholders": {
+      "matched": {},
+      "overwritten": {},
+      "skipped": {}
+    }
+  },
+  "syncLyricsSuccess": "Senkronizasyon tamamlandı: {matched} eşleşti, {overwritten} güncellendi, {skipped} atlandı",
+  "@syncLyricsFailed": {
+    "description": "Toast when sync fails",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "syncLyricsFailed": "Söz senkronizasyonu başarısız: {error}",
+  "@syncingLyricsFromDevice": {
+    "description": "Toast when syncing lyrics from a device",
+    "placeholders": {
+      "deviceName": {}
+    }
+  },
+  "syncingLyricsFromDevice": "{deviceName} cihazından şarkı sözleri senkronize ediliyor...",
+  "transferInProgressDoNotLeave": "Aktarım devam ediyor, lütfen paylaşım sayfasından ayrılmayın",
+  "lanSharingTitle": "Yerel Ağ Paylaşımı",
+  "lanSharingEnabledStatus": "Yerel ağ paylaşımı etkinleştirildi",
+  "lanSharingDisabledStatus": "Yerel ağ paylaşımı devre dışı",
+  "@lanSharingRunningStatus": {
+    "description": "Status text showing IP and port",
+    "placeholders": {
+      "ip": {},
+      "port": {}
+    }
+  },
+  "lanSharingRunningStatus": "Yerel IP: {ip} (Port: {port})",
+  "lanSharingDefaultOffHint": "Varsayılan olarak kapalıdır. Etkinleştirildiğinde yerel ağ izni istenecektir.",
+  "receiveDirectoryNotSetWarning": "Dosya alabilmek için bir alıcı dizini ayarlanmalıdır. Lütfen bir dizin seçin.",
+  "@receiveDirectoryUpdated": {
+    "description": "Toast when receive directory is updated",
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "receiveDirectoryUpdated": "Alıcı dizini güncellendi: {path}",
+  "receiveDirectoryTitle": "Alıcı Dizini",
+  "linkCopiedToClipboard": "Bağlantı panoya kopyalandı",
+  "nearbyDevices": "Yakındaki Cihazlar",
+  "searchingDevices": "Yerel ağdaki diğer cihazlar aranıyor...",
+  "startSharingToFindDevices": "Cihazları bulmak için paylaşımı etkinleştirin",
+  "deviceOnline": "Çevrimiçi",
+  "deviceOffline": "Çevrimdışı",
+  "sendMusicFiles": "Müzik Dosyaları Gönder",
+  "sendFolder": "Klasör Gönder",
+  "syncLyricsToDeviceAction": "Sözleri Cihaza Eşitle",
+  "syncLyricsFromDeviceAction": "Sözleri Cihazdan Eşitle",
+  "@loadDevicesError": {
+    "description": "Error message when loading devices fails",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "loadDevicesError": "Cihazlar yüklenemedi: {error}",
+  "@incomingFilesFormat": {
+    "description": "File names in incoming transfer dialog",
+    "placeholders": {
+      "name1": {},
+      "name2": {},
+      "count": {}
+    }
+  },
+  "incomingFilesFormat": "{name1}, {name2} ve {count} diğer dosya",
+  "incomingTransferRequestTitle": "Gelen Dosya Aktarım İsteği",
+  "@incomingTransferFrom": {
+    "description": "Who sent the request",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingTransferFrom": "\"{senderName}\" cihazından aktarım isteği:",
+  "@fileSizeMb": {
+    "description": "File size in megabytes",
+    "placeholders": {
+      "sizeMb": {}
+    }
+  },
+  "fileSizeMb": "Dosya boyutu: {sizeMb} MB",
+  "receiveFileHint": "Alınan dosyalar müzik klasörüne kaydedilecek ve kitaplığa eklenecektir.",
+  "reject": "Reddet",
+  "accept": "Kabul Et",
+  "incomingLyricsExportTitle": "Şarkı Sözü Dışa Aktarma İsteği",
+  "@incomingLyricsExportFrom": {
+    "description": "Who requested to export/read lyrics",
+    "placeholders": {
+      "senderName": {}
+    }
+  },
+  "incomingLyricsExportFrom": "\"{senderName}\" cihazı şarkı sözü kitaplığınızı dışa aktarmak istiyor.",
+  "incomingLyricsImportTitle": "Şarkı Sözü İçe Aktarma İsteği",
+  "@incomingLyricsImportFrom": {
+    "description": "Who requested to import/push lyrics",
+    "placeholders": {
+      "senderName": {},
+      "count": {}
+    }
+  },
+  "incomingLyricsImportFrom": "\"{senderName}\" cihazı {count} şarkı için söz içe aktarmak istiyor.",
+  "lyricsRequestRejected": "Uzak cihaz şarkı sözü eşitleme isteğini reddetti.",
+  "@sendCompleted": {
+    "description": "Toast when sending completes",
+    "placeholders": {
+      "fileName": {}
+    }
+  },
+  "sendCompleted": "\"{fileName}\" gönderildi",
+  "@receiveCompleted": {
+    "description": "Toast when receiving completes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "receiveCompleted": "{count} şarkı başarıyla alındı",
+  "@transferCancelledWithReason": {
+    "description": "Toast when transfer is cancelled with reason",
+    "placeholders": {
+      "direction": {},
+      "reason": {}
+    }
+  },
+  "transferCancelledWithReason": "{direction} iptal edildi ({reason})",
+  "@transferFailedFormat": {
+    "description": "Toast when transfer fails",
+    "placeholders": {
+      "direction": {},
+      "fileName": {}
+    }
+  },
+  "transferFailedFormat": "{direction} \"{fileName}\" başarısız oldu",
+  "@sendingToDevice": {
+    "description": "Title for send progress dialog",
+    "placeholders": {
+      "deviceName": {}
+    }
+  },
+  "sendingToDevice": "{deviceName} cihazına gönderiliyor",
+  "@receivingFromDevice": {
+    "description": "Title for receive progress dialog",
+    "placeholders": {
+      "deviceName": {}
+    }
+  },
+  "receivingFromDevice": "{deviceName} cihazından alınıyor",
+  "@progressFormat": {
+    "description": "Transfer progress percentage",
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "progressFormat": "İlerleme: %{percent}",
+  "currentlyTransferring": "Şu Anda Aktarılıyor",
+  "fileConflictTitle": "Dosya Çakışması",
+  "fileConflictMessage": "Hedef cihazda aynı ada sahip bir dosya zaten mevcut:",
+  "fileConflictChooseAction": "Lütfen bir işlem seçin:",
+  "skipAction": "Atla",
+  "overwriteAction": "Üzerine Yaz",
+  "skipAllAction": "Tümünü Atla",
+  "overwriteAllAction": "Tümünün Üzerine Yaz",
+  "sendDirection": "Gönder",
+  "receiveDirection": "Al",
+  "fileAssociationEnabled": "İlişkilendirildi",
+  "fileAssociationDisabled": "İlişkilendirilmedi",
+  "windowsAutoRepairShortcut": "Başlat Menüsü Kısayolunu Otomatik Onar",
+  "windowsAutoRepairShortcutDescription": "Doğru medya denetim adını ve simgesini görüntülemek için her başlangıçta Başlat Menüsü kısayolunu otomatik kontrol et ve oluştur",
+  "confirmDisableShortcutRepair": "Bu özellik devre dışı bırakılsın mı?",
+  "confirmDisableShortcutRepairContent": "Başlat Menüsü kısayolu olmadan, Windows medya kontrolleri uygulamayı \"Bilinmeyen\" olarak gösterebilir ve simge görüntülemeyebilir. Bunu devre dışı bırakmak istediğinizden emin misiniz?",
+  "confirmDisable": "Devre Dışı Bırak",
+  "enableSystemTray": "Sistem Tepsisini Etkinleştir",
+  "enableSystemTrayDescription": "Hızlı oynatma kontrolü için sistem tepsisinde simge göster",
+  "closeToTray": "Kapatıldığında Sistem Tepsisine Küçült",
+  "closeToTrayDescription": "Pencere kapatıldığında arka planda çalışmaya devam et",
+  "closeWindowActionTitle": "Pencere kapatıldığında",
+  "closeWindowActionDescription": "Kapat düğmesine tıklandığında ne olacağını seçin",
+  "closeWindowActionAsk": "Her zaman sor",
+  "closeWindowActionMinimize": "Sistem tepsisine küçült",
+  "closeWindowActionExit": "Uygulamadan çık",
+  "closeWindowActionRemember": "Seçimimi hatırla ve tekrar sorma",
+  "closeWindowActionTrayDisabledTip": "(Sistem tepsisi etkin olmalıdır)",
+  "closeWindowDialogTitle": "Pencereyi Kapat",
+  "closeWindowDialogContent": "Lütfen kapat düğmesine tıklandığında ne olacağını seçin:",
+  "googleAiStudioApiKey": "Google AI Studio API Anahtarı",
+  "openRouterApiKey": "OpenRouter API Anahtarı",
+  "doubaoApiKey": "Doubao API Anahtarı",
+  "deepseekApiKey": "DeepSeek API Anahtarı",
+  "unexpectedResponseFormat": "Beklenmeyen yanıt formatı.",
+  "baseUrl": "Base URL",
+  "openaiCompatibleEndpoint": "OpenAI uyumlu API uç noktası",
+  "onboardingAddedDirectoriesCount": "Eklenen dizinler ({count}):",
+  "gnomeDisksOpenFailed": "Disk Yöneticisi otomatik olarak açılamadı. Lütfen uygulama menünüzden \"Diskler\"i manuel olarak açın.",
+  "gnomeDisksNotInstalled": "gnome-disks yüklü değil. Yapılandırmak için lütfen sisteminizin disk yöneticisini açın.",
+  "linuxMountGuideTitle": "Linux Disk Bağlama Rehberi",
+  "linuxMountGuideDescription": "Varsayılan olarak Linux harici bölümleri otomatik bağlamaz. Başlangıçta bağlamayı yapılandırmazsanız harici bölümlerin bağlama yolu her yeniden başlatmada değişebilir ve oynatıcının müzik dizinine erişmesini engelleyebilir. Bunu önlemek için lütfen müziğinizi içeren bölümü başlangıçta otomatik bağlanacak şekilde ayarlayın.",
+  "linuxMountGuideWarning": "Uyarı: Müziğiniz bağlama gerektiren harici veya dahili bir sürücü bölümündeyse, \"sistem başlangıcında otomatik bağla\" olarak yapılandırmalısınız. Aksi takdirde, yeniden başlatmanın ardından müzik dizini bulunamayabilir veya erişmek için şifre girmeniz gerekebilir.",
+  "linuxMountGuideStep1": "1. Sistem \"Diskler\" (Disks) uygulamasını açın",
+  "linuxMountGuideStep2": "2. Müzik bölümünüzü seçin, ⚙️ dişli simgesine (Ek bölüm seçenekleri) tıklayın",
+  "linuxMountGuideStep3": "3. \"Bağlama Seçeneklerini Düzenle\"yi seçin, \"Kullanıcı Oturumu Varsayılanları\"nı kapatın ve \"Sistem başlangıcında bağla\"yı işaretleyin",
+  "linuxMountGuideOpenButton": "Disk Yöneticisini Aç (Disks)",
+  "unmute": "Sesi Aç",
+  "mute": "Sesi Kapat",
+  "disableSystemTray": "Sistem Tepsisini Devre Dışı Bırak",
+  "restoreWindow": "Pencereyi Geri Yükle",
+  "hideWindow": "Pencereyi Gizle",
+  "onboardingAndroidBatteryTitle": "Arka Planda Çalma Koruması",
+  "onboardingAndroidBatteryDescription": "Android'in katı pil optimizasyon politikaları nedeniyle müziğin arka planda durmasını önlemek için Vynody'nin pil kısıtlamasını \"Kısıtlamasız\" olarak ayarlamanızı öneririz.",
+  "onboardingAndroidBatteryStep1": "1. Aşağıdaki \"Ayarlara Git\" düğmesine dokunun.",
+  "onboardingAndroidBatteryStep2": "2. Sistem isteminde pil optimizasyonlarını yoksaymaya izin verin veya pil ayarlarına gidin.",
+  "onboardingAndroidBatteryStep3": "3. Ayarlara yönlendirilirseniz \"Kısıtlamasız\" veya \"Kısıtlama Yok\" seçeneğini belirleyin.",
+  "onboardingAndroidBatteryButton": "Ayarlara Git",
+  "onboardingAndroidBatteryStatusOptimized": "Durum: Kısıtlı (arka planda oynatma durabilir)",
+  "onboardingAndroidBatteryStatusUnrestricted": "Durum: Kısıtlamasız (önerilen, oynatma korunur)",
+  "onboardingAndroidMediaTitle": "Müzik Kitaplığınıza Erişin",
+  "onboardingAndroidMediaDescription": "İzin verildiğinde Vynody, sistem medya kitaplığınızdaki tüm müzikleri doğrudan okuyabilir — klasörleri manuel olarak seçmenize gerek kalmaz. İzin vermeden de belirli klasörlerden müzik aktarabilirsiniz.",
+  "onboardingAndroidMediaStep1": "1. Hemen Hazır: Telefonunuzdaki tüm müzikleri anında gösterir",
+  "onboardingAndroidMediaStep2": "2. Otomatik Keşif: Yeni indirilen veya aktarılan müzikler otomatik görünür",
+  "onboardingAndroidMediaStep3": "3. Gizlilik Güvenli: Yalnızca yerel ses dosyalarını okur ve kitaplığınızı dışarıya yüklemez (AI sözleri gibi bulut servisleri hariç)",
+  "onboardingAndroidMediaButton": "Medya Kitaplığına Erişim İzni Ver",
+  "onboardingAndroidMediaStatusGranted": "Durum: İzin Verildi (Önerilen)",
+  "onboardingAndroidMediaStatusNotGranted": "Durum: İzin Verilmedi (daha sonra klasörleri manuel ekleyebilirsiniz)",
+  "exitApp": "Çıkış",
+  "showScanProgressToastSetting": "Tarama Durumu Bildirimini Göster",
+  "showScanProgressToastSettingDescription": "Klasörler taranırken ekranın üst kısmında gerçek zamanlı tarama ilerlemesini gösterir.",
+  "openPlaybackOnDirectorySongTap": "Şarkıya dokunulduğunda oynatma sayfasını aç",
+  "openPlaybackOnDirectorySongTapDescription": "Dizin görünümünde bir şarkıya dokunulduğunda otomatik olarak oynatma sayfasını açar.",
+  "defaultToLyricsModeOnPlaybackOpen": "Oynatma sayfasında varsayılan olarak sözler modunu aç",
+  "defaultToLyricsModeOnPlaybackOpenDescription": "Oynatma sayfası açıldığında otomatik olarak şarkı sözü görünümünü gösterir.",
+  "tapCoverToEnterLyricsMode": "Söz moduna geçmek için kapağa dokunun",
+  "longPressLyricsPanelToOpenMenu": "Menüyü açmak için sözler paneline uzun basın",
+  "gotIt": "Anladım",
+  "scanToastHiddenHint": "Tarama durumu bildirimi gizlendi. Ayarlar - Arayüz bölümünden yeniden etkinleştirebilirsiniz.",
+  "doubleSpeedPlayingSwipeUpToLock": "Hızlı sarılıyor... Kilitlemek için yukarı kaydırın",
+  "doubleSpeedLockedSwipeDownToUnlock": "Hızlı sarma kilitlendi. Kilidi açmak için basılı tutup aşağı kaydırın",
+  "doubleSpeedUnlocked": "Hızlı sarma kilidi açıldı",
+  "lyricsImportExportHeader": "İçe ve Dışa Aktarma",
+  "exportAction": "Dışa Aktar",
+  "importAction": "İçe Aktar",
+  "exportLyricsLabel": "Şarkı Sözü Yedeğini Dışa Aktar",
+  "exportLyricsDescription": "Önbelleğe alınmış ve ayarlanmış tüm şarkı sözlerini JSON dosyası olarak dışa aktarın",
+  "importLyricsLabel": "Şarkı Sözü Yedeğini İçe Aktar",
+  "importLyricsDescription": "Dışa aktarılmış bir JSON dosyasından şarkı sözü önbelleğini içe aktarın",
+  "exportSuccess": "{count} şarkı sözü başarıyla dışa aktarıldı.",
+  "@exportSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportFailed": "Dışa aktarma başarısız: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importSuccess": "İçe aktarma tamamlandı! {count} şarkı sözü başarıyla içe aktarıldı.",
+  "@importSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailed": "İçe aktarma başarısız: {error}",
+  "@importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "importConflictsTitle": "İçe Aktarma Çakışmaları",
+  "importConflictsMessage": "Yedekte {conflictCount} adet çakışan şarkı sözü bulundu (yerel olarak mevcut ancak farklı). Lütfen nasıl devam etmek istediğinizi seçin:",
+  "@importConflictsMessage": {
+    "placeholders": {
+      "conflictCount": {
+        "type": "int"
+      }
+    }
+  },
+  "overwriteAll": "Tümünün Üzerine Yaz",
+  "skipAllConflicts": "Çakışmaları Atla",
+  "decideOneByOne": "Tek Tek Karar Ver",
+  "conflictResolutionTitle": "Çakışmayı Çöz ({current}/{total})",
+  "@conflictResolutionTitle": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "conflictExistingLabel": "Mevcut Sözler",
+  "conflictImportedLabel": "İçe Aktarılan Sözler",
+  "conflictSourceLabel": "Kaynak: {source}",
+  "@conflictSourceLabel": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "conflictTimeLabel": "Zaman: {time}",
+  "@conflictTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "overwriteThis": "Üzerine Yaz",
+  "skipThis": "Atla",
+  "overwriteRemaining": "Kalanların Tümünün Üzerine Yaz",
+  "skipRemaining": "Kalanların Tümünü Atla",
+  "invalidBackupFile": "Geçersiz yedek dosyası",
+  "exportLogs": "Günlükleri Dışa Aktar",
+  "exportLogsSuccess": "Günlükler başarıyla dışa aktarıldı",
+  "exportLogsFailed": "Günlükler dışa aktarılamadı",
+  "noLogFileFound": "Günlük dosyası bulunamadı",
+  "uiDisplayScale": "Arayüz Ölçeği",
+  "uiDisplayScaleDescription": "Arayüz öğelerinin boyutunu ayarlayın",
+  "uiDisplayScaleDialogTitle": "Arayüz Ölçeği / Araç Modu",
+  "uiDisplayScaleCurrent": "Geçerli ölçek: {percent}%",
+  "@uiDisplayScaleCurrent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "audioSettings": "Ses Ayarları",
+  "audioSettingsDescription": "Ses çalma, ekolayzer bantları ve hız yapılandırmalarını yönetin",
+  "equalizerBandCount": "Ekolayzer Bant Sayısı",
+  "equalizerBandCountDescription": "Ekolayzer panelindeki bant sayısını yapılandırın. Yüksek bant modları otomatik olarak yatay kaydırmayı etkinleştirir.",
+  "bandsCountOption": "{count} Bant",
+  "@bandsCountOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "enableFadeEffect": "Ses Karartma (Fade) Efekti",
+  "enableFadeEffectDescription": "Şarkı değiştirme, çalma ve duraklatma sırasında yumuşak ses geçiş efektini etkinleştirin",
+  "buttonLayoutSettings": "Düğme Düzeni",
+  "playbackButtonLayoutTitle": "Oynatma Sayfası Kontrol Düzeni",
+  "playbackButtonLayoutDescription": "Oynatma sayfasındaki düğme sırasını ve simgelerini özelleştirin",
+  "topButtonsRowTitle": "7 Düğmeli Satır Sırası",
+  "mainButtonsRowTitle": "5 Düğmeli Satır Sol ve Sağ Düğmeleri",
+  "mainControlsLeftButton": "Sol Düğme",
+  "mainControlsRightButton": "Sağ Düğme",
+  "lyricsHeaderRightButtonTitle": "Sözler Başlık Çubuğu Daraltılmış Düğmesi",
+  "resetButtonOrder": "Varsayılana Sıfırla",
+  "btnMore": "Daha Fazla Menüsü",
+  "btnFavorite": "Favori",
+  "btnPlaylistMode": "Çalma Modu",
+  "btnShuffle": "Karışık",
+  "btnTagCompletion": "Etiket Tamamlama",
+  "btnSleepTimer": "Uyku Zamanlayıcısı",
+  "btnEqualizer": "Ekolayzer",
+  "btnVisualizer": "Görselleştirici",
+  "btnVolume": "Ses",
+  "remoteControlAction": "Uzaktan Kontrol",
+  "remoteControlRequestTitle": "Uzaktan Kontrol İsteği",
+  "remoteControlRequestFrom": "\"{name}\" cihazı uzaktan kontrol izni istiyor",
+  "@remoteControlRequestFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotePinPairHint": "Lütfen kontrol eden cihazınıza aşağıdaki eşleştirme PIN kodunu girin:",
+  "remotePinExpiresIn": "PIN geçerlilik süresi:",
+  "allowDirectly": "Doğrudan İzin Ver",
+  "enterRemotePinTitle": "Cihaz Eşleştirme",
+  "enterRemotePinPrompt": "\"{name}\" üzerinde gösterilen 4 haneli PIN kodunu girin:",
+  "@enterRemotePinPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotePinInvalid": "Geçersiz veya süresi dolmuş PIN. Lütfen tekrar deneyin.",
+  "remoteConnected": "Bağlandı",
+  "remoteConnecting": "Bağlanıyor...",
+  "remoteDisconnect": "Bağlantıyı Kes",
+  "remoteConnectFailed": "Uzaktan bağlantı başarısız oldu",
+  "controlledByRemoteDevices": "Uzaktan kontrol eden cihaz(lar): {devices}",
+  "@controlledByRemoteDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "trustedDevicesTitle": "Güvenilen Uzak Cihazlar",
+  "manageTrustedDevicesTitle": "Güvenilen Uzak Cihazları Yönet",
+  "removeTrustedDevice": "Güveni Kaldır",
+  "noMusicPlaying": "Çalan müzik yok",
+  "previousSong": "Önceki",
+  "nextSong": "Sonraki",
+  "shufflePlayback": "Karışık Çal",
+  "allowRemoteControlTitle": "Uzaktan Kontrole İzin Ver",
+  "allowRemoteControlSubtitle": "Eşleştirmeden sonra yerel ağdaki diğer cihazların müzik çalmayı kontrol etmesine izin verin",
+  "remoteControlDisabledOnHost": "Hedef cihazda uzaktan kontrol devre dışı bırakılmış",
+  "trustThisDevice": "Bu cihaza güven ve gelecekte otomatik olarak izin ver",
+  "remoteRequestRejected": "Bağlantı isteği hedef cihaz tarafından reddedildi.",
+  "turkishLanguage": "Türkçe",
+  "nativeLanguageTr": "Türkçe"
+}

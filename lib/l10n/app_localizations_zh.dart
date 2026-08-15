@@ -3285,6 +3285,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get remoteRequestRejected => '对方已拒绝连接请求';
+
+  @override
+  String get turkishLanguage => '土耳其文';
+
+  @override
+  String get nativeLanguageTr => 'Türkçe';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -6568,4 +6574,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get remoteRequestRejected => '對方已拒絕連線請求';
+
+  @override
+  String get turkishLanguage => '土耳其文';
+
+  @override
+  String get nativeLanguageTr => 'Türkçe';
 }

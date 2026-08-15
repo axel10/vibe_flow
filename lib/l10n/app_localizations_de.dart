@@ -3496,4 +3496,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get remoteRequestRejected =>
       'Die Verbindungsanfrage wurde vom Zielgerät abgelehnt.';
+
+  @override
+  String get turkishLanguage => 'Türkisch';
+
+  @override
+  String get nativeLanguageTr => 'Türkçe';
 }
