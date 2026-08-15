@@ -6042,6 +6042,126 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'音量'**
   String get btnVolume;
+
+  /// No description provided for @remoteControlAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程控制'**
+  String get remoteControlAction;
+
+  /// No description provided for @remoteControlRequestTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程控制请求'**
+  String get remoteControlRequestTitle;
+
+  /// No description provided for @remoteControlRequestFrom.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备「{name}」请求控制本机播放'**
+  String remoteControlRequestFrom(String name);
+
+  /// No description provided for @remotePinPairHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'请在控制端输入以下配对验证码：'**
+  String get remotePinPairHint;
+
+  /// No description provided for @remotePinExpiresIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码有效期：'**
+  String get remotePinExpiresIn;
+
+  /// No description provided for @allowDirectly.
+  ///
+  /// In zh, this message translates to:
+  /// **'直接允许'**
+  String get allowDirectly;
+
+  /// No description provided for @enterRemotePinTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'设备配对'**
+  String get enterRemotePinTitle;
+
+  /// No description provided for @enterRemotePinPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入设备「{name}」屏幕上显示的 4 位配对验证码：'**
+  String enterRemotePinPrompt(String name);
+
+  /// No description provided for @remotePinInvalid.
+  ///
+  /// In zh, this message translates to:
+  /// **'验证码错误或已失效，请重试'**
+  String get remotePinInvalid;
+
+  /// No description provided for @remoteConnected.
+  ///
+  /// In zh, this message translates to:
+  /// **'已连接'**
+  String get remoteConnected;
+
+  /// No description provided for @remoteConnecting.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在连接...'**
+  String get remoteConnecting;
+
+  /// No description provided for @remoteDisconnect.
+  ///
+  /// In zh, this message translates to:
+  /// **'断开连接'**
+  String get remoteDisconnect;
+
+  /// No description provided for @remoteConnectFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程连接失败'**
+  String get remoteConnectFailed;
+
+  /// No description provided for @controlledByRemoteDevices.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在接受以下设备的远程控制: {devices}'**
+  String controlledByRemoteDevices(String devices);
+
+  /// No description provided for @trustedDevicesTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'已信任遥控设备'**
+  String get trustedDevicesTitle;
+
+  /// No description provided for @removeTrustedDevice.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除信任'**
+  String get removeTrustedDevice;
+
+  /// No description provided for @noMusicPlaying.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前未在播放'**
+  String get noMusicPlaying;
+
+  /// No description provided for @previousSong.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一首'**
+  String get previousSong;
+
+  /// No description provided for @nextSong.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一首'**
+  String get nextSong;
+
+  /// No description provided for @shufflePlayback.
+  ///
+  /// In zh, this message translates to:
+  /// **'随机播放'**
+  String get shufflePlayback;
 }
 
 class _AppLocalizationsDelegate

@@ -18,7 +18,9 @@ import '../pages/queue_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/sharing_page.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
+import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
+import 'package:vynody/dialogs/remote_pair_dialogs.dart';
 import 'package:vynody/player/library/music_file_utils.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/player/settings/shortcut_bindings.dart';
@@ -35,7 +37,6 @@ import '../widgets/global_drop_target.dart';
 import '../widgets/library_selection_scope.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
-import 'dart:async';
 
 Route<void> buildMainLayoutRoute({
   required List<String> args,
@@ -1033,6 +1034,17 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         showIncomingLyricsDialog(context, next);
       }
     });
+
+    // Listen for incoming remote control pair requests
+    ref.listen<IncomingRemotePairRequest?>(incomingRemotePairProvider, (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        showIncomingRemotePairDialog(context, next);
+      }
+    });
+
 
     // Listen for sharing warnings
     ref.listen<String?>(sharingWarningProvider, (previous, next) {

@@ -3417,4 +3417,70 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get btnVolume => 'Volume';
+
+  @override
+  String get remoteControlAction => '远程控制';
+
+  @override
+  String get remoteControlRequestTitle => '远程控制请求';
+
+  @override
+  String remoteControlRequestFrom(String name) {
+    return '设备「$name」请求控制本机播放';
+  }
+
+  @override
+  String get remotePinPairHint => '请在控制端输入以下配对验证码：';
+
+  @override
+  String get remotePinExpiresIn => '验证码有效期：';
+
+  @override
+  String get allowDirectly => '直接允许';
+
+  @override
+  String get enterRemotePinTitle => '设备配对';
+
+  @override
+  String enterRemotePinPrompt(String name) {
+    return '请输入设备「$name」屏幕上显示的 4 位配对验证码：';
+  }
+
+  @override
+  String get remotePinInvalid => '验证码错误或已失效，请重试';
+
+  @override
+  String get remoteConnected => '已连接';
+
+  @override
+  String get remoteConnecting => '正在连接...';
+
+  @override
+  String get remoteDisconnect => '断开连接';
+
+  @override
+  String get remoteConnectFailed => '远程连接失败';
+
+  @override
+  String controlledByRemoteDevices(String devices) {
+    return '正在接受以下设备的远程控制: $devices';
+  }
+
+  @override
+  String get trustedDevicesTitle => '已信任遥控设备';
+
+  @override
+  String get removeTrustedDevice => '移除信任';
+
+  @override
+  String get noMusicPlaying => '当前未在播放';
+
+  @override
+  String get previousSong => '上一首';
+
+  @override
+  String get nextSong => '下一首';
+
+  @override
+  String get shufflePlayback => '随机播放';
 }

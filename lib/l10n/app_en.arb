@@ -1393,5 +1393,48 @@
   "btnSleepTimer": "Sleep Timer",
   "btnEqualizer": "Equalizer",
   "btnVisualizer": "Visualizer",
-  "btnVolume": "Volume"
+  "btnVolume": "Volume",
+  "remoteControlAction": "Remote Control",
+  "remoteControlRequestTitle": "Remote Control Request",
+  "remoteControlRequestFrom": "Device \"{name}\" requests to control playback",
+  "@remoteControlRequestFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotePinPairHint": "Please enter the pairing PIN code on your controlling device:",
+  "remotePinExpiresIn": "PIN expires in:",
+  "allowDirectly": "Allow Directly",
+  "enterRemotePinTitle": "Device Pairing",
+  "enterRemotePinPrompt": "Enter the 4-digit PIN displayed on \"{name}\":",
+  "@enterRemotePinPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotePinInvalid": "Invalid or expired PIN. Please try again.",
+  "remoteConnected": "Connected",
+  "remoteConnecting": "Connecting...",
+  "remoteDisconnect": "Disconnect",
+  "remoteConnectFailed": "Remote connection failed",
+  "controlledByRemoteDevices": "Controlled by remote device(s): {devices}",
+  "@controlledByRemoteDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "trustedDevicesTitle": "Trusted Remote Devices",
+  "removeTrustedDevice": "Remove Trust",
+  "noMusicPlaying": "No music playing",
+  "previousSong": "Previous",
+  "nextSong": "Next",
+  "shufflePlayback": "Shuffle"
 }
+
+

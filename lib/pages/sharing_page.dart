@@ -12,6 +12,9 @@ import 'package:vynody/player/sharing/lan_device.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
 import 'package:vynody/transcode/transcode_riverpod.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
+import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
+import 'package:vynody/dialogs/remote_pair_dialogs.dart';
+import 'package:vynody/dialogs/remote_control_sheet.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import '../utils/song_context_menu_utils.dart';
@@ -259,6 +262,61 @@ class _SharingPageState extends ConsumerState<SharingPage> {
     );
   }
 
+  Future<void> _handleRemoteControl(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
+    final serverState = ref.read(sharingServerStateProvider);
+    if (!serverState.isRunning) {
+      showToast(l10n.startSharingToFindDevices);
+      return;
+    }
+
+    final sharingService = ref.read(sharingServiceProvider);
+    final remoteService = ref.read(remoteControlServiceProvider);
+
+    try {
+      final sessionToken = await remoteService.initiatePairing(
+        targetDevice: device,
+        senderId: sharingService.deviceId,
+        senderName: sharingService.deviceName,
+        deviceType: sharingService.deviceType,
+      );
+
+      if (sessionToken != null) {
+        if (!mounted) return;
+        final verified = await showRemotePinInputDialog(
+          context,
+          deviceName: device.name,
+          onVerify: (pin) async {
+            return await remoteService.verifyPinAndGetToken(
+              targetDevice: device,
+              sessionToken: sessionToken,
+              pin: pin,
+            );
+          },
+        );
+        if (verified != true) {
+          return;
+        }
+      }
+
+      if (!mounted) return;
+      final connected = await remoteService.connectWebSocket(
+        targetDevice: device,
+        senderName: sharingService.deviceName,
+      );
+
+      if (connected && mounted) {
+        showRemoteControlSheet(context, device);
+      } else if (mounted) {
+        showToast(l10n.remoteConnectFailed);
+      }
+    } catch (e) {
+      if (mounted) {
+        showToast('${l10n.remoteConnectFailed}: $e');
+      }
+    }
+  }
+
   Future<void> _setSharingEnabled(bool enabled) async {
     final settings = ref.read(settingsServiceProvider);
     final previousEnabled = settings.lanSharingEnabled;
@@ -407,6 +465,59 @@ class _SharingPageState extends ConsumerState<SharingPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 10),
+
+              // 0. Host Remote Control Active Banner (if any)
+              Builder(
+                builder: (context) {
+                  final hostClients = ref.watch(hostConnectedClientsProvider);
+                  if (hostClients.isEmpty) return const SizedBox.shrink();
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer
+                          .withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: theme.colorScheme.primary
+                            .withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.sensors_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            l10n.controlledByRemoteDevices(
+                              hostClients.join(', '),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ref
+                                .read(remoteControlServiceProvider)
+                                .disconnectAllHostClients();
+                          },
+                          child: Text(l10n.remoteDisconnect),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
               // 1. Local Device Status Card
               Card(
@@ -746,90 +857,123 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                               ],
                             ),
                             trailing: device.isOnline
-                                ? PopupMenuButton<String>(
-                                    icon: Icon(
-                                      Icons.more_vert,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                    onSelected: (value) {
-                                      if (value == 'file') {
-                                        _handleSendFiles(device);
-                                      } else if (value == 'folder') {
-                                        _handleSendFolder(device);
-                                      } else if (value == 'sync_to') {
-                                        _handleSyncLyricsToDevice(device);
-                                      } else if (value == 'sync_from') {
-                                        _handleSyncLyricsFromDevice(device);
-                                      }
-                                    },
-                                    itemBuilder: (BuildContext context) =>
-                                        <PopupMenuEntry<String>>[
-                                          PopupMenuItem<String>(
-                                            value: 'file',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.insert_drive_file,
-                                                  size: 18,
-                                                  color:
-                                                      theme.colorScheme.primary,
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.settings_remote_rounded,
+                                          size: 20,
+                                        ),
+                                        tooltip: l10n.remoteControlAction,
+                                        color: theme.colorScheme.primary,
+                                        onPressed: () =>
+                                            _handleRemoteControl(device),
+                                      ),
+                                      PopupMenuButton<String>(
+                                        icon: Icon(
+                                          Icons.more_vert,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                        onSelected: (value) {
+                                          if (value == 'remote_control') {
+                                            _handleRemoteControl(device);
+                                          } else if (value == 'file') {
+                                            _handleSendFiles(device);
+                                          } else if (value == 'folder') {
+                                            _handleSendFolder(device);
+                                          } else if (value == 'sync_to') {
+                                            _handleSyncLyricsToDevice(device);
+                                          } else if (value == 'sync_from') {
+                                            _handleSyncLyricsFromDevice(device);
+                                          }
+                                        },
+                                        itemBuilder: (BuildContext context) =>
+                                            <PopupMenuEntry<String>>[
+                                              PopupMenuItem<String>(
+                                                value: 'remote_control',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.settings_remote_rounded,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(l10n.remoteControlAction),
+                                                  ],
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Text(l10n.sendMusicFiles),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem<String>(
-                                            value: 'folder',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.folder,
-                                                  size: 18,
-                                                  color:
-                                                      theme.colorScheme.primary,
+                                              ),
+                                              const PopupMenuDivider(),
+                                              PopupMenuItem<String>(
+                                                value: 'file',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.insert_drive_file,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(l10n.sendMusicFiles),
+                                                  ],
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Text(l10n.sendFolder),
-                                              ],
-                                            ),
-                                          ),
-                                          const PopupMenuDivider(),
-                                          PopupMenuItem<String>(
-                                            value: 'sync_to',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.cloud_upload_rounded,
-                                                  size: 18,
-                                                  color:
-                                                      theme.colorScheme.primary,
+                                              ),
+                                              PopupMenuItem<String>(
+                                                value: 'folder',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.folder,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(l10n.sendFolder),
+                                                  ],
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  l10n.syncLyricsToDeviceAction,
+                                              ),
+                                              const PopupMenuDivider(),
+                                              PopupMenuItem<String>(
+                                                value: 'sync_to',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.cloud_upload_rounded,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      l10n.syncLyricsToDeviceAction,
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem<String>(
-                                            value: 'sync_from',
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.cloud_download_rounded,
-                                                  size: 18,
-                                                  color:
-                                                      theme.colorScheme.primary,
+                                              ),
+                                              PopupMenuItem<String>(
+                                                value: 'sync_from',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.cloud_download_rounded,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      l10n.syncLyricsFromDeviceAction,
+                                                    ),
+                                                  ],
                                                 ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  l10n.syncLyricsFromDeviceAction,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                              ),
+                                            ],
+                                      ),
+                                    ],
                                   )
                                 : null,
                           ),
@@ -850,6 +994,83 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                   ),
                 ),
               ),
+
+              // 3. Trusted Devices Section (if any)
+              Builder(
+                builder: (context) {
+                  final trustedDevices = ref.watch(trustedDevicesProvider);
+                  if (trustedDevices.isEmpty) return const SizedBox.shrink();
+
+                  return Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.verified_user_rounded,
+                              size: 16,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              l10n.trustedDevicesTitle,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ...trustedDevices.map((d) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _getPlatformIcon(d.deviceType),
+                                  size: 16,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    d.name,
+                                    style: const TextStyle(fontSize: 12),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close_rounded, size: 16),
+                                  tooltip: l10n.removeTrustedDevice,
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () {
+                                    ref
+                                        .read(remoteControlServiceProvider)
+                                        .removeTrustedDevice(d.id);
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -857,3 +1078,4 @@ class _SharingPageState extends ConsumerState<SharingPage> {
     );
   }
 }
+

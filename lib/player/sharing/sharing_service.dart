@@ -15,6 +15,7 @@ import 'package:vynody/player/lyrics/lyrics_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:bonsoir/bonsoir.dart';
 import 'lan_device.dart';
+import 'sharing_riverpod.dart';
 import 'package:vynody/main.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
 
@@ -327,6 +328,7 @@ class SharingService {
   List<LanDevice> get discoveredDevices =>
       _discoveredDevicesMap.values.toList();
 
+  String get deviceId => _deviceId;
   String? get localIp => _localIp;
   int? get httpPort => _httpPort;
   String get deviceName => _deviceName;
@@ -842,6 +844,8 @@ class SharingService {
     }
 
     try {
+      final remoteService = _ref.read(remoteControlServiceProvider);
+
       if (method == 'POST' && path == '/api/transfer/request') {
         await _handleTransferRequest(request);
       } else if (method == 'POST' && path == '/api/transfer/upload') {
@@ -850,6 +854,12 @@ class SharingService {
         await _handleExportLyrics(request);
       } else if (method == 'POST' && path == '/api/lyrics/import') {
         await _handleImportLyrics(request);
+      } else if (method == 'POST' && path == '/api/remote/pair') {
+        await remoteService.handlePairRequest(request);
+      } else if (method == 'POST' && path == '/api/remote/pair/verify') {
+        await remoteService.handlePairVerify(request);
+      } else if (method == 'GET' && path == '/api/remote/ws') {
+        await remoteService.handleWebSocketUpgrade(request);
       } else {
         request.response.statusCode = HttpStatus.notFound;
         await request.response.close();

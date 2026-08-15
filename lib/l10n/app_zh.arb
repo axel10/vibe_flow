@@ -1841,5 +1841,48 @@
   "btnSleepTimer": "定时关闭",
   "btnEqualizer": "音效",
   "btnVisualizer": "律动/频谱",
-  "btnVolume": "音量"
+  "btnVolume": "音量",
+  "remoteControlAction": "远程控制",
+  "remoteControlRequestTitle": "远程控制请求",
+  "remoteControlRequestFrom": "设备「{name}」请求控制本机播放",
+  "@remoteControlRequestFrom": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotePinPairHint": "请在控制端输入以下配对验证码：",
+  "remotePinExpiresIn": "验证码有效期：",
+  "allowDirectly": "直接允许",
+  "enterRemotePinTitle": "设备配对",
+  "enterRemotePinPrompt": "请输入设备「{name}」屏幕上显示的 4 位配对验证码：",
+  "@enterRemotePinPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotePinInvalid": "验证码错误或已失效，请重试",
+  "remoteConnected": "已连接",
+  "remoteConnecting": "正在连接...",
+  "remoteDisconnect": "断开连接",
+  "remoteConnectFailed": "远程连接失败",
+  "controlledByRemoteDevices": "正在接受以下设备的远程控制: {devices}",
+  "@controlledByRemoteDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "trustedDevicesTitle": "已信任遥控设备",
+  "removeTrustedDevice": "移除信任",
+  "noMusicPlaying": "当前未在播放",
+  "previousSong": "上一首",
+  "nextSong": "下一首",
+  "shufflePlayback": "随机播放"
 }
+
+

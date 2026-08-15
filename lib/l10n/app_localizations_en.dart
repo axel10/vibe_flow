@@ -3365,4 +3365,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get btnVolume => 'Volume';
+
+  @override
+  String get remoteControlAction => 'Remote Control';
+
+  @override
+  String get remoteControlRequestTitle => 'Remote Control Request';
+
+  @override
+  String remoteControlRequestFrom(String name) {
+    return 'Device \"$name\" requests to control playback';
+  }
+
+  @override
+  String get remotePinPairHint =>
+      'Please enter the pairing PIN code on your controlling device:';
+
+  @override
+  String get remotePinExpiresIn => 'PIN expires in:';
+
+  @override
+  String get allowDirectly => 'Allow Directly';
+
+  @override
+  String get enterRemotePinTitle => 'Device Pairing';
+
+  @override
+  String enterRemotePinPrompt(String name) {
+    return 'Enter the 4-digit PIN displayed on \"$name\":';
+  }
+
+  @override
+  String get remotePinInvalid => 'Invalid or expired PIN. Please try again.';
+
+  @override
+  String get remoteConnected => 'Connected';
+
+  @override
+  String get remoteConnecting => 'Connecting...';
+
+  @override
+  String get remoteDisconnect => 'Disconnect';
+
+  @override
+  String get remoteConnectFailed => 'Remote connection failed';
+
+  @override
+  String controlledByRemoteDevices(String devices) {
+    return 'Controlled by remote device(s): $devices';
+  }
+
+  @override
+  String get trustedDevicesTitle => 'Trusted Remote Devices';
+
+  @override
+  String get removeTrustedDevice => 'Remove Trust';
+
+  @override
+  String get noMusicPlaying => 'No music playing';
+
+  @override
+  String get previousSong => 'Previous';
+
+  @override
+  String get nextSong => 'Next';
+
+  @override
+  String get shufflePlayback => 'Shuffle';
 }

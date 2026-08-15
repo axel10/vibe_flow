@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'sharing_service.dart';
 import 'lan_device.dart';
+import 'remote_control/remote_control_service.dart';
 
 // Provider that instantiates and holds the SharingService
 final sharingServiceProvider = Provider<SharingService>((ref) {
@@ -13,6 +14,16 @@ final sharingServiceProvider = Provider<SharingService>((ref) {
 
   return service;
 });
+
+final remoteControlServiceProvider = Provider<RemoteControlService>((ref) {
+  final service = RemoteControlService(ref);
+  service.init();
+  ref.onDispose(() {
+    service.dispose();
+  });
+  return service;
+});
+
 
 // State of the Sharing Server running status
 class SharingServerState {
