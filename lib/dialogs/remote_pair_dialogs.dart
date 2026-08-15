@@ -90,6 +90,7 @@ class _IncomingRemotePairDialogContentState
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
       child: AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(
@@ -139,14 +140,17 @@ class _IncomingRemotePairDialogContentState
                   width: 1.5,
                 ),
               ),
-              child: Text(
-                request.pinCode,
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 10,
-                  color: theme.colorScheme.primary,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                  request.pinCode,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 10,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ),
             ),
@@ -330,6 +334,8 @@ class _RemotePinInputDialogContentState
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
       child: AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(
@@ -365,63 +371,70 @@ class _RemotePinInputDialogContentState
             Stack(
               alignment: Alignment.center,
               children: [
-                Opacity(
-                  opacity: 0.0,
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(4),
-                    ],
-                    onChanged: (val) {
-                      setState(() {});
-                      if (val.length == 4) {
-                        _submitPin(val);
-                      }
-                    },
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.0,
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      keyboardType: TextInputType.number,
+                      enableInteractiveSelection: false,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      onChanged: (val) {
+                        setState(() {});
+                        if (val.length == 4) {
+                          _submitPin(val);
+                        }
+                      },
+                    ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () => _focusNode.requestFocus(),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(4, (index) {
-                      final char = index < _controller.text.length
-                          ? _controller.text[index]
-                          : '';
-                      final isCurrent = index == _controller.text.length;
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (index) {
+                        final char = index < _controller.text.length
+                            ? _controller.text[index]
+                            : '';
+                        final isCurrent = index == _controller.text.length;
 
-                      return Container(
-                        width: 48,
-                        height: 56,
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isCurrent
-                                ? theme.colorScheme.primary
-                                : (_errorMessage != null
-                                    ? theme.colorScheme.error
-                                    : theme.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.6)),
-                            width: isCurrent ? 2 : 1,
+                        return Container(
+                          width: 44,
+                          height: 52,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isCurrent
+                                  ? theme.colorScheme.primary
+                                  : (_errorMessage != null
+                                      ? theme.colorScheme.error
+                                      : theme.colorScheme.outlineVariant
+                                          .withValues(alpha: 0.6)),
+                              width: isCurrent ? 2 : 1,
+                            ),
                           ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          char,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
+                          alignment: Alignment.center,
+                          child: Text(
+                            char,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ),
                   ),
                 ),
               ],
@@ -587,7 +600,7 @@ class _TrustedDevicesDialogContent extends ConsumerWidget {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: trustedDevices.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    separatorBuilder: (_, _) => const Divider(height: 1),
                     itemBuilder: (ctx, i) {
                       final d = trustedDevices[i];
                       return ListTile(
