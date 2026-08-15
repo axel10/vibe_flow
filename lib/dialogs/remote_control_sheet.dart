@@ -7,15 +7,14 @@ import 'package:vynody/player/sharing/remote_control/remote_control_service.dart
 import 'package:vynody/player/sharing/remote_control/remote_playback_model.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
+import 'package:vynody/pages/remote_control_page.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 
 void showRemoteControlSheet(BuildContext context, LanDevice device) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black54,
-    builder: (ctx) => _RemoteControlSheetContent(device: device),
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => RemoteControlPage(device: device),
+    ),
   );
 }
 

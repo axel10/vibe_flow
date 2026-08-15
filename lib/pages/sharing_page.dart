@@ -14,7 +14,7 @@ import 'package:vynody/transcode/transcode_riverpod.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
 import 'package:vynody/dialogs/remote_pair_dialogs.dart';
-import 'package:vynody/dialogs/remote_control_sheet.dart';
+import 'package:vynody/pages/remote_control_page.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import '../utils/song_context_menu_utils.dart';
@@ -306,7 +306,11 @@ class _SharingPageState extends ConsumerState<SharingPage> {
       );
 
       if (connected && mounted) {
-        showRemoteControlSheet(context, device);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => RemoteControlPage(device: device),
+          ),
+        );
       } else if (mounted) {
         showToast(l10n.remoteConnectFailed);
       }

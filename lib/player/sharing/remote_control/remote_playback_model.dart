@@ -1,5 +1,43 @@
 import 'package:vynody/player/audio/app_playback_mode.dart';
 
+class RemoteQueueItem {
+  final String id;
+  final String title;
+  final String artist;
+  final String album;
+  final int durationMs;
+  final String path;
+
+  const RemoteQueueItem({
+    required this.id,
+    required this.title,
+    required this.artist,
+    required this.album,
+    required this.durationMs,
+    required this.path,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'artist': artist,
+    'album': album,
+    'durationMs': durationMs,
+    'path': path,
+  };
+
+  factory RemoteQueueItem.fromJson(Map<String, dynamic> json) {
+    return RemoteQueueItem(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      artist: json['artist'] as String? ?? '',
+      album: json['album'] as String? ?? '',
+      durationMs: json['durationMs'] as int? ?? 0,
+      path: json['path'] as String? ?? '',
+    );
+  }
+}
+
 class RemotePlaybackState {
   final String title;
   final String artist;
@@ -11,6 +49,9 @@ class RemotePlaybackState {
   final AppPlaybackMode playbackMode;
   final bool isRandomMode;
   final String? hostDeviceName;
+  final List<RemoteQueueItem> queue;
+  final int currentIndex;
+  final double volume;
 
   const RemotePlaybackState({
     this.title = '',
@@ -23,6 +64,9 @@ class RemotePlaybackState {
     this.playbackMode = AppPlaybackMode.queueLoop,
     this.isRandomMode = false,
     this.hostDeviceName,
+    this.queue = const [],
+    this.currentIndex = -1,
+    this.volume = 100.0,
   });
 
   Map<String, dynamic> toJson() {
@@ -37,6 +81,9 @@ class RemotePlaybackState {
       'playbackMode': playbackMode.name,
       'isRandomMode': isRandomMode,
       if (hostDeviceName != null) 'hostDeviceName': hostDeviceName,
+      'queue': queue.map((q) => q.toJson()).toList(),
+      'currentIndex': currentIndex,
+      'volume': volume,
     };
   }
 
@@ -52,6 +99,12 @@ class RemotePlaybackState {
       }
     }
 
+    final rawQueue = json['queue'] as List<dynamic>? ?? const [];
+    final queue = rawQueue
+        .whereType<Map<String, dynamic>>()
+        .map(RemoteQueueItem.fromJson)
+        .toList();
+
     return RemotePlaybackState(
       title: json['title'] as String? ?? '',
       artist: json['artist'] as String? ?? '',
@@ -63,6 +116,9 @@ class RemotePlaybackState {
       playbackMode: mode,
       isRandomMode: json['isRandomMode'] as bool? ?? false,
       hostDeviceName: json['hostDeviceName'] as String?,
+      queue: queue,
+      currentIndex: json['currentIndex'] as int? ?? -1,
+      volume: (json['volume'] as num?)?.toDouble() ?? 100.0,
     );
   }
 
@@ -77,6 +133,9 @@ class RemotePlaybackState {
     AppPlaybackMode? playbackMode,
     bool? isRandomMode,
     String? hostDeviceName,
+    List<RemoteQueueItem>? queue,
+    int? currentIndex,
+    double? volume,
   }) {
     return RemotePlaybackState(
       title: title ?? this.title,
@@ -89,6 +148,9 @@ class RemotePlaybackState {
       playbackMode: playbackMode ?? this.playbackMode,
       isRandomMode: isRandomMode ?? this.isRandomMode,
       hostDeviceName: hostDeviceName ?? this.hostDeviceName,
+      queue: queue ?? this.queue,
+      currentIndex: currentIndex ?? this.currentIndex,
+      volume: volume ?? this.volume,
     );
   }
 }
@@ -129,6 +191,23 @@ class RemoteCommand {
   static RemoteCommand seek(int positionMs) => RemoteCommand(
     action: 'seek',
     params: {'positionMs': positionMs},
+  );
+  static RemoteCommand playQueueIndex(int index) => RemoteCommand(
+    action: 'playQueueIndex',
+    params: {'index': index},
+  );
+  static RemoteCommand removeFromQueue(int index) => RemoteCommand(
+    action: 'removeFromQueue',
+    params: {'index': index},
+  );
+  static RemoteCommand reorderQueue(int oldIndex, int newIndex) => RemoteCommand(
+    action: 'reorderQueue',
+    params: {'oldIndex': oldIndex, 'newIndex': newIndex},
+  );
+  static RemoteCommand clearQueue() => const RemoteCommand(action: 'clearQueue');
+  static RemoteCommand setVolume(double volume) => RemoteCommand(
+    action: 'setVolume',
+    params: {'volume': volume},
   );
 }
 

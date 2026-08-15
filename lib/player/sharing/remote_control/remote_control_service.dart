@@ -202,6 +202,17 @@ class RemoteControlService {
     final isFav = currentMusic != null && playlistService.isFavoriteSong(currentMusic);
     final sharingService = _ref.read(sharingServiceProvider);
 
+    final queueItems = snap.playbackQueue.map((m) {
+      return RemoteQueueItem(
+        id: (m.id ?? m.path).toString(),
+        title: m.title ?? m.name,
+        artist: m.artist ?? '',
+        album: m.album ?? '',
+        durationMs: m.durationMillis ?? 0,
+        path: m.path,
+      );
+    }).toList();
+
     return RemotePlaybackState(
       title: currentMusic?.title ?? '',
       artist: currentMusic?.artist ?? '',
@@ -213,6 +224,9 @@ class RemoteControlService {
       playbackMode: snap.playbackMode,
       isRandomMode: snap.isRandomMode,
       hostDeviceName: sharingService.deviceName,
+      queue: queueItems,
+      currentIndex: snap.currentIndex,
+      volume: snap.volume,
     );
   }
 
@@ -553,6 +567,34 @@ class RemoteControlService {
           audio.seek(Duration(milliseconds: posMs));
         }
         break;
+      case 'playQueueIndex':
+        final index = cmd.params['index'] as int?;
+        if (index != null) {
+          audio.playAtIndex(index);
+        }
+        break;
+      case 'removeFromQueue':
+        final index = cmd.params['index'] as int?;
+        if (index != null) {
+          audio.removeFromPlaylist(index);
+        }
+        break;
+      case 'reorderQueue':
+        final oldIndex = cmd.params['oldIndex'] as int?;
+        final newIndex = cmd.params['newIndex'] as int?;
+        if (oldIndex != null && newIndex != null) {
+          audio.moveQueueTrack(oldIndex, newIndex);
+        }
+        break;
+      case 'clearQueue':
+        audio.clearPlaylist();
+        break;
+      case 'setVolume':
+        final vol = (cmd.params['volume'] as num?)?.toDouble();
+        if (vol != null) {
+          audio.setVolume(vol, showVolumeHud: false);
+        }
+        break;
     }
   }
 
@@ -755,6 +797,11 @@ class RemoteControlService {
   void toggleRandomMode() => sendCommand(RemoteCommand.toggleRandomMode());
   void setPlaybackMode(AppPlaybackMode mode) => sendCommand(RemoteCommand.setPlaybackMode(mode));
   void seek(Duration position) => sendCommand(RemoteCommand.seek(position.inMilliseconds));
+  void playQueueIndex(int index) => sendCommand(RemoteCommand.playQueueIndex(index));
+  void removeFromQueue(int index) => sendCommand(RemoteCommand.removeFromQueue(index));
+  void reorderQueue(int oldIndex, int newIndex) => sendCommand(RemoteCommand.reorderQueue(oldIndex, newIndex));
+  void clearQueue() => sendCommand(RemoteCommand.clearQueue());
+  void setVolume(double volume) => sendCommand(RemoteCommand.setVolume(volume));
 
   void disconnectClient() {
     _pingTimer?.cancel();
