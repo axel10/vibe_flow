@@ -6,6 +6,7 @@ import 'package:vynody/player/sharing/lan_device.dart';
 import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
 import 'package:vynody/player/sharing/remote_control/remote_playback_model.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
+import 'package:vynody/player/sharing/sharing_service.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 
 void showRemoteControlSheet(BuildContext context, LanDevice device) {
@@ -100,6 +101,10 @@ class _RemoteControlSheetContentState
     final sliderMax = totalDurationMs.toDouble();
     final sliderValue = (_draggingSliderValue ?? currentPositionMs.toDouble())
         .clamp(0.0, sliderMax);
+    final hasTrack = state.title.isNotEmpty;
+    final coverUrl = hasTrack
+        ? 'http://${formatHostForUrl(widget.device.ip)}:${widget.device.httpPort}/api/remote/cover?t=${Uri.encodeComponent(state.title)}_${Uri.encodeComponent(state.artist)}'
+        : '';
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
@@ -205,16 +210,25 @@ class _RemoteControlSheetContentState
               // Song Info Card / Visual representation
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary.withValues(alpha: 0.15),
-                      theme.colorScheme.tertiary.withValues(alpha: 0.1),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: theme.brightness == Brightness.dark
+                      ? LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary.withValues(alpha: 0.15),
+                            theme.colorScheme.tertiary.withValues(alpha: 0.08),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : LinearGradient(
+                          colors: [
+                            theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
+                            theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
@@ -223,46 +237,105 @@ class _RemoteControlSheetContentState
                 child: Column(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 88,
+                      height: 88,
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 12,
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.music_note_rounded,
-                        size: 40,
-                        color: theme.colorScheme.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: hasTrack
+                            ? Image.network(
+                                coverUrl,
+                                width: 88,
+                                height: 88,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Center(
+                                  child: Icon(
+                                    Icons.music_note_rounded,
+                                    size: 44,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            : Center(
+                                child: Icon(
+                                  Icons.music_note_rounded,
+                                  size: 44,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      state.title.isNotEmpty ? state.title : l10n.noMusicPlaying,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      state.artist.isNotEmpty ? state.artist : (state.title.isNotEmpty ? l10n.unknownArtist : '--'),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
+                    Row(
+                      children: [
+                        const SizedBox(width: 44), // Balances the favorite button on the right
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                state.title.isNotEmpty ? state.title : l10n.noMusicPlaying,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                state.artist.isNotEmpty
+                                    ? state.artist
+                                    : (state.title.isNotEmpty ? l10n.unknownArtist : '--'),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            state.isFavorite
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: state.isFavorite
+                                ? Colors.redAccent
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                          tooltip: state.isFavorite
+                              ? l10n.removeFromFavorites
+                              : l10n.addToFavorites,
+                          onPressed: hasTrack ? remoteService.toggleFavorite : null,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -323,7 +396,7 @@ class _RemoteControlSheetContentState
 
               const SizedBox(height: 16),
 
-              // Control Buttons Row
+              // Control Buttons Row (5 buttons, perfectly centered)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -338,18 +411,6 @@ class _RemoteControlSheetContentState
                     },
                   ),
 
-                  // Favorite Button
-                  IconButton(
-                    icon: Icon(
-                      state.isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                      color: state.isFavorite ? Colors.redAccent : theme.colorScheme.onSurfaceVariant,
-                    ),
-                    tooltip: state.isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
-                    onPressed: remoteService.toggleFavorite,
-                  ),
-
                   // Previous Button
                   IconButton(
                     iconSize: 32,
@@ -358,7 +419,7 @@ class _RemoteControlSheetContentState
                     onPressed: remoteService.previous,
                   ),
 
-                  // Play / Pause Large Button
+                  // Play / Pause Large Button (Centered)
                   Container(
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary,

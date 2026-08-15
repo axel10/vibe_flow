@@ -860,6 +860,8 @@ class SharingService {
         await remoteService.handlePairVerify(request);
       } else if (method == 'GET' && path == '/api/remote/ws') {
         await remoteService.handleWebSocketUpgrade(request);
+      } else if (method == 'GET' && path == '/api/remote/cover') {
+        await remoteService.handleCoverRequest(request);
       } else {
         request.response.statusCode = HttpStatus.notFound;
         await request.response.close();

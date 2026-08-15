@@ -450,6 +450,54 @@ class RemoteControlService {
     }
   }
 
+  Future<void> handleCoverRequest(HttpRequest request) async {
+    try {
+      final snap = _ref.read(audioSnapshotProvider);
+      final currentMusic = snap.currentMusic;
+
+      if (currentMusic == null) {
+        request.response.statusCode = HttpStatus.notFound;
+        await request.response.close();
+        return;
+      }
+
+      Uint8List? artworkBytes = currentMusic.artworkBytes;
+      if (artworkBytes == null || artworkBytes.isEmpty) {
+        artworkBytes = _ref.read(audioServiceProvider).getCachedArtwork(currentMusic.path);
+      }
+
+      if ((artworkBytes == null || artworkBytes.isEmpty) && currentMusic.thumbnailPath != null) {
+        final file = File(currentMusic.thumbnailPath!);
+        if (file.existsSync()) {
+          artworkBytes = await file.readAsBytes();
+        }
+      }
+
+      if ((artworkBytes == null || artworkBytes.isEmpty) && currentMusic.artworkPath != null) {
+        final file = File(currentMusic.artworkPath!);
+        if (file.existsSync()) {
+          artworkBytes = await file.readAsBytes();
+        }
+      }
+
+      if (artworkBytes != null && artworkBytes.isNotEmpty) {
+        request.response.statusCode = HttpStatus.ok;
+        request.response.headers.contentType = ContentType('image', 'jpeg');
+        request.response.headers.add('Cache-Control', 'no-cache');
+        request.response.add(artworkBytes);
+      } else {
+        request.response.statusCode = HttpStatus.notFound;
+      }
+      await request.response.close();
+    } catch (e) {
+      debugPrint('[RemoteControlService] Error serving cover: $e');
+      request.response.statusCode = HttpStatus.internalServerError;
+      try {
+        await request.response.close();
+      } catch (_) {}
+    }
+  }
+
   void _executeRemoteCommand(RemoteCommand cmd) {
     final audio = _ref.read(audioServiceProvider);
     final playlist = _ref.read(playlistServiceProvider);
