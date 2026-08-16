@@ -62,13 +62,8 @@ class _SharingPageState extends ConsumerState<SharingPage> {
 
   @override
   void dispose() {
-    // Auto-stop server when page is closed/destroyed
-    // Since this is a tab page, we want it to stop when user navigates away or it's unmounted.
-    // However, if we want it to run only during this page session:
-    // To ensure the server stops when we exit, we stop it in dispose.
-    Future.microtask(() {
-      _sharingServerNotifier.stop();
-    });
+    // Keep server running in the background if lanSharingEnabled is true.
+    // Server lifecycle is managed by the user's toggle and app-level state.
     super.dispose();
   }
 

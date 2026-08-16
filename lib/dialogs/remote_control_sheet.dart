@@ -120,7 +120,9 @@ class _RemoteControlSheetContentState
     final sliderMax = totalDurationMs.toDouble();
     final sliderValue = (_draggingSliderValue ?? currentPositionMs.toDouble())
         .clamp(0.0, sliderMax);
-    final authToken = remoteService.clientAuthToken ?? '';
+    final authToken = remoteService.clientAuthToken ??
+        remoteService.getTrustedTokenForDevice(widget.device.id) ??
+        '';
     final hasTrack = state.title.isNotEmpty;
     final coverUrl = hasTrack
         ? 'https://${formatHostForUrl(widget.device.ip)}:${widget.device.httpPort}/api/remote/cover?t=${Uri.encodeComponent(state.title)}_${Uri.encodeComponent(state.artist)}${authToken.isNotEmpty ? '&token=${Uri.encodeComponent(authToken)}' : ''}'

@@ -217,7 +217,9 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
 
     final volumeValue = (_draggingVolumeValue ?? state.volume).clamp(0.0, 100.0);
 
-    final authToken = remoteService.clientAuthToken ?? '';
+    final authToken = remoteService.clientAuthToken ??
+        remoteService.getTrustedTokenForDevice(widget.device.id) ??
+        '';
     final hasTrack = state.title.isNotEmpty;
     final coverUrl = hasTrack
         ? 'https://${formatHostForUrl(widget.device.ip)}:${widget.device.httpPort}/api/remote/cover?t=${Uri.encodeComponent(state.title)}_${Uri.encodeComponent(state.artist)}${authToken.isNotEmpty ? '&token=${Uri.encodeComponent(authToken)}' : ''}'

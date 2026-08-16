@@ -159,6 +159,14 @@ class RemoteControlService {
     _closeAllHostSockets();
   }
 
+  String? getTrustedTokenForDevice(String deviceId) {
+    try {
+      return _trustedDevices.firstWhere((d) => d.id == deviceId).token;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // --- Trusted Devices Storage ---
 
   Future<void> _loadTrustedDevices() async {
@@ -169,7 +177,11 @@ class RemoteControlService {
       for (final item in jsonList) {
         try {
           final map = jsonDecode(item) as Map<String, dynamic>;
-          _trustedDevices.add(TrustedRemoteDevice.fromJson(map));
+          final device = TrustedRemoteDevice.fromJson(map);
+          _trustedDevices.add(device);
+          if (device.certFingerprint != null && device.certFingerprint!.isNotEmpty) {
+            TlsCertificateService.registerDeviceFingerprint(device.id, device.certFingerprint);
+          }
         } catch (_) {}
       }
       _ref.read(trustedDevicesProvider.notifier).setDevices(List.from(_trustedDevices));
@@ -803,8 +815,15 @@ class RemoteControlService {
     required String senderName,
     required String deviceType,
   }) async {
+    final fingerprint = targetDevice.certFingerprint ??
+        _trustedDevices.where((d) => d.id == targetDevice.id).firstOrNull?.certFingerprint;
+    if (fingerprint != null && fingerprint.isNotEmpty) {
+      TlsCertificateService.registerDeviceFingerprint(targetDevice.id, fingerprint);
+      TlsCertificateService.registerDeviceFingerprint(targetDevice.ip, fingerprint);
+    }
+
     final client = TlsCertificateService.createPinnedHttpClient(
-      expectedFingerprint: targetDevice.certFingerprint,
+      expectedFingerprint: fingerprint,
     );
     client.connectionTimeout = const Duration(seconds: 5);
 
@@ -884,8 +903,15 @@ class RemoteControlService {
     required String sessionToken,
     required String pin,
   }) async {
+    final fingerprint = targetDevice.certFingerprint ??
+        _trustedDevices.where((d) => d.id == targetDevice.id).firstOrNull?.certFingerprint;
+    if (fingerprint != null && fingerprint.isNotEmpty) {
+      TlsCertificateService.registerDeviceFingerprint(targetDevice.id, fingerprint);
+      TlsCertificateService.registerDeviceFingerprint(targetDevice.ip, fingerprint);
+    }
+
     final client = TlsCertificateService.createPinnedHttpClient(
-      expectedFingerprint: targetDevice.certFingerprint,
+      expectedFingerprint: fingerprint,
     );
     client.connectionTimeout = const Duration(seconds: 5);
 
@@ -917,7 +943,7 @@ class RemoteControlService {
               deviceType: targetDevice.deviceType,
               token: _clientAuthToken!,
               pairedAt: DateTime.now(),
-              certFingerprint: targetDevice.certFingerprint,
+              certFingerprint: targetDevice.certFingerprint ?? fingerprint,
             ),
           );
           await _saveTrustedDevices();
@@ -967,14 +993,22 @@ class RemoteControlService {
     required LanDevice targetDevice,
     required String senderName,
   }) async {
-    final token = _clientAuthToken;
+    final token = _clientAuthToken ?? getTrustedTokenForDevice(targetDevice.id);
     if (token == null || token.isEmpty) return false;
+    _clientAuthToken = token;
 
     try {
       disconnectClient(clearToken: false);
 
+      final fingerprint = targetDevice.certFingerprint ??
+          _trustedDevices.where((d) => d.id == targetDevice.id).firstOrNull?.certFingerprint;
+      if (fingerprint != null && fingerprint.isNotEmpty) {
+        TlsCertificateService.registerDeviceFingerprint(targetDevice.id, fingerprint);
+        TlsCertificateService.registerDeviceFingerprint(targetDevice.ip, fingerprint);
+      }
+
       final pinnedClient = TlsCertificateService.createPinnedHttpClient(
-        expectedFingerprint: targetDevice.certFingerprint,
+        expectedFingerprint: fingerprint,
       );
       pinnedClient.connectionTimeout = const Duration(seconds: 6);
 
@@ -1008,11 +1042,11 @@ class RemoteControlService {
         },
         onDone: () {
           debugPrint('[RemoteControlService] Remote connection closed.');
-          disconnectClient();
+          disconnectClient(clearToken: false);
         },
         onError: (err) {
           debugPrint('[RemoteControlService] Remote connection error: $err');
-          disconnectClient();
+          disconnectClient(clearToken: false);
         },
       );
 
@@ -1027,7 +1061,7 @@ class RemoteControlService {
       return true;
     } catch (e) {
       debugPrint('[RemoteControlService] Error connecting WebSocket: $e');
-      disconnectClient();
+      disconnectClient(clearToken: false);
       return false;
     }
   }
@@ -1057,7 +1091,7 @@ class RemoteControlService {
   void clearQueue() => sendCommand(RemoteCommand.clearQueue());
   void setVolume(double volume) => sendCommand(RemoteCommand.setVolume(volume));
 
-  void disconnectClient({bool clearToken = true}) {
+  void disconnectClient({bool clearToken = false}) {
     _pingTimer?.cancel();
     _pingTimer = null;
     try {

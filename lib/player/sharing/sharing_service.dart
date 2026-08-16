@@ -16,6 +16,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:bonsoir/bonsoir.dart';
 import 'lan_device.dart';
 import 'sharing_riverpod.dart';
+import 'remote_control/remote_control_service.dart';
 import 'security/tls_certificate_service.dart';
 import 'package:vynody/main.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
@@ -668,11 +669,14 @@ class SharingService {
           );
           final lostService = event.service;
           final id = lostService.name.replaceFirst('Vynody_', '');
-          final existingDevice = _discoveredDevicesMap[id];
-          if (existingDevice != null) {
-            TlsCertificateService.unregisterDeviceFingerprint(existingDevice.ip);
+          final isTrusted = _ref.read(trustedDevicesProvider).any((d) => d.id == id);
+          if (!isTrusted) {
+            final existingDevice = _discoveredDevicesMap[id];
+            if (existingDevice != null) {
+              TlsCertificateService.unregisterDeviceFingerprint(existingDevice.ip);
+            }
+            TlsCertificateService.unregisterDeviceFingerprint(id);
           }
-          TlsCertificateService.unregisterDeviceFingerprint(id);
           if (_discoveredDevicesMap.containsKey(id)) {
             final device = _discoveredDevicesMap[id]!;
             if (device.isOnline) {

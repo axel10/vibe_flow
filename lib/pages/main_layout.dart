@@ -17,6 +17,7 @@ import '../pages/library_page.dart';
 import '../pages/queue_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/sharing_page.dart';
+import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
 import 'package:vynody/player/sharing/remote_control/remote_control_service.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
@@ -226,6 +227,16 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     _uiController = ref.read(mainLayoutUiControllerProvider.notifier);
     _shortcutManager = AppShortcutManager();
     _syncDeletedSongNoticeHandler();
+
+    if (settings.lanSharingEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final serverState = ref.read(sharingServerStateProvider);
+        if (!serverState.isRunning) {
+          ref.read(sharingServerStateProvider.notifier).start();
+        }
+      });
+    }
 
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.addListener(this);
