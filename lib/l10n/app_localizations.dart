@@ -1023,6 +1023,84 @@ abstract class AppLocalizations {
   /// **'暗色'**
   String get themeModeDark;
 
+  /// Theme color label
+  ///
+  /// In zh, this message translates to:
+  /// **'主题色'**
+  String get themeColor;
+
+  /// Custom theme color label
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义主题色'**
+  String get customThemeColor;
+
+  /// Theme color preset: Miku Teal
+  ///
+  /// In zh, this message translates to:
+  /// **'初音绿'**
+  String get themeColorMikuTeal;
+
+  /// Theme color preset: Classic Blue
+  ///
+  /// In zh, this message translates to:
+  /// **'经典蓝'**
+  String get themeColorClassicBlue;
+
+  /// Theme color preset: Iris Purple
+  ///
+  /// In zh, this message translates to:
+  /// **'鸢尾紫'**
+  String get themeColorIrisPurple;
+
+  /// Theme color preset: Violet
+  ///
+  /// In zh, this message translates to:
+  /// **'罗兰紫'**
+  String get themeColorViolet;
+
+  /// Theme color preset: Sakura Pink
+  ///
+  /// In zh, this message translates to:
+  /// **'樱花粉'**
+  String get themeColorSakuraPink;
+
+  /// Theme color preset: Coral Orange
+  ///
+  /// In zh, this message translates to:
+  /// **'珊瑚橙'**
+  String get themeColorCoralOrange;
+
+  /// Theme color preset: Amber Gold
+  ///
+  /// In zh, this message translates to:
+  /// **'琥珀黄'**
+  String get themeColorAmberGold;
+
+  /// Theme color preset: Forest Green
+  ///
+  /// In zh, this message translates to:
+  /// **'森林绿'**
+  String get themeColorForestGreen;
+
+  /// Theme color preset: Aurora Cyan
+  ///
+  /// In zh, this message translates to:
+  /// **'极光青'**
+  String get themeColorAuroraCyan;
+
+  /// Theme color preset: Crimson Red
+  ///
+  /// In zh, this message translates to:
+  /// **'热情红'**
+  String get themeColorCrimsonRed;
+
+  /// Theme color preset: Slate Grey
+  ///
+  /// In zh, this message translates to:
+  /// **'典雅灰'**
+  String get themeColorSlateGrey;
+
   /// Immersive Tab Bar label
   ///
   /// In zh, this message translates to:

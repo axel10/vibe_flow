@@ -489,6 +489,45 @@ class AppLocalizationsJa extends AppLocalizations {
   String get themeModeDark => 'ダーク';
 
   @override
+  String get themeColor => 'テーマカラー';
+
+  @override
+  String get customThemeColor => 'カスタムテーマカラー';
+
+  @override
+  String get themeColorMikuTeal => '初音ミクグリーン';
+
+  @override
+  String get themeColorClassicBlue => 'クラシックブルー';
+
+  @override
+  String get themeColorIrisPurple => 'アイリスパープル';
+
+  @override
+  String get themeColorViolet => 'バイオレット';
+
+  @override
+  String get themeColorSakuraPink => 'サクラピンク';
+
+  @override
+  String get themeColorCoralOrange => 'コーラルオレンジ';
+
+  @override
+  String get themeColorAmberGold => 'アンバーゴールド';
+
+  @override
+  String get themeColorForestGreen => 'フォレストグリーン';
+
+  @override
+  String get themeColorAuroraCyan => 'オーロラシアン';
+
+  @override
+  String get themeColorCrimsonRed => 'クリムゾンレッド';
+
+  @override
+  String get themeColorSlateGrey => 'スレートグレー';
+
+  @override
   String get immersiveTabBar => '没入型タブバー';
 
   @override

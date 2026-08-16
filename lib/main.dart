@@ -375,7 +375,6 @@ class _MyAppState extends ConsumerState<MyApp>
   bool _isMaximized = false;
   bool _isFullScreen = false;
 
-  static const Color appPrimaryColor = Color(0xFF39C5BB);
   static const double _linuxWindowCornerRadius = 18.0;
 
   @override
@@ -494,12 +493,12 @@ class _MyAppState extends ConsumerState<MyApp>
     _syncWindowState();
   }
 
-  ThemeData _buildTheme(Brightness brightness) {
+  ThemeData _buildTheme(Brightness brightness, Color primaryColor) {
     final isDark = brightness == Brightness.dark;
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: appPrimaryColor,
+      seedColor: primaryColor,
       brightness: brightness,
-    ).copyWith(primary: appPrimaryColor, surface: isDark ? Colors.black : null);
+    ).copyWith(primary: primaryColor, surface: isDark ? Colors.black : null);
     final snackBarBackground = isDark ? const Color(0xFF1F1F1F) : Colors.white;
     final snackBarForeground = isDark ? Colors.white : Colors.black;
 
@@ -548,12 +547,13 @@ class _MyAppState extends ConsumerState<MyApp>
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsServiceProvider);
+    final themeColor = settings.themeColor;
     Widget app = OKToast(
       child: MaterialApp(
         title: 'Vynody',
         locale: settings.effectiveLocale,
-        theme: _buildTheme(Brightness.light),
-        darkTheme: _buildTheme(Brightness.dark),
+        theme: _buildTheme(Brightness.light, themeColor),
+        darkTheme: _buildTheme(Brightness.dark, themeColor),
         themeMode: settings.themeMode,
         builder: (context, child) {
           final theme = Theme.of(context);

@@ -11,6 +11,7 @@ import 'package:vynody/player/lyrics/lyrics_import_export_service.dart';
 import 'package:audio_core/audio_core.dart' hide AppLog;
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
@@ -822,6 +823,228 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         if (value == null) return;
         settings.themeMode = value;
       },
+    );
+  }
+
+  void _pickCustomThemeColor(
+    BuildContext context,
+    SettingsService settings,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    Color selectedColor = settings.themeColor;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          backgroundColor: isDark ? Colors.grey[900] : theme.colorScheme.surface,
+          title: Text(
+            l10n.customThemeColor,
+            style: TextStyle(
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: settings.themeColor,
+              onColorChanged: (c) => selectedColor = c,
+              pickerAreaHeightPercent: 0.8,
+              enableAlpha: false,
+              displayThumbColor: true,
+              paletteType: PaletteType.hsv,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: Text(
+                l10n.cancel,
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                settings.themeColor = selectedColor;
+                Navigator.pop(dialogCtx);
+              },
+              child: Text(
+                l10n.confirm,
+                style: TextStyle(color: theme.colorScheme.primary),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _getPresetThemeColorName(BuildContext context, Color color) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (color.toARGB32()) {
+      0xFF39C5BB => l10n.themeColorMikuTeal,
+      0xFF2196F3 => l10n.themeColorClassicBlue,
+      0xFF6750A4 => l10n.themeColorIrisPurple,
+      0xFF7E57C2 => l10n.themeColorViolet,
+      0xFFEC407A => l10n.themeColorSakuraPink,
+      0xFFFF7043 => l10n.themeColorCoralOrange,
+      0xFFFFA000 => l10n.themeColorAmberGold,
+      0xFF4CAF50 => l10n.themeColorForestGreen,
+      0xFF00ACC1 => l10n.themeColorAuroraCyan,
+      0xFFE53935 => l10n.themeColorCrimsonRed,
+      0xFF607D8B => l10n.themeColorSlateGrey,
+      _ =>
+        '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}',
+    };
+  }
+
+  Widget _buildThemeColorSection(
+    BuildContext context,
+    SettingsService settings,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    final currentColor = settings.themeColor;
+    final isPresetSelected = SettingsService.presetThemeColors.any(
+      (c) => c.toARGB32() == currentColor.toARGB32(),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.themeColor,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (currentColor.toARGB32() !=
+                  SettingsService.defaultAppThemeColor.toARGB32())
+                TextButton.icon(
+                  onPressed: () {
+                    settings.themeColor = SettingsService.defaultAppThemeColor;
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: Text(
+                    l10n.restoreDefault,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ...SettingsService.presetThemeColors.map((color) {
+                final isSelected = color.toARGB32() == currentColor.toARGB32();
+                return Tooltip(
+                  message: _getPresetThemeColorName(context, color),
+                  child: InkWell(
+                    onTap: () => settings.themeColor = color,
+                    borderRadius: BorderRadius.circular(20),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? (isDark ? Colors.white : Colors.black87)
+                              : Colors.transparent,
+                          width: 2.5,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: color.withValues(alpha: 0.5),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: isSelected
+                          ? Icon(
+                              Icons.check_rounded,
+                              size: 18,
+                              color: ThemeData.estimateBrightnessForColor(color) ==
+                                      Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black87,
+                            )
+                          : null,
+                    ),
+                  ),
+                );
+              }),
+              Tooltip(
+                message: l10n.customThemeColor,
+                child: InkWell(
+                  onTap: () => _pickCustomThemeColor(context, settings),
+                  borderRadius: BorderRadius.circular(20),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: !isPresetSelected
+                          ? currentColor
+                          : (isDark ? Colors.white12 : Colors.black12),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: !isPresetSelected
+                            ? (isDark ? Colors.white : Colors.black87)
+                            : (isDark ? Colors.white38 : Colors.black26),
+                        width: !isPresetSelected ? 2.5 : 1.5,
+                      ),
+                      boxShadow: !isPresetSelected
+                          ? [
+                              BoxShadow(
+                                color: currentColor.withValues(alpha: 0.5),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Icon(
+                      !isPresetSelected
+                          ? Icons.colorize_rounded
+                          : Icons.add_rounded,
+                      size: 18,
+                      color: !isPresetSelected
+                          ? (ThemeData.estimateBrightnessForColor(currentColor) ==
+                                  Brightness.dark
+                              ? Colors.white
+                              : Colors.black87)
+                          : (isDark ? Colors.white70 : Colors.black87),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -1924,6 +2147,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           icon: Icons.palette_outlined,
           children: [
             _buildThemeModeSection(context, settings),
+            _buildThemeColorSection(context, settings),
             _buildLanguageSection(context, settings),
             _buildUiScaleSection(context, settings),
             SwitchListTile(

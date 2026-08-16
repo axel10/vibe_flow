@@ -495,6 +495,45 @@ class AppLocalizationsTr extends AppLocalizations {
   String get themeModeDark => 'Koyu';
 
   @override
+  String get themeColor => 'Tema Rengi';
+
+  @override
+  String get customThemeColor => 'Özel Tema Rengi';
+
+  @override
+  String get themeColorMikuTeal => 'Miku Camgöbeği';
+
+  @override
+  String get themeColorClassicBlue => 'Klasik Mavi';
+
+  @override
+  String get themeColorIrisPurple => 'İris Moru';
+
+  @override
+  String get themeColorViolet => 'Menekşe Moru';
+
+  @override
+  String get themeColorSakuraPink => 'Sakura Pembesi';
+
+  @override
+  String get themeColorCoralOrange => 'Mercan Turuncusu';
+
+  @override
+  String get themeColorAmberGold => 'Kehribar Sarısı';
+
+  @override
+  String get themeColorForestGreen => 'Orman Yeşili';
+
+  @override
+  String get themeColorAuroraCyan => 'Kutup Camgöbeği';
+
+  @override
+  String get themeColorCrimsonRed => 'Kızıl Kırmızı';
+
+  @override
+  String get themeColorSlateGrey => 'Arduvaz Grisi';
+
+  @override
   String get immersiveTabBar => 'Sürükleyici Sekme Çubuğu';
 
   @override

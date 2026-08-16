@@ -251,6 +251,21 @@ class SettingsService extends ChangeNotifier {
   static const String defaultDoubaoTranslationModelId =
       'doubao-seed-2-0-lite-260428';
   static const String defaultDeepSeekTranslationModelId = 'deepseek-v4-flash';
+  static const Color defaultAppThemeColor = Color(0xFF39C5BB);
+  static const String _keyThemeColor = 'custom_theme_color';
+  static const List<Color> presetThemeColors = [
+    Color(0xFF39C5BB), // 初音绿 (Default Miku Teal)
+    Color(0xFF2196F3), // 经典蓝 (Classic Blue)
+    Color(0xFF6750A4), // 鸢尾紫 (Material Deep Purple)
+    Color(0xFF7E57C2), // 罗兰紫 (Violet)
+    Color(0xFFEC407A), // 樱花粉 (Sakura Pink)
+    Color(0xFFFF7043), // 珊瑚橙 (Coral Orange)
+    Color(0xFFFFA000), // 琥珀黄 (Amber Gold)
+    Color(0xFF4CAF50), // 森林绿 (Forest Green)
+    Color(0xFF00ACC1), // 极光青 (Cyan)
+    Color(0xFFE53935), // 热情红 (Crimson Red)
+    Color(0xFF607D8B), // 典雅灰 (Slate Grey)
+  ];
   static const String _keyThemeMode = 'theme_mode';
   static const String _keyLocale = 'app_locale';
   static const String _keyEnableFadeEffect = 'enable_fade_effect';
@@ -537,6 +552,16 @@ class SettingsService extends ChangeNotifier {
     customRead: (prefs, key, def) =>
         ThemeModeX.fromStorageValue(prefs.getString(key)),
     customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
+  );
+
+  late final _themeColorProperty = SettingProperty<Color>(
+    key: _keyThemeColor,
+    defaultValue: defaultAppThemeColor,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        Color(prefs.getInt(key) ?? def.toARGB32()),
+    customWrite: (prefs, key, val) => prefs.setInt(key, val.toARGB32()),
   );
 
   late final SettingProperty<String> _localeProperty = SettingProperty<String>(
@@ -1411,6 +1436,9 @@ class SettingsService extends ChangeNotifier {
 
   ThemeMode get themeMode => _themeModeProperty.value;
   set themeMode(ThemeMode value) => _themeModeProperty.value = value;
+
+  Color get themeColor => _themeColorProperty.value;
+  set themeColor(Color value) => _themeColorProperty.value = value;
 
   double get uiScale => _uiScaleProperty.value;
   set uiScale(double value) =>

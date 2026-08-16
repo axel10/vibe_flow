@@ -500,6 +500,45 @@ class AppLocalizationsFr extends AppLocalizations {
   String get themeModeDark => 'Sombre';
 
   @override
+  String get themeColor => 'Couleur du thème';
+
+  @override
+  String get customThemeColor => 'Couleur de thème personnalisée';
+
+  @override
+  String get themeColorMikuTeal => 'Vert Miku';
+
+  @override
+  String get themeColorClassicBlue => 'Bleu classique';
+
+  @override
+  String get themeColorIrisPurple => 'Pourpre iris';
+
+  @override
+  String get themeColorViolet => 'Violet';
+
+  @override
+  String get themeColorSakuraPink => 'Rose sakura';
+
+  @override
+  String get themeColorCoralOrange => 'Orange corail';
+
+  @override
+  String get themeColorAmberGold => 'Or ambré';
+
+  @override
+  String get themeColorForestGreen => 'Vert forêt';
+
+  @override
+  String get themeColorAuroraCyan => 'Cyan aurore';
+
+  @override
+  String get themeColorCrimsonRed => 'Rouge cramoisi';
+
+  @override
+  String get themeColorSlateGrey => 'Gris ardoise';
+
+  @override
   String get immersiveTabBar => 'Barre d\'onglets immersive';
 
   @override

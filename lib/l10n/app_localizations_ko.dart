@@ -488,6 +488,45 @@ class AppLocalizationsKo extends AppLocalizations {
   String get themeModeDark => '다크';
 
   @override
+  String get themeColor => '테마 색상';
+
+  @override
+  String get customThemeColor => '사용자 지정 테마 색상';
+
+  @override
+  String get themeColorMikuTeal => '하츠네 미쿠 틸';
+
+  @override
+  String get themeColorClassicBlue => '클래식 블루';
+
+  @override
+  String get themeColorIrisPurple => '아이리스 퍼플';
+
+  @override
+  String get themeColorViolet => '바이올렛';
+
+  @override
+  String get themeColorSakuraPink => '사쿠라 핑크';
+
+  @override
+  String get themeColorCoralOrange => '코랄 오렌지';
+
+  @override
+  String get themeColorAmberGold => '호박 골드';
+
+  @override
+  String get themeColorForestGreen => '포레스트 그린';
+
+  @override
+  String get themeColorAuroraCyan => '오로라 시안';
+
+  @override
+  String get themeColorCrimsonRed => '크림슨 레드';
+
+  @override
+  String get themeColorSlateGrey => '슬레이트 그레이';
+
+  @override
   String get immersiveTabBar => '몰입형 탭 바';
 
   @override

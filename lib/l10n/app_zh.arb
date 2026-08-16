@@ -596,6 +596,58 @@
   "@themeModeDark": {
     "description": "Theme mode option for dark mode"
   },
+  "themeColor": "主题色",
+  "@themeColor": {
+    "description": "Theme color label"
+  },
+  "customThemeColor": "自定义主题色",
+  "@customThemeColor": {
+    "description": "Custom theme color label"
+  },
+  "themeColorMikuTeal": "初音绿",
+  "@themeColorMikuTeal": {
+    "description": "Theme color preset: Miku Teal"
+  },
+  "themeColorClassicBlue": "经典蓝",
+  "@themeColorClassicBlue": {
+    "description": "Theme color preset: Classic Blue"
+  },
+  "themeColorIrisPurple": "鸢尾紫",
+  "@themeColorIrisPurple": {
+    "description": "Theme color preset: Iris Purple"
+  },
+  "themeColorViolet": "罗兰紫",
+  "@themeColorViolet": {
+    "description": "Theme color preset: Violet"
+  },
+  "themeColorSakuraPink": "樱花粉",
+  "@themeColorSakuraPink": {
+    "description": "Theme color preset: Sakura Pink"
+  },
+  "themeColorCoralOrange": "珊瑚橙",
+  "@themeColorCoralOrange": {
+    "description": "Theme color preset: Coral Orange"
+  },
+  "themeColorAmberGold": "琥珀黄",
+  "@themeColorAmberGold": {
+    "description": "Theme color preset: Amber Gold"
+  },
+  "themeColorForestGreen": "森林绿",
+  "@themeColorForestGreen": {
+    "description": "Theme color preset: Forest Green"
+  },
+  "themeColorAuroraCyan": "极光青",
+  "@themeColorAuroraCyan": {
+    "description": "Theme color preset: Aurora Cyan"
+  },
+  "themeColorCrimsonRed": "热情红",
+  "@themeColorCrimsonRed": {
+    "description": "Theme color preset: Crimson Red"
+  },
+  "themeColorSlateGrey": "典雅灰",
+  "@themeColorSlateGrey": {
+    "description": "Theme color preset: Slate Grey"
+  },
   "immersiveTabBar": "沉浸式标签栏",
   "@immersiveTabBar": {
     "description": "Immersive Tab Bar label"

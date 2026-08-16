@@ -488,6 +488,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeModeDark => '暗色';
 
   @override
+  String get themeColor => '主题色';
+
+  @override
+  String get customThemeColor => '自定义主题色';
+
+  @override
+  String get themeColorMikuTeal => '初音绿';
+
+  @override
+  String get themeColorClassicBlue => '经典蓝';
+
+  @override
+  String get themeColorIrisPurple => '鸢尾紫';
+
+  @override
+  String get themeColorViolet => '罗兰紫';
+
+  @override
+  String get themeColorSakuraPink => '樱花粉';
+
+  @override
+  String get themeColorCoralOrange => '珊瑚橙';
+
+  @override
+  String get themeColorAmberGold => '琥珀黄';
+
+  @override
+  String get themeColorForestGreen => '森林绿';
+
+  @override
+  String get themeColorAuroraCyan => '极光青';
+
+  @override
+  String get themeColorCrimsonRed => '热情红';
+
+  @override
+  String get themeColorSlateGrey => '典雅灰';
+
+  @override
   String get immersiveTabBar => '沉浸式标签栏';
 
   @override
@@ -3812,6 +3851,45 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get themeModeDark => '暗色';
+
+  @override
+  String get themeColor => '主題色';
+
+  @override
+  String get customThemeColor => '自訂主題色';
+
+  @override
+  String get themeColorMikuTeal => '初音綠';
+
+  @override
+  String get themeColorClassicBlue => '經典藍';
+
+  @override
+  String get themeColorIrisPurple => '鳶尾紫';
+
+  @override
+  String get themeColorViolet => '羅蘭紫';
+
+  @override
+  String get themeColorSakuraPink => '櫻花粉';
+
+  @override
+  String get themeColorCoralOrange => '珊瑚橙';
+
+  @override
+  String get themeColorAmberGold => '琥珀黃';
+
+  @override
+  String get themeColorForestGreen => '森林綠';
+
+  @override
+  String get themeColorAuroraCyan => '極光青';
+
+  @override
+  String get themeColorCrimsonRed => '熱情紅';
+
+  @override
+  String get themeColorSlateGrey => '典雅灰';
 
   @override
   String get immersiveTabBar => '沉浸式標籤列';

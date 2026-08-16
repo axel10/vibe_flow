@@ -259,5 +259,27 @@ void main() {
       final settings = SettingsService(prefs);
       expect(settings.openPlaybackOnDirectorySongTap, isFalse);
     });
+
+    test('themeColor defaults to defaultAppThemeColor and updates correctly', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      expect(settings.themeColor, SettingsService.defaultAppThemeColor);
+
+      var notified = false;
+      settings.addListener(() {
+        notified = true;
+      });
+
+      const newColor = Color(0xFF2196F3);
+      settings.themeColor = newColor;
+      expect(settings.themeColor, newColor);
+      expect(notified, isTrue);
+
+      // Verify loaded from stored preferences
+      final restoredSettings = SettingsService(prefs);
+      expect(restoredSettings.themeColor, newColor);
+    });
   });
 }
