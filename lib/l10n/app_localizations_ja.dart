@@ -3354,4 +3354,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '$count台のデバイスを信頼済み';
+  }
+
+  @override
+  String get noTrustedDevices => '信頼済みのデバイスはありません';
+
+  @override
+  String get noTrustedDevicesHint => 'ペアリング時に「このデバイスを信頼する」をチェックするとここに表示されます';
+
+  @override
+  String pairedAtFormat(String time) {
+    return 'ペアリング日時: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$directionキャンセル';
+  }
+
+  @override
+  String get audioFiles => '音声ファイル';
 }

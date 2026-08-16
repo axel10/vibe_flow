@@ -3474,4 +3474,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count trusted devices',
+      one: '1 trusted device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noTrustedDevices => 'No trusted devices';
+
+  @override
+  String get noTrustedDevicesHint =>
+      'Devices will appear here after selecting \"Trust this device\" when pairing';
+
+  @override
+  String pairedAtFormat(String time) {
+    return 'Paired at: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction cancelled';
+  }
+
+  @override
+  String get audioFiles => 'Audio Files';
 }

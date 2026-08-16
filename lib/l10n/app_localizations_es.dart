@@ -3524,4 +3524,29 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '$count dispositivos de confianza';
+  }
+
+  @override
+  String get noTrustedDevices => 'No hay dispositivos de confianza';
+
+  @override
+  String get noTrustedDevicesHint =>
+      'Los dispositivos aparecerán aquí tras marcar «Confiar en este dispositivo» al vincular';
+
+  @override
+  String pairedAtFormat(String time) {
+    return 'Vinculado el: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction cancelada';
+  }
+
+  @override
+  String get audioFiles => 'Archivos de audio';
 }

@@ -634,7 +634,7 @@ class _TrustedDevicesDialogContent extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '已信任 ${trustedDevices.length} 台设备',
+                    l10n.trustedDevicesCount(trustedDevices.length),
                     style: TextStyle(
                       fontSize: 12,
                       color: theme.colorScheme.onSurfaceVariant,
@@ -666,7 +666,7 @@ class _TrustedDevicesDialogContent extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        '暂无已信任的设备',
+                        l10n.noTrustedDevices,
                         style: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 14,
@@ -674,7 +674,7 @@ class _TrustedDevicesDialogContent extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '在接受配对时勾选“记住该设备”后将在此显示',
+                        l10n.noTrustedDevicesHint,
                         style: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontSize: 12,
@@ -714,7 +714,7 @@ class _TrustedDevicesDialogContent extends ConsumerWidget {
                           ),
                         ),
                         subtitle: Text(
-                          '配对时间: ${_formatDate(d.pairedAt)}',
+                          l10n.pairedAtFormat(_formatDate(d.pairedAt)),
                           style: TextStyle(
                             fontSize: 11,
                             color: theme.colorScheme.onSurfaceVariant,

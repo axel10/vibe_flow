@@ -1458,5 +1458,32 @@
   "trustThisDevice": "Trust this device and allow automatically in the future",
   "remoteRequestRejected": "The connection request was rejected by the target device.",
   "turkishLanguage": "Turkish",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "@trustedDevicesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trustedDevicesCount": "{count, plural, =1{1 trusted device} other{{count} trusted devices}}",
+  "noTrustedDevices": "No trusted devices",
+  "noTrustedDevicesHint": "Devices will appear here after selecting \"Trust this device\" when pairing",
+  "@pairedAtFormat": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pairedAtFormat": "Paired at: {time}",
+  "@transferCancelled": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "transferCancelled": "{direction} cancelled",
+  "audioFiles": "Audio Files"
 }

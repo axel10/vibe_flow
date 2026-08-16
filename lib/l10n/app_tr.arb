@@ -1499,5 +1499,32 @@
   "trustThisDevice": "Bu cihaza güven ve gelecekte otomatik olarak izin ver",
   "remoteRequestRejected": "Bağlantı isteği hedef cihaz tarafından reddedildi.",
   "turkishLanguage": "Türkçe",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "@trustedDevicesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trustedDevicesCount": "{count} güvenilen cihaz",
+  "noTrustedDevices": "Güvenilen cihaz yok",
+  "noTrustedDevicesHint": "Eşleme sırasında \"Bu cihaza güven\" seçildiğinde cihazlar burada görünür",
+  "@pairedAtFormat": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pairedAtFormat": "Eşleşme zamanı: {time}",
+  "@transferCancelled": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "transferCancelled": "{direction} iptal edildi",
+  "audioFiles": "Ses Dosyaları"
 }

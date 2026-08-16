@@ -3516,4 +3516,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '$count vertrauenswürdige Geräte';
+  }
+
+  @override
+  String get noTrustedDevices => 'Keine vertrauenswürdigen Geräte';
+
+  @override
+  String get noTrustedDevicesHint =>
+      'Geräte werden hier angezeigt, wenn beim Koppeln „Diesem Gerät vertrauen“ ausgewählt wurde';
+
+  @override
+  String pairedAtFormat(String time) {
+    return 'Gekoppelt am: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction abgebrochen';
+  }
+
+  @override
+  String get audioFiles => 'Audiodateien';
 }

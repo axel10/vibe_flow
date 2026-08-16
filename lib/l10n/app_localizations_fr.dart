@@ -3529,4 +3529,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '$count appareils de confiance';
+  }
+
+  @override
+  String get noTrustedDevices => 'Aucun appareil de confiance';
+
+  @override
+  String get noTrustedDevicesHint =>
+      'Les appareils apparaîtront ici après avoir coché « Faire confiance à cet appareil » lors de l\'association';
+
+  @override
+  String pairedAtFormat(String time) {
+    return 'Associé le : $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction annulée';
+  }
+
+  @override
+  String get audioFiles => 'Fichiers audio';
 }

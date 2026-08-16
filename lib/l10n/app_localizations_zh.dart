@@ -1577,7 +1577,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get searchLyricsPlaceholder => '输入歌名、歌手或歌词进行搜索';
 
   @override
-  String get share => '共享';
+  String get share => '互联';
 
   @override
   String get windowsSettingsTitle => 'Windows 专属设置';
@@ -2575,7 +2575,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get lanSharingStartFailed => '局域网共享启动失败，请检查本地网络权限是否已开启';
+  String get lanSharingStartFailed => '局域网互联启动失败，请检查本地网络权限是否已开启';
 
   @override
   String syncingLyricsToDevice(Object deviceName) {
@@ -2604,10 +2604,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lanSharingTitle => '局域网互联';
 
   @override
-  String get lanSharingEnabledStatus => '局域网共享已开启';
+  String get lanSharingEnabledStatus => '局域网互联已开启';
 
   @override
-  String get lanSharingDisabledStatus => '局域网共享未开启';
+  String get lanSharingDisabledStatus => '局域网互联已关闭';
 
   @override
   String lanSharingRunningStatus(Object ip, Object port) {
@@ -3304,6 +3304,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '已信任 $count 台设备';
+  }
+
+  @override
+  String get noTrustedDevices => '暂无已信任的设备';
+
+  @override
+  String get noTrustedDevicesHint => '在接受配对时勾选“信任该设备”后将在此显示';
+
+  @override
+  String pairedAtFormat(String time) {
+    return '配对时间: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction已取消';
+  }
+
+  @override
+  String get audioFiles => '音频文件';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -4879,7 +4903,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get searchLyricsPlaceholder => '輸入歌名、歌手或歌詞進行搜尋';
 
   @override
-  String get share => '共用';
+  String get share => '互聯';
 
   @override
   String get windowsSettingsTitle => 'Windows 專屬設定';
@@ -5878,7 +5902,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get lanSharingStartFailed => '區域網路共用啟動失敗，請檢查本機網路權限是否已開啟';
+  String get lanSharingStartFailed => '區域網路互聯啟動失敗，請檢查本機網路權限是否已開啟';
 
   @override
   String syncingLyricsToDevice(Object deviceName) {
@@ -5907,10 +5931,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get lanSharingTitle => '區域網路互聯';
 
   @override
-  String get lanSharingEnabledStatus => '區域網路共用已開啟';
+  String get lanSharingEnabledStatus => '區域網路互聯已開啟';
 
   @override
-  String get lanSharingDisabledStatus => '區域網路共用未開啟';
+  String get lanSharingDisabledStatus => '區域網路互聯已關閉';
 
   @override
   String lanSharingRunningStatus(Object ip, Object port) {
@@ -6606,4 +6630,28 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '已信任 $count 台裝置';
+  }
+
+  @override
+  String get noTrustedDevices => '暫無已信任的裝置';
+
+  @override
+  String get noTrustedDevicesHint => '在接受配對時勾選「信任該裝置」後將在此顯示';
+
+  @override
+  String pairedAtFormat(String time) {
+    return '配對時間: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction已取消';
+  }
+
+  @override
+  String get audioFiles => '音訊檔案';
 }

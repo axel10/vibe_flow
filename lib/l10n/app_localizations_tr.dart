@@ -3486,4 +3486,29 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '$count güvenilen cihaz';
+  }
+
+  @override
+  String get noTrustedDevices => 'Güvenilen cihaz yok';
+
+  @override
+  String get noTrustedDevicesHint =>
+      'Eşleme sırasında \"Bu cihaza güven\" seçildiğinde cihazlar burada görünür';
+
+  @override
+  String pairedAtFormat(String time) {
+    return 'Eşleşme zamanı: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction iptal edildi';
+  }
+
+  @override
+  String get audioFiles => 'Ses Dosyaları';
 }

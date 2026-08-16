@@ -1396,5 +1396,11 @@
   "trustThisDevice": "이 기기를 신뢰하고 앞으로 자동으로 연결 허용",
   "remoteRequestRejected": "상대 기기에서 연결 요청을 거부했습니다",
   "turkishLanguage": "터키어",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "trustedDevicesCount": "{count}개의 신뢰할 수 있는 기기",
+  "noTrustedDevices": "신뢰할 수 있는 기기가 없습니다",
+  "noTrustedDevicesHint": "페어링 시 '이 기기 신뢰'를 체크하면 여기에 표시됩니다",
+  "pairedAtFormat": "페어링 시간: {time}",
+  "transferCancelled": "{direction} 취소됨",
+  "audioFiles": "오디오 파일"
 }

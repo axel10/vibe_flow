@@ -1117,7 +1117,7 @@
   "copyCover": "复制封面到剪贴板",
   "copyCoverSuccess": "已成功复制封面",
   "searchLyricsPlaceholder": "输入歌名、歌手或歌词进行搜索",
-  "share": "共享",
+  "share": "互联",
   "@share": {
     "description": "Share tab label"
   },
@@ -1459,7 +1459,7 @@
     }
   },
   "sendFolderFailed": "发送文件夹失败: {error}",
-  "lanSharingStartFailed": "局域网共享启动失败，请检查本地网络权限是否已开启",
+  "lanSharingStartFailed": "局域网互联启动失败，请检查本地网络权限是否已开启",
   "@syncingLyricsToDevice": {
     "description": "Toast when syncing lyrics to a device",
     "placeholders": {
@@ -1492,8 +1492,8 @@
   "syncingLyricsFromDevice": "正在从 {deviceName} 同步歌词...",
   "transferInProgressDoNotLeave": "正在传输文件，请勿离开共享页",
   "lanSharingTitle": "局域网互联",
-  "lanSharingEnabledStatus": "局域网共享已开启",
-  "lanSharingDisabledStatus": "局域网共享未开启",
+  "lanSharingEnabledStatus": "局域网互联已开启",
+  "lanSharingDisabledStatus": "局域网互联已关闭",
   "@lanSharingRunningStatus": {
     "description": "Status text showing IP and port",
     "placeholders": {
@@ -1906,5 +1906,44 @@
   "trustThisDevice": "信任该设备，以后默认允许连接",
   "remoteRequestRejected": "对方已拒绝连接请求",
   "turkishLanguage": "土耳其文",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "@trustedDevicesCount": {
+    "description": "Number of trusted devices in trusted devices dialog",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trustedDevicesCount": "已信任 {count} 台设备",
+  "@noTrustedDevices": {
+    "description": "Empty state title in trusted devices dialog"
+  },
+  "noTrustedDevices": "暂无已信任的设备",
+  "@noTrustedDevicesHint": {
+    "description": "Empty state hint in trusted devices dialog"
+  },
+  "noTrustedDevicesHint": "在接受配对时勾选“信任该设备”后将在此显示",
+  "@pairedAtFormat": {
+    "description": "Paired time format in trusted devices list",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pairedAtFormat": "配对时间: {time}",
+  "@transferCancelled": {
+    "description": "Toast when transfer is cancelled without reason",
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "transferCancelled": "{direction}已取消",
+  "@audioFiles": {
+    "description": "Filter label for audio files in file selector"
+  },
+  "audioFiles": "音频文件"
 }

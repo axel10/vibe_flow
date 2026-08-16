@@ -236,7 +236,7 @@ void showTransferProgressDialog(BuildContext context, String sessionId) {
                       : (isCancelled
                           ? (session.cancelReason != null && session.cancelReason!.isNotEmpty
                               ? l10n.transferCancelledWithReason(direction, session.cancelReason!)
-                              : '$direction ${l10n.cancel.toLowerCase()}')
+                              : l10n.transferCancelled(direction))
                           : l10n.transferFailedFormat(direction, session.fileName));
 
                   
@@ -304,7 +304,7 @@ void showTransferProgressDialog(BuildContext context, String sessionId) {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            l10n.progressFormat('${(session.progress * 100).toStringAsFixed(0)}'),
+                            l10n.progressFormat((session.progress * 100).toStringAsFixed(0)),
                             style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                           ),
                           Text(

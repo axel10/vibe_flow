@@ -3357,4 +3357,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get nativeLanguageTr => 'Türkçe';
+
+  @override
+  String trustedDevicesCount(int count) {
+    return '$count개의 신뢰할 수 있는 기기';
+  }
+
+  @override
+  String get noTrustedDevices => '신뢰할 수 있는 기기가 없습니다';
+
+  @override
+  String get noTrustedDevicesHint => '페어링 시 \'이 기기 신뢰\'를 체크하면 여기에 표시됩니다';
+
+  @override
+  String pairedAtFormat(String time) {
+    return '페어링 시간: $time';
+  }
+
+  @override
+  String transferCancelled(String direction) {
+    return '$direction 취소됨';
+  }
+
+  @override
+  String get audioFiles => '오디오 파일';
 }

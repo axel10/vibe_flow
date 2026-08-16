@@ -73,9 +73,10 @@ class _SharingPageState extends ConsumerState<SharingPage> {
   }
 
   Future<void> _handleSendFiles(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final filePaths = await FileSelectorHelper.pickFiles(
-        label: 'Audio Files',
+        label: l10n.audioFiles,
         extensions: const ['mp3', 'wav', 'flac', 'm4a', 'aac', 'ogg'],
         fileType: FileType.audio,
       );
@@ -122,7 +123,9 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         );
         if (newSendSession.id.isNotEmpty) {
           subscription.close();
-          showTransferProgressDialog(context, newSendSession.id);
+          if (mounted) {
+            showTransferProgressDialog(context, newSendSession.id);
+          }
         }
       });
 
@@ -135,11 +138,12 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         subscription.close();
       }
     } catch (e) {
-      showToast(AppLocalizations.of(context)!.sendFilesFailed(e.toString()));
+      showToast(l10n.sendFilesFailed(e.toString()));
     }
   }
 
   Future<void> _handleSendFolder(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final dirPath = await _getDirectoryPath();
 
@@ -147,7 +151,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         return;
       }
 
-      showToast(AppLocalizations.of(context)!.scanningFolderMusic);
+      showToast(l10n.scanningFolderMusic);
 
       final dir = Directory(dirPath);
       final List<String> musicFiles = [];
@@ -160,12 +164,12 @@ class _SharingPageState extends ConsumerState<SharingPage> {
           }
         }
       } catch (e) {
-        showToast(AppLocalizations.of(context)!.scanFolderFailed(e.toString()));
+        showToast(l10n.scanFolderFailed(e.toString()));
         return;
       }
 
       if (musicFiles.isEmpty) {
-        showToast(AppLocalizations.of(context)!.noMusicFilesFound);
+        showToast(l10n.noMusicFilesFound);
         return;
       }
 
@@ -196,7 +200,9 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         );
         if (newSendSession.id.isNotEmpty) {
           subscription.close();
-          showTransferProgressDialog(context, newSendSession.id);
+          if (mounted) {
+            showTransferProgressDialog(context, newSendSession.id);
+          }
         }
       });
 
@@ -210,7 +216,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         subscription.close();
       }
     } catch (e) {
-      showToast(AppLocalizations.of(context)!.sendFolderFailed(e.toString()));
+      showToast(l10n.sendFolderFailed(e.toString()));
     }
   }
 
@@ -359,14 +365,13 @@ class _SharingPageState extends ConsumerState<SharingPage> {
   }
 
   Future<void> _handleSyncLyricsToDevice(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
-      showToast(
-        AppLocalizations.of(context)!.syncingLyricsToDevice(device.name),
-      );
+      showToast(l10n.syncingLyricsToDevice(device.name));
       final service = ref.read(sharingServiceProvider);
       final stats = await service.syncLyricsToDevice(device);
       showToast(
-        AppLocalizations.of(context)!.syncLyricsSuccess(
+        l10n.syncLyricsSuccess(
           '${stats['matched']}',
           '${stats['overwritten']}',
           '${stats['skipped']}',
@@ -374,21 +379,20 @@ class _SharingPageState extends ConsumerState<SharingPage> {
       );
     } catch (e) {
       final errorMsg = e.toString().contains('rejected')
-          ? AppLocalizations.of(context)!.lyricsRequestRejected
+          ? l10n.lyricsRequestRejected
           : e.toString();
-      showToast(AppLocalizations.of(context)!.syncLyricsFailed(errorMsg));
+      showToast(l10n.syncLyricsFailed(errorMsg));
     }
   }
 
   Future<void> _handleSyncLyricsFromDevice(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
-      showToast(
-        AppLocalizations.of(context)!.syncingLyricsFromDevice(device.name),
-      );
+      showToast(l10n.syncingLyricsFromDevice(device.name));
       final service = ref.read(sharingServiceProvider);
       final stats = await service.pullLyricsFromDevice(device);
       showToast(
-        AppLocalizations.of(context)!.syncLyricsSuccess(
+        l10n.syncLyricsSuccess(
           '${stats['matched']}',
           '${stats['overwritten']}',
           '${stats['skipped']}',
@@ -396,9 +400,9 @@ class _SharingPageState extends ConsumerState<SharingPage> {
       );
     } catch (e) {
       final errorMsg = e.toString().contains('rejected')
-          ? AppLocalizations.of(context)!.lyricsRequestRejected
+          ? l10n.lyricsRequestRejected
           : e.toString();
-      showToast(AppLocalizations.of(context)!.syncLyricsFailed(errorMsg));
+      showToast(l10n.syncLyricsFailed(errorMsg));
     }
   }
 

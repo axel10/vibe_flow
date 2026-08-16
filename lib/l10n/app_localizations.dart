@@ -3084,7 +3084,7 @@ abstract class AppLocalizations {
   /// Share tab label
   ///
   /// In zh, this message translates to:
-  /// **'共享'**
+  /// **'互联'**
   String get share;
 
   /// No description provided for @windowsSettingsTitle.
@@ -4938,7 +4938,7 @@ abstract class AppLocalizations {
   /// No description provided for @lanSharingStartFailed.
   ///
   /// In zh, this message translates to:
-  /// **'局域网共享启动失败，请检查本地网络权限是否已开启'**
+  /// **'局域网互联启动失败，请检查本地网络权限是否已开启'**
   String get lanSharingStartFailed;
 
   /// Toast when syncing lyrics to a device
@@ -4980,13 +4980,13 @@ abstract class AppLocalizations {
   /// No description provided for @lanSharingEnabledStatus.
   ///
   /// In zh, this message translates to:
-  /// **'局域网共享已开启'**
+  /// **'局域网互联已开启'**
   String get lanSharingEnabledStatus;
 
   /// No description provided for @lanSharingDisabledStatus.
   ///
   /// In zh, this message translates to:
-  /// **'局域网共享未开启'**
+  /// **'局域网互联已关闭'**
   String get lanSharingDisabledStatus;
 
   /// Status text showing IP and port
@@ -6230,6 +6230,42 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'Türkçe'**
   String get nativeLanguageTr;
+
+  /// Number of trusted devices in trusted devices dialog
+  ///
+  /// In zh, this message translates to:
+  /// **'已信任 {count} 台设备'**
+  String trustedDevicesCount(int count);
+
+  /// Empty state title in trusted devices dialog
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无已信任的设备'**
+  String get noTrustedDevices;
+
+  /// Empty state hint in trusted devices dialog
+  ///
+  /// In zh, this message translates to:
+  /// **'在接受配对时勾选“信任该设备”后将在此显示'**
+  String get noTrustedDevicesHint;
+
+  /// Paired time format in trusted devices list
+  ///
+  /// In zh, this message translates to:
+  /// **'配对时间: {time}'**
+  String pairedAtFormat(String time);
+
+  /// Toast when transfer is cancelled without reason
+  ///
+  /// In zh, this message translates to:
+  /// **'{direction}已取消'**
+  String transferCancelled(String direction);
+
+  /// Filter label for audio files in file selector
+  ///
+  /// In zh, this message translates to:
+  /// **'音频文件'**
+  String get audioFiles;
 }
 
 class _AppLocalizationsDelegate

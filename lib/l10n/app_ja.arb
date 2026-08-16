@@ -1495,5 +1495,11 @@
   "trustThisDevice": "このデバイスを信頼し、次回から自動的に接続を許可する",
   "remoteRequestRejected": "相手のデバイスに接続要求が拒否されました",
   "turkishLanguage": "トルコ語",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "trustedDevicesCount": "{count}台のデバイスを信頼済み",
+  "noTrustedDevices": "信頼済みのデバイスはありません",
+  "noTrustedDevicesHint": "ペアリング時に「このデバイスを信頼する」をチェックするとここに表示されます",
+  "pairedAtFormat": "ペアリング日時: {time}",
+  "transferCancelled": "{direction}キャンセル",
+  "audioFiles": "音声ファイル"
 }

@@ -1396,5 +1396,11 @@
   "trustThisDevice": "Diesem Gerät vertrauen und künftig automatisch zulassen",
   "remoteRequestRejected": "Die Verbindungsanfrage wurde vom Zielgerät abgelehnt.",
   "turkishLanguage": "Türkisch",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "trustedDevicesCount": "{count} vertrauenswürdige Geräte",
+  "noTrustedDevices": "Keine vertrauenswürdigen Geräte",
+  "noTrustedDevicesHint": "Geräte werden hier angezeigt, wenn beim Koppeln „Diesem Gerät vertrauen“ ausgewählt wurde",
+  "pairedAtFormat": "Gekoppelt am: {time}",
+  "transferCancelled": "{direction} abgebrochen",
+  "audioFiles": "Audiodateien"
 }

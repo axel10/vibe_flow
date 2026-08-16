@@ -1396,5 +1396,11 @@
   "trustThisDevice": "Faire confiance à cet appareil et l'autoriser automatiquement à l'avenir",
   "remoteRequestRejected": "La demande de connexion a été refusée par l'appareil cible.",
   "turkishLanguage": "Turc",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "trustedDevicesCount": "{count} appareils de confiance",
+  "noTrustedDevices": "Aucun appareil de confiance",
+  "noTrustedDevicesHint": "Les appareils apparaîtront ici après avoir coché « Faire confiance à cet appareil » lors de l'association",
+  "pairedAtFormat": "Associé le : {time}",
+  "transferCancelled": "{direction} annulée",
+  "audioFiles": "Fichiers audio"
 }

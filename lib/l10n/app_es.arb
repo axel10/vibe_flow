@@ -1396,5 +1396,11 @@
   "trustThisDevice": "Confiar en este dispositivo y permitirlo automáticamente en el futuro",
   "remoteRequestRejected": "La solicitud de conexión fue rechazada por el dispositivo de destino.",
   "turkishLanguage": "Turco",
-  "nativeLanguageTr": "Türkçe"
+  "nativeLanguageTr": "Türkçe",
+  "trustedDevicesCount": "{count} dispositivos de confianza",
+  "noTrustedDevices": "No hay dispositivos de confianza",
+  "noTrustedDevicesHint": "Los dispositivos aparecerán aquí tras marcar «Confiar en este dispositivo» al vincular",
+  "pairedAtFormat": "Vinculado el: {time}",
+  "transferCancelled": "{direction} cancelada",
+  "audioFiles": "Archivos de audio"
 }
