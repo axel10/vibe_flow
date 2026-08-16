@@ -264,11 +264,13 @@ class ConnectedHostClient {
   final String name;
   final bool isTrusted;
   final String deviceType;
+  final String? token;
 
   const ConnectedHostClient({
     required this.name,
     this.isTrusted = false,
     this.deviceType = 'unknown',
+    this.token,
   });
 
   @override
@@ -278,8 +280,10 @@ class ConnectedHostClient {
           runtimeType == other.runtimeType &&
           name == other.name &&
           isTrusted == other.isTrusted &&
-          deviceType == other.deviceType;
+          deviceType == other.deviceType &&
+          token == other.token;
 
   @override
-  int get hashCode => name.hashCode ^ isTrusted.hashCode ^ deviceType.hashCode;
+  int get hashCode =>
+      name.hashCode ^ isTrusted.hashCode ^ deviceType.hashCode ^ token.hashCode;
 }

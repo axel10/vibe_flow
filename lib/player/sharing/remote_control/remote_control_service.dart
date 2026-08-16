@@ -133,8 +133,17 @@ class RemoteControlService {
 
   List<TrustedRemoteDevice> get trustedDevices => List.unmodifiable(_trustedDevices);
   LanDevice? get controllingDevice => _controllingDevice;
+  String? get clientAuthToken => _clientAuthToken;
   bool get isControllingRemote => _clientSocket != null && _controllingDevice != null;
   bool get hasActiveHostClients => _hostClientSockets.isNotEmpty;
+
+  bool isValidToken(String token) {
+    if (token.isEmpty) return false;
+    final isTrusted = _trustedDevices.any((d) => d.token == token);
+    final isTemporary = _temporaryAuthTokens.containsKey(token);
+    final isActiveClient = _hostClientSockets.values.any((c) => c.token == token);
+    return isTrusted || isTemporary || isActiveClient;
+  }
 
   Future<void> init() async {
     await _loadTrustedDevices();
@@ -572,6 +581,7 @@ class RemoteControlService {
         name: senderName,
         isTrusted: isTrusted,
         deviceType: deviceType,
+        token: token,
       );
       _hostClientSockets[socket] = clientInfo;
       _ref.read(hostConnectedClientsProvider.notifier).addClient(clientInfo);
@@ -624,6 +634,20 @@ class RemoteControlService {
 
   Future<void> handleCoverRequest(HttpRequest request) async {
     try {
+      final settings = _ref.read(settingsServiceProvider);
+      if (!settings.allowRemoteControl) {
+        request.response.statusCode = HttpStatus.forbidden;
+        await request.response.close();
+        return;
+      }
+
+      final token = request.uri.queryParameters['token'] ?? '';
+      if (!isValidToken(token)) {
+        request.response.statusCode = HttpStatus.unauthorized;
+        await request.response.close();
+        return;
+      }
+
       final snap = _ref.read(audioSnapshotProvider);
       final currentMusic = snap.currentMusic;
 
