@@ -495,10 +495,18 @@ class _MyAppState extends ConsumerState<MyApp>
 
   ThemeData _buildTheme(Brightness brightness, Color primaryColor) {
     final isDark = brightness == Brightness.dark;
+    final isPrimaryDark =
+        ThemeData.estimateBrightnessForColor(primaryColor) == Brightness.dark;
+    final onPrimary = isPrimaryDark ? Colors.white : Colors.black;
+
     final colorScheme = ColorScheme.fromSeed(
       seedColor: primaryColor,
       brightness: brightness,
-    ).copyWith(primary: primaryColor, surface: isDark ? Colors.black : null);
+    ).copyWith(
+      primary: primaryColor,
+      onPrimary: onPrimary,
+      surface: isDark ? Colors.black : null,
+    );
     final snackBarBackground = isDark ? const Color(0xFF1F1F1F) : Colors.white;
     final snackBarForeground = isDark ? Colors.white : Colors.black;
 
