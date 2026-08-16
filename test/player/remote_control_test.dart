@@ -103,6 +103,25 @@ void main() {
       expect(restored.deviceType, 'ios');
       expect(restored.token, 'auth_token_xyz');
       expect(restored.pairedAt.millisecondsSinceEpoch, now.millisecondsSinceEpoch);
+      expect(restored.certFingerprint, isNull);
+    });
+
+    test('json serialization and parsing with certFingerprint', () {
+      final now = DateTime.now();
+      final device = TrustedRemoteDevice(
+        id: 'dev_123',
+        name: 'iPhone 15',
+        deviceType: 'ios',
+        token: 'auth_token_xyz',
+        pairedAt: now,
+        certFingerprint: 'abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234',
+      );
+
+      final json = device.toJson();
+      expect(json['certFingerprint'], 'abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234');
+
+      final restored = TrustedRemoteDevice.fromJson(json);
+      expect(restored.certFingerprint, 'abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234');
     });
   });
 }

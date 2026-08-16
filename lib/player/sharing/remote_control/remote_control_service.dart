@@ -814,13 +814,18 @@ class RemoteControlService {
       String? existingToken;
       if (existingIndex != -1) {
         final existing = _trustedDevices[existingIndex];
-        // Security check: if the trusted device changed its certificate fingerprint, invalidate trust
-        if (existing.certFingerprint != null &&
-            targetDevice.certFingerprint != null &&
-            existing.certFingerprint != targetDevice.certFingerprint) {
+        // Security check:
+        // 1. If existing record has no certFingerprint (legacy token from older unpinned version),
+        //    we MUST NOT send the auth token to an unauthenticated TLS host (prevents token leakage to spoofed mDNS services).
+        // 2. If both records have fingerprints but they don't match, target device's identity has changed.
+        // In either case, invalidate legacy/mismatched trust and require fresh PIN verification.
+        if (existing.certFingerprint == null ||
+            (targetDevice.certFingerprint != null &&
+                existing.certFingerprint != targetDevice.certFingerprint)) {
           debugPrint(
-            '[RemoteControlService] Security warning: Fingerprint mismatch for trusted device ${targetDevice.name}. '
-            'Expected: ${existing.certFingerprint}, Discovered: ${targetDevice.certFingerprint}. Invalidating saved trust.',
+            '[RemoteControlService] Security notice: Fingerprint missing or mismatch for trusted device ${targetDevice.name} '
+            '(Saved: ${existing.certFingerprint}, Discovered: ${targetDevice.certFingerprint}). '
+            'Requiring fresh PIN re-pairing before re-authorizing.',
           );
           _trustedDevices.removeAt(existingIndex);
           await _saveTrustedDevices();
