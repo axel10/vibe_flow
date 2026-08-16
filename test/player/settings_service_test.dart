@@ -252,5 +252,12 @@ void main() {
       expect(settings.hasCustomDoubaoApiKey, isFalse);
       expect(await secureStorage.read(key: 'doubao_api_key'), isNull);
     });
+
+    test('openPlaybackOnDirectorySongTap defaults to false', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+      expect(settings.openPlaybackOnDirectorySongTap, isFalse);
+    });
   });
 }

@@ -617,7 +617,7 @@ class SettingsService extends ChangeNotifier {
 
   late final _openPlaybackOnDirectorySongTapProperty = SettingProperty<bool>(
     key: _keyOpenPlaybackOnDirectorySongTap,
-    defaultValue: true,
+    defaultValue: false,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
