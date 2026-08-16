@@ -6,6 +6,7 @@ class LanDevice {
   final String ip;
   final DateTime lastSeen;
   final bool isOnline;
+  final String? certFingerprint;
 
   LanDevice({
     required this.id,
@@ -15,6 +16,7 @@ class LanDevice {
     required this.ip,
     required this.lastSeen,
     required this.isOnline,
+    this.certFingerprint,
   });
 
   LanDevice copyWith({
@@ -25,6 +27,7 @@ class LanDevice {
     String? ip,
     DateTime? lastSeen,
     bool? isOnline,
+    String? certFingerprint,
   }) {
     return LanDevice(
       id: id ?? this.id,
@@ -34,6 +37,7 @@ class LanDevice {
       ip: ip ?? this.ip,
       lastSeen: lastSeen ?? this.lastSeen,
       isOnline: isOnline ?? this.isOnline,
+      certFingerprint: certFingerprint ?? this.certFingerprint,
     );
   }
 
@@ -45,6 +49,7 @@ class LanDevice {
       'httpPort': httpPort,
       'ip': ip,
       'isOnline': isOnline,
+      if (certFingerprint != null) 'certFingerprint': certFingerprint,
     };
   }
 
@@ -57,6 +62,7 @@ class LanDevice {
       ip: ipAddress,
       lastSeen: timestamp,
       isOnline: json['isOnline'] as bool? ?? true,
+      certFingerprint: json['certFingerprint'] as String? ?? json['fp'] as String?,
     );
   }
 
@@ -70,6 +76,6 @@ class LanDevice {
 
   @override
   String toString() {
-    return 'LanDevice{id: $id, name: $name, deviceType: $deviceType, httpPort: $httpPort, ip: $ip, lastSeen: $lastSeen, isOnline: $isOnline}';
+    return 'LanDevice{id: $id, name: $name, deviceType: $deviceType, httpPort: $httpPort, ip: $ip, lastSeen: $lastSeen, isOnline: $isOnline, certFingerprint: $certFingerprint}';
   }
 }

@@ -232,6 +232,7 @@ class TrustedRemoteDevice {
   final String deviceType;
   final String token;
   final DateTime pairedAt;
+  final String? certFingerprint;
 
   TrustedRemoteDevice({
     required this.id,
@@ -239,6 +240,7 @@ class TrustedRemoteDevice {
     required this.deviceType,
     required this.token,
     required this.pairedAt,
+    this.certFingerprint,
   });
 
   Map<String, dynamic> toJson() => {
@@ -247,6 +249,7 @@ class TrustedRemoteDevice {
     'deviceType': deviceType,
     'token': token,
     'pairedAt': pairedAt.toIso8601String(),
+    if (certFingerprint != null) 'certFingerprint': certFingerprint,
   };
 
   factory TrustedRemoteDevice.fromJson(Map<String, dynamic> json) {
@@ -256,6 +259,7 @@ class TrustedRemoteDevice {
       deviceType: json['deviceType'] as String? ?? 'unknown',
       token: json['token'] as String? ?? '',
       pairedAt: DateTime.tryParse(json['pairedAt'] as String? ?? '') ?? DateTime.now(),
+      certFingerprint: json['certFingerprint'] as String?,
     );
   }
 }

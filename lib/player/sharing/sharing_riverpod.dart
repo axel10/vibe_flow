@@ -2,6 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'sharing_service.dart';
 import 'lan_device.dart';
 import 'remote_control/remote_control_service.dart';
+import 'security/tls_certificate_service.dart';
+
+final tlsCertificateServiceProvider = Provider<TlsCertificateService>((ref) {
+  return TlsCertificateService();
+});
 
 // Provider that instantiates and holds the SharingService
 final sharingServiceProvider = Provider<SharingService>((ref) {

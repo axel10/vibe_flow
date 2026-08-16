@@ -11,6 +11,7 @@ import 'package:vynody/player/audio/audio_snapshot.dart';
 import 'package:vynody/player/sharing/lan_device.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
+import 'package:vynody/player/sharing/security/tls_certificate_service.dart';
 import 'remote_playback_model.dart';
 
 class IncomingRemotePairRequest {
@@ -802,24 +803,34 @@ class RemoteControlService {
     required String senderName,
     required String deviceType,
   }) async {
-    final client = HttpClient();
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
     client.connectionTimeout = const Duration(seconds: 5);
 
     try {
       // Find existing token if trusted
-      final existing = _trustedDevices.firstWhere(
-        (d) => d.id == targetDevice.id,
-        orElse: () => TrustedRemoteDevice(
-          id: '',
-          name: '',
-          deviceType: '',
-          token: '',
-          pairedAt: DateTime.now(),
-        ),
-      );
+      final existingIndex = _trustedDevices.indexWhere((d) => d.id == targetDevice.id);
+      String? existingToken;
+      if (existingIndex != -1) {
+        final existing = _trustedDevices[existingIndex];
+        // Security check: if the trusted device changed its certificate fingerprint, invalidate trust
+        if (existing.certFingerprint != null &&
+            targetDevice.certFingerprint != null &&
+            existing.certFingerprint != targetDevice.certFingerprint) {
+          debugPrint(
+            '[RemoteControlService] Security warning: Fingerprint mismatch for trusted device ${targetDevice.name}. '
+            'Expected: ${existing.certFingerprint}, Discovered: ${targetDevice.certFingerprint}. Invalidating saved trust.',
+          );
+          _trustedDevices.removeAt(existingIndex);
+          await _saveTrustedDevices();
+        } else {
+          existingToken = existing.token;
+        }
+      }
 
       final uri = Uri.parse(
-        'http://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/pair',
+        'https://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/pair',
       );
       final req = await client.postUrl(uri);
       req.headers.contentType = ContentType.json;
@@ -827,7 +838,7 @@ class RemoteControlService {
         'sender_id': senderId,
         'sender_name': senderName,
         'device_type': deviceType,
-        'auth_token': existing.token,
+        'auth_token': existingToken ?? '',
       }));
 
       final res = await req.close();
@@ -868,12 +879,14 @@ class RemoteControlService {
     required String sessionToken,
     required String pin,
   }) async {
-    final client = HttpClient();
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
     client.connectionTimeout = const Duration(seconds: 5);
 
     try {
       final uri = Uri.parse(
-        'http://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/pair/verify',
+        'https://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/pair/verify',
       );
       final req = await client.postUrl(uri);
       req.headers.contentType = ContentType.json;
@@ -899,6 +912,7 @@ class RemoteControlService {
               deviceType: targetDevice.deviceType,
               token: _clientAuthToken!,
               pairedAt: DateTime.now(),
+              certFingerprint: targetDevice.certFingerprint,
             ),
           );
           await _saveTrustedDevices();
@@ -954,10 +968,18 @@ class RemoteControlService {
     try {
       disconnectClient(clearToken: false);
 
+      final pinnedClient = TlsCertificateService.createPinnedHttpClient(
+        expectedFingerprint: targetDevice.certFingerprint,
+      );
+      pinnedClient.connectionTimeout = const Duration(seconds: 6);
+
       final wsUrl =
-          'ws://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/ws?token=${Uri.encodeComponent(token)}&senderName=${Uri.encodeComponent(senderName)}&deviceType=${Uri.encodeComponent(Platform.operatingSystem)}';
+          'wss://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/ws?token=${Uri.encodeComponent(token)}&senderName=${Uri.encodeComponent(senderName)}&deviceType=${Uri.encodeComponent(Platform.operatingSystem)}';
       
-      final socket = await WebSocket.connect(wsUrl).timeout(
+      final socket = await WebSocket.connect(
+        wsUrl,
+        customClient: pinnedClient,
+      ).timeout(
         const Duration(seconds: 6),
       );
 

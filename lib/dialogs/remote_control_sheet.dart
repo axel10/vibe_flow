@@ -123,7 +123,7 @@ class _RemoteControlSheetContentState
     final authToken = remoteService.clientAuthToken ?? '';
     final hasTrack = state.title.isNotEmpty;
     final coverUrl = hasTrack
-        ? 'http://${formatHostForUrl(widget.device.ip)}:${widget.device.httpPort}/api/remote/cover?t=${Uri.encodeComponent(state.title)}_${Uri.encodeComponent(state.artist)}${authToken.isNotEmpty ? '&token=${Uri.encodeComponent(authToken)}' : ''}'
+        ? 'https://${formatHostForUrl(widget.device.ip)}:${widget.device.httpPort}/api/remote/cover?t=${Uri.encodeComponent(state.title)}_${Uri.encodeComponent(state.artist)}${authToken.isNotEmpty ? '&token=${Uri.encodeComponent(authToken)}' : ''}'
         : '';
 
     return BackdropFilter(

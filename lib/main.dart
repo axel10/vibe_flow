@@ -20,6 +20,7 @@ import 'package:vynody/player/settings/settings_service.dart';
 import 'package:smtc_windows/smtc_windows.dart';
 import 'utils/app_log.dart';
 import 'utils/memory_trace.dart';
+import 'package:vynody/player/sharing/security/tls_certificate_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -155,6 +156,8 @@ void main(List<String> args) async {
         );
         return false;
       };
+
+      HttpOverrides.global = LanHttpOverrides();
 
       if (Platform.isAndroid) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

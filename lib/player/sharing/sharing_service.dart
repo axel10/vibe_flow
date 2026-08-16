@@ -16,6 +16,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:bonsoir/bonsoir.dart';
 import 'lan_device.dart';
 import 'sharing_riverpod.dart';
+import 'security/tls_certificate_service.dart';
 import 'package:vynody/main.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
 
@@ -255,6 +256,7 @@ class SharingService {
   HttpServer? _httpServer;
   BonsoirBroadcast? _bonsoirBroadcast;
   BonsoirDiscovery? _bonsoirDiscovery;
+  TlsCertificateService? _tlsCertService;
 
   String? _localIp;
   int? _httpPort;
@@ -336,6 +338,10 @@ class SharingService {
   String get sharingFolderPath => _sharingFolderPath;
 
   Future<void> init() async {
+    // 0. Initialize TLS Certificate Service
+    _tlsCertService = _ref.read(tlsCertificateServiceProvider);
+    await _tlsCertService!.initialize();
+
     // 1. Load or Generate Device ID
     final prefs = await SharedPreferences.getInstance();
     _deviceId = prefs.getString('lan_share_device_id') ?? '';
@@ -505,27 +511,38 @@ class SharingService {
       return false;
     }
 
-    // 2. Start HTTP Server on random port starting at 53536
+    // 2. Start HTTPS Server on random port starting at 53536
+    final secContext = _tlsCertService?.serverSecurityContext;
+    if (secContext == null) {
+      debugPrint('[SharingService] Failed to load SecurityContext for TLS.');
+      return false;
+    }
+
     int port = 53536;
     while (_httpServer == null && port < 53600) {
       try {
         // Try IPv6 dual-stack binding (v6Only: false allows accepting both IPv4 & IPv6 requests)
-        _httpServer = await HttpServer.bind(
+        _httpServer = await HttpServer.bindSecure(
           InternetAddress.anyIPv6,
           port,
+          secContext,
           v6Only: false,
         );
         _httpPort = port;
         debugPrint(
-          '[SharingService] Dual-stack HTTP Server running on $_localIp:$_httpPort',
+          '[SharingService] Dual-stack HTTPS Server running on $_localIp:$_httpPort',
         );
       } catch (e) {
         try {
           // Fallback to IPv4-only binding if IPv6 dual-stack fails on this system
-          _httpServer = await HttpServer.bind(InternetAddress.anyIPv4, port);
+          _httpServer = await HttpServer.bindSecure(
+            InternetAddress.anyIPv4,
+            port,
+            secContext,
+          );
           _httpPort = port;
           debugPrint(
-            '[SharingService] IPv4-only HTTP Server running on $_localIp:$_httpPort',
+            '[SharingService] IPv4-only HTTPS Server running on $_localIp:$_httpPort',
           );
         } catch (e2) {
           port++;
@@ -534,7 +551,7 @@ class SharingService {
     }
 
     if (_httpServer == null) {
-      debugPrint('[SharingService] Failed to bind HTTP Server.');
+      debugPrint('[SharingService] Failed to bind HTTPS Server.');
       return false;
     }
 
@@ -550,6 +567,9 @@ class SharingService {
         'name': _deviceName,
         'deviceType': _deviceType,
         'version': '0.11.0',
+        'proto': '2',
+        'tls': '1',
+        if (_tlsCertService?.fingerprint != null) 'fp': _tlsCertService!.fingerprint!,
       },
     );
     _bonsoirBroadcast = BonsoirBroadcast(service: service);
@@ -557,7 +577,7 @@ class SharingService {
       await _bonsoirBroadcast!.initialize();
       await _bonsoirBroadcast!.start();
       debugPrint(
-        '[SharingService] Bonsoir broadcast started: Vynody_$_deviceId on port $_httpPort',
+        '[SharingService] Bonsoir broadcast started: Vynody_$_deviceId on port $_httpPort (TLS fp: ${_tlsCertService?.fingerprint})',
       );
     } catch (e) {
       debugPrint('[SharingService] Bonsoir broadcast starting failed: $e');
@@ -614,6 +634,14 @@ class SharingService {
           }
 
           if (resolvedIp != null) {
+            final certFingerprint = attrs['fp'] ?? attrs['certFingerprint'];
+
+            // If this device was previously seen on a different IP, clean up the stale IP mapping
+            final existingDevice = _discoveredDevicesMap[id];
+            if (existingDevice != null && existingDevice.ip != resolvedIp) {
+              TlsCertificateService.unregisterDeviceFingerprint(existingDevice.ip);
+            }
+
             final device = LanDevice(
               id: id,
               name: name,
@@ -622,9 +650,14 @@ class SharingService {
               ip: resolvedIp,
               lastSeen: DateTime.now(),
               isOnline: true,
+              certFingerprint: certFingerprint,
             );
+            if (certFingerprint != null && certFingerprint.isNotEmpty) {
+              TlsCertificateService.registerDeviceFingerprint(id, certFingerprint);
+              TlsCertificateService.registerDeviceFingerprint(resolvedIp, certFingerprint);
+            }
             debugPrint(
-              '[SharingService] Discovered/Updated device: ${device.name} ($resolvedIp) isOnline=${device.isOnline}',
+              '[SharingService] Discovered/Updated device: ${device.name} ($resolvedIp) isOnline=${device.isOnline} fp=$certFingerprint',
             );
             _discoveredDevicesMap[id] = device;
             _devicesController.add(_discoveredDevicesMap.values.toList());
@@ -635,6 +668,11 @@ class SharingService {
           );
           final lostService = event.service;
           final id = lostService.name.replaceFirst('Vynody_', '');
+          final existingDevice = _discoveredDevicesMap[id];
+          if (existingDevice != null) {
+            TlsCertificateService.unregisterDeviceFingerprint(existingDevice.ip);
+          }
+          TlsCertificateService.unregisterDeviceFingerprint(id);
           if (_discoveredDevicesMap.containsKey(id)) {
             final device = _discoveredDevicesMap[id]!;
             if (device.isOnline) {
@@ -675,6 +713,10 @@ class SharingService {
     await _httpServer?.close(force: true);
     _httpServer = null;
 
+    for (final device in _discoveredDevicesMap.values) {
+      TlsCertificateService.unregisterDeviceFingerprint(device.id);
+      TlsCertificateService.unregisterDeviceFingerprint(device.ip);
+    }
     _discoveredDevicesMap.clear();
     _devicesController.add([]);
 
@@ -1724,14 +1766,16 @@ class SharingService {
       'Total files count: ${filesToSend.length}, total size: ${(totalSize / (1024 * 1024)).toStringAsFixed(2)} MB',
     );
 
-    final client = HttpClient();
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
     client.connectionTimeout = const Duration(seconds: 5);
 
     try {
       // 1. Post Preflight Request
       final formattedHost = formatHostForUrl(targetDevice.ip);
       final requestUri = Uri.parse(
-        'http://$formattedHost:${targetDevice.httpPort}/api/transfer/request',
+        'https://$formattedHost:${targetDevice.httpPort}/api/transfer/request',
       );
       debugPrint('[SharingService] Sending preflight request to: $requestUri');
       final request = await client.postUrl(requestUri);
@@ -1833,7 +1877,7 @@ class SharingService {
 
           final formattedHost = formatHostForUrl(targetDevice.ip);
           final uploadUri = Uri.parse(
-            'http://$formattedHost:${targetDevice.httpPort}/api/transfer/upload',
+            'https://$formattedHost:${targetDevice.httpPort}/api/transfer/upload',
           );
           debugPrint(
             '[SharingService] Worker: Starting upload of "${fileInfo.relativeName}" '
@@ -2219,12 +2263,14 @@ class SharingService {
       return {'matched': 0, 'overwritten': 0, 'skipped': 0};
     }
 
-    final client = HttpClient();
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
     client.connectionTimeout = const Duration(seconds: 5);
     try {
       final formattedHost = formatHostForUrl(targetDevice.ip);
       final uri = Uri.parse(
-        'http://$formattedHost:${targetDevice.httpPort}/api/lyrics/import',
+        'https://$formattedHost:${targetDevice.httpPort}/api/lyrics/import',
       );
       final request = await client.postUrl(uri);
       request.headers.contentType = ContentType.json;
@@ -2259,14 +2305,16 @@ class SharingService {
   }
 
   Future<Map<String, int>> pullLyricsFromDevice(LanDevice targetDevice) async {
-    final client = HttpClient();
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
     client.connectionTimeout = const Duration(seconds: 5);
     try {
       final formattedHost = formatHostForUrl(targetDevice.ip);
       final encodedSenderId = Uri.encodeComponent(_deviceId);
       final encodedSenderName = Uri.encodeComponent(_deviceName);
       final uri = Uri.parse(
-        'http://$formattedHost:${targetDevice.httpPort}/api/lyrics/export?sender_id=$encodedSenderId&sender_name=$encodedSenderName',
+        'https://$formattedHost:${targetDevice.httpPort}/api/lyrics/export?sender_id=$encodedSenderId&sender_name=$encodedSenderName',
       );
       final request = await client.getUrl(uri);
       final response = await request.close();

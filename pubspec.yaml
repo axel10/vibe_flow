@@ -55,6 +55,8 @@ dependencies:
   shared_preferences: ^2.5.2
   flutter_secure_storage: ^9.2.4
   url_launcher: ^6.3.1
+  basic_utils: ^5.8.2
+  crypto: ^3.0.6
 
   window_manager: 
     git: 
@@ -146,6 +148,8 @@ dev_dependencies:
   json_serializable: ^6.9.5
   dmg: ^0.1.10
   drift_dev: 2.34.0
+  path_provider_platform_interface: ^2.1.2
+  plugin_platform_interface: ^2.1.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
