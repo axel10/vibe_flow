@@ -1415,5 +1415,6 @@
   "noTrustedDevicesHint": "Geräte werden hier angezeigt, wenn beim Koppeln „Diesem Gerät vertrauen“ ausgewählt wurde",
   "pairedAtFormat": "Gekoppelt am: {time}",
   "transferCancelled": "{direction} abgebrochen",
-  "audioFiles": "Audiodateien"
+  "audioFiles": "Audiodateien",
+  "remotePairCancelledByClient": "Die Kopplungsanfrage wurde vom Zielgerät abgebrochen."
 }

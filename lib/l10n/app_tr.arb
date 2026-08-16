@@ -1539,5 +1539,6 @@
     }
   },
   "transferCancelled": "{direction} iptal edildi",
-  "audioFiles": "Ses Dosyaları"
+  "audioFiles": "Ses Dosyaları",
+  "remotePairCancelledByClient": "Eşleştirme isteği hedef cihaz tarafından iptal edildi."
 }

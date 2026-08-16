@@ -3580,4 +3580,8 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get audioFiles => 'Audiodateien';
+
+  @override
+  String get remotePairCancelledByClient =>
+      'Die Kopplungsanfrage wurde vom Zielgerät abgebrochen.';
 }

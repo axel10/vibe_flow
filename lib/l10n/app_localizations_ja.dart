@@ -3417,4 +3417,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get audioFiles => '音声ファイル';
+
+  @override
+  String get remotePairCancelledByClient => '相手のデバイスによってペアリング要求がキャンセルされました';
 }

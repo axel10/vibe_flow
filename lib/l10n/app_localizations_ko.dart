@@ -3420,4 +3420,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get audioFiles => '오디오 파일';
+
+  @override
+  String get remotePairCancelledByClient => '상대 기기에서 페어링 요청을 취소했습니다';
 }

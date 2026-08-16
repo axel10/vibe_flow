@@ -3593,4 +3593,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get audioFiles => 'Fichiers audio';
+
+  @override
+  String get remotePairCancelledByClient =>
+      'La demande de jumelage a été annulée par l\'appareil cible.';
 }

@@ -1110,5 +1110,6 @@
   "noTrustedDevicesHint": "在接受配對時勾選「信任該裝置」後將在此顯示",
   "pairedAtFormat": "配對時間: {time}",
   "transferCancelled": "{direction}已取消",
-  "audioFiles": "音訊檔案"
+  "audioFiles": "音訊檔案",
+  "remotePairCancelledByClient": "對方已取消配對請求"
 }

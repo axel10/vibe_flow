@@ -233,7 +233,14 @@ class _IncomingRemotePairDialogContentState
   }
 }
 
-Future<bool?> showRemotePinInputDialog(
+enum RemotePinDialogResult {
+  success,
+  rejected,
+  invalidated,
+  cancelled,
+}
+
+Future<RemotePinDialogResult> showRemotePinInputDialog(
   BuildContext context, {
   required String deviceName,
   required Future<({
@@ -243,8 +250,9 @@ Future<bool?> showRemotePinInputDialog(
     int cooldownSeconds,
     int? remainingAttempts,
   })> Function(String pin) onVerify,
-}) {
-  return showDialog<bool>(
+  VoidCallback? onCancel,
+}) async {
+  final result = await showDialog<RemotePinDialogResult>(
     context: context,
     barrierDismissible: true,
     builder: (context) => _RemotePinInputDialogContent(
@@ -252,6 +260,11 @@ Future<bool?> showRemotePinInputDialog(
       onVerify: onVerify,
     ),
   );
+  if (result == null || result == RemotePinDialogResult.cancelled) {
+    onCancel?.call();
+    return RemotePinDialogResult.cancelled;
+  }
+  return result;
 }
 
 class _RemotePinInputDialogContent extends StatefulWidget {
@@ -298,10 +311,16 @@ class _RemotePinInputDialogContentState
       if (!mounted) return;
       if (result.success) {
         _pollTimer?.cancel();
-        Navigator.of(context).pop(true);
-      } else if (result.rejected || result.invalidated) {
+        _cooldownTimer?.cancel();
+        Navigator.of(context).pop(RemotePinDialogResult.success);
+      } else if (result.rejected) {
         _pollTimer?.cancel();
-        Navigator.of(context).pop(false);
+        _cooldownTimer?.cancel();
+        Navigator.of(context).pop(RemotePinDialogResult.rejected);
+      } else if (result.invalidated) {
+        _pollTimer?.cancel();
+        _cooldownTimer?.cancel();
+        Navigator.of(context).pop(RemotePinDialogResult.invalidated);
       }
     });
   }
@@ -354,11 +373,11 @@ class _RemotePinInputDialogContentState
     if (result.success) {
       _pollTimer?.cancel();
       _cooldownTimer?.cancel();
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(RemotePinDialogResult.success);
     } else if (result.rejected) {
       _pollTimer?.cancel();
       _cooldownTimer?.cancel();
-      Navigator.of(context).pop(false);
+      Navigator.of(context).pop(RemotePinDialogResult.rejected);
     } else if (result.invalidated) {
       _pollTimer?.cancel();
       _cooldownTimer?.cancel();
@@ -548,7 +567,8 @@ class _RemotePinInputDialogContentState
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () =>
+                Navigator.of(context).pop(RemotePinDialogResult.cancelled),
             child: Text(l10n.cancel),
           ),
         ],

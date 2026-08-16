@@ -284,7 +284,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
 
       if (sessionToken != null) {
         if (!mounted) return;
-        final verified = await showRemotePinInputDialog(
+        final result = await showRemotePinInputDialog(
           context,
           deviceName: device.name,
           onVerify: (pin) async {
@@ -294,8 +294,25 @@ class _SharingPageState extends ConsumerState<SharingPage> {
               pin: pin,
             );
           },
+          onCancel: () {
+            remoteService.cancelPairing(
+              targetDevice: device,
+              sessionToken: sessionToken,
+            );
+          },
         );
-        if (verified != true) {
+
+        if (result == RemotePinDialogResult.rejected) {
+          if (mounted) {
+            showToast(l10n.remoteRequestRejected);
+          }
+          return;
+        } else if (result == RemotePinDialogResult.invalidated) {
+          if (mounted) {
+            showToast(l10n.remotePinTooManyAttempts);
+          }
+          return;
+        } else if (result != RemotePinDialogResult.success) {
           return;
         }
       }

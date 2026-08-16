@@ -1514,5 +1514,6 @@
   "noTrustedDevicesHint": "ペアリング時に「このデバイスを信頼する」をチェックするとここに表示されます",
   "pairedAtFormat": "ペアリング日時: {time}",
   "transferCancelled": "{direction}キャンセル",
-  "audioFiles": "音声ファイル"
+  "audioFiles": "音声ファイル",
+  "remotePairCancelledByClient": "相手のデバイスによってペアリング要求がキャンセルされました"
 }

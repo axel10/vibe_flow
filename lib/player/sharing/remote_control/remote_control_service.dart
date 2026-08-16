@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/app_playback_mode.dart';
 import 'package:vynody/player/audio/audio_snapshot.dart';
@@ -12,6 +13,7 @@ import 'package:vynody/player/sharing/lan_device.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/player/sharing/security/tls_certificate_service.dart';
+import 'package:vynody/utils/localized_text.dart';
 import 'remote_playback_model.dart';
 
 class IncomingRemotePairRequest {
@@ -359,7 +361,6 @@ class RemoteControlService {
             }
             if (!accepted) {
               removeTrustedDevice(senderId);
-              _pendingPairSessions.remove(sessionToken);
             }
             _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
           },
@@ -564,6 +565,36 @@ class RemoteControlService {
       await request.response.close();
     } catch (e) {
       debugPrint('[RemoteControlService] Error in pair verify: $e');
+      request.response.statusCode = HttpStatus.internalServerError;
+      try {
+        await request.response.close();
+      } catch (_) {}
+    }
+  }
+
+  Future<void> handlePairCancel(HttpRequest request) async {
+    try {
+      final content = await utf8.decoder.bind(request).join();
+      final json = jsonDecode(content) as Map<String, dynamic>;
+      final sessionToken = json['session_token'] as String? ?? '';
+
+      final session = _pendingPairSessions.remove(sessionToken);
+      if (session != null) {
+        if (!session.completer.isCompleted) {
+          session.completer.complete(false);
+        }
+        final currentReq = _ref.read(incomingRemotePairProvider);
+        if (currentReq?.pinCode == session.pinCode) {
+          _ref.read(incomingRemotePairProvider.notifier).setRequest(null);
+        }
+        showToast(currentAppL10n.remotePairCancelledByClient);
+      }
+
+      request.response.statusCode = HttpStatus.ok;
+      request.response.write(jsonEncode({'success': true}));
+      await request.response.close();
+    } catch (e) {
+      debugPrint('[RemoteControlService] Error handling pair cancel: $e');
       request.response.statusCode = HttpStatus.internalServerError;
       try {
         await request.response.close();
@@ -990,6 +1021,35 @@ class RemoteControlService {
         cooldownSeconds: 0,
         remainingAttempts: null,
       );
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<void> cancelPairing({
+    required LanDevice targetDevice,
+    required String sessionToken,
+  }) async {
+    final fingerprint = targetDevice.certFingerprint ??
+        _trustedDevices.where((d) => d.id == targetDevice.id).firstOrNull?.certFingerprint;
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: fingerprint,
+    );
+    client.connectionTimeout = const Duration(seconds: 3);
+
+    try {
+      final uri = Uri.parse(
+        'https://${formatHostForUrl(targetDevice.ip)}:${targetDevice.httpPort}/api/remote/pair/cancel',
+      );
+      final req = await client.postUrl(uri);
+      req.headers.contentType = ContentType.json;
+      req.write(jsonEncode({
+        'session_token': sessionToken,
+      }));
+      final res = await req.close();
+      await res.drain();
+    } catch (e) {
+      debugPrint('[RemoteControlService] Error cancelling pairing: $e');
     } finally {
       client.close();
     }

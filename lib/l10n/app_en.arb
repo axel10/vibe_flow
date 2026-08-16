@@ -1498,5 +1498,6 @@
     }
   },
   "transferCancelled": "{direction} cancelled",
-  "audioFiles": "Audio Files"
+  "audioFiles": "Audio Files",
+  "remotePairCancelledByClient": "The pairing request was cancelled by the remote device."
 }

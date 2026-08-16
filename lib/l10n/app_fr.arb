@@ -1415,5 +1415,6 @@
   "noTrustedDevicesHint": "Les appareils apparaîtront ici après avoir coché « Faire confiance à cet appareil » lors de l'association",
   "pairedAtFormat": "Associé le : {time}",
   "transferCancelled": "{direction} annulée",
-  "audioFiles": "Fichiers audio"
+  "audioFiles": "Fichiers audio",
+  "remotePairCancelledByClient": "La demande de jumelage a été annulée par l'appareil cible."
 }

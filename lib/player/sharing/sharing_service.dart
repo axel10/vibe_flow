@@ -904,6 +904,8 @@ class SharingService {
         await remoteService.handlePairRequest(request);
       } else if (method == 'POST' && path == '/api/remote/pair/verify') {
         await remoteService.handlePairVerify(request);
+      } else if (method == 'POST' && path == '/api/remote/pair/cancel') {
+        await remoteService.handlePairCancel(request);
       } else if (method == 'GET' && path == '/api/remote/ws') {
         await remoteService.handleWebSocketUpgrade(request);
       } else if (method == 'GET' && path == '/api/remote/cover') {

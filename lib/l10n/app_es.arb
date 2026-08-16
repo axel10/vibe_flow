@@ -1415,5 +1415,6 @@
   "noTrustedDevicesHint": "Los dispositivos aparecerán aquí tras marcar «Confiar en este dispositivo» al vincular",
   "pairedAtFormat": "Vinculado el: {time}",
   "transferCancelled": "{direction} cancelada",
-  "audioFiles": "Archivos de audio"
+  "audioFiles": "Archivos de audio",
+  "remotePairCancelledByClient": "La solicitud de vinculación fue cancelada por el dispositivo de destino."
 }

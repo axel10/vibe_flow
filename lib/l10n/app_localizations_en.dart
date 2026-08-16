@@ -3544,4 +3544,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get audioFiles => 'Audio Files';
+
+  @override
+  String get remotePairCancelledByClient =>
+      'The pairing request was cancelled by the remote device.';
 }

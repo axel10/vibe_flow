@@ -3550,4 +3550,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get audioFiles => 'Ses Dosyaları';
+
+  @override
+  String get remotePairCancelledByClient =>
+      'Eşleştirme isteği hedef cihaz tarafından iptal edildi.';
 }

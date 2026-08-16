@@ -6344,6 +6344,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'音频文件'**
   String get audioFiles;
+
+  /// No description provided for @remotePairCancelledByClient.
+  ///
+  /// In zh, this message translates to:
+  /// **'对方已取消配对请求'**
+  String get remotePairCancelledByClient;
 }
 
 class _AppLocalizationsDelegate
