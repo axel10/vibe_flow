@@ -31,21 +31,16 @@ void RegisterAppUserModelIDAndShortcut() {
   if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROGRAMS, NULL, 0, startMenuPath))) {
     std::wstring shortcutPath = std::wstring(startMenuPath) + L"\\Vynody.lnk";
     
-    // Check if the shortcut already exists. If it does, we don't need to recreate it every time
-    DWORD attrib = GetFileAttributesW(shortcutPath.c_str());
-    if (attrib != INVALID_FILE_ATTRIBUTES) {
-      return;
-    }
-
     // Get current executable path
     wchar_t exePath[MAX_PATH];
     GetModuleFileNameW(NULL, exePath, MAX_PATH);
 
-    // Create the shortcut
+    // Create or update the shortcut
     IShellLinkW* psl;
     HRESULT hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl);
     if (SUCCEEDED(hr)) {
       psl->SetPath(exePath);
+      psl->SetIconLocation(exePath, 0);
       
       // Get directory of the executable for working directory
       std::wstring exeDir = exePath;
