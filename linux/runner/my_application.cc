@@ -19,11 +19,55 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
+static void setup_app_icon_and_desktop(GtkWindow* window) {
+  g_autofree gchar* exe_path = g_file_read_link("/proc/self/exe", nullptr);
+  if (exe_path == nullptr) return;
+
+  g_autofree gchar* exe_dir = g_path_get_dirname(exe_path);
+  
+  // Try icon-windows-and-linux.png first, fallback to icon.png
+  g_autofree gchar* icon_path = g_build_filename(
+      exe_dir, "data", "flutter_assets", "assets", "images", "icon-windows-and-linux.png", nullptr);
+
+  if (!g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    g_free(icon_path);
+    icon_path = g_build_filename(
+        exe_dir, "data", "flutter_assets", "assets", "images", "icon.png", nullptr);
+  }
+
+  if (g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    // 1. Set GTK window icon (X11 / window title bar)
+    gtk_window_set_icon_from_file(window, icon_path, nullptr);
+
+    // 2. Register/update .desktop file in ~/.local/share/applications/ for Wayland Dock matching
+    const char* home = g_get_home_dir();
+    if (home != nullptr) {
+      g_autofree gchar* apps_dir = g_build_filename(home, ".local", "share", "applications", nullptr);
+      g_mkdir_with_parents(apps_dir, 0755);
+
+      g_autofree gchar* desktop_path = g_build_filename(apps_dir, "io.github.axel10.vynody.desktop", nullptr);
+      g_autofree gchar* content = g_strdup_printf(
+          "[Desktop Entry]\n"
+          "Type=Application\n"
+          "Name=Vynody\n"
+          "Exec=%s\n"
+          "Icon=%s\n"
+          "StartupWMClass=%s\n"
+          "Terminal=false\n",
+          exe_path, icon_path, APPLICATION_ID);
+
+      g_file_set_contents(desktop_path, content, -1, nullptr);
+    }
+  }
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
+
+  setup_app_icon_and_desktop(window);
 
   // Enable RGBA/transparency support for the window
   GdkScreen* window_screen = gtk_widget_get_screen(GTK_WIDGET(window));

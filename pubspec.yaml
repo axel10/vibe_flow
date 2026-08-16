@@ -176,6 +176,7 @@ flutter:
     - assets/icons/tray_shadow.ico
     - assets/images/app_icon.ico
     - assets/images/icon.png
+    - assets/images/icon-windows-and-linux.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
