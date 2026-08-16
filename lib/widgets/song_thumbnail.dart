@@ -229,6 +229,23 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
     final double layoutHeight = widget.height ?? adjustedSize;
     final int cachePixels = (_bucketedSize * dpr).round();
 
+    final artWidth = metadata?.artworkWidth;
+    final artHeight = metadata?.artworkHeight;
+    final int? targetCacheWidth;
+    final int? targetCacheHeight;
+    if (artWidth != null && artHeight != null && artWidth > 0 && artHeight > 0) {
+      if (artWidth >= artHeight) {
+        targetCacheWidth = null;
+        targetCacheHeight = cachePixels;
+      } else {
+        targetCacheWidth = cachePixels;
+        targetCacheHeight = null;
+      }
+    } else {
+      targetCacheWidth = cachePixels;
+      targetCacheHeight = null;
+    }
+
     final radius = widget.borderRadius ?? BorderRadius.circular(4);
 
     if (imagePath != null) {
@@ -240,8 +257,8 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
           width: layoutWidth,
           height: layoutHeight,
           fit: BoxFit.cover,
-          cacheWidth: cachePixels,
-          cacheHeight: cachePixels,
+          cacheWidth: targetCacheWidth,
+          cacheHeight: targetCacheHeight,
           filterQuality: FilterQuality.low,
           errorBuilder: (_, _, _) => _fallbackIcon(layoutWidth, layoutHeight, radius),
         ),
@@ -257,8 +274,8 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
             width: layoutWidth,
             height: layoutHeight,
             fit: BoxFit.cover,
-            cacheWidth: cachePixels,
-            cacheHeight: cachePixels,
+            cacheWidth: targetCacheWidth,
+            cacheHeight: targetCacheHeight,
             filterQuality: FilterQuality.low,
             errorBuilder: (_, _, _) => _fallbackIcon(layoutWidth, layoutHeight, radius),
           ),
