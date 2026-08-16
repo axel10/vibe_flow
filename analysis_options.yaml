@@ -17,6 +17,12 @@ analyzer:
     - "mobile_storage_listener/**"
     - "proxy_getter/**"
     - "window_manager/**"
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 # This file configures the analyzer, which statically analyzes Dart code to
 # check for errors, warnings, and lints.
