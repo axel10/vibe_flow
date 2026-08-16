@@ -476,11 +476,15 @@ class _SharingPageState extends ConsumerState<SharingPage> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        body: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               const SizedBox(height: 10),
 
               // 0. Host Remote Control Active Banner (if any)
@@ -1203,7 +1207,9 @@ class _SharingPageState extends ConsumerState<SharingPage> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
 
