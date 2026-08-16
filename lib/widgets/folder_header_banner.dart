@@ -1186,7 +1186,7 @@ class _BannerInfoColumn extends StatelessWidget {
         : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8);
     final countDurationColor = useWhiteText
         ? Colors.white.withValues(alpha: 0.85)
-        : theme.colorScheme.primary;
+        : theme.colorScheme.onSurfaceVariant;
 
     final List<Shadow>? textShadows = useWhiteText
         ? const [
