@@ -429,6 +429,14 @@ class _SharingPageState extends ConsumerState<SharingPage> {
     final devicesAsync = ref.watch(discoveredDevicesProvider);
     final theme = Theme.of(context);
     final settings = ref.watch(settingsServiceProvider);
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final double bottomOffset = (currentMusic != null
+            ? (isLandscape ? 96.0 : 160.0)
+            : (isLandscape ? 24.0 : 96.0)) +
+        bottomPadding;
 
     if (!_didSyncInitialSharingState) {
       _didSyncInitialSharingState = true;
@@ -942,34 +950,38 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                     final remoteDevices = devices;
                     if (remoteDevices.isEmpty) {
                       return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.wifi,
-                              size: 48,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.2,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              serverState.isRunning
-                                  ? l10n.searchingDevices
-                                  : l10n.startSharingToFindDevices,
-                              style: TextStyle(
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: bottomOffset * 0.5),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.wifi,
+                                size: 48,
                                 color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.4,
+                                  alpha: 0.2,
                                 ),
-                                fontSize: 13,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Text(
+                                serverState.isRunning
+                                    ? l10n.searchingDevices
+                                    : l10n.startSharingToFindDevices,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }
 
                     return ListView.builder(
+                      padding: EdgeInsets.only(bottom: bottomOffset),
                       itemCount: remoteDevices.length,
                       itemBuilder: (context, index) {
                         final device = remoteDevices[index];
