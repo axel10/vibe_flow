@@ -859,11 +859,7 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                   size: 20,
                 ),
                 onPressed: () {
-                  if (volumeValue > 0) {
-                    remoteService.setVolume(0);
-                  } else {
-                    remoteService.setVolume(80);
-                  }
+                  remoteService.toggleMute();
                 },
               ),
               Expanded(

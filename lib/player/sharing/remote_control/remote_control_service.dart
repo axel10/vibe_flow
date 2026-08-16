@@ -793,6 +793,9 @@ class RemoteControlService {
           audio.setVolume(vol, showVolumeHud: false);
         }
         break;
+      case 'toggleMute':
+        audio.toggleMute();
+        break;
     }
   }
 
@@ -1222,6 +1225,8 @@ class RemoteControlService {
     }
     sendCommand(RemoteCommand.setVolume(volume));
   }
+
+  void toggleMute() => sendCommand(RemoteCommand.toggleMute());
 
   void disconnectClient({bool clearToken = false}) {
     _pingTimer?.cancel();

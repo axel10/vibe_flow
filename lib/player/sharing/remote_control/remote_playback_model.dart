@@ -224,6 +224,7 @@ class RemoteCommand {
     action: 'setVolume',
     params: {'volume': volume},
   );
+  static RemoteCommand toggleMute() => const RemoteCommand(action: 'toggleMute');
 }
 
 class TrustedRemoteDevice {
