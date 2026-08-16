@@ -129,6 +129,9 @@ class RemoteControlService {
   LanDevice? _controllingDevice;
   String? _clientAuthToken;
   Timer? _pingTimer;
+  DateTime? _lastSeekTime;
+  int? _lastSeekPositionMs;
+  String? _lastSeekTrackTitle;
 
   RemoteControlService(this._ref);
 
@@ -1033,7 +1036,37 @@ class RemoteControlService {
             final type = json['type'] as String? ?? '';
             if (type == 'state_sync') {
               final stateMap = json['state'] as Map<String, dynamic>? ?? {};
-              final state = RemotePlaybackState.fromJson(stateMap);
+              var state = RemotePlaybackState.fromJson(stateMap);
+
+              // Check if we recently performed an optimistic seek
+              if (_lastSeekTime != null && _lastSeekPositionMs != null) {
+                final elapsed = DateTime.now().difference(_lastSeekTime!).inMilliseconds;
+                final isSameTrack = _lastSeekTrackTitle == null || _lastSeekTrackTitle == state.title;
+
+                if (isSameTrack && elapsed < 1500) {
+                  final diff = (state.positionMs - _lastSeekPositionMs!).abs();
+                  if (diff > 1500) {
+                    // Host has not applied seek yet, retain optimistic progress
+                    final optimisticPos = state.isPlaying
+                        ? (_lastSeekPositionMs! + elapsed).clamp(0, state.durationMs)
+                        : _lastSeekPositionMs!;
+                    state = state.copyWith(
+                      positionMs: optimisticPos,
+                      syncedAt: DateTime.now(),
+                    );
+                  } else {
+                    // Host has caught up to the sought position, release seek lock
+                    _lastSeekTime = null;
+                    _lastSeekPositionMs = null;
+                    _lastSeekTrackTitle = null;
+                  }
+                } else {
+                  _lastSeekTime = null;
+                  _lastSeekPositionMs = null;
+                  _lastSeekTrackTitle = null;
+                }
+              }
+
               _ref.read(remotePlaybackStateProvider.notifier).setState(state);
             }
           } catch (e) {
@@ -1076,24 +1109,126 @@ class RemoteControlService {
     }
   }
 
-  void togglePlayPause() => sendCommand(RemoteCommand.togglePlay());
-  void play() => sendCommand(RemoteCommand.play());
-  void pause() => sendCommand(RemoteCommand.pause());
+  void togglePlayPause() {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          isPlaying: !currentState.isPlaying,
+          positionMs: currentState.estimatedPositionMs,
+          syncedAt: DateTime.now(),
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.togglePlay());
+  }
+
+  void play() {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null && !currentState.isPlaying) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          isPlaying: true,
+          positionMs: currentState.estimatedPositionMs,
+          syncedAt: DateTime.now(),
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.play());
+  }
+
+  void pause() {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null && currentState.isPlaying) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          isPlaying: false,
+          positionMs: currentState.estimatedPositionMs,
+          syncedAt: DateTime.now(),
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.pause());
+  }
+
   void next() => sendCommand(RemoteCommand.next());
   void previous() => sendCommand(RemoteCommand.previous());
-  void toggleFavorite() => sendCommand(RemoteCommand.toggleFavorite());
-  void toggleRandomMode() => sendCommand(RemoteCommand.toggleRandomMode());
-  void setPlaybackMode(AppPlaybackMode mode) => sendCommand(RemoteCommand.setPlaybackMode(mode));
-  void seek(Duration position) => sendCommand(RemoteCommand.seek(position.inMilliseconds));
+
+  void toggleFavorite() {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          isFavorite: !currentState.isFavorite,
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.toggleFavorite());
+  }
+
+  void toggleRandomMode() {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          isRandomMode: !currentState.isRandomMode,
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.toggleRandomMode());
+  }
+
+  void setPlaybackMode(AppPlaybackMode mode) {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          playbackMode: mode,
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.setPlaybackMode(mode));
+  }
+
+  void seek(Duration position) {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null) {
+      _lastSeekTime = DateTime.now();
+      _lastSeekPositionMs = position.inMilliseconds;
+      _lastSeekTrackTitle = currentState.title;
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          positionMs: position.inMilliseconds,
+          syncedAt: DateTime.now(),
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.seek(position.inMilliseconds));
+  }
+
   void playQueueIndex(int index) => sendCommand(RemoteCommand.playQueueIndex(index));
   void removeFromQueue(int index) => sendCommand(RemoteCommand.removeFromQueue(index));
   void reorderQueue(int oldIndex, int newIndex) => sendCommand(RemoteCommand.reorderQueue(oldIndex, newIndex));
   void clearQueue() => sendCommand(RemoteCommand.clearQueue());
-  void setVolume(double volume) => sendCommand(RemoteCommand.setVolume(volume));
+
+  void setVolume(double volume) {
+    final currentState = _ref.read(remotePlaybackStateProvider);
+    if (currentState != null) {
+      _ref.read(remotePlaybackStateProvider.notifier).setState(
+        currentState.copyWith(
+          volume: volume,
+        ),
+      );
+    }
+    sendCommand(RemoteCommand.setVolume(volume));
+  }
 
   void disconnectClient({bool clearToken = false}) {
     _pingTimer?.cancel();
     _pingTimer = null;
+    _lastSeekTime = null;
+    _lastSeekPositionMs = null;
+    _lastSeekTrackTitle = null;
     try {
       _clientSocket?.close();
     } catch (_) {}

@@ -734,8 +734,8 @@ class _RemoteControlPageState extends ConsumerState<RemoteControlPage>
                   setState(() => _draggingSliderValue = val);
                 },
                 onChangeEnd: (val) {
-                  setState(() => _draggingSliderValue = null);
                   remoteService.seek(Duration(milliseconds: val.toInt()));
+                  setState(() => _draggingSliderValue = null);
                 },
               ),
             ),
