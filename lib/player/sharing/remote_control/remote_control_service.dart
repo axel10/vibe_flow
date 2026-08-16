@@ -1112,86 +1112,16 @@ class RemoteControlService {
     }
   }
 
-  void togglePlayPause() {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          isPlaying: !currentState.isPlaying,
-          positionMs: currentState.estimatedPositionMs,
-          syncedAt: DateTime.now(),
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.togglePlay());
-  }
-
-  void play() {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null && !currentState.isPlaying) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          isPlaying: true,
-          positionMs: currentState.estimatedPositionMs,
-          syncedAt: DateTime.now(),
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.play());
-  }
-
-  void pause() {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null && currentState.isPlaying) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          isPlaying: false,
-          positionMs: currentState.estimatedPositionMs,
-          syncedAt: DateTime.now(),
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.pause());
-  }
+  void togglePlayPause() => sendCommand(RemoteCommand.togglePlay());
+  void play() => sendCommand(RemoteCommand.play());
+  void pause() => sendCommand(RemoteCommand.pause());
 
   void next() => sendCommand(RemoteCommand.next());
   void previous() => sendCommand(RemoteCommand.previous());
 
-  void toggleFavorite() {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          isFavorite: !currentState.isFavorite,
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.toggleFavorite());
-  }
-
-  void toggleRandomMode() {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          isRandomMode: !currentState.isRandomMode,
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.toggleRandomMode());
-  }
-
-  void setPlaybackMode(AppPlaybackMode mode) {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          playbackMode: mode,
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.setPlaybackMode(mode));
-  }
+  void toggleFavorite() => sendCommand(RemoteCommand.toggleFavorite());
+  void toggleRandomMode() => sendCommand(RemoteCommand.toggleRandomMode());
+  void setPlaybackMode(AppPlaybackMode mode) => sendCommand(RemoteCommand.setPlaybackMode(mode));
 
   void seek(Duration position) {
     final currentState = _ref.read(remotePlaybackStateProvider);
@@ -1214,17 +1144,7 @@ class RemoteControlService {
   void reorderQueue(int oldIndex, int newIndex) => sendCommand(RemoteCommand.reorderQueue(oldIndex, newIndex));
   void clearQueue() => sendCommand(RemoteCommand.clearQueue());
 
-  void setVolume(double volume) {
-    final currentState = _ref.read(remotePlaybackStateProvider);
-    if (currentState != null) {
-      _ref.read(remotePlaybackStateProvider.notifier).setState(
-        currentState.copyWith(
-          volume: volume,
-        ),
-      );
-    }
-    sendCommand(RemoteCommand.setVolume(volume));
-  }
+  void setVolume(double volume) => sendCommand(RemoteCommand.setVolume(volume));
 
   void toggleMute() => sendCommand(RemoteCommand.toggleMute());
 
