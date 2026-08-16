@@ -508,31 +508,32 @@ class PlaybackControls extends ConsumerWidget {
             tooltip: l10n.visualizer,
           );
         case 'volume':
-          return buildSecondaryControl(
+          final volumeButton = buildSecondaryControl(
             circleSize: (useOverlayStyle ? 42 : 40),
-            iconBuilder: (color, isWhiteBg) => GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragUpdate: (details) {
-                onVolumeDrag?.call(details.primaryDelta ?? 0);
-              },
-              child: Listener(
-                onPointerSignal: (pointerSignal) {
-                  if (pointerSignal is PointerScrollEvent) {
-                    onVolumeScroll?.call(pointerSignal.scrollDelta.dy);
-                  }
-                },
-                child: Icon(
-                  getVolumeIcon(
-                    ref.watch(audioVolumeProvider),
-                    isMuted: ref.watch(audioIsMutedProvider),
-                  ),
-                  size: (isWhiteBg ? 22 : 24) * controlsScale,
-                  color: color,
-                ),
+            iconBuilder: (color, isWhiteBg) => Icon(
+              getVolumeIcon(
+                ref.watch(audioVolumeProvider),
+                isMuted: ref.watch(audioIsMutedProvider),
               ),
+              size: (isWhiteBg ? 22 : 24) * controlsScale,
+              color: color,
             ),
             onPressed: onVolumeTap,
             tooltip: l10n.volume,
+          );
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragUpdate: (details) {
+              onVolumeDrag?.call(details.primaryDelta ?? 0);
+            },
+            child: Listener(
+              onPointerSignal: (pointerSignal) {
+                if (pointerSignal is PointerScrollEvent) {
+                  onVolumeScroll?.call(pointerSignal.scrollDelta.dy);
+                }
+              },
+              child: volumeButton,
+            ),
           );
         case 'more':
           return buildSecondaryControl(

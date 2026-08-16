@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +31,8 @@ class PlaybackTrackInfo extends ConsumerWidget {
   final VoidCallback? onSleepTimerTap;
   final VoidCallback? onEqualizerTap;
   final VoidCallback? onVolumeTap;
+  final ValueChanged<double>? onVolumeScroll;
+  final ValueChanged<double>? onVolumeDrag;
 
   const PlaybackTrackInfo({
     super.key,
@@ -46,6 +49,8 @@ class PlaybackTrackInfo extends ConsumerWidget {
     this.onSleepTimerTap,
     this.onEqualizerTap,
     this.onVolumeTap,
+    this.onVolumeScroll,
+    this.onVolumeDrag,
   });
 
   Future<void> _showTrackInfoContextMenu(
@@ -193,25 +198,44 @@ class PlaybackTrackInfo extends ConsumerWidget {
         break;
     }
 
+    Widget buttonWidget = SizedBox(
+      width: PlaybackHeroCardUiTuning.lLyricsTitleButtonHeight * buttonControlsScale,
+      height: PlaybackHeroCardUiTuning.lLyricsTitleButtonHeight * buttonControlsScale,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        icon: Icon(
+          iconData,
+          size: PlaybackHeroCardUiTuning.lLyricsTitleIconSize * buttonControlsScale,
+          color: iconColor,
+        ),
+        onPressed: onTapAction,
+      ),
+    );
+
+    if (headerKey == 'volume') {
+      buttonWidget = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragUpdate: (details) {
+          onVolumeDrag?.call(details.primaryDelta ?? 0);
+        },
+        child: Listener(
+          onPointerSignal: (pointerSignal) {
+            if (pointerSignal is PointerScrollEvent) {
+              onVolumeScroll?.call(pointerSignal.scrollDelta.dy);
+            }
+          },
+          child: buttonWidget,
+        ),
+      );
+    }
+
     return AppTooltip(
       message: tooltipMsg,
-      child: SizedBox(
-        width: PlaybackHeroCardUiTuning.lLyricsTitleButtonHeight * buttonControlsScale,
-        height: PlaybackHeroCardUiTuning.lLyricsTitleButtonHeight * buttonControlsScale,
-        child: IconButton(
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          icon: Icon(
-            iconData,
-            size: PlaybackHeroCardUiTuning.lLyricsTitleIconSize * buttonControlsScale,
-            color: iconColor,
-          ),
-          onPressed: onTapAction,
-        ),
-      ),
+      child: buttonWidget,
     );
   }
 

@@ -612,6 +612,8 @@ class PlaybackHeroCard extends ConsumerWidget {
                                       onSleepTimerTap: onSleepTimerTap,
                                       onEqualizerTap: onEqualizerTap,
                                       onVolumeTap: onVolumeTap,
+                                      onVolumeScroll: onVolumeScroll,
+                                      onVolumeDrag: onVolumeDrag,
                                     ),
                                   ),
                                 ),
