@@ -800,13 +800,14 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     // Separate UI status from rendering visibility to avoid flicker
     final audio = ref.read(audioServiceProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final isEffectiveWaveform = ref.watch(isEffectiveWaveformEnabledProvider);
     ref.listen<MusicFile?>(audioCurrentMusicProvider, (previous, next) {
       if (!mounted) return;
       final size = MediaQuery.of(context).size;
       final settings = ref.read(settingsServiceProvider);
       final bool isSmallWin = PlaybackPageUiTuning.isSmallWindow(
         size,
-        isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+        isWaveformEnabled: isEffectiveWaveform,
         isSmallWindowMode: settings.isSmallWindowMode,
       );
       if (isSmallWin) {
@@ -856,7 +857,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
           final settings = ref.watch(settingsServiceProvider);
           final bool isSmallWin = PlaybackPageUiTuning.isSmallWindow(
             size,
-            isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+            isWaveformEnabled: isEffectiveWaveform,
             isSmallWindowMode: settings.isSmallWindowMode,
           );
           _flushLyricsTranslationsAfterSmallWindowExit(isSmallWin);
@@ -1104,7 +1105,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 final isWaveformEnabled =
-                                    settings.isWaveformProgressBarEnabled;
+                                    isEffectiveWaveform;
                                 const double scaleFactor = 0.82;
 
                                 final pNormalControlsBaseIdealHeight =
@@ -1410,7 +1411,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
             forceSmallWin ??
             PlaybackPageUiTuning.isSmallWindow(
               size,
-              isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+              isWaveformEnabled: ref.read(isEffectiveWaveformEnabledProvider),
               isSmallWindowMode: settings.isSmallWindowMode,
             );
         final blur = settings.playbackCustomImageBlurSigma;
@@ -1516,7 +1517,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
         forceSmallWin ??
         PlaybackPageUiTuning.isSmallWindow(
           size,
-          isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+          isWaveformEnabled: ref.read(isEffectiveWaveformEnabledProvider),
           isSmallWindowMode: settings.isSmallWindowMode,
         );
 

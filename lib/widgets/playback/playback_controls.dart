@@ -9,6 +9,7 @@ import 'package:vynody/utils/playback_utils.dart';
 import 'package:vynody/widgets/animated_play_pause_button.dart';
 import 'package:vynody/widgets/app_tooltip.dart';
 import 'package:vynody/widgets/playback_ui_tuning.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
 import 'playback_progress_section.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -94,15 +95,13 @@ class PlaybackControls extends ConsumerWidget {
     final isPlaying = ref.watch(audioIsPlayingProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    final isWaveformEnabled = ref.watch(
-      settingsServiceProvider.select((s) => s.isWaveformProgressBarEnabled),
-    );
+    final isWaveformEnabled = ref.watch(isEffectiveWaveformEnabledProvider);
 
     final size = MediaQuery.of(context).size;
     final settings = ref.read(settingsServiceProvider);
     final bool isSmallWindow = PlaybackPageUiTuning.isSmallWindow(
       size,
-      isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+      isWaveformEnabled: isWaveformEnabled,
       isSmallWindowMode: settings.isSmallWindowMode,
     );
     final bool effectiveIsLandscape = isLandscape && !isSmallWindow;

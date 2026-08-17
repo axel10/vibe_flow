@@ -2139,6 +2139,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Widget _buildGeneralPage(BuildContext context, SettingsService settings) {
     final l10n = AppLocalizations.of(context)!;
+    final isProUnlocked = ref.watch(isProUnlockedProvider);
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 100),
@@ -2218,7 +2219,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ),
               subtitle: Text(l10n.enableWaveformProgressBarDescription),
-              value: settings.isWaveformProgressBarEnabled,
+              value: settings.isWaveformProgressBarEnabled && isProUnlocked,
               onChanged: (value) async {
                 if (value) {
                   final allowed = await checkProGate(
@@ -2231,7 +2232,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 settings.isWaveformProgressBarEnabled = value;
               },
             ),
-            if (settings.isWaveformProgressBarEnabled)
+            if (settings.isWaveformProgressBarEnabled && isProUnlocked)
               SwitchListTile(
                 title: Text(l10n.enableWaveformLongPressSeek),
                 subtitle: Text(l10n.enableWaveformLongPressSeekDescription),
@@ -2240,7 +2241,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   settings.enableWaveformLongPressSeek = value;
                 },
               ),
-            if (settings.isWaveformProgressBarEnabled)
+            if (settings.isWaveformProgressBarEnabled && isProUnlocked)
               ListTile(
                 title: Text(l10n.waveformLongPressSeekSpeed),
                 subtitle: Text(l10n.waveformLongPressSeekSpeedDescription),

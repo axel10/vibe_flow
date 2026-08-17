@@ -24,6 +24,7 @@ import 'package:vynody/player/sharing/remote_control/remote_control_service.dart
 import 'package:vynody/dialogs/transfer_dialogs.dart';
 import 'package:vynody/dialogs/remote_pair_dialogs.dart';
 import 'package:vynody/player/library/music_file_utils.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/player/settings/shortcut_bindings.dart';
 import 'package:vynody/models/music_file.dart';
@@ -1169,7 +1170,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     final Size size = MediaQuery.of(context).size;
     final bool isSmallWin = PlaybackPageUiTuning.isSmallWindow(
       size,
-      isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+      isWaveformEnabled: ref.watch(isEffectiveWaveformEnabledProvider),
       isSmallWindowMode: settings.isSmallWindowMode,
     );
     final bool isLandscape =

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/app_log.dart';
 import 'package:vynody/widgets/lyrics_panel.dart';
@@ -233,10 +234,11 @@ class PlaybackHeroCard extends ConsumerWidget {
     final settings = ref.watch(settingsServiceProvider);
 
     final bool isLowMidEnd = ref.watch(isLowMidEndDeviceProvider);
+    final isEffectiveWaveform = ref.watch(isEffectiveWaveformEnabledProvider);
 
     final bool isSmallWindow = PlaybackPageUiTuning.isSmallWindow(
       size,
-      isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+      isWaveformEnabled: isEffectiveWaveform,
       isSmallWindowMode: settings.isSmallWindowMode,
     );
     final bool effectiveIsLandscape = isLandscape && !isSmallWindow;
@@ -254,7 +256,7 @@ class PlaybackHeroCard extends ConsumerWidget {
             height: actualHeight,
             tLyrics: 1.0,
             tLand: 1.0,
-            isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+            isWaveformEnabled: isEffectiveWaveform,
             isSmallWindow: isSmallWindow,
             lyricsStyle: settings.lyricsStyle,
             collapseButtonsInLandscapeLyrics:
@@ -296,11 +298,7 @@ class PlaybackHeroCard extends ConsumerWidget {
               builder: (context, constraints) {
                 final width = constraints.maxWidth.roundToDouble();
                 final height = constraints.maxHeight.roundToDouble();
-                final isWaveformEnabled = ref.watch(
-                  settingsServiceProvider.select(
-                    (s) => s.isWaveformProgressBarEnabled,
-                  ),
-                );
+                final isWaveformEnabled = ref.watch(isEffectiveWaveformEnabledProvider);
                 final collapseButtonsInLandscapeLyrics = ref.watch(
                   settingsServiceProvider.select(
                     (s) => s.collapseButtonsInLandscapeLyrics,

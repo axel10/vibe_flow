@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
+import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/pro/app_channel.dart';
 import 'package:vynody/player/pro/pro_models.dart';
 
@@ -119,6 +120,15 @@ final licenseStateProvider = Provider<LicenseState>((ref) {
 final isProUnlockedProvider = Provider<bool>((ref) {
   final license = ref.watch(licenseStateProvider);
   return license.isProUnlocked;
+});
+
+/// Provider for whether waveform progress bar is effectively enabled (Pro unlocked & setting enabled).
+final isEffectiveWaveformEnabledProvider = Provider<bool>((ref) {
+  final isProUnlocked = ref.watch(isProUnlockedProvider);
+  final isWaveformSettingEnabled = ref.watch(
+    settingsServiceProvider.select((s) => s.isWaveformProgressBarEnabled),
+  );
+  return isProUnlocked && isWaveformSettingEnabled;
 });
 
 /// Check access for a specific Pro feature. If locked, opens the upgrade dialog.

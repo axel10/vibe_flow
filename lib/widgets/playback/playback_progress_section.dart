@@ -64,11 +64,7 @@ class PlaybackProgressSection extends ConsumerWidget {
     final position = ref.watch(audioPositionProvider);
     final duration = ref.watch(audioDurationProvider);
     final isPlaying = ref.watch(audioIsPlayingProvider);
-    final isProUnlocked = ref.watch(isProUnlockedProvider);
-    final isWaveformSettingEnabled = ref.watch(
-      settingsServiceProvider.select((s) => s.isWaveformProgressBarEnabled),
-    );
-    final isWaveformEnabled = isProUnlocked && isWaveformSettingEnabled;
+    final isWaveformEnabled = ref.watch(isEffectiveWaveformEnabledProvider);
     final currentThemeColorsMap = ref.watch(audioCurrentThemeColorsMapProvider);
     final controlIconColor =
         currentThemeColorsMap['darkVibrant'] ??
@@ -134,8 +130,7 @@ class PlaybackProgressSection extends ConsumerWidget {
                     final bool isSmallWindow =
                         PlaybackPageUiTuning.isSmallWindow(
                           size,
-                          isWaveformEnabled:
-                              settings.isWaveformProgressBarEnabled,
+                          isWaveformEnabled: isWaveformEnabled,
                           isSmallWindowMode: settings.isSmallWindowMode,
                         );
                     final double overflowScale = isLandscape
@@ -351,7 +346,7 @@ class PlaybackOverlayProgressTimeLayer extends ConsumerWidget {
             final isMinimized = ref.watch(isWindowMinimizedProvider);
             final bool isSmallWindow = PlaybackPageUiTuning.isSmallWindow(
               size,
-              isWaveformEnabled: settings.isWaveformProgressBarEnabled,
+              isWaveformEnabled: true,
               isSmallWindowMode: settings.isSmallWindowMode,
             );
             final double overflowScale = isSmallWindow
