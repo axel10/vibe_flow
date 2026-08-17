@@ -30,6 +30,11 @@ import 'package:vynody/player/settings/windows_association_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../widgets/desktop_window_title_bar.dart';
 import 'package:vynody/utils/language_code_utils.dart';
+import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
+import 'package:vynody/player/pro/app_channel.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
+import 'package:vynody/widgets/pro/pro_badge.dart';
 import 'package:vynody/widgets/lyrics_provider_icon.dart';
 
 enum _SettingsSection {
@@ -288,7 +293,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
-    if (Platform.isWindows && _isStoreBuild) {
+    if (Platform.isWindows && (AppChannel.isStoreRelease || _isStoreBuild)) {
       final l10n = AppLocalizations.of(context)!;
       final storeUri = Uri.parse('ms-windows-store://pdp/?productid=9NMZRZZ6RSD3');
       await showDialog<void>(
@@ -2205,10 +2210,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               },
             ),
             SwitchListTile(
-              title: Text(l10n.enableWaveformProgressBar),
+              title: Row(
+                children: [
+                  Text(l10n.enableWaveformProgressBar),
+                  const SizedBox(width: 8),
+                  const ProBadge(),
+                ],
+              ),
               subtitle: Text(l10n.enableWaveformProgressBarDescription),
               value: settings.isWaveformProgressBarEnabled,
-              onChanged: (value) {
+              onChanged: (value) async {
+                if (value) {
+                  final allowed = await checkProGate(
+                    context,
+                    ref,
+                    feature: ProFeature.waveformBar,
+                  );
+                  if (!allowed) return;
+                }
                 settings.isWaveformProgressBarEnabled = value;
               },
             ),
@@ -2772,34 +2791,119 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Vynody ${_appVersion.isEmpty ? "" : "v$_appVersion"}',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Row(
+                  children: [
+                    Text(
+                      'Vynody ${_appVersion.isEmpty ? "" : "v$_appVersion"}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(width: 8),
+                    const ProBadge(showInGitHubBuild: true),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                InkWell(
-                  onTap: () async {
-                    final uri = Uri.parse('https://github.com/axel10/vynody');
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                Consumer(
+                  builder: (context, ref, _) {
+                    final license = ref.watch(licenseStateProvider);
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_rounded,
+                            size: 22,
+                            color: const Color(0xFFFFB300),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppChannel.isGitHubRelease
+                                      ? '版本类型：GitHub 社区完全版'
+                                      : (license.isInTrial
+                                          ? '授权状态：${license.trialTotalDays} 天免费试用期中'
+                                          : (license.isTrialExpired
+                                              ? '授权状态：试用已结束 (部分功能受限)'
+                                              : '授权状态：已激活 Vynody Pro')),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  AppChannel.isGitHubRelease
+                                      ? '所有高级特性已永久完全开放'
+                                      : (license.isInTrial
+                                          ? '剩余 ${license.trialDaysRemaining} 天试用期'
+                                          : (license.isTrialExpired
+                                              ? '可升级解锁 AI 歌词、FFT 频谱与高级特性'
+                                              : '享有全部高级特性与更新支持')),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? Colors.white60 : Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => showUpgradeToProDialog(context),
+                            icon: const Icon(Icons.info_outline, size: 16),
+                            label: Text(
+                              AppChannel.isGitHubRelease
+                                  ? '权益'
+                                  : (license.isTrialExpired ? '升级' : '查看'),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   },
-                  borderRadius: BorderRadius.circular(4),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: Text(
-                      'https://github.com/axel10/vynody',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: 0.8),
-                        decoration: TextDecoration.underline,
+                ),
+                if (AppChannel.isGitHubRelease) ...[
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final uri = Uri.parse('https://github.com/axel10/vynody');
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        'https://github.com/axel10/vynody',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.8),
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 16),
                 FilledButton.tonalIcon(
                   onPressed: _isCheckingUpdates ? null : _checkForUpdates,
@@ -2983,12 +3087,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   textColor: theme.colorScheme.onSurfaceVariant,
                   iconColor: theme.colorScheme.onSurfaceVariant,
                   leading: Icon(icon, size: 20),
-                  title: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
+                  title: Row(
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                      if (section == _SettingsSection.transcode ||
+                          section == _SettingsSection.lyrics) ...[
+                        const SizedBox(width: 6),
+                        const ProBadge(size: 9),
+                      ],
+                    ],
                   ),
                   onTap: () => _openSection(section),
                 ),

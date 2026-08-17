@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/utils/playback_utils.dart';
 import 'package:vynody/widgets/waveform_progress_bar.dart';
 import 'package:vynody/widgets/playback_ui_tuning.dart';
@@ -63,9 +64,11 @@ class PlaybackProgressSection extends ConsumerWidget {
     final position = ref.watch(audioPositionProvider);
     final duration = ref.watch(audioDurationProvider);
     final isPlaying = ref.watch(audioIsPlayingProvider);
-    final isWaveformEnabled = ref.watch(
+    final isProUnlocked = ref.watch(isProUnlockedProvider);
+    final isWaveformSettingEnabled = ref.watch(
       settingsServiceProvider.select((s) => s.isWaveformProgressBarEnabled),
     );
+    final isWaveformEnabled = isProUnlocked && isWaveformSettingEnabled;
     final currentThemeColorsMap = ref.watch(audioCurrentThemeColorsMapProvider);
     final controlIconColor =
         currentThemeColorsMap['darkVibrant'] ??

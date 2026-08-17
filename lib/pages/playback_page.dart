@@ -34,6 +34,8 @@ import '../widgets/lyrics_task_status_banner.dart';
 import '../widgets/playback_ui_tuning.dart';
 import '../widgets/mini_queue_view.dart';
 import '../widgets/mini_lyrics_view.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
 import 'main_layout_riverpod.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:oktoast/oktoast.dart';
@@ -316,6 +318,14 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
 
   Future<void> _toggleVisualizer(AudioService audio) async {
     final nextVisible = !ref.read(audioIsVisualizerEnabledProvider);
+    if (nextVisible) {
+      final allowed = await checkProGate(
+        context,
+        ref,
+        feature: ProFeature.fftVisualizer,
+      );
+      if (!allowed) return;
+    }
     audio.setVisualizerEnabled(nextVisible);
   }
 

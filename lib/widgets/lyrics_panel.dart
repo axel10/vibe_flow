@@ -31,6 +31,8 @@ import 'playback_ui_tuning.dart';
 import '../utils/song_context_menu_utils.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 
 bool shouldShowGenerateLyricsButton({required bool hasCurrentSong}) {
@@ -725,6 +727,8 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         _dismissSeekToast();
       }
     } else if (selected == 'generate') {
+      if (!await checkProGate(context, ref, feature: ProFeature.aiLyrics)) return;
+      if (!context.mounted || !mounted) return;
       if (await _ensureLyricsApiKey()) {
         if (!context.mounted) return;
         if (lyricsState.hasLyrics) {
@@ -756,6 +760,8 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         }
       }
     } else if (selected == 'generate_timeline') {
+      if (!await checkProGate(context, ref, feature: ProFeature.aiLyrics)) return;
+      if (!context.mounted || !mounted) return;
       if (await _ensureLyricsApiKey()) {
         if (!context.mounted) return;
         if (lyricsState.hasLyrics) {
@@ -787,6 +793,8 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         }
       }
     } else if (selected == 'translate') {
+      if (!await checkProGate(context, ref, feature: ProFeature.aiTranslation)) return;
+      if (!context.mounted || !mounted) return;
       if (await _ensureGeminiApiKey()) {
         if (!context.mounted) return;
         if (hasTranslation) {

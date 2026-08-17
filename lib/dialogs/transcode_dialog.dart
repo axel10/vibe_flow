@@ -14,8 +14,12 @@ import '../transcode/transcode_models.dart';
 import '../transcode/transcode_preset.dart';
 import '../transcode/transcode_riverpod.dart';
 import '../transcode/transcode_service.dart';
+import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
+import 'package:vynody/widgets/pro/pro_badge.dart';
 
 class TranscodeSubmitSummary {
   const TranscodeSubmitSummary({
@@ -38,6 +42,18 @@ Future<void> showTranscodeDialog(
   required List<MusicFile> songs,
 }) async {
   if (songs.isEmpty) {
+    return;
+  }
+
+  final container = ProviderScope.containerOf(context, listen: false);
+  final isUnlocked = container.read(isProUnlockedProvider);
+  if (!isUnlocked) {
+    if (context.mounted) {
+      await showUpgradeToProDialog(
+        context,
+        initialFeature: ProFeature.transcoder,
+      );
+    }
     return;
   }
 
@@ -301,6 +317,13 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
 
   Future<void> _submit() async {
     if (_isSubmitting) return;
+    final allowed = await checkProGate(
+      context,
+      ref,
+      feature: ProFeature.transcoder,
+    );
+    if (!allowed) return;
+
     final l10n = AppLocalizations.of(context)!;
     if (Platform.isAndroid && _androidOutputDirectory == null) {
       setState(() {
@@ -430,11 +453,19 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              l10n.transcodeTitle,
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  l10n.transcodeTitle,
+                                  style:
+                                      theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const ProBadge(),
+                              ],
                             ),
                             const SizedBox(height: 6),
                             Text(

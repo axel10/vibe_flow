@@ -16,6 +16,9 @@ import 'package:vynody/player/sharing/remote_control/remote_control_service.dart
 import 'package:vynody/dialogs/remote_pair_dialogs.dart';
 import 'package:vynody/pages/remote_control_page.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
+import 'package:vynody/widgets/pro/pro_badge.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import '../utils/song_context_menu_utils.dart';
 
@@ -349,6 +352,15 @@ class _SharingPageState extends ConsumerState<SharingPage> {
     final settings = ref.read(settingsServiceProvider);
     final previousEnabled = settings.lanSharingEnabled;
 
+    if (enabled) {
+      final allowed = await checkProGate(
+        context,
+        ref,
+        feature: ProFeature.lanSharing,
+      );
+      if (!allowed) return;
+    }
+
     if (enabled && (Platform.isIOS || Platform.isMacOS || Platform.isWindows)) {
       final hasPermission = await ref
           .read(sharingServiceProvider)
@@ -488,9 +500,16 @@ class _SharingPageState extends ConsumerState<SharingPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            l10n.lanSharingTitle,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                l10n.lanSharingTitle,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              const ProBadge(),
+            ],
           ),
         ),
         body: Align(
