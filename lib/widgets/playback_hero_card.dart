@@ -310,6 +310,8 @@ class PlaybackHeroCard extends ConsumerWidget {
                 final bool isTransitioning =
                     (tLyrics > 0.0 && tLyrics < 1.0) ||
                     (tLand > 0.0 && tLand < 1.0);
+                final bool isEnteringLyricsMode =
+                    effectiveIsLyricsMode && (tLyrics > 0.0 && tLyrics < 1.0);
                 final bool optimize = isTransitioning && isLowMidEnd;
 
                 final double targetTLyrics = effectiveIsLyricsMode ? 1.0 : 0.0;
@@ -475,6 +477,7 @@ class PlaybackHeroCard extends ConsumerWidget {
                                           : layout.controlsScale,
                                       tLyrics: optimize ? targetTLyrics : tLyrics,
                                       isLandscape: effectiveIsLandscape,
+                                      isTransitioning: isEnteringLyricsMode,
                                       showVisualizerToggle: showVisualizerToggle,
                                       overrideProgress: overrideProgress,
                                       overridePosition: overridePosition,

@@ -18,6 +18,7 @@ class PlaybackControls extends ConsumerWidget {
   final double controlsScale;
   final double tLyrics;
   final bool isLandscape;
+  final bool isTransitioning;
   final bool showVisualizerToggle;
   final double? overrideProgress;
   final Duration? overridePosition;
@@ -46,6 +47,7 @@ class PlaybackControls extends ConsumerWidget {
     this.controlsScale = 1.0,
     this.tLyrics = 0.0,
     required this.isLandscape,
+    this.isTransitioning = false,
     this.showVisualizerToggle = true,
     this.overrideProgress,
     this.overridePosition,
@@ -768,6 +770,7 @@ class PlaybackControls extends ConsumerWidget {
                 onScrubbing: onScrubbing,
                 onSeek: onSeek,
                 isLandscape: effectiveIsLandscape,
+                isTransitioning: isTransitioning,
                 playButtonRowWidth: unifiedWidth,
               ),
               mainControlsRow,
@@ -817,6 +820,7 @@ class PlaybackControls extends ConsumerWidget {
             controlsScale: controlsScale,
             tLyrics: tLyrics,
             isLandscape: effectiveIsLandscape,
+            isTransitioning: isTransitioning,
             buttonsRowWidth: unifiedWidth,
             overrideProgress: overrideProgress,
             overridePosition: overridePosition,
@@ -855,6 +859,7 @@ class PlaybackControls extends ConsumerWidget {
           controlsScale: controlsScale,
           tLyrics: tLyrics,
           isLandscape: effectiveIsLandscape,
+          isTransitioning: isTransitioning,
           buttonsRowWidth: unifiedWidth,
           overrideProgress: overrideProgress,
           overridePosition: overridePosition,

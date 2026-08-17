@@ -23,6 +23,7 @@ class WaveformProgressBar extends ConsumerStatefulWidget {
   final double? barWidth;
   final double? barGap;
   final bool isWindowMinimized;
+  final bool isTransitioning;
 
   const WaveformProgressBar({
     super.key,
@@ -40,6 +41,7 @@ class WaveformProgressBar extends ConsumerStatefulWidget {
     this.barWidth,
     this.barGap,
     this.isWindowMinimized = false,
+    this.isTransitioning = false,
   });
 
   @override
@@ -141,7 +143,11 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
   }
 
   void _updateTickerState() {
-    if (widget.isPlaying && !_isDragging && !_suspendedForBackground && !widget.isWindowMinimized) {
+    if (widget.isPlaying &&
+        !_isDragging &&
+        !_suspendedForBackground &&
+        !widget.isWindowMinimized &&
+        !widget.isTransitioning) {
       if (!_ticker!.isActive) {
         _lastFrameTime = null;
         _ticker!.start();
@@ -226,8 +232,10 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
         ? 1000.0 / widget.duration.inMilliseconds
         : 0.01;
 
-    // Snap immediately on large leaps (seeks/song changes) or when not playing
-    if (diff > snapThreshold || !widget.isPlaying || _isDragging) {
+    // Snap immediately on large leaps (seeks/song changes) or when not playing or when transitioning ended
+    if (!widget.isTransitioning && (diff > snapThreshold || !widget.isPlaying || _isDragging)) {
+      _smoothProgress = widget.progress.clamp(0.0, 1.0);
+    } else if (oldWidget.isTransitioning && !widget.isTransitioning) {
       _smoothProgress = widget.progress.clamp(0.0, 1.0);
     }
 

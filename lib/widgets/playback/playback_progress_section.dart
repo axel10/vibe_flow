@@ -35,6 +35,7 @@ class PlaybackProgressSection extends ConsumerWidget {
   final double tLyrics;
   final bool isLandscape;
   final double buttonsRowWidth;
+  final bool isTransitioning;
   final double? overrideProgress;
   final Duration? overridePosition;
   final List<double>? overrideWaveform;
@@ -48,6 +49,7 @@ class PlaybackProgressSection extends ConsumerWidget {
     required this.tLyrics,
     required this.isLandscape,
     required this.buttonsRowWidth,
+    this.isTransitioning = false,
     this.overrideProgress,
     this.overridePosition,
     this.overrideWaveform,
@@ -152,6 +154,7 @@ class PlaybackProgressSection extends ConsumerWidget {
                         onScrubbing: onScrubbing ?? (_) {},
                         onSeek: onSeek ?? (_) {},
                         isWindowMinimized: isMinimized,
+                        isTransitioning: isTransitioning,
                         height:
                             (isLandscape
                                 ? PlaybackHeroCardUiTuning
@@ -303,6 +306,7 @@ class PlaybackOverlayProgressTimeLayer extends ConsumerWidget {
   final ValueChanged<double>? onScrubbing;
   final ValueChanged<double>? onSeek;
   final bool isLandscape;
+  final bool isTransitioning;
   final double? playButtonRowWidth;
 
   const PlaybackOverlayProgressTimeLayer({
@@ -311,6 +315,7 @@ class PlaybackOverlayProgressTimeLayer extends ConsumerWidget {
     required this.controlsScale,
     required this.totalWidth,
     required this.isLandscape,
+    this.isTransitioning = false,
     this.overrideProgress,
     this.overridePosition,
     this.overrideWaveform,
@@ -362,6 +367,7 @@ class PlaybackOverlayProgressTimeLayer extends ConsumerWidget {
                   onScrubbing: onScrubbing ?? (_) {},
                   onSeek: onSeek ?? (_) {},
                   isWindowMinimized: isMinimized,
+                  isTransitioning: isTransitioning,
                   height:
                       PlaybackHeroCardUiTuning.waveformOverlayHeight *
                       controlsScale,
