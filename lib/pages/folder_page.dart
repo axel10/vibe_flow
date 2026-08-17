@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
@@ -654,6 +655,22 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     }
   }
 
+  Page<dynamic> _buildPage({
+    required LocalKey key,
+    required Widget child,
+  }) {
+    if (Platform.isIOS || Platform.isMacOS) {
+      return CupertinoPage<dynamic>(
+        key: key,
+        child: child,
+      );
+    }
+    return MaterialPage<dynamic>(
+      key: key,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scanner = ref.read(scannerServiceProvider);
@@ -682,7 +699,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
 
     final seenPaths = <String>{};
     final pages = <Page<dynamic>>[
-      MaterialPage(
+      _buildPage(
         key: const ValueKey('folder-root-page'),
         child: FolderRootView(
           onOpenPlayback: widget.onOpenPlayback,
@@ -715,7 +732,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       final folder = navigationHistory[i];
       if (seenPaths.add(folder.path)) {
         pages.add(
-          MaterialPage(
+          _buildPage(
             key: ValueKey('folder-page-${folder.path}'),
             child: FolderDetailView(
               folder: folder,
@@ -752,7 +769,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
 
     if (currentFolder != null && seenPaths.add(currentFolder.path)) {
       pages.add(
-        MaterialPage(
+        _buildPage(
           key: ValueKey('folder-page-${currentFolder.path}'),
           child: FolderDetailView(
             folder: currentFolder,

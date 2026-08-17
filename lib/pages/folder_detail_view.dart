@@ -591,16 +591,10 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
 
     final selectedSongs = showSelectionPanel ? _getSelectedSongs() : <MusicFile>[];
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        widget.onGoBack();
-      },
-      child: Scaffold(
-        body: SafeArea(
-          top: false,
-          child: Stack(
+    final scaffold = Scaffold(
+      body: SafeArea(
+        top: false,
+        child: Stack(
             children: [
               Column(
                 children: [
@@ -694,8 +688,20 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             ],
           ),
         ),
-      ),
-    );
+      );
+
+    if (widget.isSelectionMode) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          widget.onClearAllSelection();
+        },
+        child: scaffold,
+      );
+    }
+
+    return scaffold;
   }
 
   Widget _buildBreadcrumbs(MusicFolder current, ScannerService scanner, {bool isOverlay = false}) {

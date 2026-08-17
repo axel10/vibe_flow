@@ -10,6 +10,7 @@ import 'package:vynody/player/lyrics/lyrics_import_export_service.dart';
 
 import 'package:audio_core/audio_core.dart' hide AppLog;
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -2894,8 +2895,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Widget _buildBody(BuildContext context, SettingsService settings) {
-    final currentBody = switch (_currentSection) {
+  Page<dynamic> _buildPage({
+    required LocalKey key,
+    required Widget child,
+  }) {
+    if (Platform.isIOS || Platform.isMacOS) {
+      return CupertinoPage<dynamic>(
+        key: key,
+        child: child,
+      );
+    }
+    return MaterialPage<dynamic>(
+      key: key,
+      child: child,
+    );
+  }
+
+  Widget _buildSectionContent(
+    BuildContext context,
+    SettingsService settings,
+    _SettingsSection section,
+  ) {
+    return switch (section) {
       _SettingsSection.home => _buildHomeBody(context),
       _SettingsSection.general => _buildGeneralPage(context, settings),
       _SettingsSection.audio => _buildAudioPage(context, settings),
@@ -2908,11 +2929,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       _SettingsSection.windows => _buildWindowsPage(context),
       _SettingsSection.about => _buildAboutPage(context),
     };
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 180),
-      child: KeyedSubtree(key: ValueKey(_currentSection), child: currentBody),
-    );
   }
 
   Widget _buildSidebar(BuildContext context, _SettingsSection activeSection) {
@@ -2989,19 +3005,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     SettingsService settings,
     _SettingsSection activeSection,
   ) {
-    final currentBody = switch (activeSection) {
-      _SettingsSection.home => _buildGeneralPage(context, settings),
-      _SettingsSection.general => _buildGeneralPage(context, settings),
-      _SettingsSection.audio => _buildAudioPage(context, settings),
-      _SettingsSection.scanning => _buildScanningPage(context, settings),
-      _SettingsSection.tags => _buildTagsPage(context, settings),
-      _SettingsSection.transcode => _buildTranscodePage(context, settings),
-      _SettingsSection.lyrics => _buildLyricsPage(context, settings),
-      _SettingsSection.acoustid => _buildAcoustidPage(context, settings),
-      _SettingsSection.shortcuts => _buildShortcutsPage(context),
-      _SettingsSection.windows => _buildWindowsPage(context),
-      _SettingsSection.about => _buildAboutPage(context),
-    };
+    final currentBody = _buildSectionContent(context, settings, activeSection);
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 180),
@@ -3020,6 +3024,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Widget _buildRootScaffold(BuildContext context, SettingsService settings) {
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final l10n = AppLocalizations.of(context)!;
 
     if (isLandscape) {
       final activeSection = _currentSection == _SettingsSection.home
@@ -3048,22 +3053,47 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
       );
     } else {
-      final title = _sectionTitle(context, _currentSection);
-
-      return Scaffold(
-        appBar: AppBar(
-          scrolledUnderElevation: 0,
-          surfaceTintColor: Colors.transparent,
-          notificationPredicate: (_) => false,
-          title: Text(title),
-          leading: _currentSection == _SettingsSection.home
-              ? null
-              : IconButton(
+      final pages = <Page<dynamic>>[
+        _buildPage(
+          key: const ValueKey('settings-home'),
+          child: Scaffold(
+            appBar: AppBar(
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              notificationPredicate: (_) => false,
+              title: Text(l10n.settings),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: _buildHomeBody(context),
+          ),
+        ),
+        if (_currentSection != _SettingsSection.home)
+          _buildPage(
+            key: ValueKey('settings-detail-${_currentSection.name}'),
+            child: Scaffold(
+              appBar: AppBar(
+                scrolledUnderElevation: 0,
+                surfaceTintColor: Colors.transparent,
+                notificationPredicate: (_) => false,
+                title: Text(_sectionTitle(context, _currentSection)),
+                leading: IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: _goHome,
                 ),
-        ),
-        body: _buildBody(context, settings),
+              ),
+              body: _buildSectionContent(context, settings, _currentSection),
+            ),
+          ),
+      ];
+
+      return Navigator(
+        pages: pages,
+        onDidRemovePage: (page) {
+          _goHome();
+        },
       );
     }
   }

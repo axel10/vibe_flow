@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../widgets/app_tooltip.dart';
 import 'package:flutter/services.dart';
@@ -573,9 +574,15 @@ class _MainLayoutState extends ConsumerState<MainLayout>
   }
 
   Future<void> _openSettingsPage() async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+    if (Platform.isIOS || Platform.isMacOS) {
+      await Navigator.of(
+        context,
+      ).push(CupertinoPageRoute<void>(builder: (_) => const SettingsPage()));
+    } else {
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const SettingsPage()));
+    }
   }
 
   Map<ShortcutActivator, Intent> _buildShortcutMap(SettingsService settings) {
