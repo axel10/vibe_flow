@@ -95,7 +95,7 @@ class PlaybackProgressSection extends ConsumerWidget {
         child: SliderTheme(
           data: SliderTheme.of(context).copyWith(
             trackHeight: 4 * controlsScale,
-            trackShape: isLandscape ? const ZeroPaddingTrackShape() : null,
+            trackShape: const ZeroPaddingTrackShape(),
             thumbShape: RoundSliderThumbShape(
               enabledThumbRadius: 7 * controlsScale,
             ),
@@ -204,8 +204,8 @@ class PlaybackProgressSection extends ConsumerWidget {
                 controlsScale,
           ),
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isLandscape ? horizontalPadding : 8.0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
