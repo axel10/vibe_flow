@@ -127,7 +127,7 @@ class _FolderHeaderBannerState extends ConsumerState<FolderHeaderBanner> {
     final hasImage = _resolvedPath != null && File(_resolvedPath!).existsSync();
     final coverFile = hasImage ? File(_resolvedPath!) : null;
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final isWideOrSquare = _aspectRatio == null || _aspectRatio! >= 0.85;
+    final isWideOrSquare = hasImage && (_aspectRatio == null || _aspectRatio! >= 0.85);
     final bool isLowEndDevice = widget.isLowEndDevice ?? ref.watch(isLowMidEndDeviceProvider);
 
 
@@ -554,27 +554,9 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                       Container(
                         color: Colors.black.withValues(alpha: isWideOrSquare ? 0.25 : 0.45),
                       ),
-                  ] else ...[
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isDark
-                              ? [
-                                  HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                                  HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                                ]
-                              : [
-                                  HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
-                                  HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
-                                ],
-                        ),
-                      ),
-                    ),
                   ],
-                  // Wide or Square cover extending across full width, or fallback hero gradient
-                  if (isWideOrSquare) ...[
+                  // Wide or Square cover extending across full width
+                  if (isWideOrSquare && hasImage) ...[
                     Positioned.fill(
                       child: heroTag != null
                           ? HeroMode(
@@ -603,37 +585,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                     isLowEndDevice: isLowEndDevice,
                                   );
                                 },
-                                child: hasImage
-                                    ? Opacity(
-                                        opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
-                                        child: Image.file(
-                                          coverFile!,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                        ),
-                                      )
-                                    : Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: isDark
-                                                ? [
-                                                    HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                                                    HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                                                  ]
-                                                : [
-                                                    HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
-                                                    HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
-                                                  ],
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                            )
-                          : (hasImage
-                              ? Opacity(
+                                child: Opacity(
                                   opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
                                   child: Image.file(
                                     coverFile!,
@@ -641,57 +593,52 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                     width: double.infinity,
                                     height: double.infinity,
                                   ),
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: isDark
-                                          ? [
-                                              HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                                              HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                                            ]
-                                          : [
-                                              HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
-                                              HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
-                                            ],
-                                    ),
-                                  ),
-                                )),
+                                ),
+                              ),
+                            )
+                          : Opacity(
+                              opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
+                              child: Image.file(
+                                coverFile!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
                     ),
                   ],
                   // Gradient overlay for text readability (Dark mode: dark gradient, Light mode: light surface gradient)
-                  AnimatedBuilder(
-                    animation: routeAnimation ?? const AlwaysStoppedAnimation(1.0),
-                    builder: (context, child) {
-                      final opacity = (darkOverlayAnimation?.value ?? 1.0).clamp(0.0, 1.0);
-                      return Opacity(
-                        opacity: opacity,
-                        child: child,
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: isDark
-                              ? [
-                                  Colors.black.withValues(alpha: 0.35),
-                                  Colors.black.withValues(alpha: 0.55),
-                                  Colors.black.withValues(alpha: 0.85),
-                                ]
-                              : [
-                                  theme.colorScheme.surface.withValues(alpha: 0.25),
-                                  theme.colorScheme.surface.withValues(alpha: 0.60),
-                                  theme.colorScheme.surface.withValues(alpha: 0.92),
-                                ],
-                          stops: const [0.0, 0.45, 1.0],
+                  if (hasImage)
+                    AnimatedBuilder(
+                      animation: routeAnimation ?? const AlwaysStoppedAnimation(1.0),
+                      builder: (context, child) {
+                        final opacity = (darkOverlayAnimation?.value ?? 1.0).clamp(0.0, 1.0);
+                        return Opacity(
+                          opacity: opacity,
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: isDark
+                                ? [
+                                    Colors.black.withValues(alpha: 0.35),
+                                    Colors.black.withValues(alpha: 0.55),
+                                    Colors.black.withValues(alpha: 0.85),
+                                  ]
+                                : [
+                                    theme.colorScheme.surface.withValues(alpha: 0.25),
+                                    theme.colorScheme.surface.withValues(alpha: 0.60),
+                                    theme.colorScheme.surface.withValues(alpha: 0.92),
+                                  ],
+                            stops: const [0.0, 0.45, 1.0],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -780,7 +727,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                               subtitle: subtitle,
                               songsCount: songsCount,
                               durationText: durationText,
-                              isOverlay: true,
+                              isOverlay: hasImage,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -806,7 +753,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                         icon: Icon(
                                           Icons.close_rounded,
                                           size: 20,
-                                          color: isDark ? Colors.white : theme.colorScheme.onSurface,
+                                          color: (hasImage && isDark) ? Colors.white : theme.colorScheme.onSurface,
                                         ),
                                         onPressed: () {
                                           searchController.clear();
@@ -836,7 +783,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                       _BannerSearchIconButton(
                                         onPressed: () => onToggleSearch(true),
                                         tooltip: l10n.search,
-                                        isWhite: isDark,
+                                        isWhite: hasImage && isDark,
                                       ),
                                     ],
                                   ),
@@ -900,7 +847,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                         subtitle: subtitle,
                         songsCount: songsCount,
                         durationText: durationText,
-                        isOverlay: true,
+                        isOverlay: hasImage,
                       ),
 
                       const SizedBox(height: 14),
@@ -924,8 +871,8 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                   IconButton(
                                     icon: Icon(
                                       Icons.close_rounded,
-                                      color: isDark ? Colors.white : theme.colorScheme.onSurface,
-                                      shadows: isDark
+                                      color: (hasImage && isDark) ? Colors.white : theme.colorScheme.onSurface,
+                                      shadows: (hasImage && isDark)
                                           ? const [
                                               Shadow(offset: Offset(0, 1), blurRadius: 4, color: Colors.black87),
                                             ]
@@ -959,7 +906,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                   _BannerSearchIconButton(
                                     onPressed: () => onToggleSearch(true),
                                     tooltip: l10n.search,
-                                    isWhite: isDark,
+                                    isWhite: hasImage && isDark,
                                   ),
                                 ],
                               ),
@@ -1026,59 +973,43 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
               Container(
                 color: isDark ? Colors.black : theme.colorScheme.surface,
               ),
-              // 1. Cover Image / Gradient Background
-              hasImage
-                  ? Opacity(
-                      opacity: isDark ? 1.0 : (lerpDouble(1.0, _kLightModeCoverOpacity, progress) ?? 1.0),
-                      child: Image.file(
-                        coverFile!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isDark
-                              ? [
-                                  HSLColor.fromAHSL(1.0, (title.hashCode.abs() % 360).toDouble(), 0.60, 0.30).toColor(),
-                                  HSLColor.fromAHSL(1.0, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.70, 0.20).toColor(),
-                                ]
-                              : [
-                                  HSLColor.fromAHSL(0.4, (title.hashCode.abs() % 360).toDouble(), 0.55, 0.90).toColor(),
-                                  HSLColor.fromAHSL(0.4, ((title.hashCode.abs() % 360 + 40) % 360).toDouble(), 0.65, 0.82).toColor(),
-                                ],
-                        ),
-                      ),
-                    ),
+              // 1. Cover Image Background
+              if (hasImage)
+                Opacity(
+                  opacity: isDark ? 1.0 : (lerpDouble(1.0, _kLightModeCoverOpacity, progress) ?? 1.0),
+                  child: Image.file(
+                    coverFile!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
 
               // 2. Gradient Overlay (Dark in dark mode, light surface gradient in light mode)
-              Opacity(
-                opacity: darkOpacity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: isDark
-                          ? [
-                              Colors.black.withValues(alpha: 0.35),
-                              Colors.black.withValues(alpha: 0.55),
-                              Colors.black.withValues(alpha: 0.85),
-                            ]
-                          : [
-                              theme.colorScheme.surface.withValues(alpha: 0.25),
-                              theme.colorScheme.surface.withValues(alpha: 0.60),
-                              theme.colorScheme.surface.withValues(alpha: 0.92),
-                            ],
-                      stops: const [0.0, 0.45, 1.0],
+              if (hasImage)
+                Opacity(
+                  opacity: darkOpacity,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: isDark
+                            ? [
+                                Colors.black.withValues(alpha: 0.35),
+                                Colors.black.withValues(alpha: 0.55),
+                                Colors.black.withValues(alpha: 0.85),
+                              ]
+                            : [
+                                theme.colorScheme.surface.withValues(alpha: 0.25),
+                                theme.colorScheme.surface.withValues(alpha: 0.60),
+                                theme.colorScheme.surface.withValues(alpha: 0.92),
+                              ],
+                        stops: const [0.0, 0.45, 1.0],
+                      ),
                     ),
                   ),
                 ),
-              ),
 
               // 3. Complete Foreground Layer (Rendered with smooth fade-in on both modes)
               if (fgOpacity > 0.01)
@@ -1115,7 +1046,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                               subtitle: subtitle,
                               songsCount: songsCount,
                               durationText: durationText,
-                              isOverlay: true,
+                              isOverlay: hasImage,
                             ),
 
                             const SizedBox(height: 14),
@@ -1139,7 +1070,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                 _BannerSearchIconButton(
                                   onPressed: () {},
                                   tooltip: l10n.search,
-                                  isWhite: isDark,
+                                  isWhite: hasImage && isDark,
                                 ),
                               ],
                             ),
