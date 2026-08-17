@@ -266,6 +266,7 @@ class _PlaybackButtonLayoutViewState extends State<PlaybackButtonLayoutView> {
               ReorderableListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
+                buildDefaultDragHandles: false,
                 itemCount: _topButtons.length,
                 onReorder: (oldIndex, newIndex) {
                   if (newIndex > oldIndex) newIndex -= 1;
@@ -347,7 +348,7 @@ class _PlaybackButtonLayoutViewState extends State<PlaybackButtonLayoutView> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Icon(
-                                Icons.drag_handle_rounded,
+                                Icons.drag_handle,
                                 color: isDark ? Colors.white54 : Colors.black45,
                               ),
                             ),
