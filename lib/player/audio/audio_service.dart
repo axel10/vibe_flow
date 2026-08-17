@@ -733,6 +733,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     );
     if (_trackedPlaybackSongPath != song.path) {
       _resetPlaybackTrackingForSong(song);
+      _position = Duration.zero;
     }
     await _updateCurrentMetadata(song);
     await _refreshCurrentWaveform(notify: false);
@@ -750,6 +751,10 @@ class AudioService extends Notifier<AudioSnapshot> {
   }
 
   void _updatePlaybackTrackingForCurrentSong() {
+    if (_isTransitioning) {
+      return;
+    }
+
     final song = currentMusic;
     if (song == null) {
       _resetPlaybackTrackingForSong(null);
@@ -758,10 +763,12 @@ class AudioService extends Notifier<AudioSnapshot> {
 
     if (_trackedPlaybackSongPath != song.path) {
       _resetPlaybackTrackingForSong(song);
+      return;
     } else if (_position <= const Duration(seconds: 2) &&
-        _lastPlaybackObservedPosition >= const Duration(seconds: 20)) {
+        _lastPlaybackObservedPosition >= const Duration(seconds: 10)) {
       // Treat a jump back to the beginning after meaningful progress as a new play.
       _resetPlaybackTrackingForSong(song);
+      return;
     }
 
     _lastPlaybackObservedPosition = _position;
@@ -774,11 +781,11 @@ class AudioService extends Notifier<AudioSnapshot> {
         ? _duration.inMilliseconds
         : (song.durationMillis ?? 0);
     final positionMillis = _position.inMilliseconds;
-    final reachedThirtySeconds = positionMillis >= 30000;
+    final reachedPlaybackThreshold = positionMillis >= 5000;
     final reachedHalfway =
         durationMillis > 0 && positionMillis * 2 >= durationMillis;
 
-    if (!reachedThirtySeconds && !reachedHalfway) {
+    if (!reachedPlaybackThreshold && !reachedHalfway) {
       return;
     }
 
@@ -2080,6 +2087,8 @@ class AudioService extends Notifier<AudioSnapshot> {
     _queue.clear();
     _queue.addAll(songs);
     _currentIndex = safeIndex;
+    _position = Duration.zero;
+    _resetPlaybackTrackingForSong(songs[safeIndex]);
     notifyListeners();
 
     if (!await _songExists(songs[safeIndex].path)) {
@@ -2436,6 +2445,8 @@ class AudioService extends Notifier<AudioSnapshot> {
             _player.playlist.queuePlaylistId,
       );
       _currentIndex = index;
+      _position = Duration.zero;
+      _resetPlaybackTrackingForSong(song);
       notifyListeners();
       await _syncCurrentPlaybackSong(song);
     } finally {
