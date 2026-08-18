@@ -746,9 +746,35 @@ jobs:
 
             DEB_SHA256=$(sha256sum "$DEB_FILE" | awk '{print $1}')
             mkdir -p /tmp/aur-build
-            bash scripts/generate_aur_package.sh "$TAG_NAME" "$DEB_SHA256" /tmp/aur-build
-
             git clone aur@aur.archlinux.org:vynody-bin.git /tmp/aur-repo
+
+            PKGREL=1
+            VERSION="${TAG_NAME#v}"
+            VERSION="${VERSION//+/-}"
+
+            if [[ -f "/tmp/aur-repo/PKGBUILD" ]]; then
+              OLD_VER=$(sed -n 's/^[[:space:]]*pkgver=//p' /tmp/aur-repo/PKGBUILD | tr -d ' "' | head -n 1)
+              OLD_REL=$(sed -n 's/^[[:space:]]*pkgrel=//p' /tmp/aur-repo/PKGBUILD | tr -d ' "' | head -n 1)
+
+              if [[ -n "$OLD_VER" && "$OLD_VER" == "$VERSION" && -n "$OLD_REL" && "$OLD_REL" =~ ^[0-9]+$ ]]; then
+                PKGREL="$OLD_REL"
+                PKGREL="$PKGREL" bash scripts/generate_aur_package.sh "$TAG_NAME" "$DEB_SHA256" /tmp/aur-build
+                if ! diff -u /tmp/aur-repo/PKGBUILD /tmp/aur-build/PKGBUILD >/dev/null 2>&1; then
+                  PKGREL=$((OLD_REL + 1))
+                  echo "Detected changes for same version ($VERSION). Incrementing pkgrel from $OLD_REL to $PKGREL..."
+                  rm -rf /tmp/aur-build
+                  mkdir -p /tmp/aur-build
+                  PKGREL="$PKGREL" bash scripts/generate_aur_package.sh "$TAG_NAME" "$DEB_SHA256" /tmp/aur-build
+                fi
+              else
+                PKGREL=1
+                PKGREL="$PKGREL" bash scripts/generate_aur_package.sh "$TAG_NAME" "$DEB_SHA256" /tmp/aur-build
+              fi
+            else
+              PKGREL=1
+              PKGREL="$PKGREL" bash scripts/generate_aur_package.sh "$TAG_NAME" "$DEB_SHA256" /tmp/aur-build
+            fi
+
             cp /tmp/aur-build/PKGBUILD /tmp/aur-repo/PKGBUILD
             cp /tmp/aur-build/.SRCINFO /tmp/aur-repo/.SRCINFO
 
@@ -757,7 +783,7 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add PKGBUILD .SRCINFO
             if ! git diff --staged --quiet; then
-              git commit -m "Update to $TAG_NAME"
+              git commit -m "Update to $TAG_NAME (pkgrel $PKGREL)"
               git branch -M master
               git push origin master
             else

@@ -29,11 +29,17 @@ if [[ -z "$SHA256" ]]; then
   exit 1
 fi
 
+PKGREL="${PKGREL:-${4:-1}}"
+if ! [[ "$PKGREL" =~ ^[0-9]+$ ]]; then
+  PKGREL=1
+fi
+
 mkdir -p "$OUTPUT_DIR"
 
 SED_EXPR=(
   -e "s|@APP_SLUG@|${APP_SLUG}|g"
   -e "s|@VERSION@|${VERSION}|g"
+  -e "s|@PKGREL@|${PKGREL}|g"
   -e "s|@TAG_NAME@|${TAG_NAME}|g"
   -e "s|@APP_DESCRIPTION@|${APP_DESCRIPTION}|g"
   -e "s|@GITHUB_REPO@|${GITHUB_REPO}|g"

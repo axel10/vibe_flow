@@ -1,7 +1,7 @@
 pkgbase = @APP_SLUG@-bin
 	pkgdesc = @APP_DESCRIPTION@
 	pkgver = @VERSION@
-	pkgrel = 1
+	pkgrel = @PKGREL@
 	url = https://github.com/@GITHUB_REPO@
 	arch = x86_64
 	license = @APP_LICENSE@

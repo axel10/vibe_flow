@@ -2,7 +2,7 @@
 pkgname=@APP_SLUG@-bin
 _pkgname=@APP_SLUG@
 pkgver=@VERSION@
-pkgrel=1
+pkgrel=@PKGREL@
 pkgdesc="@APP_DESCRIPTION@"
 arch=('x86_64')
 url="https://github.com/@GITHUB_REPO@"
