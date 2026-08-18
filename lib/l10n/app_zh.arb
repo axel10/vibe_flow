@@ -2015,6 +2015,22 @@
     "description": "Pro feature description for metadata auto-completion"
   },
   "proFeatureTagCompletionDesc": "基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息",
+  "@proFeatureEqualizerTitle": {
+    "description": "Pro feature title for audio equalizer and playback speed"
+  },
+  "proFeatureEqualizerTitle": "多段音频均衡器与播放速度 (EQ)",
+  "@proFeatureEqualizerDesc": {
+    "description": "Pro feature description for audio equalizer and playback speed"
+  },
+  "proFeatureEqualizerDesc": "专业级多频段音频调节、0.5x~5.0x 变速播放、前级放大与声音风格定制",
+  "@proFeatureCustomThemeColorTitle": {
+    "description": "Pro feature title for theme color customization"
+  },
+  "proFeatureCustomThemeColorTitle": "全色域主题与高级配色",
+  "@proFeatureCustomThemeColorDesc": {
+    "description": "Pro feature description for theme color customization"
+  },
+  "proFeatureCustomThemeColorDesc": "解锁调色盘自由拾色与全套专属高级预设主题色",
   "@proFeatureFftVisualizerTitle": {
     "description": "Pro feature title for FFT audio visualizer"
   },
@@ -2022,7 +2038,7 @@
   "@proFeatureFftVisualizerDesc": {
     "description": "Pro feature description for FFT audio visualizer"
   },
-  "proFeatureFftVisualizerDesc": "支持经典柱状、平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式与全屏氛围模式",
+  "proFeatureFftVisualizerDesc": "沉浸式音频可视化动效与多样式频谱，支持平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式",
   "@proFeatureWaveformBarTitle": {
     "description": "Pro feature title for dynamic waveform progress bar"
   },

@@ -10,6 +10,12 @@ enum ProFeature {
   /// Dynamic audio waveform progress bar
   waveformBar,
 
+  /// Professional Multi-band Audio Equalizer
+  equalizer,
+
+  /// Full-spectrum custom theme colors & color picker
+  customThemeColor,
+
   /// AI lyrics generation, timeline alignment, and translation
   aiLyrics,
 
@@ -34,6 +40,10 @@ enum ProFeature {
         return l10n.proFeatureFftVisualizerTitle;
       case ProFeature.waveformBar:
         return l10n.proFeatureWaveformBarTitle;
+      case ProFeature.equalizer:
+        return l10n.proFeatureEqualizerTitle;
+      case ProFeature.customThemeColor:
+        return l10n.proFeatureCustomThemeColorTitle;
       case ProFeature.aiLyrics:
       case ProFeature.aiTranslation:
         return l10n.proFeatureAiLyricsTitle;
@@ -54,6 +64,10 @@ enum ProFeature {
         return l10n.proFeatureFftVisualizerDesc;
       case ProFeature.waveformBar:
         return l10n.proFeatureWaveformBarDesc;
+      case ProFeature.equalizer:
+        return l10n.proFeatureEqualizerDesc;
+      case ProFeature.customThemeColor:
+        return l10n.proFeatureCustomThemeColorDesc;
       case ProFeature.aiLyrics:
       case ProFeature.aiTranslation:
         return l10n.proFeatureAiLyricsDesc;
@@ -74,6 +88,10 @@ enum ProFeature {
         return Icons.graphic_eq;
       case ProFeature.waveformBar:
         return Icons.waterfall_chart;
+      case ProFeature.equalizer:
+        return Icons.equalizer_rounded;
+      case ProFeature.customThemeColor:
+        return Icons.palette_rounded;
       case ProFeature.aiLyrics:
       case ProFeature.aiTranslation:
         return Icons.auto_awesome;

@@ -881,6 +881,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final isPresetSelected = SettingsService.presetThemeColors.any(
       (c) => c.toARGB32() == currentColor.toARGB32(),
     );
+    final isProUnlocked = ref.watch(isProUnlockedProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -921,12 +922,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             runSpacing: 10,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              ...SettingsService.presetThemeColors.map((color) {
+              ...SettingsService.presetThemeColors.asMap().entries.map((entry) {
+                final index = entry.key;
+                final color = entry.value;
                 final isSelected = color.toARGB32() == currentColor.toARGB32();
+                final isProColor = index >= 8; // First 8 colors (index 0..7) are free
+                final showLock = isProColor && !isProUnlocked && !isSelected;
+
                 return Tooltip(
                   message: _getPresetThemeColorName(context, color),
                   child: InkWell(
-                    onTap: () => settings.themeColor = color,
+                    onTap: () async {
+                      if (isProColor) {
+                        final allowed = await checkProGate(
+                          context,
+                          ref,
+                          feature: ProFeature.customThemeColor,
+                        );
+                        if (!allowed) return;
+                      }
+                      settings.themeColor = color;
+                    },
                     borderRadius: BorderRadius.circular(20),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -960,7 +976,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   ? Colors.white
                                   : Colors.black87,
                             )
-                          : null,
+                          : (showLock
+                              ? Icon(
+                                  Icons.lock_rounded,
+                                  size: 14,
+                                  color: ThemeData.estimateBrightnessForColor(color) ==
+                                          Brightness.dark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                )
+                              : null),
                     ),
                   ),
                 );
@@ -968,7 +993,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Tooltip(
                 message: l10n.customThemeColor,
                 child: InkWell(
-                  onTap: () => _pickCustomThemeColor(context, settings),
+                  onTap: () async {
+                    final allowed = await checkProGate(
+                      context,
+                      ref,
+                      feature: ProFeature.customThemeColor,
+                    );
+                    if (!allowed) return;
+                    if (!context.mounted) return;
+                    _pickCustomThemeColor(context, settings);
+                  },
                   borderRadius: BorderRadius.circular(20),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -998,7 +1032,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     child: Icon(
                       !isPresetSelected
                           ? Icons.colorize_rounded
-                          : Icons.add_rounded,
+                          : (!isProUnlocked
+                              ? Icons.lock_outline_rounded
+                              : Icons.add_rounded),
                       size: 18,
                       color: !isPresetSelected
                           ? (ThemeData.estimateBrightnessForColor(currentColor) ==

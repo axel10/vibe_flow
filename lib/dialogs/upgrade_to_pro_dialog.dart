@@ -40,6 +40,8 @@ class UpgradeToProDialog extends ConsumerWidget {
     final features = [
       ProFeatureInfo.fromFeature(ProFeature.aiLyrics, l10n),
       ProFeatureInfo.fromFeature(ProFeature.tagCompletion, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.equalizer, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.customThemeColor, l10n),
       ProFeatureInfo.fromFeature(ProFeature.fftVisualizer, l10n),
       ProFeatureInfo.fromFeature(ProFeature.waveformBar, l10n),
       ProFeatureInfo.fromFeature(ProFeature.lanSharing, l10n),

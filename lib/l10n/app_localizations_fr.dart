@@ -3613,6 +3613,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Complétion automatique des tags et métadonnées d\'albums via MusicBrainz';
 
   @override
+  String get proFeatureEqualizerTitle => 'Égaliseur multibande et vitesse (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc =>
+      'Réglage de fréquence professionnel, vitesse de lecture 0.5x–5.0x, gain et styles personnalisés';
+
+  @override
+  String get proFeatureCustomThemeColorTitle =>
+      'Thèmes à spectre complet et couleurs avancées';
+
+  @override
+  String get proFeatureCustomThemeColorDesc =>
+      'Débloquez la palette de sélection de couleurs libre et les couleurs de thème prédéfinies premium exclusives';
+
+  @override
   String get proFeatureFftVisualizerTitle => 'Spectre audio FFT en temps réel';
 
   @override

@@ -3435,6 +3435,20 @@ class AppLocalizationsJa extends AppLocalizations {
       'MusicBrainzを利用した楽曲タグおよびアルバム情報の自動補完';
 
   @override
+  String get proFeatureEqualizerTitle => 'マルチバンドEQ＆再生速度 (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc =>
+      'プロ仕様の周波数調整、0.5x〜5.0x再生速度、プリアンプゲインとカスタムサウンド';
+
+  @override
+  String get proFeatureCustomThemeColorTitle => 'フルスペクトルテーマと高度な配色';
+
+  @override
+  String get proFeatureCustomThemeColorDesc =>
+      '自由なカラーピッカーパレットと限定プレミアムプリセットテーマカラーを解放';
+
+  @override
   String get proFeatureFftVisualizerTitle => 'リアルタイム音声FFTスペクトラム';
 
   @override

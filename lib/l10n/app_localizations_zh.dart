@@ -3384,11 +3384,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get proFeatureTagCompletionDesc => '基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息';
 
   @override
+  String get proFeatureEqualizerTitle => '多段音频均衡器与播放速度 (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc => '专业级多频段音频调节、0.5x~5.0x 变速播放、前级放大与声音风格定制';
+
+  @override
+  String get proFeatureCustomThemeColorTitle => '全色域主题与高级配色';
+
+  @override
+  String get proFeatureCustomThemeColorDesc => '解锁调色盘自由拾色与全套专属高级预设主题色';
+
+  @override
   String get proFeatureFftVisualizerTitle => '实时音频 FFT 频谱';
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      '支持经典柱状、平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式与全屏氛围模式';
+      '沉浸式音频可视化动效与多样式频谱，支持平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式';
 
   @override
   String get proFeatureWaveformBarTitle => '动态音频波形进度条';
@@ -6913,11 +6925,23 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get proFeatureTagCompletionDesc => '基於 MusicBrainz 自動補全歌曲標籤與專輯元數據資訊';
 
   @override
+  String get proFeatureEqualizerTitle => '多段音訊等化器與播放速度 (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc => '專業級多頻段音訊調節、0.5x~5.0x 變速播放、前级放大與聲音風格自訂';
+
+  @override
+  String get proFeatureCustomThemeColorTitle => '全色域主題與進階配色';
+
+  @override
+  String get proFeatureCustomThemeColorDesc => '解鎖調色盤自由拾色與全套專屬進階預設主題色';
+
+  @override
   String get proFeatureFftVisualizerTitle => '即時音訊 FFT 頻譜';
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      '支援經典柱狀、平滑波浪、浮動頂帽、環形光暈、點陣矩陣、對稱鏡像波等 6 種頻譜樣式與全螢幕氛圍模式';
+      '沉浸式音訊視覺化動效與多樣式頻譜，支援平滑波浪、浮動頂帽、環形光暈、點陣矩陣、對稱鏡像波等 6 種頻譜樣式';
 
   @override
   String get proFeatureWaveformBarTitle => '動態音訊波形進度條';

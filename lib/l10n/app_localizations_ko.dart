@@ -3438,6 +3438,20 @@ class AppLocalizationsKo extends AppLocalizations {
       'MusicBrainz를 통한 곡 태그 및 앨범 메타데이터 자동 완성';
 
   @override
+  String get proFeatureEqualizerTitle => '다중 밴드 EQ 및 재생 속도 (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc =>
+      '전문가 수준의 주파수 튜닝, 0.5x~5.0x 배속 재생, 프리앰프 및 사운드 스타일';
+
+  @override
+  String get proFeatureCustomThemeColorTitle => '풀 스펙트럼 테마 및 고급 색상 커스텀';
+
+  @override
+  String get proFeatureCustomThemeColorDesc =>
+      '자유 색상 선택기 팔레트 및 독점 프리미엄 프리셋 테마 색상 잠금 해제';
+
+  @override
   String get proFeatureFftVisualizerTitle => '실시간 FFT 오디오 스펙트럼';
 
   @override

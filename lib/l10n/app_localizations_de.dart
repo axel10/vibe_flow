@@ -3600,6 +3600,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Automatische Vervollständigung von Tags und Album-Metadaten über MusicBrainz';
 
   @override
+  String get proFeatureEqualizerTitle =>
+      'Mehrband-Equalizer & Geschwindigkeit (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc =>
+      'Professionelle Frequenzabstimmung, 0,5x–5,0x Wiedergabegeschwindigkeit, Vorverstärkung und Soundstile';
+
+  @override
+  String get proFeatureCustomThemeColorTitle =>
+      'Vollspektrum-Designs & Erweiterte Farbgebung';
+
+  @override
+  String get proFeatureCustomThemeColorDesc =>
+      'Schalten Sie die freie Farbauswahlpalette und exklusive Premium-Voreinstellungen frei';
+
+  @override
   String get proFeatureFftVisualizerTitle => 'Echtzeit-FFT-Audiospektrum';
 
   @override

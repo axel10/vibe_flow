@@ -3564,11 +3564,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Auto-complete tags and album metadata via MusicBrainz';
 
   @override
+  String get proFeatureEqualizerTitle =>
+      'Multi-Band Equalizer & Speed Control (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc =>
+      'Professional multi-band frequency tuning, 0.5x–5.0x playback speed, preamp gain, and custom sound styles';
+
+  @override
+  String get proFeatureCustomThemeColorTitle =>
+      'Full-Spectrum Themes & Custom Colors';
+
+  @override
+  String get proFeatureCustomThemeColorDesc =>
+      'Unlock the free color picker palette and exclusive premium preset theme colors';
+
+  @override
   String get proFeatureFftVisualizerTitle => 'Real-time FFT Audio Spectrum';
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      '6 spectrum styles (Classic Bars, Smooth Wave, Floating Caps, Radial Halo, Neon Matrix, Mirrored Wave) & full-screen ambient mode';
+      'Immersive audio visualization with 6 spectrum styles (Classic Bars, Smooth Wave, Floating Caps, Radial Halo, Neon Matrix, Mirrored Wave) & full-screen ambient mode';
 
   @override
   String get proFeatureWaveformBarTitle => 'Dynamic Waveform Progress Bar';

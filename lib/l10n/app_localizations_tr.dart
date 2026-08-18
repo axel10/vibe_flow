@@ -3571,6 +3571,21 @@ class AppLocalizationsTr extends AppLocalizations {
       'MusicBrainz ile şarkı etiketlerini ve albüm meta verilerini otomatik tamamlama';
 
   @override
+  String get proFeatureEqualizerTitle => 'Çok Bantlı EQ ve Oynatma Hızı (EQ)';
+
+  @override
+  String get proFeatureEqualizerDesc =>
+      'Profesyonel frekans ayarı, 0.5x–5.0x oynatma hızı, preamp kazancı ve ses stilleri';
+
+  @override
+  String get proFeatureCustomThemeColorTitle =>
+      'Tam Spektrum Temalar ve Gelişmiş Renkler';
+
+  @override
+  String get proFeatureCustomThemeColorDesc =>
+      'Serbest renk seçici paletini ve özel premium önceden tanımlı tema renklerini açın';
+
+  @override
   String get proFeatureFftVisualizerTitle => 'Gerçek Zamanlı FFT Ses Spektrumu';
 
   @override

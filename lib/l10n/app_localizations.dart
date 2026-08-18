@@ -6375,6 +6375,30 @@ abstract class AppLocalizations {
   /// **'基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息'**
   String get proFeatureTagCompletionDesc;
 
+  /// Pro feature title for audio equalizer and playback speed
+  ///
+  /// In zh, this message translates to:
+  /// **'多段音频均衡器与播放速度 (EQ)'**
+  String get proFeatureEqualizerTitle;
+
+  /// Pro feature description for audio equalizer and playback speed
+  ///
+  /// In zh, this message translates to:
+  /// **'专业级多频段音频调节、0.5x~5.0x 变速播放、前级放大与声音风格定制'**
+  String get proFeatureEqualizerDesc;
+
+  /// Pro feature title for theme color customization
+  ///
+  /// In zh, this message translates to:
+  /// **'全色域主题与高级配色'**
+  String get proFeatureCustomThemeColorTitle;
+
+  /// Pro feature description for theme color customization
+  ///
+  /// In zh, this message translates to:
+  /// **'解锁调色盘自由拾色与全套专属高级预设主题色'**
+  String get proFeatureCustomThemeColorDesc;
+
   /// Pro feature title for FFT audio visualizer
   ///
   /// In zh, this message translates to:
@@ -6384,7 +6408,7 @@ abstract class AppLocalizations {
   /// Pro feature description for FFT audio visualizer
   ///
   /// In zh, this message translates to:
-  /// **'支持经典柱状、平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式与全屏氛围模式'**
+  /// **'沉浸式音频可视化动效与多样式频谱，支持平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式'**
   String get proFeatureFftVisualizerDesc;
 
   /// Pro feature title for dynamic waveform progress bar
