@@ -2800,85 +2800,83 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(width: 8),
-                    const ProBadge(showInGitHubBuild: true),
+                    if (!AppChannel.isGitHubRelease) ...[
+                      const SizedBox(width: 8),
+                      const ProBadge(),
+                    ],
                   ],
                 ),
-                const SizedBox(height: 12),
-                Consumer(
-                  builder: (context, ref, _) {
-                    final license = ref.watch(licenseStateProvider);
-                    final isDark = Theme.of(context).brightness == Brightness.dark;
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.03),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
+                if (!AppChannel.isGitHubRelease) ...[
+                  const SizedBox(height: 12),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final license = ref.watch(licenseStateProvider);
+                      final isDark = Theme.of(context).brightness == Brightness.dark;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.06),
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : Colors.black.withValues(alpha: 0.06),
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.workspace_premium_rounded,
-                            size: 22,
-                            color: const Color(0xFFFFB300),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppChannel.isGitHubRelease
-                                      ? '版本类型：GitHub 社区完全版'
-                                      : (license.isInTrial
-                                          ? '授权状态：${license.trialTotalDays} 天免费试用期中'
-                                          : (license.isTrialExpired
-                                              ? '授权状态：试用已结束 (部分功能受限)'
-                                              : '授权状态：已激活 Vynody Pro')),
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  AppChannel.isGitHubRelease
-                                      ? '所有高级特性已永久完全开放'
-                                      : (license.isInTrial
-                                          ? '剩余 ${license.trialDaysRemaining} 天试用期'
-                                          : (license.isTrialExpired
-                                              ? '可升级解锁 AI 歌词、FFT 频谱与高级特性'
-                                              : '享有全部高级特性与更新支持')),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark ? Colors.white60 : Colors.black54,
-                                  ),
-                                ),
-                              ],
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.workspace_premium_rounded,
+                              size: 22,
+                              color: const Color(0xFFFFB300),
                             ),
-                          ),
-                          TextButton.icon(
-                            onPressed: () => showUpgradeToProDialog(context),
-                            icon: const Icon(Icons.info_outline, size: 16),
-                            label: Text(
-                              AppChannel.isGitHubRelease
-                                  ? '权益'
-                                  : (license.isTrialExpired ? '升级' : '查看'),
-                              style: const TextStyle(fontSize: 12),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    license.isInTrial
+                                        ? '授权状态：${license.trialTotalDays} 天免费试用期中'
+                                        : (license.isTrialExpired
+                                            ? '授权状态：试用已结束 (部分功能受限)'
+                                            : '授权状态：已激活 Vynody Pro'),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    license.isInTrial
+                                        ? '剩余 ${license.trialDaysRemaining} 天试用期'
+                                        : (license.isTrialExpired
+                                            ? '可升级解锁 AI 歌词、FFT 频谱与高级特性'
+                                            : '享有全部高级特性与更新支持'),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark ? Colors.white60 : Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                            TextButton.icon(
+                              onPressed: () => showUpgradeToProDialog(context),
+                              icon: const Icon(Icons.info_outline, size: 16),
+                              label: Text(
+                                license.isTrialExpired ? '升级' : '查看',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 if (AppChannel.isGitHubRelease) ...[
                   const SizedBox(height: 12),
                   InkWell(
