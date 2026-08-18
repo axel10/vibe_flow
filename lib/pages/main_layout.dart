@@ -230,7 +230,8 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     _shortcutManager = AppShortcutManager();
     _syncDeletedSongNoticeHandler();
 
-    if (settings.lanSharingEnabled) {
+    final isProUnlocked = ref.read(isProUnlockedProvider);
+    if (settings.lanSharingEnabled && isProUnlocked) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         final serverState = ref.read(sharingServerStateProvider);
@@ -1151,6 +1152,18 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         _ui.setVolumeHudVisible(true);
       }
       _lastVolume = next;
+    });
+
+    ref.listen<bool>(isProUnlockedProvider, (previous, isUnlocked) {
+      final serverState = ref.read(sharingServerStateProvider);
+      final lanEnabled = ref.read(settingsServiceProvider).lanSharingEnabled;
+      if (!isUnlocked) {
+        if (serverState.isRunning) {
+          ref.read(sharingServerStateProvider.notifier).stop();
+        }
+      } else if (lanEnabled && !serverState.isRunning) {
+        ref.read(sharingServerStateProvider.notifier).start();
+      }
     });
 
     final settings = ref.watch(settingsServiceProvider);

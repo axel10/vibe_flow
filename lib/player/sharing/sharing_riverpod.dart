@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
 import 'sharing_service.dart';
 import 'lan_device.dart';
 import 'remote_control/remote_control_service.dart';
@@ -47,6 +48,8 @@ class SharingServerStateNotifier extends Notifier<SharingServerState> {
 
   Future<void> start() async {
     if (state.isRunning) return;
+    final isProUnlocked = ref.read(isProUnlockedProvider);
+    if (!isProUnlocked) return;
     final service = ref.read(sharingServiceProvider);
     final started = await service.start();
     if (!started) {

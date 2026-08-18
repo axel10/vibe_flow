@@ -16,6 +16,7 @@ import 'package:vynody/player/sharing/remote_control/remote_control_service.dart
 import 'package:vynody/dialogs/remote_pair_dialogs.dart';
 import 'package:vynody/pages/remote_control_page.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/widgets/pro/pro_badge.dart';
@@ -462,14 +463,18 @@ class _SharingPageState extends ConsumerState<SharingPage> {
             : (isLandscape ? 24.0 : 96.0)) +
         bottomPadding;
 
+    final isProUnlocked = ref.watch(isProUnlockedProvider);
+
     if (!_didSyncInitialSharingState) {
       _didSyncInitialSharingState = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (settings.lanSharingEnabled && !serverState.isRunning) {
-          _sharingServerNotifier.start();
-        }
-      });
+      if (isProUnlocked) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (settings.lanSharingEnabled && !serverState.isRunning) {
+            _sharingServerNotifier.start();
+          }
+        });
+      }
     }
 
     ref.listen(activeTransfersProvider, (previous, next) {
@@ -512,16 +517,18 @@ class _SharingPageState extends ConsumerState<SharingPage> {
             ],
           ),
         ),
-        body: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-              const SizedBox(height: 10),
+        body: !isProUnlocked
+            ? _buildProLockedView(context, theme, l10n, bottomOffset)
+            : Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 10),
 
               // 0. Host Remote Control Active Banner (if any)
               Builder(
@@ -1239,13 +1246,237 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                   ),
                 ),
               ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+      ),
+    );
+  }
+
+  Widget _buildProLockedView(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    double bottomOffset,
+  ) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    final featureHighlights = [
+      (
+        icon: Icons.speed_rounded,
+        title: '极速局域网互传',
+        desc: '同 Wi-Fi 局域网内点对点极速传输无损音频与完整歌单，免流量、免压缩。',
+      ),
+      (
+        icon: Icons.sync_rounded,
+        title: '曲库与歌词同步',
+        desc: '跨设备一键推送已下载的歌词文件与歌曲，快速保持多终端音乐库一致。',
+      ),
+      (
+        icon: Icons.phonelink_rounded,
+        title: '跨端无线遥控',
+        desc: '手机、平板与电脑无缝互联，随时随地无线遥控播放、切歌与音量调节。',
+      ),
+      (
+        icon: Icons.security_rounded,
+        title: '端到端 TLS 安全加密',
+        desc: '局域网通信全链路 TLS 证书加密与设备信任配对，确保个人传输私密与安全。',
+      ),
+    ];
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 820),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(24, 16, 24, bottomOffset + 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              // Hero Icon with gradient background & glow
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primaryContainer,
+                      theme.colorScheme.tertiaryContainer,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.hub_rounded,
+                    size: 38,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Title
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    l10n.lanSharingTitle,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const ProBadge(),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Subtitle
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 540),
+                child: Text(
+                  '局域网互联为 Vynody Pro 专属高级功能。解锁后可在同一局域网下实现极速歌曲互传、曲库同步与跨设备无线遥控。',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    height: 1.45,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Feature Cards Grid
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final useGrid = constraints.maxWidth > 580;
+                  if (useGrid) {
+                    return Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        for (final item in featureHighlights)
+                          SizedBox(
+                            width: (constraints.maxWidth - 16) / 2,
+                            child: _buildProFeatureCard(theme, isDark, item),
+                          ),
+                      ],
+                    );
+                  }
+                  return Column(
+                    children: [
+                      for (final item in featureHighlights) ...[
+                        _buildProFeatureCard(theme, isDark, item),
+                        const SizedBox(height: 12),
+                      ],
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+
+              // CTA Button
+              FilledButton.icon(
+                onPressed: () {
+                  showUpgradeToProDialog(context, initialFeature: ProFeature.lanSharing);
+                },
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.auto_awesome, size: 20),
+                label: const Text(
+                  '升级至 Vynody Pro 解锁',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Text(
+                '一次性购买，永久解锁当前平台所有 Pro 高级特权',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
             ],
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
+  }
+
+  Widget _buildProFeatureCard(
+    ThemeData theme,
+    bool isDark,
+    ({IconData icon, String title, String desc}) item,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? theme.colorScheme.surfaceContainerLow
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(item.icon, size: 22, color: theme.colorScheme.primary),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.desc,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
