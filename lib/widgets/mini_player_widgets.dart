@@ -108,7 +108,6 @@ class MiniInlineVolumeControl extends StatelessWidget {
     super.key,
     required this.volume,
     this.isMuted = false,
-    this.onToggleMute,
     required this.showSlider,
     required this.onTap,
     required this.onChanged,
@@ -119,7 +118,6 @@ class MiniInlineVolumeControl extends StatelessWidget {
 
   final double volume;
   final bool isMuted;
-  final VoidCallback? onToggleMute;
   final bool showSlider;
   final VoidCallback? onTap;
   final ValueChanged<double>? onChanged;
@@ -130,9 +128,7 @@ class MiniInlineVolumeControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final buttonTooltip = isMuted
-        ? (l10n?.unmute ?? 'Unmute')
-        : (tooltip ?? l10n?.volume ?? 'Volume');
+    final buttonTooltip = tooltip ?? l10n?.volume ?? 'Volume';
 
     return Listener(
       onPointerSignal: (pointerSignal) {
@@ -145,16 +141,7 @@ class MiniInlineVolumeControl extends StatelessWidget {
         children: [
           MiniControlButton(
             icon: getVolumeIcon(volume, isMuted: isMuted),
-            onPressed: () {
-              if (onToggleMute != null) {
-                onToggleMute!();
-                if (!showSlider && onTap != null) {
-                  onTap!();
-                }
-              } else {
-                onTap?.call();
-              }
-            },
+            onPressed: onTap,
             tooltip: buttonTooltip,
             iconSize: iconSize,
           ),

@@ -135,10 +135,6 @@ class MiniPlayerCard extends ConsumerWidget {
         MiniInlineVolumeControl(
           volume: ref.watch(audioVolumeProvider),
           isMuted: ref.watch(audioIsMutedProvider),
-          onToggleMute: () {
-            ref.read(settingsServiceProvider).resetInactivity();
-            ref.read(audioServiceProvider).toggleMute();
-          },
           showSlider: showMiniVolumeSlider,
           onTap: onVolumeTap,
           onChanged: onVolumeChanged,
