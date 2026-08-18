@@ -6,7 +6,7 @@ APP_NAME="Vynody"
 APP_ID="io.github.axel10.vynody"
 APP_SLUG="vynody"
 BINARY_NAME="vynody"
-APP_DESCRIPTION="Cross-platform music player built with Flutter"
+APP_DESCRIPTION="Cross-platform local music/audio player with synced lyrics and audio tag editor"
 APP_VENDOR="Vynody"
 APP_LICENSE="GPL-3.0-or-later"
 
@@ -66,7 +66,8 @@ Exec=/usr/bin/$APP_SLUG
 Icon=$APP_SLUG
 Terminal=false
 StartupNotify=true
-Categories=AudioVideo;Audio;Player;
+Categories=AudioVideo;Audio;Player;Music;
+Keywords=music;audio;player;lyrics;tags;flac;mp3;lrc;
 StartupWMClass=$APP_ID
 EOF
 
@@ -160,7 +161,8 @@ Exec=$BINARY_NAME
 Icon=$APP_SLUG
 Terminal=false
 StartupNotify=true
-Categories=AudioVideo;Audio;Player;
+Categories=AudioVideo;Audio;Player;Music;
+Keywords=music;audio;player;lyrics;tags;flac;mp3;lrc;
 StartupWMClass=$APP_ID
 EOF
   chmod 0644 "$APPIMAGE_STAGE_DIR/$APP_ID.desktop"

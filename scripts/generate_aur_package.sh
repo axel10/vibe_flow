@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_SLUG="vynody"
-APP_DESCRIPTION="Cross-platform music player built with Flutter"
+APP_DESCRIPTION="Cross-platform local music/audio player with synced lyrics and audio tag editor"
 APP_LICENSE="GPL-3.0-or-later"
 GITHUB_REPO="${GITHUB_REPOSITORY:-axel10/vynody}"
 

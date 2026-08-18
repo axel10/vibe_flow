@@ -758,6 +758,7 @@ jobs:
             git add PKGBUILD .SRCINFO
             if ! git diff --staged --quiet; then
               git commit -m "Update to $TAG_NAME"
+              git branch -M master
               git push origin master
             else
               echo "No changes detected for AUR package."
