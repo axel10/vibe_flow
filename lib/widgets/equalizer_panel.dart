@@ -16,28 +16,33 @@ class EqualizerPanel extends ConsumerStatefulWidget {
 }
 
 class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
-  List<double> _frequencies = [];
-  int _lastBandCount = 0;
-
-  void _syncBandCount(int bandCount) {
-    if (_lastBandCount != bandCount) {
-      _lastBandCount = bandCount;
-      final audio = ref.read(audioServiceProvider);
-      audio.ensureEqualizerBandCount(bandCount);
-      _frequencies = audio.getEqualizerBandCenters(bandCount: bandCount);
-    }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bandCount = ref.read(settingsServiceProvider).equalizerBandCount;
+      ref.read(audioServiceProvider).ensureEqualizerBandCount(bandCount);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(
+      settingsServiceProvider.select((s) => s.equalizerBandCount),
+      (previous, next) {
+        ref.read(audioServiceProvider).ensureEqualizerBandCount(next);
+      },
+    );
+
     final settings = ref.watch(settingsServiceProvider);
     final bandCount = settings.equalizerBandCount;
-    _syncBandCount(bandCount);
 
     final audio = ref.read(audioServiceProvider);
     final snapshot = ref.watch(audioSnapshotProvider);
     final config = snapshot.equalizerConfig;
     final playbackSpeed = snapshot.playbackSpeed;
+    final frequencies = audio.getEqualizerBandCenters(bandCount: bandCount);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -61,7 +66,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           children: [
             _buildHeader(audio, config, l10n),
             const SizedBox(height: 24),
-            _buildEqSliders(audio, config, accentColor, bandCount),
+            _buildEqSliders(audio, config, accentColor, bandCount, frequencies),
             const SizedBox(height: 32),
             _buildBottomControls(audio, config, accentColor, l10n),
             const SizedBox(height: 24),
@@ -290,6 +295,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     EqualizerConfig config,
     Color accentColor,
     int bandCount,
+    List<double> frequencies,
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -321,8 +327,8 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _frequencies.length > index
-                      ? _formatFreq(_frequencies[index])
+                  frequencies.length > index
+                      ? _formatFreq(frequencies[index])
                       : '',
                   style: TextStyle(
                     color: isDark

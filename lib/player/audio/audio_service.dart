@@ -233,6 +233,12 @@ class AudioService extends Notifier<AudioSnapshot> {
         );
       }
 
+      final currentBandCount = settingsService.equalizerBandCount;
+      if (_player.equalizerConfig.bandCount != currentBandCount) {
+        _player.setEqualizerBandCount(currentBandCount);
+        notifyListeners();
+      }
+
       final currentWaveformChunks = settingsService.waveformChunks;
       if (_lastWaveformChunks != currentWaveformChunks) {
         _lastWaveformChunks = currentWaveformChunks;
@@ -247,6 +253,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     unawaited(
       _player.initialize().then((_) async {
         if (_disposed) return;
+        _player.setEqualizerBandCount(settingsService.equalizerBandCount);
         await _restorePlaybackSession();
         if (_disposed) return;
 
