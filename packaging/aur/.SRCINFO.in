@@ -1,7 +1,7 @@
 pkgbase = @APP_SLUG@-bin
 	pkgdesc = @APP_DESCRIPTION@
 	pkgver = @VERSION@
-	pkgrel = 1
+	pkgrel = @PKGREL@
 	url = https://github.com/@GITHUB_REPO@
 	arch = x86_64
 	license = @APP_LICENSE@
@@ -21,7 +21,7 @@ pkgbase = @APP_SLUG@-bin
 	provides = @APP_SLUG@=@VERSION@
 	conflicts = @APP_SLUG@
 	options = !strip
-	source_x86_64 = @APP_SLUG@-bin-@VERSION@.deb::https://github.com/@GITHUB_REPO@/releases/download/@TAG_NAME@/@APP_SLUG@-linux-@VERSION@-amd64.deb
+	source_x86_64 = @APP_SLUG@-bin-@VERSION@.deb::https://github.com/@GITHUB_REPO@/releases/download/@VERSION@/@APP_SLUG@-linux-@VERSION@-amd64.deb
 	sha256sums_x86_64 = @DEB_SHA256@
 
 pkgname = @APP_SLUG@-bin

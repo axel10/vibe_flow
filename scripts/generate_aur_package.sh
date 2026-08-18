@@ -4,18 +4,14 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_SLUG="vynody"
-APP_DESCRIPTION="Cross-platform music player built with Flutter"
+APP_DESCRIPTION="Cross-platform local music/audio player with synced lyrics and audio tag editor"
 APP_LICENSE="GPL-3.0-or-later"
 GITHUB_REPO="${GITHUB_REPOSITORY:-axel10/vynody}"
 
 RAW_TAG="${1:-$(sed -n 's/^version:[[:space:]]*//p' "$ROOT_DIR/pubspec.yaml" | head -n 1)}"
-if [[ "$RAW_TAG" == v* ]]; then
-  TAG_NAME="$RAW_TAG"
-  VERSION="${RAW_TAG#v}"
-else
-  VERSION="${RAW_TAG//+/-}"
-  TAG_NAME="v${VERSION}"
-fi
+TAG_NAME="$RAW_TAG"
+VERSION="${RAW_TAG#v}"
+VERSION="${VERSION//+/-}"
 
 SHA256="${2:-}"
 OUTPUT_DIR="${3:-$ROOT_DIR/packaging/aur}"
@@ -33,11 +29,17 @@ if [[ -z "$SHA256" ]]; then
   exit 1
 fi
 
+PKGREL="${PKGREL:-${4:-1}}"
+if ! [[ "$PKGREL" =~ ^[0-9]+$ ]]; then
+  PKGREL=1
+fi
+
 mkdir -p "$OUTPUT_DIR"
 
 SED_EXPR=(
   -e "s|@APP_SLUG@|${APP_SLUG}|g"
   -e "s|@VERSION@|${VERSION}|g"
+  -e "s|@PKGREL@|${PKGREL}|g"
   -e "s|@TAG_NAME@|${TAG_NAME}|g"
   -e "s|@APP_DESCRIPTION@|${APP_DESCRIPTION}|g"
   -e "s|@GITHUB_REPO@|${GITHUB_REPO}|g"
