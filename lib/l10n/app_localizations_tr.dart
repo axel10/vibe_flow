@@ -783,7 +783,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get transcodeAction => 'Dönüştür';
 
   @override
-  String get transcodeSectionTitle => 'Ses Dönüştürme (Transcode)';
+  String get transcodeSectionTitle => 'Ses Dönüştürme';
 
   @override
   String get transcodeSectionDescription =>
@@ -796,7 +796,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get transcodeDefaultQuality => 'Varsayılan Kalite';
 
   @override
-  String get transcodeTitle => 'Dönüştür (Transcode)';
+  String get transcodeTitle => 'Ses Dönüştürme';
 
   @override
   String transcodeSongCount(int count) {

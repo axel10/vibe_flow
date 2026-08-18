@@ -329,11 +329,11 @@
   "clearPlaylist": "Çalma Listesini Temizle",
   "copyTitle": "Başlığı Kopyala",
   "transcodeAction": "Dönüştür",
-  "transcodeSectionTitle": "Ses Dönüştürme (Transcode)",
+  "transcodeSectionTitle": "Ses Dönüştürme",
   "transcodeSectionDescription": "Ses formatı dönüştürme ve FFmpeg motoru ayarlarını yapılandırın.",
   "transcodeDefaultFormat": "Varsayılan Format",
   "transcodeDefaultQuality": "Varsayılan Kalite",
-  "transcodeTitle": "Dönüştür (Transcode)",
+  "transcodeTitle": "Ses Dönüştürme",
   "transcodeSongCount": "{count} şarkı",
   "@transcodeSongCount": {
     "placeholders": {

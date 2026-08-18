@@ -2997,6 +2997,59 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     };
   }
 
+  double _calculateSidebarWidth(BuildContext context) {
+    final textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
+    double maxContentWidth = 0;
+
+    // Measure Header width: padding (16 + 24 = 40) + back button (48) + gap (8) + title + buffer (16)
+    final headerTitlePainter = TextPainter(
+      text: TextSpan(
+        text: l10n.settings,
+        style: theme.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: textDirection,
+      textScaler: textScaler,
+      maxLines: 1,
+    )..layout();
+    final headerWidth = headerTitlePainter.width + 112.0;
+    if (headerWidth > maxContentWidth) {
+      maxContentWidth = headerWidth;
+    }
+
+    // Measure all sidebar items:
+    // ListView padding (12*2=24) + ListTile horizontal padding (16*2=32) + leading icon (24) + horizontalTitleGap (12) + buffer (16)
+    for (final section in _sidebarSections) {
+      final title = _sectionTitle(context, section);
+      final painter = TextPainter(
+        text: TextSpan(
+          text: title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: textDirection,
+        textScaler: textScaler,
+        maxLines: 1,
+      )..layout();
+
+      final itemWidth = painter.width + 108.0;
+      if (itemWidth > maxContentWidth) {
+        maxContentWidth = itemWidth;
+      }
+    }
+
+    final maxAllowedWidth = (screenWidth * 0.45).clamp(240.0, 600.0);
+    return maxContentWidth.clamp(180.0, maxAllowedWidth);
+  }
+
   Widget _buildSidebar(BuildContext context, _SettingsSection activeSection) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
@@ -3020,7 +3073,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     fontWeight: FontWeight.bold,
                   ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
                 ),
               ),
             ],
@@ -3049,21 +3102,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   textColor: theme.colorScheme.onSurfaceVariant,
                   iconColor: theme.colorScheme.onSurfaceVariant,
                   leading: Icon(icon, size: 20),
-                  title: Row(
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                      if (section == _SettingsSection.transcode ||
-                          section == _SettingsSection.lyrics) ...[
-                        const SizedBox(width: 6),
-                        const ProBadge(size: 9),
-                      ],
-                    ],
+                  title: Text(
+                    title,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
                   ),
                   onTap: () => _openSection(section),
                 ),
@@ -3105,12 +3151,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       final activeSection = _currentSection == _SettingsSection.home
           ? _SettingsSection.general
           : _currentSection;
+      final sidebarWidth = _calculateSidebarWidth(context);
 
       return Scaffold(
         body: Row(
           children: [
             Container(
-              width: 280,
+              width: sidebarWidth,
               decoration: BoxDecoration(
                 border: Border(
                   right: BorderSide(
