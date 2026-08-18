@@ -22,6 +22,7 @@ import 'utils/app_log.dart';
 import 'utils/memory_trace.dart';
 import 'package:vynody/player/sharing/security/tls_certificate_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
+import 'package:vynody/player/pro/iap_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final List<String> _pendingFileOpenArgs = <String>[];
@@ -381,6 +382,7 @@ class _MyAppState extends ConsumerState<MyApp>
   void initState() {
     super.initState();
     ref.read(audioServiceWiringProvider);
+    ref.read(iapServiceProvider);
     WidgetsBinding.instance.addObserver(this);
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       windowManager.addListener(this);

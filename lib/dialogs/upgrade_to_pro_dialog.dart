@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/player/pro/app_channel.dart';
+import 'package:vynody/player/pro/iap_service.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/widgets/pro/pro_badge.dart';
@@ -29,6 +30,7 @@ class UpgradeToProDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final license = ref.watch(licenseStateProvider);
+    final iapState = ref.watch(iapStateProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -179,7 +181,7 @@ class UpgradeToProDialog extends ConsumerWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   itemCount: features.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final item = features[index];
                     final isHighlighted = item.feature == highlightedFeature;
@@ -257,7 +259,7 @@ class UpgradeToProDialog extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                 child: Column(
                   children: [
-                    if (!license.isProUnlocked || license.isTrialExpired)
+                    if (!license.isPermanentlyUnlocked)
                       FilledButton(
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(48),
@@ -268,27 +270,44 @@ class UpgradeToProDialog extends ConsumerWidget {
                           ),
                           elevation: 2,
                         ),
-                        onPressed: () {
-                          // Placeholder for StoreKit / Microsoft Store IAP trigger
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('已拉起商店购买流程 (IAP 待接入)'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        child: const Row(
+                        onPressed: iapState.isPurchasing
+                            ? null
+                            : () => ref.read(iapServiceProvider).buyPro(),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.bolt_rounded, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              '立即升级解锁 Pro 全功能',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
+                            if (iapState.isPurchasing) ...[
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black87,
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 10),
+                              const Text(
+                                '正在连接商店...',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ] else ...[
+                              const Icon(Icons.bolt_rounded, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                iapState.proProduct != null
+                                    ? '${iapState.proProduct!.price} 永久解锁 Pro 全功能'
+                                    : (license.isInTrial
+                                        ? '提前购买永久解锁 Pro'
+                                        : '立即升级解锁 Pro 全功能'),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       )
@@ -309,38 +328,61 @@ class UpgradeToProDialog extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('正在恢复购买记录...'),
-                                duration: Duration(seconds: 1),
+                          onPressed: iapState.isRestoring
+                              ? null
+                              : () => ref.read(iapServiceProvider).restorePurchases(),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (iapState.isRestoring) ...[
+                                const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              Text(
+                                iapState.isRestoring ? '正在恢复已购记录...' : '恢复已购记录',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
                               ),
-                            );
-                          },
-                          child: Text(
-                            '恢复已购记录',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white54 : Colors.black45,
-                            ),
+                            ],
                           ),
                         ),
                         if (kDebugMode) ...[
                           const SizedBox(width: 8),
-                          TextButton(
-                            onPressed: () async {
-                              final service = ref.read(proLicenseServiceProvider);
-                              if (license.isTrialExpired) {
-                                await service.debugResetTrial(offsetDays: 0);
-                              } else {
-                                await service.debugResetTrial(offsetDays: ProConfig.trialDays + 1);
-                              }
-                            },
-                            child: Text(
-                              license.isTrialExpired ? '[Debug: 恢复${ProConfig.trialDays}天试用]' : '[Debug: 模拟超期]',
-                              style: const TextStyle(fontSize: 12, color: Colors.blueAccent),
+                          if (license.type == LicenseType.purchasedPro)
+                            TextButton(
+                              onPressed: () async {
+                                final service = ref.read(proLicenseServiceProvider);
+                                await service.setPurchased(false);
+                              },
+                              child: const Text(
+                                '[Debug: 重置为未购买]',
+                                style: TextStyle(fontSize: 12, color: Colors.deepOrangeAccent),
+                              ),
+                            )
+                          else ...[
+                            TextButton(
+                              onPressed: () async {
+                                final service = ref.read(proLicenseServiceProvider);
+                                if (license.isTrialExpired) {
+                                  await service.debugResetTrial(offsetDays: 0);
+                                } else {
+                                  await service.debugResetTrial(offsetDays: ProConfig.trialDays + 1);
+                                }
+                              },
+                              child: Text(
+                                license.isTrialExpired ? '[Debug: 恢复${ProConfig.trialDays}天试用]' : '[Debug: 模拟试用超期]',
+                                style: const TextStyle(fontSize: 12, color: Colors.blueAccent),
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ],
                     ),

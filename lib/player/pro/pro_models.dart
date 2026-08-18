@@ -77,6 +77,11 @@ class LicenseState {
       type == LicenseType.activeTrial ||
       type == LicenseType.purchasedPro;
 
+  /// Whether the license is permanently unlocked (either community build or paid purchase).
+  bool get isPermanentlyUnlocked =>
+      type == LicenseType.unlimitedCommunity ||
+      type == LicenseType.purchasedPro;
+
   /// Whether the app is running in an active trial period.
   bool get isInTrial => type == LicenseType.activeTrial;
 

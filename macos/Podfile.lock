@@ -23,6 +23,9 @@ PODS:
   - flutter_secure_storage_macos (6.1.3):
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
+  - in_app_purchase_storekit (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - mobile_storage_listener (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -57,6 +60,7 @@ DEPENDENCIES:
   - flutter_desktop_tray (from `Flutter/ephemeral/.symlinks/plugins/flutter_desktop_tray/macos`)
   - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
+  - in_app_purchase_storekit (from `Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - mobile_storage_listener (from `Flutter/ephemeral/.symlinks/plugins/mobile_storage_listener/darwin`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - pasteboard (from `Flutter/ephemeral/.symlinks/plugins/pasteboard/macos`)
@@ -90,6 +94,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
+  in_app_purchase_storekit:
+    :path: Flutter/ephemeral/.symlinks/plugins/in_app_purchase_storekit/darwin
   mobile_storage_listener:
     :path: Flutter/ephemeral/.symlinks/plugins/mobile_storage_listener/darwin
   package_info_plus:
@@ -121,6 +127,7 @@ SPEC CHECKSUMS:
   flutter_desktop_tray: 49e2a668a20531257bb2b56a0986c602e9a08fed
   flutter_secure_storage_macos: 7f45e30f838cf2659862a4e4e3ee1c347c2b3b54
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
+  in_app_purchase_storekit: 22cca7d08eebca9babdf4d07d0baccb73325d3c8
   mobile_storage_listener: 7894760322d7fb5121e315b81806dbddfceef26e
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
   pasteboard: b594eaf838d930b276d7a35a44a32b4f489170cb
