@@ -9,13 +9,9 @@ APP_LICENSE="GPL-3.0-or-later"
 GITHUB_REPO="${GITHUB_REPOSITORY:-axel10/vynody}"
 
 RAW_TAG="${1:-$(sed -n 's/^version:[[:space:]]*//p' "$ROOT_DIR/pubspec.yaml" | head -n 1)}"
-if [[ "$RAW_TAG" == v* ]]; then
-  TAG_NAME="$RAW_TAG"
-  VERSION="${RAW_TAG#v}"
-else
-  VERSION="${RAW_TAG//+/-}"
-  TAG_NAME="v${VERSION}"
-fi
+TAG_NAME="$RAW_TAG"
+VERSION="${RAW_TAG#v}"
+VERSION="${VERSION//+/-}"
 
 SHA256="${2:-}"
 OUTPUT_DIR="${3:-$ROOT_DIR/packaging/aur}"
