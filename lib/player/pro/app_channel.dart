@@ -44,4 +44,12 @@ class ProConfig {
     'TRIAL_DAYS',
     defaultValue: 15,
   );
+
+  /// Microsoft Store Product ID for StoreKit / URI purchase redirection.
+  static const String msStoreProductId = String.fromEnvironment(
+    'MS_STORE_PRODUCT_ID',
+    defaultValue: '9NMZRZZ6RSD3',
+  );
 }
+
+

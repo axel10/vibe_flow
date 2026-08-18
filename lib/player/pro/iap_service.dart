@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vynody/player/pro/app_channel.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 
@@ -70,6 +72,11 @@ class IapService extends ChangeNotifier {
     // If GitHub release, Pro is always permanently unlocked, no need for IAP stream.
     if (AppChannel.isGitHubRelease) return;
 
+    if (Platform.isWindows) {
+      _updateState(_state.copyWith(isAvailable: true, isLoadingProduct: false));
+      return;
+    }
+
     // Listen to purchase events stream
     _subscription = _iap.purchaseStream.listen(
       _handlePurchaseUpdates,
@@ -89,6 +96,8 @@ class IapService extends ChangeNotifier {
 
   /// Query product details from App Store.
   Future<void> loadProducts() async {
+    if (Platform.isWindows) return;
+
     try {
       final available = await _iap.isAvailable();
       if (!available) {
@@ -137,6 +146,23 @@ class IapService extends ChangeNotifier {
   Future<bool> buyPro() async {
     if (_state.isPurchasing) return false;
 
+    if (Platform.isWindows) {
+      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=${ProConfig.msStoreProductId}');
+      try {
+        if (await canLaunchUrl(storeUri)) {
+          await launchUrl(storeUri);
+        } else {
+          final webUri = Uri.parse('https://apps.microsoft.com/detail/${ProConfig.msStoreProductId}');
+          await launchUrl(webUri);
+        }
+        return true;
+      } catch (e) {
+        debugPrint('[IAP] buyPro Windows error: $e');
+        showToast('唤起微软商店失败，请前往商店搜索购买');
+        return false;
+      }
+    }
+
     // Ensure product details are loaded
     ProductDetails? product = _state.proProduct;
     if (product == null) {
@@ -172,6 +198,16 @@ class IapService extends ChangeNotifier {
   /// Restore previously purchased items.
   Future<void> restorePurchases() async {
     if (_state.isRestoring) return;
+
+    if (Platform.isWindows) {
+      _updateState(_state.copyWith(isRestoring: true, clearError: true));
+      try {
+        await _ref.read(proLicenseServiceProvider).refreshLicense();
+      } catch (_) {}
+      _updateState(_state.copyWith(isRestoring: false));
+      showToast('已同步微软商店购买与授权状态');
+      return;
+    }
 
     _updateState(_state.copyWith(isRestoring: true, clearError: true));
 

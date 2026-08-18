@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,7 +34,44 @@ class ProLicenseService extends ChangeNotifier {
       return;
     }
 
-    // 2. Store build: Check storage for purchase or trial timestamps.
+    // 2. Windows Store build: query real Microsoft Store license via WinRT if packaged
+    if (Platform.isWindows && AppChannel.isStoreRelease) {
+      try {
+        const channel = MethodChannel('vynody/single_instance');
+        final dynamic res = await channel.invokeMethod('getStoreLicense');
+        if (res is Map && res['isPackaged'] == true) {
+          final isTrial = res['isTrial'] as bool? ?? true;
+          final remainingDays = res['remainingDays'] as int? ?? 0;
+          final isActive = res['isActive'] as bool? ?? true;
+
+          if (!isTrial && isActive) {
+            _state = const LicenseState(type: LicenseType.purchasedPro);
+            notifyListeners();
+            return;
+          } else if (isTrial && remainingDays > 0) {
+            _state = LicenseState(
+              type: LicenseType.activeTrial,
+              trialTotalDays: ProConfig.trialDays,
+              trialDaysRemaining: remainingDays.clamp(1, ProConfig.trialDays),
+            );
+            notifyListeners();
+            return;
+          } else {
+            _state = const LicenseState(
+              type: LicenseType.expiredTrial,
+              trialTotalDays: ProConfig.trialDays,
+              trialDaysRemaining: 0,
+            );
+            notifyListeners();
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('[ProLicenseService] Failed to query Windows Store license: $e');
+      }
+    }
+
+    // 3. Store build fallback: Check storage for purchase or trial timestamps.
     final prefs = _prefs ?? await SharedPreferences.getInstance();
 
     final isPurchased = prefs.getBool(_kProPurchasedKey) ?? false;
@@ -76,6 +115,11 @@ class ProLicenseService extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  /// Refresh license status (e.g. after returning from Microsoft Store or App Store).
+  Future<void> refreshLicense() async {
+    await _init();
   }
 
   /// Mark Pro as purchased (for IAP callback / restore purchases).

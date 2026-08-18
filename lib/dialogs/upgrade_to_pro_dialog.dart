@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -297,11 +298,15 @@ class UpgradeToProDialog extends ConsumerWidget {
                               const Icon(Icons.bolt_rounded, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                iapState.proProduct != null
-                                    ? '${iapState.proProduct!.price} 永久解锁 Pro 全功能'
-                                    : (license.isInTrial
-                                        ? '提前购买永久解锁 Pro'
-                                        : '立即升级解锁 Pro 全功能'),
+                                Platform.isWindows
+                                    ? (license.isInTrial
+                                        ? '前往微软商店提前购买完整版'
+                                        : '前往微软商店购买完整版')
+                                    : (iapState.proProduct != null
+                                        ? '${iapState.proProduct!.price} 永久解锁 Pro 全功能'
+                                        : (license.isInTrial
+                                            ? '提前购买永久解锁 Pro'
+                                            : '立即升级解锁 Pro 全功能')),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,

@@ -4,6 +4,14 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+#include <appmodel.h>
+#include <chrono>
+#include <cmath>
+#include <memory>
+#include <shobjidl.h>
+#include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Services.Store.h>
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -35,13 +43,85 @@ bool FlutterWindow::OnCreate() {
       flutter_controller_->engine()->messenger(), "vynody/single_instance",
       &flutter::StandardMethodCodec::GetInstance());
 
+  HWND hwnd = GetHandle();
   channel_->SetMethodCallHandler(
-      [](const flutter::MethodCall<flutter::EncodableValue>& call,
-         std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+      [hwnd](const flutter::MethodCall<flutter::EncodableValue>& call,
+             std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
         if (call.method_name() == "registerShortcut") {
           extern void RegisterAppUserModelIDAndShortcut();
           RegisterAppUserModelIDAndShortcut();
           result->Success(flutter::EncodableValue(true));
+        } else if (call.method_name() == "getStoreLicense") {
+          auto result_ptr = std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>>(std::move(result));
+          try {
+            UINT32 length = 0;
+            LONG rc = GetCurrentPackageFullName(&length, NULL);
+            if (rc == APPMODEL_ERROR_NO_PACKAGE) {
+              // Not running inside MSIX/MS Store package
+              flutter::EncodableMap res;
+              res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(false);
+              result_ptr->Success(flutter::EncodableValue(res));
+              return;
+            }
+
+            winrt::Windows::Services::Store::StoreContext context =
+                winrt::Windows::Services::Store::StoreContext::GetDefault();
+
+            // Associate current HWND if IInitializeWithWindow is supported
+            auto initWindow = context.try_as<IInitializeWithWindow>();
+            if (initWindow && hwnd != nullptr) {
+              initWindow->Initialize(hwnd);
+            }
+
+            context.GetAppLicenseAsync().Completed(
+                [result_ptr](winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Services::Store::StoreAppLicense> const& asyncOp,
+                             winrt::Windows::Foundation::AsyncStatus const status) {
+                  try {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed) {
+                      auto license = asyncOp.GetResults();
+                      bool isActive = license.IsActive();
+                      bool isTrial = license.IsTrial();
+                      int remainingDays = 0;
+                      int64_t remainingSeconds = 0;
+
+                      if (isTrial) {
+                        auto timeRemaining = license.TrialTimeRemaining();
+                        remainingSeconds = std::chrono::duration_cast<std::chrono::seconds>(timeRemaining).count();
+                        if (remainingSeconds > 0) {
+                          remainingDays = static_cast<int>(std::ceil(static_cast<double>(remainingSeconds) / 86400.0));
+                        }
+                      }
+
+                      flutter::EncodableMap res;
+                      res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(true);
+                      res[flutter::EncodableValue("isActive")] = flutter::EncodableValue(isActive);
+                      res[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(isTrial);
+                      res[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(remainingDays);
+                      res[flutter::EncodableValue("remainingSeconds")] = flutter::EncodableValue(remainingSeconds);
+
+                      result_ptr->Success(flutter::EncodableValue(res));
+                    } else {
+                      flutter::EncodableMap res;
+                      res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(true);
+                      res[flutter::EncodableValue("error")] = flutter::EncodableValue("AsyncOperation not completed");
+                      result_ptr->Success(flutter::EncodableValue(res));
+                    }
+                  } catch (const std::exception& ex) {
+                    result_ptr->Error("STORE_EXCEPTION", ex.what());
+                  } catch (...) {
+                    result_ptr->Error("STORE_EXCEPTION", "Unknown winrt exception");
+                  }
+                });
+          } catch (const std::exception& ex) {
+            flutter::EncodableMap res;
+            res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(false);
+            res[flutter::EncodableValue("error")] = flutter::EncodableValue(ex.what());
+            result_ptr->Success(flutter::EncodableValue(res));
+          } catch (...) {
+            flutter::EncodableMap res;
+            res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(false);
+            result_ptr->Success(flutter::EncodableValue(res));
+          }
         } else {
           result->NotImplemented();
         }
