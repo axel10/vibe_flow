@@ -9,13 +9,13 @@ enum ProFeature {
   /// Dynamic audio waveform progress bar
   waveformBar,
 
-  /// AI lyrics generation, word-by-word alignment, and refining
+  /// AI lyrics generation, timeline alignment, and translation
   aiLyrics,
 
-  /// AI lyrics real-time translation & romanization
+  /// AI lyrics real-time translation
   aiTranslation,
 
-  /// LAN music streaming & Bonsoir device sharing
+  /// LAN music file sharing
   lanSharing,
 
   /// Multi-device remote control
@@ -23,6 +23,9 @@ enum ProFeature {
 
   /// Audio batch format transcode & export
   transcoder,
+
+  /// Automatic song metadata & tag completion via MusicBrainz
+  tagCompletion,
 }
 
 /// Metadata describing a Pro feature for dialog display.

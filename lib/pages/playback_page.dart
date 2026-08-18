@@ -358,6 +358,13 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     BuildContext context,
     AudioService audio,
   ) async {
+    final allowed = await checkProGate(
+      context,
+      ref,
+      feature: ProFeature.tagCompletion,
+    );
+    if (!allowed || !mounted) return;
+
     final song = ref.read(audioCurrentMusicProvider);
     if (song == null) return;
     final duration = ref.read(audioDurationProvider);

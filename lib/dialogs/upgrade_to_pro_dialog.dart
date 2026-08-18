@@ -38,9 +38,15 @@ class UpgradeToProDialog extends ConsumerWidget {
     final features = [
       const ProFeatureInfo(
         feature: ProFeature.aiLyrics,
-        title: 'AI 歌词与逐字精修',
-        description: '大模型歌词智能生成、逐字对齐、实时翻译与罗马音注音',
+        title: 'AI 歌词与翻译',
+        description: '大模型歌词智能生成、时间轴对齐与歌词翻译',
         icon: Icons.auto_awesome,
+      ),
+      const ProFeatureInfo(
+        feature: ProFeature.tagCompletion,
+        title: '歌曲元数据自动补全',
+        description: '基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息',
+        icon: Icons.auto_fix_high_rounded,
       ),
       const ProFeatureInfo(
         feature: ProFeature.fftVisualizer,
@@ -56,8 +62,8 @@ class UpgradeToProDialog extends ConsumerWidget {
       ),
       const ProFeatureInfo(
         feature: ProFeature.lanSharing,
-        title: '局域网音乐共享与串流',
-        description: '基于 Bonsoir 的跨设备无损音频流媒体共享',
+        title: '局域网歌曲文件分享',
+        description: '基于局域网的跨设备歌曲文件快速分享与传输',
         icon: Icons.hub,
       ),
       const ProFeatureInfo(
