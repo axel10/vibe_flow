@@ -11,6 +11,7 @@ import 'package:vynody/player/library/playlist_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'song_thumbnail.dart';
+import 'playing_equalizer_icon.dart';
 import 'library_selection_panel.dart';
 import 'library_selection_scope.dart';
 import 'scroll_to_top_wrapper.dart';
@@ -390,6 +391,10 @@ class _SongListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final song = entry.song;
+    final isMissing = song.isMissing;
+    final currentSong = ref.watch(audioCurrentMusicProvider);
+    final isPlaying = ref.watch(audioIsPlayingProvider);
+    final isCurrent = currentSong != null && currentSong.path == song.path;
 
     final maxDigits = items.length.toString().length;
     final double indexWidth = isSelectionMode
@@ -397,13 +402,21 @@ class _SongListItem extends ConsumerWidget {
         : (maxDigits >= 3 ? (maxDigits * 9.5 + 6.0).clamp(24.0, 56.0) : 24.0);
     final double leadingWidth = indexWidth + 8.0 + 40.0;
 
+    final textColor = isMissing
+        ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.55)
+        : isCurrent
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface;
+
     return RepaintBoundary(
       child: Card(
         margin: EdgeInsets.zero,
         elevation: 0,
         color: isSelectionMode && isSelected
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-            : theme.colorScheme.surfaceContainerLow,
+            : isCurrent
+                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.15)
+                : theme.colorScheme.surfaceContainerLow,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
@@ -420,7 +433,7 @@ class _SongListItem extends ConsumerWidget {
                 horizontal: 12,
                 vertical: 4,
               ),
-              selected: isSelectionMode ? isSelected : false,
+              selected: isSelectionMode ? isSelected : isCurrent,
               selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
               leading: SizedBox(
                 width: leadingWidth,
@@ -439,7 +452,9 @@ class _SongListItem extends ConsumerWidget {
                                 child: Text(
                                   '${index + 1}',
                                   style: theme.textTheme.labelLarge?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                    color: isCurrent
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.onSurfaceVariant,
                                     fontWeight: FontWeight.w700,
                                   ),
                                   textAlign: TextAlign.center,
@@ -450,21 +465,53 @@ class _SongListItem extends ConsumerWidget {
                             ),
                     ),
                     const SizedBox(width: 8),
-                    SongThumbnail(
-                      path: song.path,
-                      id: song.id,
-                      size: 40,
+                    Opacity(
+                      opacity: isMissing
+                          ? 0.35
+                          : isSelectionMode
+                              ? (isSelected ? 0.5 : 0.7)
+                              : 1.0,
+                      child: SongThumbnail(
+                        path: song.path,
+                        id: song.id,
+                        size: 40,
+                      ),
                     ),
                   ],
                 ),
               ),
-              title: Text(
-                song.displayName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              title: Row(
+                children: [
+                  if (isCurrent && !isMissing) ...[
+                    PlayingEqualizerIcon(
+                      color: theme.colorScheme.primary,
+                      size: 16,
+                      isPlaying: isPlaying,
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Expanded(
+                    child: Text(
+                      song.displayName,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: textColor,
+                        fontWeight: isCurrent && !isMissing ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
               subtitle: Text(
                 _songSubtitle(l10n, entry),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isMissing
+                      ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                      : isCurrent
+                          ? theme.colorScheme.primary.withValues(alpha: 0.8)
+                          : theme.colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
