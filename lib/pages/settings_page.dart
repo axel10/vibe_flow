@@ -245,16 +245,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return 0;
   }
 
-  static const bool _isStoreBuild = bool.fromEnvironment(
-    'STORE_BUILD',
-    defaultValue: false,
-  );
-
-  static const bool _isAppStoreBuild = bool.fromEnvironment(
-    'APP_STORE_BUILD',
-    defaultValue: false,
-  );
-
   static const String _appStoreId = String.fromEnvironment(
     'APP_STORE_ID',
     defaultValue: '6799339894',
@@ -262,7 +252,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _checkForUpdates() async {
     final bool isAppleStore =
-        Platform.isIOS || _isAppStoreBuild || (Platform.isMacOS && _isStoreBuild);
+        Platform.isIOS || (Platform.isMacOS && AppChannel.isStoreRelease);
     if (isAppleStore) {
       final l10n = AppLocalizations.of(context)!;
       final storeUri = Uri.parse('https://apps.apple.com/app/id$_appStoreId');
@@ -293,9 +283,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
-    if (Platform.isWindows && (AppChannel.isStoreRelease || _isStoreBuild)) {
+    if (Platform.isWindows && AppChannel.isStoreRelease) {
       final l10n = AppLocalizations.of(context)!;
-      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=9NMZRZZ6RSD3');
+      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=${ProConfig.msStoreProductId}');
       await showDialog<void>(
         context: context,
         builder: (dialogContext) {

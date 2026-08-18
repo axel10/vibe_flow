@@ -1,5 +1,5 @@
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue build/flutter_assets, build/windows/x64/runner/Release/data/flutter_assets
-flutter build windows --release --dart-define=STORE_BUILD=true
+flutter build windows --release --dart-define=CHANNEL=store
 
 # Bundle VC Runtime DLLs into Release directory before packaging MSIX
 $dlls = @("msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "msvcp140_codecvt_ids.dll", "vcruntime140.dll", "vcruntime140_1.dll", "vcruntime140_threads.dll")

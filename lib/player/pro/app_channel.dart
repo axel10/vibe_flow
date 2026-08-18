@@ -18,8 +18,21 @@ class AppChannel {
     defaultValue: 'github',
   );
 
+  /// Backward compatibility with legacy build flags
+  static const bool _isStoreBuildLegacy = bool.fromEnvironment(
+    'STORE_BUILD',
+    defaultValue: false,
+  );
+  static const bool _isAppStoreBuildLegacy = bool.fromEnvironment(
+    'APP_STORE_BUILD',
+    defaultValue: false,
+  );
+
   /// Current active distribution channel.
   static AppDistributionChannel get current {
+    if (_isStoreBuildLegacy || _isAppStoreBuildLegacy) {
+      return AppDistributionChannel.store;
+    }
     final normalized = _rawChannel.trim().toLowerCase();
     if (normalized == 'store' || normalized == 'appstore' || normalized == 'msstore') {
       return AppDistributionChannel.store;
