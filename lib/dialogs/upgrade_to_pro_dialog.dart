@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/pro/app_channel.dart';
 import 'package:vynody/player/pro/iap_service.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
@@ -34,50 +35,16 @@ class UpgradeToProDialog extends ConsumerWidget {
     final iapState = ref.watch(iapStateProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     final features = [
-      const ProFeatureInfo(
-        feature: ProFeature.aiLyrics,
-        title: 'AI 歌词与翻译',
-        description: '大模型歌词智能生成、时间轴对齐与歌词翻译',
-        icon: Icons.auto_awesome,
-      ),
-      const ProFeatureInfo(
-        feature: ProFeature.tagCompletion,
-        title: '歌曲元数据自动补全',
-        description: '基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息',
-        icon: Icons.auto_fix_high_rounded,
-      ),
-      const ProFeatureInfo(
-        feature: ProFeature.fftVisualizer,
-        title: '实时音频 FFT 频谱',
-        description: '沉浸式音频可视化动效、多样式频谱与全屏氛围模式',
-        icon: Icons.graphic_eq,
-      ),
-      const ProFeatureInfo(
-        feature: ProFeature.waveformBar,
-        title: '动态音频波形进度条',
-        description: '实时提取音频振幅波形，高帧率动态交互进度条',
-        icon: Icons.waterfall_chart,
-      ),
-      const ProFeatureInfo(
-        feature: ProFeature.lanSharing,
-        title: '局域网歌曲文件分享',
-        description: '基于局域网的跨设备歌曲文件快速分享与传输',
-        icon: Icons.hub,
-      ),
-      const ProFeatureInfo(
-        feature: ProFeature.remoteControl,
-        title: '多端远程控制',
-        description: '手机、平板与电脑端无缝联动与切歌遥控',
-        icon: Icons.phonelink,
-      ),
-      const ProFeatureInfo(
-        feature: ProFeature.transcoder,
-        title: '音频批量转码工具',
-        description: '无损格式快速压缩转换与随身设备批量导出',
-        icon: Icons.transform,
-      ),
+      ProFeatureInfo.fromFeature(ProFeature.aiLyrics, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.tagCompletion, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.fftVisualizer, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.waveformBar, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.lanSharing, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.remoteControl, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.transcoder, l10n),
     ];
 
     return Dialog(
@@ -156,12 +123,12 @@ class UpgradeToProDialog extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             AppChannel.isGitHubRelease
-                                ? '社区完全版已永久解锁全部高级特性'
+                                ? l10n.proCommunityUnlocked
                                 : (license.isInTrial
-                                    ? '免费试用期生效中 (剩余 ${license.trialDaysRemaining} 天)'
+                                    ? l10n.proTrialActive(license.trialDaysRemaining)
                                     : (license.isTrialExpired
-                                        ? '免费试用期已结束，升级解锁高级体验'
-                                        : '已永久激活全部 Pro 功能')),
+                                        ? l10n.proTrialExpired
+                                        : l10n.proPermanentlyActivated)),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: license.isTrialExpired
                                   ? theme.colorScheme.error
@@ -175,7 +142,7 @@ class UpgradeToProDialog extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.close_rounded),
                       onPressed: () => Navigator.of(context).pop(),
-                      tooltip: '关闭',
+                      tooltip: l10n.close,
                     ),
                   ],
                 ),
@@ -293,9 +260,9 @@ class UpgradeToProDialog extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              const Text(
-                                '正在连接商店...',
-                                style: TextStyle(
+                              Text(
+                                l10n.connectingToStore,
+                                style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -306,13 +273,13 @@ class UpgradeToProDialog extends ConsumerWidget {
                               Text(
                                 Platform.isWindows
                                     ? (license.isInTrial
-                                        ? '前往微软商店提前购买完整版'
-                                        : '前往微软商店购买完整版')
+                                        ? l10n.buyFullVersionWindowsTrial
+                                        : l10n.buyFullVersionWindows)
                                     : (iapState.proProduct != null
-                                        ? '${iapState.proProduct!.price} 永久解锁 Pro 全功能'
+                                        ? l10n.unlockProLifetimeWithPrice(iapState.proProduct!.price)
                                         : (license.isInTrial
-                                            ? '提前购买永久解锁 Pro'
-                                            : '立即升级解锁 Pro 全功能')),
+                                            ? l10n.buyProTrialEarly
+                                            : l10n.upgradeToProNow)),
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
@@ -331,7 +298,7 @@ class UpgradeToProDialog extends ConsumerWidget {
                           ),
                         ),
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('我知道了'),
+                        child: Text(l10n.iUnderstand),
                       ),
 
                     const SizedBox(height: 8),
@@ -343,27 +310,27 @@ class UpgradeToProDialog extends ConsumerWidget {
                               ? null
                               : () => ref.read(iapServiceProvider).restorePurchases(),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (iapState.isRestoring) ...[
-                                const SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 1.5,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (iapState.isRestoring) ...[
+                                  const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Text(
+                                  iapState.isRestoring ? l10n.restoringPurchases : l10n.restorePurchases,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? Colors.white54 : Colors.black45,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
                               ],
-                              Text(
-                                iapState.isRestoring ? '正在恢复已购记录...' : '恢复已购记录',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark ? Colors.white54 : Colors.black45,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
                         ),
                         if (kDebugMode) ...[
                           const SizedBox(width: 8),

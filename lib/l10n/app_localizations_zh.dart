@@ -3370,6 +3370,166 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get remotePairCancelledByClient => '对方已取消配对请求';
+
+  @override
+  String get proFeatureAiLyricsTitle => 'AI 歌词与翻译';
+
+  @override
+  String get proFeatureAiLyricsDesc => '大模型歌词智能生成、时间轴对齐与歌词翻译';
+
+  @override
+  String get proFeatureTagCompletionTitle => '歌曲元数据自动补全';
+
+  @override
+  String get proFeatureTagCompletionDesc => '基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息';
+
+  @override
+  String get proFeatureFftVisualizerTitle => '实时音频 FFT 频谱';
+
+  @override
+  String get proFeatureFftVisualizerDesc => '沉浸式音频可视化动效、多样式频谱与全屏氛围模式';
+
+  @override
+  String get proFeatureWaveformBarTitle => '动态音频波形进度条';
+
+  @override
+  String get proFeatureWaveformBarDesc => '实时提取音频振幅波形，高帧率动态交互进度条';
+
+  @override
+  String get proFeatureLanSharingTitle => '局域网歌曲文件分享';
+
+  @override
+  String get proFeatureLanSharingDesc => '基于局域网的跨设备歌曲文件快速分享与传输';
+
+  @override
+  String get proFeatureRemoteControlTitle => '多端远程控制';
+
+  @override
+  String get proFeatureRemoteControlDesc => '手机、平板与电脑端无缝联动与切歌遥控';
+
+  @override
+  String get proFeatureTranscoderTitle => '音频批量转码工具';
+
+  @override
+  String get proFeatureTranscoderDesc => '无损格式快速压缩转换与随身设备批量导出';
+
+  @override
+  String get proCommunityUnlocked => '社区完全版已永久解锁全部高级特性';
+
+  @override
+  String proTrialActive(int days) {
+    return '免费试用期生效中 (剩余 $days 天)';
+  }
+
+  @override
+  String get proTrialExpired => '免费试用期已结束，升级解锁高级体验';
+
+  @override
+  String get proPermanentlyActivated => '已永久激活全部 Pro 功能';
+
+  @override
+  String proStatusTrialTitle(int days) {
+    return '授权状态：$days 天免费试用期中';
+  }
+
+  @override
+  String get proStatusTrialExpiredTitle => '授权状态：试用已结束 (部分功能受限)';
+
+  @override
+  String get proStatusActivatedTitle => '授权状态：已激活 Vynody Pro';
+
+  @override
+  String proSettingsTrialRemaining(int days) {
+    return '剩余 $days 天试用期';
+  }
+
+  @override
+  String get proSettingsUpgradePrompt => '可升级解锁 AI 歌词、FFT 频谱与高级特性';
+
+  @override
+  String get proSettingsLifetimeNotice => '享有全部高级特性与更新支持';
+
+  @override
+  String get proSettingsUpgrade => '升级';
+
+  @override
+  String get proSettingsView => '查看';
+
+  @override
+  String get connectingToStore => '正在连接商店...';
+
+  @override
+  String get buyFullVersionWindowsTrial => '前往微软商店提前购买完整版';
+
+  @override
+  String get buyFullVersionWindows => '前往微软商店购买完整版';
+
+  @override
+  String unlockProLifetimeWithPrice(String price) {
+    return '$price 永久解锁 Pro 全功能';
+  }
+
+  @override
+  String get buyProTrialEarly => '提前购买永久解锁 Pro';
+
+  @override
+  String get upgradeToProNow => '立即升级解锁 Pro 全功能';
+
+  @override
+  String get iUnderstand => '我知道了';
+
+  @override
+  String get restorePurchases => '恢复已购记录';
+
+  @override
+  String get restoringPurchases => '正在恢复已购记录...';
+
+  @override
+  String get sharingProDescription =>
+      '局域网互联为 Vynody Pro 专属高级功能。解锁后可在同一局域网下实现极速歌曲互传、曲库同步与跨设备无线遥控。';
+
+  @override
+  String get sharingHighlightSpeedTitle => '极速局域网互传';
+
+  @override
+  String get sharingHighlightSpeedDesc =>
+      '同 Wi-Fi 局域网内点对点极速传输无损音频与完整歌单，免流量、免压缩。';
+
+  @override
+  String get sharingHighlightSyncTitle => '曲库与歌词同步';
+
+  @override
+  String get sharingHighlightSyncDesc => '跨设备一键推送已下载的歌词文件与歌曲，快速保持多终端音乐库一致。';
+
+  @override
+  String get sharingHighlightRemoteTitle => '跨端无线遥控';
+
+  @override
+  String get sharingHighlightRemoteDesc => '手机、平板与电脑无缝互联，随时随地无线遥控播放、切歌与音量调节。';
+
+  @override
+  String get sharingHighlightSecurityTitle => '端到端 TLS 安全加密';
+
+  @override
+  String get sharingHighlightSecurityDesc =>
+      '局域网通信全链路 TLS 证书加密与设备信任配对，确保个人传输私密与安全。';
+
+  @override
+  String get upgradeToProToUnlock => '升级至 Vynody Pro 解锁';
+
+  @override
+  String get proOneTimePurchaseNotice => '一次性购买，永久解锁当前平台所有 Pro 高级特权';
+
+  @override
+  String get iapPurchaseSuccess => 'Vynody Pro 购买成功！感谢您的支持！';
+
+  @override
+  String get iapRestoreSuccess => '已成功恢复 Vynody Pro 购买权益！';
+
+  @override
+  String iapPurchaseCancelledOrFailed(String message) {
+    return '购买未完成或已取消: $message';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -6738,4 +6898,164 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get remotePairCancelledByClient => '對方已取消配對請求';
+
+  @override
+  String get proFeatureAiLyricsTitle => 'AI 歌詞與翻譯';
+
+  @override
+  String get proFeatureAiLyricsDesc => '大模型歌詞智慧生成、時間軸對齊與歌詞翻譯';
+
+  @override
+  String get proFeatureTagCompletionTitle => '歌曲元數據自動補全';
+
+  @override
+  String get proFeatureTagCompletionDesc => '基於 MusicBrainz 自動補全歌曲標籤與專輯元數據資訊';
+
+  @override
+  String get proFeatureFftVisualizerTitle => '即時音訊 FFT 頻譜';
+
+  @override
+  String get proFeatureFftVisualizerDesc => '沉浸式音訊視覺化動效、多樣式頻譜與全螢幕氛圍模式';
+
+  @override
+  String get proFeatureWaveformBarTitle => '動態音訊波形進度條';
+
+  @override
+  String get proFeatureWaveformBarDesc => '即時擷取音訊振幅波形，高幀率動態互動進度條';
+
+  @override
+  String get proFeatureLanSharingTitle => '區域網路歌曲檔案分享';
+
+  @override
+  String get proFeatureLanSharingDesc => '基於區域網路的跨裝置歌曲檔案快速分享與傳輸';
+
+  @override
+  String get proFeatureRemoteControlTitle => '多端遠端控制';
+
+  @override
+  String get proFeatureRemoteControlDesc => '手機、平板與電腦端無縫聯動與切歌遙控';
+
+  @override
+  String get proFeatureTranscoderTitle => '音訊批次轉碼工具';
+
+  @override
+  String get proFeatureTranscoderDesc => '無損格式快速壓縮轉換與隨身裝置批次匯出';
+
+  @override
+  String get proCommunityUnlocked => '社群完全版已永久解鎖全部高級特性';
+
+  @override
+  String proTrialActive(int days) {
+    return '免費試用期生效中 (剩餘 $days 天)';
+  }
+
+  @override
+  String get proTrialExpired => '免費試用期已結束，升級解鎖高級體驗';
+
+  @override
+  String get proPermanentlyActivated => '已永久啟用全部 Pro 功能';
+
+  @override
+  String proStatusTrialTitle(int days) {
+    return '授權狀態：$days 天免費試用期中';
+  }
+
+  @override
+  String get proStatusTrialExpiredTitle => '授權狀態：試用已結束 (部分功能受限)';
+
+  @override
+  String get proStatusActivatedTitle => '授權狀態：已啟用 Vynody Pro';
+
+  @override
+  String proSettingsTrialRemaining(int days) {
+    return '剩餘 $days 天試用期';
+  }
+
+  @override
+  String get proSettingsUpgradePrompt => '可升級解鎖 AI 歌詞、FFT 頻譜與高級特性';
+
+  @override
+  String get proSettingsLifetimeNotice => '享有全部高級特性與更新支援';
+
+  @override
+  String get proSettingsUpgrade => '升級';
+
+  @override
+  String get proSettingsView => '檢視';
+
+  @override
+  String get connectingToStore => '正在連線商店...';
+
+  @override
+  String get buyFullVersionWindowsTrial => '前往微軟商店提前購買完整版';
+
+  @override
+  String get buyFullVersionWindows => '前往微軟商店購買完整版';
+
+  @override
+  String unlockProLifetimeWithPrice(String price) {
+    return '$price 永久解鎖 Pro 全功能';
+  }
+
+  @override
+  String get buyProTrialEarly => '提前購買永久解鎖 Pro';
+
+  @override
+  String get upgradeToProNow => '立即升級解鎖 Pro 全功能';
+
+  @override
+  String get iUnderstand => '我知道了';
+
+  @override
+  String get restorePurchases => '恢復已購記錄';
+
+  @override
+  String get restoringPurchases => '正在恢復已購記錄...';
+
+  @override
+  String get sharingProDescription =>
+      '區域網路互聯為 Vynody Pro 專屬高級功能。解鎖後可在同一區域網路下實現極速歌曲互傳、曲庫同步與跨裝置無線遙控。';
+
+  @override
+  String get sharingHighlightSpeedTitle => '極速區域網路互傳';
+
+  @override
+  String get sharingHighlightSpeedDesc =>
+      '同 Wi-Fi 區域網路內點對點極速傳輸無損音訊與完整歌單，免流量、免壓縮。';
+
+  @override
+  String get sharingHighlightSyncTitle => '曲庫與歌詞同步';
+
+  @override
+  String get sharingHighlightSyncDesc => '跨裝置一鍵推送已下載的歌詞檔案與歌曲，快速保持多終端音樂庫一致。';
+
+  @override
+  String get sharingHighlightRemoteTitle => '跨端無線遙控';
+
+  @override
+  String get sharingHighlightRemoteDesc => '手機、平板與電腦無縫互聯，隨時隨地無線遙控播放、切歌與音量調節。';
+
+  @override
+  String get sharingHighlightSecurityTitle => '端到端 TLS 安全加密';
+
+  @override
+  String get sharingHighlightSecurityDesc =>
+      '區域網路通訊全鏈路 TLS 憑證加密與裝置信任配對，確保個人傳輸私密與安全。';
+
+  @override
+  String get upgradeToProToUnlock => '升級至 Vynody Pro 解鎖';
+
+  @override
+  String get proOneTimePurchaseNotice => '一次性購買，永久解鎖目前平台所有 Pro 高級特權';
+
+  @override
+  String get iapPurchaseSuccess => 'Vynody Pro 購買成功！感謝您的支持！';
+
+  @override
+  String get iapRestoreSuccess => '已成功恢復 Vynody Pro 購買權益！';
+
+  @override
+  String iapPurchaseCancelledOrFailed(String message) {
+    return '購買未完成或已取消: $message';
+  }
 }

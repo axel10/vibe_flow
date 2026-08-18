@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/pro/app_channel.dart';
 
 /// Features restricted to Pro tier in Store distribution.
@@ -25,7 +26,67 @@ enum ProFeature {
   transcoder,
 
   /// Automatic song metadata & tag completion via MusicBrainz
-  tagCompletion,
+  tagCompletion;
+
+  String getTitle(AppLocalizations l10n) {
+    switch (this) {
+      case ProFeature.fftVisualizer:
+        return l10n.proFeatureFftVisualizerTitle;
+      case ProFeature.waveformBar:
+        return l10n.proFeatureWaveformBarTitle;
+      case ProFeature.aiLyrics:
+      case ProFeature.aiTranslation:
+        return l10n.proFeatureAiLyricsTitle;
+      case ProFeature.lanSharing:
+        return l10n.proFeatureLanSharingTitle;
+      case ProFeature.remoteControl:
+        return l10n.proFeatureRemoteControlTitle;
+      case ProFeature.transcoder:
+        return l10n.proFeatureTranscoderTitle;
+      case ProFeature.tagCompletion:
+        return l10n.proFeatureTagCompletionTitle;
+    }
+  }
+
+  String getDescription(AppLocalizations l10n) {
+    switch (this) {
+      case ProFeature.fftVisualizer:
+        return l10n.proFeatureFftVisualizerDesc;
+      case ProFeature.waveformBar:
+        return l10n.proFeatureWaveformBarDesc;
+      case ProFeature.aiLyrics:
+      case ProFeature.aiTranslation:
+        return l10n.proFeatureAiLyricsDesc;
+      case ProFeature.lanSharing:
+        return l10n.proFeatureLanSharingDesc;
+      case ProFeature.remoteControl:
+        return l10n.proFeatureRemoteControlDesc;
+      case ProFeature.transcoder:
+        return l10n.proFeatureTranscoderDesc;
+      case ProFeature.tagCompletion:
+        return l10n.proFeatureTagCompletionDesc;
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case ProFeature.fftVisualizer:
+        return Icons.graphic_eq;
+      case ProFeature.waveformBar:
+        return Icons.waterfall_chart;
+      case ProFeature.aiLyrics:
+      case ProFeature.aiTranslation:
+        return Icons.auto_awesome;
+      case ProFeature.lanSharing:
+        return Icons.hub;
+      case ProFeature.remoteControl:
+        return Icons.phonelink;
+      case ProFeature.transcoder:
+        return Icons.transform;
+      case ProFeature.tagCompletion:
+        return Icons.auto_fix_high_rounded;
+    }
+  }
 }
 
 /// Metadata describing a Pro feature for dialog display.
@@ -41,6 +102,15 @@ class ProFeatureInfo {
     required this.description,
     required this.icon,
   });
+
+  factory ProFeatureInfo.fromFeature(ProFeature feature, AppLocalizations l10n) {
+    return ProFeatureInfo(
+      feature: feature,
+      title: feature.getTitle(l10n),
+      description: feature.getDescription(l10n),
+      icon: feature.icon,
+    );
+  }
 }
 
 /// License and trial status for the current installation.

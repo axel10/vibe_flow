@@ -2802,10 +2802,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 children: [
                                   Text(
                                     license.isInTrial
-                                        ? '授权状态：${license.trialTotalDays} 天免费试用期中'
+                                        ? l10n.proStatusTrialTitle(license.trialTotalDays)
                                         : (license.isTrialExpired
-                                            ? '授权状态：试用已结束 (部分功能受限)'
-                                            : '授权状态：已激活 Vynody Pro'),
+                                            ? l10n.proStatusTrialExpiredTitle
+                                            : l10n.proStatusActivatedTitle),
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -2814,10 +2814,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   const SizedBox(height: 2),
                                   Text(
                                     license.isInTrial
-                                        ? '剩余 ${license.trialDaysRemaining} 天试用期'
+                                        ? l10n.proSettingsTrialRemaining(license.trialDaysRemaining)
                                         : (license.isTrialExpired
-                                            ? '可升级解锁 AI 歌词、FFT 频谱与高级特性'
-                                            : '享有全部高级特性与更新支持'),
+                                            ? l10n.proSettingsUpgradePrompt
+                                            : l10n.proSettingsLifetimeNotice),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark ? Colors.white60 : Colors.black54,
@@ -2830,7 +2830,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               onPressed: () => showUpgradeToProDialog(context),
                               icon: const Icon(Icons.info_outline, size: 16),
                               label: Text(
-                                license.isTrialExpired ? '升级' : '查看',
+                                license.isTrialExpired ? l10n.proSettingsUpgrade : l10n.proSettingsView,
                                 style: const TextStyle(fontSize: 12),
                               ),
                             ),

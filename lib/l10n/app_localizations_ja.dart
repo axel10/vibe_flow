@@ -3420,4 +3420,169 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get remotePairCancelledByClient => '相手のデバイスによってペアリング要求がキャンセルされました';
+
+  @override
+  String get proFeatureAiLyricsTitle => 'AI歌詞と翻訳';
+
+  @override
+  String get proFeatureAiLyricsDesc => 'AIによる歌詞生成、タイムライン同期、および多言語翻訳';
+
+  @override
+  String get proFeatureTagCompletionTitle => '楽曲メタデータ自動補完';
+
+  @override
+  String get proFeatureTagCompletionDesc =>
+      'MusicBrainzを利用した楽曲タグおよびアルバム情報の自動補完';
+
+  @override
+  String get proFeatureFftVisualizerTitle => 'リアルタイム音声FFTスペクトラム';
+
+  @override
+  String get proFeatureFftVisualizerDesc =>
+      '没入感のあるオーディオ視覚化、多彩なスペクトラムと全画面アンビエントモード';
+
+  @override
+  String get proFeatureWaveformBarTitle => '動的オーディオ波形プログレスバー';
+
+  @override
+  String get proFeatureWaveformBarDesc => '音声波形をリアルタイム抽出し、滑らかな操作が可能なプログレスバー';
+
+  @override
+  String get proFeatureLanSharingTitle => 'LAN音楽ファイル共有';
+
+  @override
+  String get proFeatureLanSharingDesc => 'ローカルネットワーク内でのデバイス間高速楽曲ファイル共有と転送';
+
+  @override
+  String get proFeatureRemoteControlTitle => 'マルチデバイスリモート操作';
+
+  @override
+  String get proFeatureRemoteControlDesc =>
+      'スマホ、タブレット、PC間でシームレスに連携するワイヤレスリモート操作';
+
+  @override
+  String get proFeatureTranscoderTitle => '音声一括変換ツール';
+
+  @override
+  String get proFeatureTranscoderDesc => 'ロスレス形式の高速変換・圧縮とポータブルデバイス向け一括エクスポート';
+
+  @override
+  String get proCommunityUnlocked => 'コミュニティ版：すべてのPro機能が無制限で永久解放されています';
+
+  @override
+  String proTrialActive(int days) {
+    return '無料トライアル適用中（残り $days 日）';
+  }
+
+  @override
+  String get proTrialExpired => '無料トライアル期間が終了しました。Proにアップグレードしてください';
+
+  @override
+  String get proPermanentlyActivated => 'すべてのPro機能が永久アクティベート済みです';
+
+  @override
+  String proStatusTrialTitle(int days) {
+    return 'ライセンス状態：$days日間の無料トライアル中';
+  }
+
+  @override
+  String get proStatusTrialExpiredTitle => 'ライセンス状態：トライアル終了（一部機能制限）';
+
+  @override
+  String get proStatusActivatedTitle => 'ライセンス状態：Vynody Pro有効化済み';
+
+  @override
+  String proSettingsTrialRemaining(int days) {
+    return '残り $days 日間のトライアル';
+  }
+
+  @override
+  String get proSettingsUpgradePrompt => 'アップグレードしてAI歌詞、FFTスペクトラム、Pro機能を解放';
+
+  @override
+  String get proSettingsLifetimeNotice => 'すべてのPro機能と今後のアップデートを利用可能';
+
+  @override
+  String get proSettingsUpgrade => 'アップグレード';
+
+  @override
+  String get proSettingsView => '確認';
+
+  @override
+  String get connectingToStore => 'ストアに接続中...';
+
+  @override
+  String get buyFullVersionWindowsTrial => 'Microsoft Storeで完全版を購入';
+
+  @override
+  String get buyFullVersionWindows => 'Microsoft Storeで完全版を購入';
+
+  @override
+  String unlockProLifetimeWithPrice(String price) {
+    return '$price でPro全機能を永久解放';
+  }
+
+  @override
+  String get buyProTrialEarly => 'Pro永久ライセンスを購入';
+
+  @override
+  String get upgradeToProNow => '今すぐProにアップグレード';
+
+  @override
+  String get iUnderstand => '了解';
+
+  @override
+  String get restorePurchases => '購入履歴を復元';
+
+  @override
+  String get restoringPurchases => '購入履歴を復元中...';
+
+  @override
+  String get sharingProDescription =>
+      'LAN相互接続はVynody Pro限定の高度な機能です。同じローカルネットワーク内で高速な楽曲転送、ライブラリ同期、ワイヤレスリモート操作が可能になります。';
+
+  @override
+  String get sharingHighlightSpeedTitle => '高速LAN転送';
+
+  @override
+  String get sharingHighlightSpeedDesc =>
+      'Wi-Fi LAN内のP2P高速転送。データ通信量ゼロ、無圧縮でロスレス音源とプレイリストを転送。';
+
+  @override
+  String get sharingHighlightSyncTitle => 'ライブラリと歌詞の同期';
+
+  @override
+  String get sharingHighlightSyncDesc =>
+      'ダウンロード済み歌詞や楽曲をワンクリックで転送し、複数端末の音楽ライブラリを同期。';
+
+  @override
+  String get sharingHighlightRemoteTitle => 'クロスプラットフォーム遠隔操作';
+
+  @override
+  String get sharingHighlightRemoteDesc =>
+      'スマホ、タブレット、PCがシームレスに連携。いつでもワイヤレスで再生・選曲・音量調整。';
+
+  @override
+  String get sharingHighlightSecurityTitle => 'エンドツーエンドTLS暗号化';
+
+  @override
+  String get sharingHighlightSecurityDesc =>
+      'LAN通信全体をTLS証明書で暗号化し、デバイス認証を行うことで安全なプライベート転送を確保。';
+
+  @override
+  String get upgradeToProToUnlock => 'Vynody Proにアップグレードして解放';
+
+  @override
+  String get proOneTimePurchaseNotice => '1回の購入で、このプラットフォーム上のすべてのPro機能を永久解放';
+
+  @override
+  String get iapPurchaseSuccess => 'Vynody Proの購入が完了しました！ご支援ありがとうございます！';
+
+  @override
+  String get iapRestoreSuccess => 'Vynody Proの購入履歴を正常に復元しました！';
+
+  @override
+  String iapPurchaseCancelledOrFailed(String message) {
+    return '購入が完了しなかったかキャンセルされました: $message';
+  }
 }

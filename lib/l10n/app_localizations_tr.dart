@@ -3554,4 +3554,189 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get remotePairCancelledByClient =>
       'Eşleştirme isteği hedef cihaz tarafından iptal edildi.';
+
+  @override
+  String get proFeatureAiLyricsTitle => 'Yapay Zeka Şarkı Sözleri ve Çeviri';
+
+  @override
+  String get proFeatureAiLyricsDesc =>
+      'Yapay zeka ile şarkı sözü oluşturma, zaman çizelgesi hizalama ve çeviri';
+
+  @override
+  String get proFeatureTagCompletionTitle =>
+      'Şarkı Meta Verilerini Otomatik Tamamlama';
+
+  @override
+  String get proFeatureTagCompletionDesc =>
+      'MusicBrainz ile şarkı etiketlerini ve albüm meta verilerini otomatik tamamlama';
+
+  @override
+  String get proFeatureFftVisualizerTitle => 'Gerçek Zamanlı FFT Ses Spektrumu';
+
+  @override
+  String get proFeatureFftVisualizerDesc =>
+      'Sürükleyici ses görselleştirme, çoklu spektrum stilleri ve tam ekran ortam modu';
+
+  @override
+  String get proFeatureWaveformBarTitle =>
+      'Dinamik Ses Dalgası İlerleme Çubuğu';
+
+  @override
+  String get proFeatureWaveformBarDesc =>
+      'Gerçek zamanlı dalga formu çıkarma ve akıcı etkileşimli arama';
+
+  @override
+  String get proFeatureLanSharingTitle => 'LAN Müzik Dosyası Paylaşımı';
+
+  @override
+  String get proFeatureLanSharingDesc =>
+      'Yerel ağ üzerinden cihazlar arası ultra hızlı şarkı paylaşımı ve aktarımı';
+
+  @override
+  String get proFeatureRemoteControlTitle => 'Çoklu Cihaz Uzaktan Kontrol';
+
+  @override
+  String get proFeatureRemoteControlDesc =>
+      'Cihazlar arasında kesintisiz bağlantı ve kablosuz oynatma kontrolü';
+
+  @override
+  String get proFeatureTranscoderTitle => 'Toplu Ses Dönüştürücü';
+
+  @override
+  String get proFeatureTranscoderDesc =>
+      'Kayıpsız formatları hızlı dönüştürme ve taşınabilir cihazlar için toplu dışa aktarma';
+
+  @override
+  String get proCommunityUnlocked =>
+      'Topluluk Sürümü: Tüm Pro özelliklerinin kilidi kalıcı olarak açıldı';
+
+  @override
+  String proTrialActive(int days) {
+    return 'Ücretsiz deneme süresi etkin ($days gün kaldı)';
+  }
+
+  @override
+  String get proTrialExpired =>
+      'Ücretsiz deneme süresi doldu. Pro\'ya yükseltin';
+
+  @override
+  String get proPermanentlyActivated =>
+      'Tüm Pro özellikleri kalıcı olarak etkinleştirildi';
+
+  @override
+  String proStatusTrialTitle(int days) {
+    return 'Lisans Durumu: $days günlük ücretsiz deneme etkin';
+  }
+
+  @override
+  String get proStatusTrialExpiredTitle =>
+      'Lisans Durumu: Deneme süresi doldu (Sınırlı özellikler)';
+
+  @override
+  String get proStatusActivatedTitle =>
+      'Lisans Durumu: Vynody Pro etkinleştirildi';
+
+  @override
+  String proSettingsTrialRemaining(int days) {
+    return '$days gün deneme süresi kaldı';
+  }
+
+  @override
+  String get proSettingsUpgradePrompt =>
+      'Yapay zeka sözleri, FFT spektrumu ve Pro özelliklerinin kilidini açın';
+
+  @override
+  String get proSettingsLifetimeNotice =>
+      'Tüm Pro özellikleri ve gelecek güncellemeler dahil';
+
+  @override
+  String get proSettingsUpgrade => 'Yükselt';
+
+  @override
+  String get proSettingsView => 'Görüntüle';
+
+  @override
+  String get connectingToStore => 'Mağazaya bağlanılıyor...';
+
+  @override
+  String get buyFullVersionWindowsTrial =>
+      'Microsoft Store\'dan Tam Sürümü Satın Alın';
+
+  @override
+  String get buyFullVersionWindows =>
+      'Microsoft Store\'dan Tam Sürümü Satın Alın';
+
+  @override
+  String unlockProLifetimeWithPrice(String price) {
+    return '$price Pro Tam Sürüm Kilidini Aç';
+  }
+
+  @override
+  String get buyProTrialEarly => 'Ömür Boyu Pro Lisansı Satın Alın';
+
+  @override
+  String get upgradeToProNow => 'Şimdi Pro\'ya Yükseltin';
+
+  @override
+  String get iUnderstand => 'Anladım';
+
+  @override
+  String get restorePurchases => 'Satın Alımları Geri Yükle';
+
+  @override
+  String get restoringPurchases => 'Satın alımlar geri yükleniyor...';
+
+  @override
+  String get sharingProDescription =>
+      'LAN bağlantısı, Vynody Pro\'ya özel gelişmiş bir özelliktir. Aynı yerel ağda ultra hızlı müzik aktarımı, kütüphane senkronizasyonu ve kablosuz uzaktan kontrolün keyfini çıkarın.';
+
+  @override
+  String get sharingHighlightSpeedTitle => 'Ultra Hızlı LAN Aktarımı';
+
+  @override
+  String get sharingHighlightSpeedDesc =>
+      'Wi-Fi LAN içinde veri tüketimi veya sıkıştırma olmadan doğrudan P2P kayıpsız ses aktarımı.';
+
+  @override
+  String get sharingHighlightSyncTitle =>
+      'Kütüphane ve Şarkı Sözü Senkronizasyonu';
+
+  @override
+  String get sharingHighlightSyncDesc =>
+      'Cihazlarınız arasında müzik kütüphanenizi güncel tutmak için tek tıkla aktarım.';
+
+  @override
+  String get sharingHighlightRemoteTitle => 'Kablosuz Uzaktan Kontrol';
+
+  @override
+  String get sharingHighlightRemoteDesc =>
+      'Telefon, tablet ve bilgisayarlar arasında kesintisiz oynatma, parça değiştirme ve ses kontrolü.';
+
+  @override
+  String get sharingHighlightSecurityTitle =>
+      'Uçtan Uca TLS Güvenlik Şifrelemesi';
+
+  @override
+  String get sharingHighlightSecurityDesc =>
+      'Gizli ve güvenli aktarım için tam TLS sertifika şifrelemesi ve cihaz güven eşleştirmesi.';
+
+  @override
+  String get upgradeToProToUnlock => 'Vynody Pro\'ya Yükseltin';
+
+  @override
+  String get proOneTimePurchaseNotice =>
+      'Tek seferlik satın alma, bu platformdaki tüm Pro özelliklerini ömür boyu açar';
+
+  @override
+  String get iapPurchaseSuccess =>
+      'Vynody Pro başarıyla satın alındı! Desteğiniz için teşekkür ederiz!';
+
+  @override
+  String get iapRestoreSuccess =>
+      'Vynody Pro satın alımları başarıyla geri yüklendi!';
+
+  @override
+  String iapPurchaseCancelledOrFailed(String message) {
+    return 'Satın alma tamamlanamadı veya iptal edildi: $message';
+  }
 }

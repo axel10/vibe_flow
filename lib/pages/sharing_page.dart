@@ -1266,23 +1266,23 @@ class _SharingPageState extends ConsumerState<SharingPage> {
     final featureHighlights = [
       (
         icon: Icons.speed_rounded,
-        title: '极速局域网互传',
-        desc: '同 Wi-Fi 局域网内点对点极速传输无损音频与完整歌单，免流量、免压缩。',
+        title: l10n.sharingHighlightSpeedTitle,
+        desc: l10n.sharingHighlightSpeedDesc,
       ),
       (
         icon: Icons.sync_rounded,
-        title: '曲库与歌词同步',
-        desc: '跨设备一键推送已下载的歌词文件与歌曲，快速保持多终端音乐库一致。',
+        title: l10n.sharingHighlightSyncTitle,
+        desc: l10n.sharingHighlightSyncDesc,
       ),
       (
         icon: Icons.phonelink_rounded,
-        title: '跨端无线遥控',
-        desc: '手机、平板与电脑无缝互联，随时随地无线遥控播放、切歌与音量调节。',
+        title: l10n.sharingHighlightRemoteTitle,
+        desc: l10n.sharingHighlightRemoteDesc,
       ),
       (
         icon: Icons.security_rounded,
-        title: '端到端 TLS 安全加密',
-        desc: '局域网通信全链路 TLS 证书加密与设备信任配对，确保个人传输私密与安全。',
+        title: l10n.sharingHighlightSecurityTitle,
+        desc: l10n.sharingHighlightSecurityDesc,
       ),
     ];
 
@@ -1349,7 +1349,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 540),
                 child: Text(
-                  '局域网互联为 Vynody Pro 专属高级功能。解锁后可在同一局域网下实现极速歌曲互传、曲库同步与跨设备无线遥控。',
+                  l10n.sharingProDescription,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -1402,15 +1402,15 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                   elevation: 2,
                 ),
                 icon: const Icon(Icons.auto_awesome, size: 20),
-                label: const Text(
-                  '升级至 Vynody Pro 解锁',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.upgradeToProToUnlock,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 12),
 
               Text(
-                '一次性购买，永久解锁当前平台所有 Pro 高级特权',
+                l10n.proOneTimePurchaseNotice,
                 style: TextStyle(
                   fontSize: 12,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),

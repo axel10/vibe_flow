@@ -3592,4 +3592,188 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get remotePairCancelledByClient =>
       'La solicitud de vinculación fue cancelada por el dispositivo de destino.';
+
+  @override
+  String get proFeatureAiLyricsTitle => 'Letras IA & Traducción';
+
+  @override
+  String get proFeatureAiLyricsDesc =>
+      'Generación de letras por IA, alineación de tiempo y traducción';
+
+  @override
+  String get proFeatureTagCompletionTitle => 'Autocompletado de metadatos';
+
+  @override
+  String get proFeatureTagCompletionDesc =>
+      'Completado automático de etiquetas y metadatos de álbumes mediante MusicBrainz';
+
+  @override
+  String get proFeatureFftVisualizerTitle =>
+      'Espectro de audio FFT en tiempo real';
+
+  @override
+  String get proFeatureFftVisualizerDesc =>
+      'Visualización inmersiva, espectros variados y modo ambiente a pantalla completa';
+
+  @override
+  String get proFeatureWaveformBarTitle => 'Barra de progreso de forma de onda';
+
+  @override
+  String get proFeatureWaveformBarDesc =>
+      'Extracción de forma de onda en tiempo real con navegación interactiva fluida';
+
+  @override
+  String get proFeatureLanSharingTitle => 'Compartir música por LAN';
+
+  @override
+  String get proFeatureLanSharingDesc =>
+      'Transferencia y uso compartido ultrarrápido de música en la red local';
+
+  @override
+  String get proFeatureRemoteControlTitle => 'Control remoto multidispositivo';
+
+  @override
+  String get proFeatureRemoteControlDesc =>
+      'Conexión fluida y control de reproducción inalámbrico entre dispositivos';
+
+  @override
+  String get proFeatureTranscoderTitle => 'Conversor de audio por lotes';
+
+  @override
+  String get proFeatureTranscoderDesc =>
+      'Conversión rápida de formatos sin pérdida y exportación por lotes para portátiles';
+
+  @override
+  String get proCommunityUnlocked =>
+      'Edición comunitaria: todas las funciones Pro desbloqueadas permanentemente';
+
+  @override
+  String proTrialActive(int days) {
+    return 'Prueba gratuita activa (quedan $days días)';
+  }
+
+  @override
+  String get proTrialExpired =>
+      'Prueba gratuita finalizada. Actualice a Pro para desbloquear';
+
+  @override
+  String get proPermanentlyActivated =>
+      'Todas las funciones Pro activadas permanentemente';
+
+  @override
+  String proStatusTrialTitle(int days) {
+    return 'Estado de licencia: prueba gratuita de $days días activa';
+  }
+
+  @override
+  String get proStatusTrialExpiredTitle =>
+      'Estado de licencia: prueba finalizada (funciones limitadas)';
+
+  @override
+  String get proStatusActivatedTitle =>
+      'Estado de licencia: Vynody Pro activado';
+
+  @override
+  String proSettingsTrialRemaining(int days) {
+    return 'Quedan $days días de prueba';
+  }
+
+  @override
+  String get proSettingsUpgradePrompt =>
+      'Actualice para desbloquear letras IA, espectro FFT y funciones Pro';
+
+  @override
+  String get proSettingsLifetimeNotice =>
+      'Incluye todas las funciones Pro y futuras actualizaciones';
+
+  @override
+  String get proSettingsUpgrade => 'Actualizar';
+
+  @override
+  String get proSettingsView => 'Ver';
+
+  @override
+  String get connectingToStore => 'Conectando con la tienda...';
+
+  @override
+  String get buyFullVersionWindowsTrial =>
+      'Comprar versión completa en Microsoft Store';
+
+  @override
+  String get buyFullVersionWindows =>
+      'Comprar versión completa en Microsoft Store';
+
+  @override
+  String unlockProLifetimeWithPrice(String price) {
+    return '$price Desbloqueo permanente de Pro';
+  }
+
+  @override
+  String get buyProTrialEarly => 'Comprar licencia Pro permanente';
+
+  @override
+  String get upgradeToProNow => 'Actualizar a Pro ahora';
+
+  @override
+  String get iUnderstand => 'Entendido';
+
+  @override
+  String get restorePurchases => 'Restaurar compras';
+
+  @override
+  String get restoringPurchases => 'Restaurando compras...';
+
+  @override
+  String get sharingProDescription =>
+      'La interconexión LAN es una función exclusiva de Vynody Pro. Desbloquéela para disfrutar de transferencia ultrarrápida, sincronización de biblioteca y control remoto inalámbrico en red local.';
+
+  @override
+  String get sharingHighlightSpeedTitle => 'Transferencia LAN ultrarrápida';
+
+  @override
+  String get sharingHighlightSpeedDesc =>
+      'Transferencia directa P2P de música sin pérdida y listas por Wi-Fi sin consumo de datos ni compresión.';
+
+  @override
+  String get sharingHighlightSyncTitle =>
+      'Sincronización de biblioteca y letras';
+
+  @override
+  String get sharingHighlightSyncDesc =>
+      'Envío con un clic de letras y canciones descargadas para mantener sincronizados sus dispositivos.';
+
+  @override
+  String get sharingHighlightRemoteTitle => 'Control remoto inalámbrico';
+
+  @override
+  String get sharingHighlightRemoteDesc =>
+      'Conexión multidispositivo para controlar reproducción, cambiar de pista y ajustar volumen sin cables.';
+
+  @override
+  String get sharingHighlightSecurityTitle =>
+      'Cifrado TLS de extremo a extremo';
+
+  @override
+  String get sharingHighlightSecurityDesc =>
+      'Cifrado completo mediante certificados TLS y emparejamiento seguro de dispositivos.';
+
+  @override
+  String get upgradeToProToUnlock => 'Actualizar a Vynody Pro';
+
+  @override
+  String get proOneTimePurchaseNotice =>
+      'Compra única, desbloquea permanentemente todas las funciones Pro en esta plataforma';
+
+  @override
+  String get iapPurchaseSuccess =>
+      '¡Vynody Pro comprado con éxito! ¡Gracias por su apoyo!';
+
+  @override
+  String get iapRestoreSuccess =>
+      '¡Compras de Vynody Pro restauradas con éxito!';
+
+  @override
+  String iapPurchaseCancelledOrFailed(String message) {
+    return 'Compra no completada o cancelada: $message';
+  }
 }

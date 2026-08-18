@@ -8,6 +8,7 @@ import 'package:oktoast/oktoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vynody/player/pro/app_channel.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/utils/localized_text.dart';
 
 /// Product ID configured in App Store Connect.
 const String kProLifetimeProductId = 'com.vynody.pro_lifetime';
@@ -247,8 +248,8 @@ class IapService extends ChangeNotifier {
             // Unlock Pro license
             await _ref.read(proLicenseServiceProvider).setPurchased(true);
             showToast(purchaseDetails.status == PurchaseStatus.restored
-                ? '已成功恢复 Vynody Pro 购买记录！'
-                : '恭喜！已成功解锁 Vynody Pro 永久会员！');
+                ? currentAppL10n.iapRestoreSuccess
+                : currentAppL10n.iapPurchaseSuccess);
           }
 
           if (purchaseDetails.pendingCompletePurchase) {
@@ -273,7 +274,7 @@ class IapService extends ChangeNotifier {
             errorMessage: purchaseDetails.error?.message,
           ));
           if (purchaseDetails.error?.message != null) {
-            showToast('购买未完成: ${purchaseDetails.error?.message}');
+            showToast(currentAppL10n.iapPurchaseCancelledOrFailed(purchaseDetails.error!.message));
           }
           break;
 

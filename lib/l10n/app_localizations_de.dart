@@ -3584,4 +3584,186 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get remotePairCancelledByClient =>
       'Die Kopplungsanfrage wurde vom Zielgerät abgebrochen.';
+
+  @override
+  String get proFeatureAiLyricsTitle => 'KI-Songtexte & Übersetzung';
+
+  @override
+  String get proFeatureAiLyricsDesc =>
+      'KI-Songtextgenerierung, Zeitachsen-Synchronisation und Übersetzung';
+
+  @override
+  String get proFeatureTagCompletionTitle => 'Metadaten-Autovervollständigung';
+
+  @override
+  String get proFeatureTagCompletionDesc =>
+      'Automatische Vervollständigung von Tags und Album-Metadaten über MusicBrainz';
+
+  @override
+  String get proFeatureFftVisualizerTitle => 'Echtzeit-FFT-Audiospektrum';
+
+  @override
+  String get proFeatureFftVisualizerDesc =>
+      'Immersive Audiovisualisierung, vielseitige Spektren und Vollbild-Ambient-Modus';
+
+  @override
+  String get proFeatureWaveformBarTitle =>
+      'Dynamische Wellenform-Fortschrittsleiste';
+
+  @override
+  String get proFeatureWaveformBarDesc =>
+      'Echtzeit-Wellenformextraktion mit flüssiger interaktiver Suche';
+
+  @override
+  String get proFeatureLanSharingTitle => 'LAN-Musikfreigabe';
+
+  @override
+  String get proFeatureLanSharingDesc =>
+      'Schnelle Dateifreigabe und Übertragung im lokalen Netzwerk';
+
+  @override
+  String get proFeatureRemoteControlTitle =>
+      'Geräteübergreifende Fernsteuerung';
+
+  @override
+  String get proFeatureRemoteControlDesc =>
+      'Nahtlose Verbindung und kabellose Wiedergabesteuerung zwischen Geräten';
+
+  @override
+  String get proFeatureTranscoderTitle => 'Stapel-Audiokonverter';
+
+  @override
+  String get proFeatureTranscoderDesc =>
+      'Schnelle verlustfreie Formatkonvertierung und Export für tragbare Geräte';
+
+  @override
+  String get proCommunityUnlocked =>
+      'Community-Edition: Alle Pro-Funktionen dauerhaft freigeschaltet';
+
+  @override
+  String proTrialActive(int days) {
+    return 'Kostenlose Testphase aktiv (noch $days Tage)';
+  }
+
+  @override
+  String get proTrialExpired =>
+      'Testphase abgelaufen. Upgrade auf Pro für alle Funktionen';
+
+  @override
+  String get proPermanentlyActivated =>
+      'Alle Pro-Funktionen dauerhaft aktiviert';
+
+  @override
+  String proStatusTrialTitle(int days) {
+    return 'Lizenzstatus: $days Tage kostenlose Testphase aktiv';
+  }
+
+  @override
+  String get proStatusTrialExpiredTitle =>
+      'Lizenzstatus: Testphase abgelaufen (Funktionen eingeschränkt)';
+
+  @override
+  String get proStatusActivatedTitle => 'Lizenzstatus: Vynody Pro aktiviert';
+
+  @override
+  String proSettingsTrialRemaining(int days) {
+    return 'Noch $days Tage Testphase';
+  }
+
+  @override
+  String get proSettingsUpgradePrompt =>
+      'Upgrade für KI-Texte, FFT-Spektrum und Pro-Funktionen';
+
+  @override
+  String get proSettingsLifetimeNotice =>
+      'Alle Pro-Funktionen und zukünftige Updates inklusive';
+
+  @override
+  String get proSettingsUpgrade => 'Upgrade';
+
+  @override
+  String get proSettingsView => 'Ansehen';
+
+  @override
+  String get connectingToStore => 'Verbindung zum Store wird hergestellt...';
+
+  @override
+  String get buyFullVersionWindowsTrial =>
+      'Vollversion im Microsoft Store kaufen';
+
+  @override
+  String get buyFullVersionWindows => 'Vollversion im Microsoft Store kaufen';
+
+  @override
+  String unlockProLifetimeWithPrice(String price) {
+    return '$price Dauerhafte Pro-Freischaltung';
+  }
+
+  @override
+  String get buyProTrialEarly => 'Dauerhafte Pro-Lizenz kaufen';
+
+  @override
+  String get upgradeToProNow => 'Jetzt auf Pro upgraden';
+
+  @override
+  String get iUnderstand => 'Verstanden';
+
+  @override
+  String get restorePurchases => 'Käufe wiederherstellen';
+
+  @override
+  String get restoringPurchases => 'Käufe werden wiederhergestellt...';
+
+  @override
+  String get sharingProDescription =>
+      'Die LAN-Verbindung ist eine exklusive Vynody Pro-Funktion. Schalten Sie sie frei, um blitzschnelle Dateiübertragung, Mediathek-Synchronisation und drahtlose Fernsteuerung im lokalen Netzwerk zu nutzen.';
+
+  @override
+  String get sharingHighlightSpeedTitle => 'Schnelle LAN-Übertragung';
+
+  @override
+  String get sharingHighlightSpeedDesc =>
+      'Direkte verlustfreie Übertragung im WLAN ohne Datenverbrauch oder Komprimierung.';
+
+  @override
+  String get sharingHighlightSyncTitle => 'Mediathek- & Text-Synchronisation';
+
+  @override
+  String get sharingHighlightSyncDesc =>
+      'Ein-Klick-Übertragung heruntergeladener Texte und Lieder zur geräteübergreifenden Synchronisation.';
+
+  @override
+  String get sharingHighlightRemoteTitle => 'Kabellose Fernsteuerung';
+
+  @override
+  String get sharingHighlightRemoteDesc =>
+      'Nahtlose Steuerung von Wiedergabe, Titeln und Lautstärke über Smartphones, Tablets und PCs.';
+
+  @override
+  String get sharingHighlightSecurityTitle =>
+      'Ende-zu-Ende TLS-Verschlüsselung';
+
+  @override
+  String get sharingHighlightSecurityDesc =>
+      'Vollständige TLS-Zertifikatsverschlüsselung und Geräte-Pairing für sichere Übertragungen.';
+
+  @override
+  String get upgradeToProToUnlock => 'Auf Vynody Pro upgraden';
+
+  @override
+  String get proOneTimePurchaseNotice =>
+      'Einmaliger Kauf, schaltet alle Pro-Funktionen auf dieser Plattform dauerhaft frei';
+
+  @override
+  String get iapPurchaseSuccess =>
+      'Vynody Pro erfolgreich gekauft! Vielen Dank für Ihre Unterstützung!';
+
+  @override
+  String get iapRestoreSuccess =>
+      'Vynody Pro-Käufe erfolgreich wiederhergestellt!';
+
+  @override
+  String iapPurchaseCancelledOrFailed(String message) {
+    return 'Kauf nicht abgeschlossen oder abgebrochen: $message';
+  }
 }

@@ -1998,5 +1998,226 @@
     "description": "Filter label for audio files in file selector"
   },
   "audioFiles": "音频文件",
-  "remotePairCancelledByClient": "对方已取消配对请求"
+  "remotePairCancelledByClient": "对方已取消配对请求",
+  "@proFeatureAiLyricsTitle": {
+    "description": "Pro feature title for AI lyrics and translation"
+  },
+  "proFeatureAiLyricsTitle": "AI 歌词与翻译",
+  "@proFeatureAiLyricsDesc": {
+    "description": "Pro feature description for AI lyrics and translation"
+  },
+  "proFeatureAiLyricsDesc": "大模型歌词智能生成、时间轴对齐与歌词翻译",
+  "@proFeatureTagCompletionTitle": {
+    "description": "Pro feature title for metadata auto-completion"
+  },
+  "proFeatureTagCompletionTitle": "歌曲元数据自动补全",
+  "@proFeatureTagCompletionDesc": {
+    "description": "Pro feature description for metadata auto-completion"
+  },
+  "proFeatureTagCompletionDesc": "基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息",
+  "@proFeatureFftVisualizerTitle": {
+    "description": "Pro feature title for FFT audio visualizer"
+  },
+  "proFeatureFftVisualizerTitle": "实时音频 FFT 频谱",
+  "@proFeatureFftVisualizerDesc": {
+    "description": "Pro feature description for FFT audio visualizer"
+  },
+  "proFeatureFftVisualizerDesc": "沉浸式音频可视化动效、多样式频谱与全屏氛围模式",
+  "@proFeatureWaveformBarTitle": {
+    "description": "Pro feature title for dynamic waveform progress bar"
+  },
+  "proFeatureWaveformBarTitle": "动态音频波形进度条",
+  "@proFeatureWaveformBarDesc": {
+    "description": "Pro feature description for dynamic waveform progress bar"
+  },
+  "proFeatureWaveformBarDesc": "实时提取音频振幅波形，高帧率动态交互进度条",
+  "@proFeatureLanSharingTitle": {
+    "description": "Pro feature title for LAN music file sharing"
+  },
+  "proFeatureLanSharingTitle": "局域网歌曲文件分享",
+  "@proFeatureLanSharingDesc": {
+    "description": "Pro feature description for LAN music file sharing"
+  },
+  "proFeatureLanSharingDesc": "基于局域网的跨设备歌曲文件快速分享与传输",
+  "@proFeatureRemoteControlTitle": {
+    "description": "Pro feature title for multi-device remote control"
+  },
+  "proFeatureRemoteControlTitle": "多端远程控制",
+  "@proFeatureRemoteControlDesc": {
+    "description": "Pro feature description for multi-device remote control"
+  },
+  "proFeatureRemoteControlDesc": "手机、平板与电脑端无缝联动与切歌遥控",
+  "@proFeatureTranscoderTitle": {
+    "description": "Pro feature title for audio batch transcoder"
+  },
+  "proFeatureTranscoderTitle": "音频批量转码工具",
+  "@proFeatureTranscoderDesc": {
+    "description": "Pro feature description for audio batch transcoder"
+  },
+  "proFeatureTranscoderDesc": "无损格式快速压缩转换与随身设备批量导出",
+  "@proCommunityUnlocked": {
+    "description": "Status text for unlimited community release"
+  },
+  "proCommunityUnlocked": "社区完全版已永久解锁全部高级特性",
+  "@proTrialActive": {
+    "description": "Status text when free trial is active",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "proTrialActive": "免费试用期生效中 (剩余 {days} 天)",
+  "@proTrialExpired": {
+    "description": "Status text when free trial has expired"
+  },
+  "proTrialExpired": "免费试用期已结束，升级解锁高级体验",
+  "@proPermanentlyActivated": {
+    "description": "Status text when Pro is permanently unlocked"
+  },
+  "proPermanentlyActivated": "已永久激活全部 Pro 功能",
+  "@proStatusTrialTitle": {
+    "description": "Settings page license status banner title during trial",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "proStatusTrialTitle": "授权状态：{days} 天免费试用期中",
+  "@proStatusTrialExpiredTitle": {
+    "description": "Settings page license status banner title when trial expired"
+  },
+  "proStatusTrialExpiredTitle": "授权状态：试用已结束 (部分功能受限)",
+  "@proStatusActivatedTitle": {
+    "description": "Settings page license status banner title when Pro is active"
+  },
+  "proStatusActivatedTitle": "授权状态：已激活 Vynody Pro",
+  "@proSettingsTrialRemaining": {
+    "description": "Settings page Pro trial remaining days text",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "proSettingsTrialRemaining": "剩余 {days} 天试用期",
+  "@proSettingsUpgradePrompt": {
+    "description": "Settings page Pro expired prompt"
+  },
+  "proSettingsUpgradePrompt": "可升级解锁 AI 歌词、FFT 频谱与高级特性",
+  "@proSettingsLifetimeNotice": {
+    "description": "Settings page Pro purchased notice"
+  },
+  "proSettingsLifetimeNotice": "享有全部高级特性与更新支持",
+  "@proSettingsUpgrade": {
+    "description": "Settings page upgrade button label"
+  },
+  "proSettingsUpgrade": "升级",
+  "@proSettingsView": {
+    "description": "Settings page view Pro button label"
+  },
+  "proSettingsView": "查看",
+  "@connectingToStore": {
+    "description": "Button text when connecting to store"
+  },
+  "connectingToStore": "正在连接商店...",
+  "@buyFullVersionWindowsTrial": {
+    "description": "Windows Store purchase button label during trial"
+  },
+  "buyFullVersionWindowsTrial": "前往微软商店提前购买完整版",
+  "@buyFullVersionWindows": {
+    "description": "Windows Store purchase button label when trial expired"
+  },
+  "buyFullVersionWindows": "前往微软商店购买完整版",
+  "@unlockProLifetimeWithPrice": {
+    "description": "Purchase button label with price",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "unlockProLifetimeWithPrice": "{price} 永久解锁 Pro 全功能",
+  "@buyProTrialEarly": {
+    "description": "Purchase button label during active trial without price"
+  },
+  "buyProTrialEarly": "提前购买永久解锁 Pro",
+  "@upgradeToProNow": {
+    "description": "Purchase button label when trial expired without price"
+  },
+  "upgradeToProNow": "立即升级解锁 Pro 全功能",
+  "@iUnderstand": {
+    "description": "Close button when Pro is already unlocked"
+  },
+  "iUnderstand": "我知道了",
+  "@restorePurchases": {
+    "description": "Restore purchases button label"
+  },
+  "restorePurchases": "恢复已购记录",
+  "@restoringPurchases": {
+    "description": "Restore purchases button loading state"
+  },
+  "restoringPurchases": "正在恢复已购记录...",
+  "@sharingProDescription": {
+    "description": "Description on the locked LAN sharing page"
+  },
+  "sharingProDescription": "局域网互联为 Vynody Pro 专属高级功能。解锁后可在同一局域网下实现极速歌曲互传、曲库同步与跨设备无线遥控。",
+  "@sharingHighlightSpeedTitle": {
+    "description": "Feature highlight title for fast LAN transfer"
+  },
+  "sharingHighlightSpeedTitle": "极速局域网互传",
+  "@sharingHighlightSpeedDesc": {
+    "description": "Feature highlight description for fast LAN transfer"
+  },
+  "sharingHighlightSpeedDesc": "同 Wi-Fi 局域网内点对点极速传输无损音频与完整歌单，免流量、免压缩。",
+  "@sharingHighlightSyncTitle": {
+    "description": "Feature highlight title for library sync"
+  },
+  "sharingHighlightSyncTitle": "曲库与歌词同步",
+  "@sharingHighlightSyncDesc": {
+    "description": "Feature highlight description for library sync"
+  },
+  "sharingHighlightSyncDesc": "跨设备一键推送已下载的歌词文件与歌曲，快速保持多终端音乐库一致。",
+  "@sharingHighlightRemoteTitle": {
+    "description": "Feature highlight title for remote control"
+  },
+  "sharingHighlightRemoteTitle": "跨端无线遥控",
+  "@sharingHighlightRemoteDesc": {
+    "description": "Feature highlight description for remote control"
+  },
+  "sharingHighlightRemoteDesc": "手机、平板与电脑无缝互联，随时随地无线遥控播放、切歌与音量调节。",
+  "@sharingHighlightSecurityTitle": {
+    "description": "Feature highlight title for TLS security"
+  },
+  "sharingHighlightSecurityTitle": "端到端 TLS 安全加密",
+  "@sharingHighlightSecurityDesc": {
+    "description": "Feature highlight description for TLS security"
+  },
+  "sharingHighlightSecurityDesc": "局域网通信全链路 TLS 证书加密与设备信任配对，确保个人传输私密与安全。",
+  "@upgradeToProToUnlock": {
+    "description": "CTA button label to upgrade to Pro on sharing page"
+  },
+  "upgradeToProToUnlock": "升级至 Vynody Pro 解锁",
+  "@proOneTimePurchaseNotice": {
+    "description": "One-time purchase disclaimer on sharing page"
+  },
+  "proOneTimePurchaseNotice": "一次性购买，永久解锁当前平台所有 Pro 高级特权",
+  "@iapPurchaseSuccess": {
+    "description": "Toast when Pro purchase succeeds"
+  },
+  "iapPurchaseSuccess": "Vynody Pro 购买成功！感谢您的支持！",
+  "@iapRestoreSuccess": {
+    "description": "Toast when Pro purchases are restored"
+  },
+  "iapRestoreSuccess": "已成功恢复 Vynody Pro 购买权益！",
+  "@iapPurchaseCancelledOrFailed": {
+    "description": "Toast when purchase is cancelled or failed",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "iapPurchaseCancelledOrFailed": "购买未完成或已取消: {message}"
 }

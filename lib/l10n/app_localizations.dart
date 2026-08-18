@@ -6350,6 +6350,300 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'对方已取消配对请求'**
   String get remotePairCancelledByClient;
+
+  /// Pro feature title for AI lyrics and translation
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 歌词与翻译'**
+  String get proFeatureAiLyricsTitle;
+
+  /// Pro feature description for AI lyrics and translation
+  ///
+  /// In zh, this message translates to:
+  /// **'大模型歌词智能生成、时间轴对齐与歌词翻译'**
+  String get proFeatureAiLyricsDesc;
+
+  /// Pro feature title for metadata auto-completion
+  ///
+  /// In zh, this message translates to:
+  /// **'歌曲元数据自动补全'**
+  String get proFeatureTagCompletionTitle;
+
+  /// Pro feature description for metadata auto-completion
+  ///
+  /// In zh, this message translates to:
+  /// **'基于 MusicBrainz 自动补全歌曲标签与专辑元数据信息'**
+  String get proFeatureTagCompletionDesc;
+
+  /// Pro feature title for FFT audio visualizer
+  ///
+  /// In zh, this message translates to:
+  /// **'实时音频 FFT 频谱'**
+  String get proFeatureFftVisualizerTitle;
+
+  /// Pro feature description for FFT audio visualizer
+  ///
+  /// In zh, this message translates to:
+  /// **'沉浸式音频可视化动效、多样式频谱与全屏氛围模式'**
+  String get proFeatureFftVisualizerDesc;
+
+  /// Pro feature title for dynamic waveform progress bar
+  ///
+  /// In zh, this message translates to:
+  /// **'动态音频波形进度条'**
+  String get proFeatureWaveformBarTitle;
+
+  /// Pro feature description for dynamic waveform progress bar
+  ///
+  /// In zh, this message translates to:
+  /// **'实时提取音频振幅波形，高帧率动态交互进度条'**
+  String get proFeatureWaveformBarDesc;
+
+  /// Pro feature title for LAN music file sharing
+  ///
+  /// In zh, this message translates to:
+  /// **'局域网歌曲文件分享'**
+  String get proFeatureLanSharingTitle;
+
+  /// Pro feature description for LAN music file sharing
+  ///
+  /// In zh, this message translates to:
+  /// **'基于局域网的跨设备歌曲文件快速分享与传输'**
+  String get proFeatureLanSharingDesc;
+
+  /// Pro feature title for multi-device remote control
+  ///
+  /// In zh, this message translates to:
+  /// **'多端远程控制'**
+  String get proFeatureRemoteControlTitle;
+
+  /// Pro feature description for multi-device remote control
+  ///
+  /// In zh, this message translates to:
+  /// **'手机、平板与电脑端无缝联动与切歌遥控'**
+  String get proFeatureRemoteControlDesc;
+
+  /// Pro feature title for audio batch transcoder
+  ///
+  /// In zh, this message translates to:
+  /// **'音频批量转码工具'**
+  String get proFeatureTranscoderTitle;
+
+  /// Pro feature description for audio batch transcoder
+  ///
+  /// In zh, this message translates to:
+  /// **'无损格式快速压缩转换与随身设备批量导出'**
+  String get proFeatureTranscoderDesc;
+
+  /// Status text for unlimited community release
+  ///
+  /// In zh, this message translates to:
+  /// **'社区完全版已永久解锁全部高级特性'**
+  String get proCommunityUnlocked;
+
+  /// Status text when free trial is active
+  ///
+  /// In zh, this message translates to:
+  /// **'免费试用期生效中 (剩余 {days} 天)'**
+  String proTrialActive(int days);
+
+  /// Status text when free trial has expired
+  ///
+  /// In zh, this message translates to:
+  /// **'免费试用期已结束，升级解锁高级体验'**
+  String get proTrialExpired;
+
+  /// Status text when Pro is permanently unlocked
+  ///
+  /// In zh, this message translates to:
+  /// **'已永久激活全部 Pro 功能'**
+  String get proPermanentlyActivated;
+
+  /// Settings page license status banner title during trial
+  ///
+  /// In zh, this message translates to:
+  /// **'授权状态：{days} 天免费试用期中'**
+  String proStatusTrialTitle(int days);
+
+  /// Settings page license status banner title when trial expired
+  ///
+  /// In zh, this message translates to:
+  /// **'授权状态：试用已结束 (部分功能受限)'**
+  String get proStatusTrialExpiredTitle;
+
+  /// Settings page license status banner title when Pro is active
+  ///
+  /// In zh, this message translates to:
+  /// **'授权状态：已激活 Vynody Pro'**
+  String get proStatusActivatedTitle;
+
+  /// Settings page Pro trial remaining days text
+  ///
+  /// In zh, this message translates to:
+  /// **'剩余 {days} 天试用期'**
+  String proSettingsTrialRemaining(int days);
+
+  /// Settings page Pro expired prompt
+  ///
+  /// In zh, this message translates to:
+  /// **'可升级解锁 AI 歌词、FFT 频谱与高级特性'**
+  String get proSettingsUpgradePrompt;
+
+  /// Settings page Pro purchased notice
+  ///
+  /// In zh, this message translates to:
+  /// **'享有全部高级特性与更新支持'**
+  String get proSettingsLifetimeNotice;
+
+  /// Settings page upgrade button label
+  ///
+  /// In zh, this message translates to:
+  /// **'升级'**
+  String get proSettingsUpgrade;
+
+  /// Settings page view Pro button label
+  ///
+  /// In zh, this message translates to:
+  /// **'查看'**
+  String get proSettingsView;
+
+  /// Button text when connecting to store
+  ///
+  /// In zh, this message translates to:
+  /// **'正在连接商店...'**
+  String get connectingToStore;
+
+  /// Windows Store purchase button label during trial
+  ///
+  /// In zh, this message translates to:
+  /// **'前往微软商店提前购买完整版'**
+  String get buyFullVersionWindowsTrial;
+
+  /// Windows Store purchase button label when trial expired
+  ///
+  /// In zh, this message translates to:
+  /// **'前往微软商店购买完整版'**
+  String get buyFullVersionWindows;
+
+  /// Purchase button label with price
+  ///
+  /// In zh, this message translates to:
+  /// **'{price} 永久解锁 Pro 全功能'**
+  String unlockProLifetimeWithPrice(String price);
+
+  /// Purchase button label during active trial without price
+  ///
+  /// In zh, this message translates to:
+  /// **'提前购买永久解锁 Pro'**
+  String get buyProTrialEarly;
+
+  /// Purchase button label when trial expired without price
+  ///
+  /// In zh, this message translates to:
+  /// **'立即升级解锁 Pro 全功能'**
+  String get upgradeToProNow;
+
+  /// Close button when Pro is already unlocked
+  ///
+  /// In zh, this message translates to:
+  /// **'我知道了'**
+  String get iUnderstand;
+
+  /// Restore purchases button label
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复已购记录'**
+  String get restorePurchases;
+
+  /// Restore purchases button loading state
+  ///
+  /// In zh, this message translates to:
+  /// **'正在恢复已购记录...'**
+  String get restoringPurchases;
+
+  /// Description on the locked LAN sharing page
+  ///
+  /// In zh, this message translates to:
+  /// **'局域网互联为 Vynody Pro 专属高级功能。解锁后可在同一局域网下实现极速歌曲互传、曲库同步与跨设备无线遥控。'**
+  String get sharingProDescription;
+
+  /// Feature highlight title for fast LAN transfer
+  ///
+  /// In zh, this message translates to:
+  /// **'极速局域网互传'**
+  String get sharingHighlightSpeedTitle;
+
+  /// Feature highlight description for fast LAN transfer
+  ///
+  /// In zh, this message translates to:
+  /// **'同 Wi-Fi 局域网内点对点极速传输无损音频与完整歌单，免流量、免压缩。'**
+  String get sharingHighlightSpeedDesc;
+
+  /// Feature highlight title for library sync
+  ///
+  /// In zh, this message translates to:
+  /// **'曲库与歌词同步'**
+  String get sharingHighlightSyncTitle;
+
+  /// Feature highlight description for library sync
+  ///
+  /// In zh, this message translates to:
+  /// **'跨设备一键推送已下载的歌词文件与歌曲，快速保持多终端音乐库一致。'**
+  String get sharingHighlightSyncDesc;
+
+  /// Feature highlight title for remote control
+  ///
+  /// In zh, this message translates to:
+  /// **'跨端无线遥控'**
+  String get sharingHighlightRemoteTitle;
+
+  /// Feature highlight description for remote control
+  ///
+  /// In zh, this message translates to:
+  /// **'手机、平板与电脑无缝互联，随时随地无线遥控播放、切歌与音量调节。'**
+  String get sharingHighlightRemoteDesc;
+
+  /// Feature highlight title for TLS security
+  ///
+  /// In zh, this message translates to:
+  /// **'端到端 TLS 安全加密'**
+  String get sharingHighlightSecurityTitle;
+
+  /// Feature highlight description for TLS security
+  ///
+  /// In zh, this message translates to:
+  /// **'局域网通信全链路 TLS 证书加密与设备信任配对，确保个人传输私密与安全。'**
+  String get sharingHighlightSecurityDesc;
+
+  /// CTA button label to upgrade to Pro on sharing page
+  ///
+  /// In zh, this message translates to:
+  /// **'升级至 Vynody Pro 解锁'**
+  String get upgradeToProToUnlock;
+
+  /// One-time purchase disclaimer on sharing page
+  ///
+  /// In zh, this message translates to:
+  /// **'一次性购买，永久解锁当前平台所有 Pro 高级特权'**
+  String get proOneTimePurchaseNotice;
+
+  /// Toast when Pro purchase succeeds
+  ///
+  /// In zh, this message translates to:
+  /// **'Vynody Pro 购买成功！感谢您的支持！'**
+  String get iapPurchaseSuccess;
+
+  /// Toast when Pro purchases are restored
+  ///
+  /// In zh, this message translates to:
+  /// **'已成功恢复 Vynody Pro 购买权益！'**
+  String get iapRestoreSuccess;
+
+  /// Toast when purchase is cancelled or failed
+  ///
+  /// In zh, this message translates to:
+  /// **'购买未完成或已取消: {message}'**
+  String iapPurchaseCancelledOrFailed(String message);
 }
 
 class _AppLocalizationsDelegate
