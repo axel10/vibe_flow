@@ -254,62 +254,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final bool isAppleStore =
         Platform.isIOS || (Platform.isMacOS && AppChannel.isStoreRelease);
     if (isAppleStore) {
-      final l10n = AppLocalizations.of(context)!;
       final storeUri = Uri.parse('https://apps.apple.com/app/id$_appStoreId');
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: Text(l10n.checkForUpdates),
-            content: Text(l10n.appStoreUpdateNotice),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  Navigator.of(dialogContext).pop();
-                  if (await canLaunchUrl(storeUri)) {
-                    await launchUrl(storeUri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                child: Text(l10n.openAppStore),
-              ),
-            ],
-          );
-        },
-      );
+      try {
+        if (await canLaunchUrl(storeUri)) {
+          await launchUrl(storeUri, mode: LaunchMode.externalApplication);
+        }
+      } catch (e) {
+        debugPrint('Failed to open App Store: $e');
+      }
       return;
     }
 
     if (Platform.isWindows && AppChannel.isStoreRelease) {
-      final l10n = AppLocalizations.of(context)!;
-      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=${ProConfig.msStoreProductId}');
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: Text(l10n.checkForUpdates),
-            content: Text(l10n.storeUpdateNotice),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  Navigator.of(dialogContext).pop();
-                  if (await canLaunchUrl(storeUri)) {
-                    await launchUrl(storeUri, mode: LaunchMode.externalApplication);
-                  }
-                },
-                child: Text(l10n.openMicrosoftStore),
-              ),
-            ],
-          );
-        },
+      final storeUri = Uri.parse(
+        'ms-windows-store://pdp/?productid=${ProConfig.msStoreProductId}',
       );
+      try {
+        if (await canLaunchUrl(storeUri)) {
+          await launchUrl(storeUri, mode: LaunchMode.externalApplication);
+        } else {
+          final webUri = Uri.parse(
+            'https://apps.microsoft.com/detail/${ProConfig.msStoreProductId}',
+          );
+          if (await canLaunchUrl(webUri)) {
+            await launchUrl(webUri, mode: LaunchMode.externalApplication);
+          }
+        }
+      } catch (e) {
+        debugPrint('Failed to open Microsoft Store: $e');
+      }
       return;
     }
 
