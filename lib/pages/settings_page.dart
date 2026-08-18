@@ -2878,16 +2878,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       : const Icon(Icons.system_update_alt_rounded),
                   label: Text(l10n.checkForUpdates),
                 ),
-                const SizedBox(height: 12),
-                FilledButton.tonalIcon(
+                const SizedBox(height: 8),
+                TextButton.icon(
                   onPressed: _isExportingLogs ? null : _exportLogs,
                   icon: _isExportingLogs
                       ? const SizedBox(
-                          width: 16,
-                          height: 16,
+                          width: 14,
+                          height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.description_rounded),
+                      : const Icon(Icons.description_outlined, size: 18),
                   label: Text(l10n.exportLogs),
                 ),
               ],
