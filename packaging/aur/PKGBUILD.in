@@ -27,7 +27,7 @@ optdepends=(
 options=('!strip')
 provides=("${_pkgname}=${pkgver}")
 conflicts=("${_pkgname}")
-source_x86_64=("${pkgname}-${pkgver}.deb::${url}/releases/download/@TAG_NAME@/@APP_SLUG@-linux-${pkgver}-amd64.deb")
+source_x86_64=("${pkgname}-${pkgver}.deb::${url}/releases/download/${pkgver}/${_pkgname}-linux-${pkgver}-amd64.deb")
 sha256sums_x86_64=('@DEB_SHA256@')
 
 package() {
