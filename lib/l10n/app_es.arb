@@ -1467,6 +1467,8 @@
   "sharingHighlightSecurityDesc": "Cifrado completo mediante certificados TLS y emparejamiento seguro de dispositivos.",
   "upgradeToProToUnlock": "Actualizar a Vynody Pro",
   "proOneTimePurchaseNotice": "Compra única, desbloquea permanentemente todas las funciones Pro en esta plataforma",
+  "proOneTimePurchaseNoticeApple": "Compra única, desbloquea permanentemente todas las funciones Pro en plataformas Apple (iPhone / iPad / Mac)",
+  "proUniversalPurchaseNoticeApple": "Una sola compra, compatible con iPhone, iPad y Mac",
   "iapPurchaseSuccess": "¡Vynody Pro comprado con éxito! ¡Gracias por su apoyo!",
   "iapRestoreSuccess": "¡Compras de Vynody Pro restauradas con éxito!",
   "iapPurchaseCancelledOrFailed": "Compra no completada o cancelada: {message}"

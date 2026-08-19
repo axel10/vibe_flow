@@ -1467,6 +1467,8 @@
   "sharingHighlightSecurityDesc": "Vollständige TLS-Zertifikatsverschlüsselung und Geräte-Pairing für sichere Übertragungen.",
   "upgradeToProToUnlock": "Auf Vynody Pro upgraden",
   "proOneTimePurchaseNotice": "Einmaliger Kauf, schaltet alle Pro-Funktionen auf dieser Plattform dauerhaft frei",
+  "proOneTimePurchaseNoticeApple": "Einmaliger Kauf, schaltet alle Pro-Funktionen auf Apple-Plattformen (iPhone / iPad / Mac) dauerhaft frei",
+  "proUniversalPurchaseNoticeApple": "Einmaliger Kauf, nutzbar auf iPhone, iPad und Mac",
   "iapPurchaseSuccess": "Vynody Pro erfolgreich gekauft! Vielen Dank für Ihre Unterstützung!",
   "iapRestoreSuccess": "Vynody Pro-Käufe erfolgreich wiederhergestellt!",
   "iapPurchaseCancelledOrFailed": "Kauf nicht abgeschlossen oder abgebrochen: {message}"

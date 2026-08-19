@@ -1410,7 +1410,9 @@ class _SharingPageState extends ConsumerState<SharingPage> {
               const SizedBox(height: 12),
 
               Text(
-                l10n.proOneTimePurchaseNotice,
+                (Platform.isIOS || Platform.isMacOS)
+                    ? l10n.proOneTimePurchaseNoticeApple
+                    : l10n.proOneTimePurchaseNotice,
                 style: TextStyle(
                   fontSize: 12,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),

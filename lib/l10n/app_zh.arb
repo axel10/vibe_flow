@@ -2219,6 +2219,14 @@
     "description": "One-time purchase disclaimer on sharing page"
   },
   "proOneTimePurchaseNotice": "一次性购买，永久解锁当前平台所有 Pro 高级特权",
+  "@proOneTimePurchaseNoticeApple": {
+    "description": "One-time purchase disclaimer for Apple platforms on sharing page"
+  },
+  "proOneTimePurchaseNoticeApple": "一次性购买，永久解锁 Apple 平台全部高级功能（iPhone / iPad / Mac）",
+  "@proUniversalPurchaseNoticeApple": {
+    "description": "Notice above purchase button showing Apple multi-platform availability"
+  },
+  "proUniversalPurchaseNoticeApple": "一次购买，iPhone、iPad 和 Mac 均可使用",
   "@iapPurchaseSuccess": {
     "description": "Toast when Pro purchase succeeds"
   },

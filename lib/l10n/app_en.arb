@@ -1550,6 +1550,8 @@
   "sharingHighlightSecurityDesc": "Full-chain TLS certificate encryption and device trust pairing to ensure private and secure transfers.",
   "upgradeToProToUnlock": "Upgrade to Vynody Pro",
   "proOneTimePurchaseNotice": "One-time purchase, permanently unlock all Pro features on this platform",
+  "proOneTimePurchaseNoticeApple": "One-time purchase, permanently unlock all Pro features on Apple platforms (iPhone / iPad / Mac)",
+  "proUniversalPurchaseNoticeApple": "One purchase unlocks on iPhone, iPad, and Mac",
   "iapPurchaseSuccess": "Vynody Pro purchased successfully! Thank you for your support!",
   "iapRestoreSuccess": "Successfully restored Vynody Pro purchases!",
   "iapPurchaseCancelledOrFailed": "Purchase not completed or cancelled: {message}"

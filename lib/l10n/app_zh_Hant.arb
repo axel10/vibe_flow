@@ -1162,6 +1162,8 @@
   "sharingHighlightSecurityDesc": "區域網路通訊全鏈路 TLS 憑證加密與裝置信任配對，確保個人傳輸私密與安全。",
   "upgradeToProToUnlock": "升級至 Vynody Pro 解鎖",
   "proOneTimePurchaseNotice": "一次性購買，永久解鎖目前平台所有 Pro 高級特權",
+  "proOneTimePurchaseNoticeApple": "一次性購買，永久解鎖 Apple 平台全部高級功能（iPhone / iPad / Mac）",
+  "proUniversalPurchaseNoticeApple": "一次購買，iPhone、iPad 和 Mac 均可使用",
   "iapPurchaseSuccess": "Vynody Pro 購買成功！感謝您的支持！",
   "iapRestoreSuccess": "已成功恢復 Vynody Pro 購買權益！",
   "iapPurchaseCancelledOrFailed": "購買未完成或已取消: {message}"

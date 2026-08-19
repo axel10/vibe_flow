@@ -3590,6 +3590,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get proOneTimePurchaseNotice => '1回の購入で、このプラットフォーム上のすべてのPro機能を永久解放';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      '1回の購入で、Appleプラットフォーム（iPhone / iPad / Mac）の全Pro機能を永久解放';
+
+  @override
+  String get proUniversalPurchaseNoticeApple =>
+      '一度の購入で、iPhone・iPad・Macすべてで利用可能';
+
+  @override
   String get iapPurchaseSuccess => 'Vynody Proの購入が完了しました！ご支援ありがとうございます！';
 
   @override

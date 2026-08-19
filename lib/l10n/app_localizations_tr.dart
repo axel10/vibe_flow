@@ -3743,6 +3743,14 @@ class AppLocalizationsTr extends AppLocalizations {
       'Tek seferlik satın alma, bu platformdaki tüm Pro özelliklerini ömür boyu açar';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      'Tek seferlik satın alma, tüm Apple platformlarındaki (iPhone / iPad / Mac) Pro özelliklerini ömür boyu açar';
+
+  @override
+  String get proUniversalPurchaseNoticeApple =>
+      'Tek satın alma, iPhone, iPad ve Mac\'te kullanılabilir';
+
+  @override
   String get iapPurchaseSuccess =>
       'Vynody Pro başarıyla satın alındı! Desteğiniz için teşekkür ederiz!';
 

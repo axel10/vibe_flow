@@ -1566,6 +1566,8 @@
   "sharingHighlightSecurityDesc": "LAN通信全体をTLS証明書で暗号化し、デバイス認証を行うことで安全なプライベート転送を確保。",
   "upgradeToProToUnlock": "Vynody Proにアップグレードして解放",
   "proOneTimePurchaseNotice": "1回の購入で、このプラットフォーム上のすべてのPro機能を永久解放",
+  "proOneTimePurchaseNoticeApple": "1回の購入で、Appleプラットフォーム（iPhone / iPad / Mac）の全Pro機能を永久解放",
+  "proUniversalPurchaseNoticeApple": "一度の購入で、iPhone・iPad・Macすべてで利用可能",
   "iapPurchaseSuccess": "Vynody Proの購入が完了しました！ご支援ありがとうございます！",
   "iapRestoreSuccess": "Vynody Proの購入履歴を正常に復元しました！",
   "iapPurchaseCancelledOrFailed": "購入が完了しなかったかキャンセルされました: {message}"

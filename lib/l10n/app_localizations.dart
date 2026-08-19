@@ -6651,6 +6651,18 @@ abstract class AppLocalizations {
   /// **'一次性购买，永久解锁当前平台所有 Pro 高级特权'**
   String get proOneTimePurchaseNotice;
 
+  /// One-time purchase disclaimer for Apple platforms on sharing page
+  ///
+  /// In zh, this message translates to:
+  /// **'一次性购买，永久解锁 Apple 平台全部高级功能（iPhone / iPad / Mac）'**
+  String get proOneTimePurchaseNoticeApple;
+
+  /// Notice above purchase button showing Apple multi-platform availability
+  ///
+  /// In zh, this message translates to:
+  /// **'一次购买，iPhone、iPad 和 Mac 均可使用'**
+  String get proUniversalPurchaseNoticeApple;
+
   /// Toast when Pro purchase succeeds
   ///
   /// In zh, this message translates to:

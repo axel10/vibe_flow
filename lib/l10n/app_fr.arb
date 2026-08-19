@@ -1467,6 +1467,8 @@
   "sharingHighlightSecurityDesc": "Chiffrement complet TLS et appairage de confiance pour des transferts privés et sécurisés.",
   "upgradeToProToUnlock": "Passer à Vynody Pro",
   "proOneTimePurchaseNotice": "Achat unique, débloque à vie toutes les fonctionnalités Pro sur cette plateforme",
+  "proOneTimePurchaseNoticeApple": "Achat unique, débloque à vie toutes les fonctionnalités Pro sur les plateformes Apple (iPhone / iPad / Mac)",
+  "proUniversalPurchaseNoticeApple": "Un seul achat, utilisable sur iPhone, iPad et Mac",
   "iapPurchaseSuccess": "Achat de Vynody Pro réussi ! Merci pour votre soutien !",
   "iapRestoreSuccess": "Achats Vynody Pro restaurés avec succès !",
   "iapPurchaseCancelledOrFailed": "Achat non finalisé ou annulé : {message}"

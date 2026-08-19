@@ -3534,6 +3534,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get proOneTimePurchaseNotice => '一次性购买，永久解锁当前平台所有 Pro 高级特权';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      '一次性购买，永久解锁 Apple 平台全部高级功能（iPhone / iPad / Mac）';
+
+  @override
+  String get proUniversalPurchaseNoticeApple => '一次购买，iPhone、iPad 和 Mac 均可使用';
+
+  @override
   String get iapPurchaseSuccess => 'Vynody Pro 购买成功！感谢您的支持！';
 
   @override
@@ -7073,6 +7080,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get proOneTimePurchaseNotice => '一次性購買，永久解鎖目前平台所有 Pro 高級特權';
+
+  @override
+  String get proOneTimePurchaseNoticeApple =>
+      '一次性購買，永久解鎖 Apple 平台全部高級功能（iPhone / iPad / Mac）';
+
+  @override
+  String get proUniversalPurchaseNoticeApple => '一次購買，iPhone、iPad 和 Mac 均可使用';
 
   @override
   String get iapPurchaseSuccess => 'Vynody Pro 購買成功！感謝您的支持！';

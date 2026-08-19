@@ -1591,6 +1591,8 @@
   "sharingHighlightSecurityDesc": "Gizli ve güvenli aktarım için tam TLS sertifika şifrelemesi ve cihaz güven eşleştirmesi.",
   "upgradeToProToUnlock": "Vynody Pro'ya Yükseltin",
   "proOneTimePurchaseNotice": "Tek seferlik satın alma, bu platformdaki tüm Pro özelliklerini ömür boyu açar",
+  "proOneTimePurchaseNoticeApple": "Tek seferlik satın alma, tüm Apple platformlarındaki (iPhone / iPad / Mac) Pro özelliklerini ömür boyu açar",
+  "proUniversalPurchaseNoticeApple": "Tek satın alma, iPhone, iPad ve Mac'te kullanılabilir",
   "iapPurchaseSuccess": "Vynody Pro başarıyla satın alındı! Desteğiniz için teşekkür ederiz!",
   "iapRestoreSuccess": "Vynody Pro satın alımları başarıyla geri yüklendi!",
   "iapPurchaseCancelledOrFailed": "Satın alma tamamlanamadı veya iptal edildi: {message}"

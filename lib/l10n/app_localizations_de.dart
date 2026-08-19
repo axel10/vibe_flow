@@ -3771,6 +3771,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einmaliger Kauf, schaltet alle Pro-Funktionen auf dieser Plattform dauerhaft frei';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      'Einmaliger Kauf, schaltet alle Pro-Funktionen auf Apple-Plattformen (iPhone / iPad / Mac) dauerhaft frei';
+
+  @override
+  String get proUniversalPurchaseNoticeApple =>
+      'Einmaliger Kauf, nutzbar auf iPhone, iPad und Mac';
+
+  @override
   String get iapPurchaseSuccess =>
       'Vynody Pro erfolgreich gekauft! Vielen Dank für Ihre Unterstützung!';
 

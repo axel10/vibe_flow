@@ -3783,6 +3783,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Achat unique, débloque à vie toutes les fonctionnalités Pro sur cette plateforme';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      'Achat unique, débloque à vie toutes les fonctionnalités Pro sur les plateformes Apple (iPhone / iPad / Mac)';
+
+  @override
+  String get proUniversalPurchaseNoticeApple =>
+      'Un seul achat, utilisable sur iPhone, iPad et Mac';
+
+  @override
   String get iapPurchaseSuccess =>
       'Achat de Vynody Pro réussi ! Merci pour votre soutien !';
 

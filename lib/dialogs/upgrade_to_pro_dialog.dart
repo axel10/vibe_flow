@@ -235,6 +235,34 @@ class UpgradeToProDialog extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
                 child: Column(
                   children: [
+                    if (!license.isPermanentlyUnlocked && (Platform.isIOS || Platform.isMacOS))
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.devices_rounded,
+                              size: 14,
+                              color: isDark
+                                  ? const Color(0xFFFFB300).withValues(alpha: 0.85)
+                                  : const Color(0xFFD97706),
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                l10n.proUniversalPurchaseNoticeApple,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     if (!license.isPermanentlyUnlocked)
                       FilledButton(
                         style: FilledButton.styleFrom(
@@ -251,6 +279,7 @@ class UpgradeToProDialog extends ConsumerWidget {
                             : () => ref.read(iapServiceProvider).buyPro(),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             if (iapState.isPurchasing) ...[
                               const SizedBox(
@@ -262,29 +291,39 @@ class UpgradeToProDialog extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              Text(
-                                l10n.connectingToStore,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: Text(
+                                  l10n.connectingToStore,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ] else ...[
                               const Icon(Icons.bolt_rounded, size: 20),
                               const SizedBox(width: 8),
-                              Text(
-                                Platform.isWindows
-                                    ? (license.isInTrial
-                                        ? l10n.buyFullVersionWindowsTrial
-                                        : l10n.buyFullVersionWindows)
-                                    : (iapState.proProduct != null
-                                        ? l10n.unlockProLifetimeWithPrice(iapState.proProduct!.price)
-                                        : (license.isInTrial
-                                            ? l10n.buyProTrialEarly
-                                            : l10n.upgradeToProNow)),
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: Text(
+                                  Platform.isWindows
+                                      ? (license.isInTrial
+                                          ? l10n.buyFullVersionWindowsTrial
+                                          : l10n.buyFullVersionWindows)
+                                      : (iapState.proProduct != null
+                                          ? l10n.unlockProLifetimeWithPrice(iapState.proProduct!.price)
+                                          : (license.isInTrial
+                                              ? l10n.buyProTrialEarly
+                                              : l10n.upgradeToProNow)),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
@@ -304,38 +343,40 @@ class UpgradeToProDialog extends ConsumerWidget {
                       ),
 
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         TextButton(
                           onPressed: iapState.isRestoring
                               ? null
                               : () => ref.read(iapServiceProvider).restorePurchases(),
                           child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (iapState.isRestoring) ...[
-                                  const SizedBox(
-                                    width: 12,
-                                    height: 12,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 1.5,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                                Text(
-                                  iapState.isRestoring ? l10n.restoringPurchases : l10n.restorePurchases,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isDark ? Colors.white54 : Colors.black45,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (iapState.isRestoring) ...[
+                                const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
                                   ),
                                 ),
+                                const SizedBox(width: 6),
                               ],
-                            ),
+                              Text(
+                                iapState.isRestoring ? l10n.restoringPurchases : l10n.restorePurchases,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         if (kDebugMode) ...[
-                          const SizedBox(width: 8),
                           if (license.type == LicenseType.purchasedPro)
                             TextButton(
                               onPressed: () async {
@@ -347,7 +388,7 @@ class UpgradeToProDialog extends ConsumerWidget {
                                 style: TextStyle(fontSize: 12, color: Colors.deepOrangeAccent),
                               ),
                             )
-                          else ...[
+                          else
                             TextButton(
                               onPressed: () async {
                                 final service = ref.read(proLicenseServiceProvider);
@@ -362,7 +403,6 @@ class UpgradeToProDialog extends ConsumerWidget {
                                 style: const TextStyle(fontSize: 12, color: Colors.blueAccent),
                               ),
                             ),
-                          ],
                         ],
                       ],
                     ),

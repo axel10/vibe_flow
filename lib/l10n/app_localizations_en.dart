@@ -3732,6 +3732,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'One-time purchase, permanently unlock all Pro features on this platform';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      'One-time purchase, permanently unlock all Pro features on Apple platforms (iPhone / iPad / Mac)';
+
+  @override
+  String get proUniversalPurchaseNoticeApple =>
+      'One purchase unlocks on iPhone, iPad, and Mac';
+
+  @override
   String get iapPurchaseSuccess =>
       'Vynody Pro purchased successfully! Thank you for your support!';
 

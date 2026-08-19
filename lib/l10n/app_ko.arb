@@ -1467,6 +1467,8 @@
   "sharingHighlightSecurityDesc": "전체 LAN 통신 구간 TLS 인증서 암호화 및 기기 인증으로 안전하고 개인적인 전송 보장.",
   "upgradeToProToUnlock": "Vynody Pro로 업그레이드하여 잠금 해제",
   "proOneTimePurchaseNotice": "일회성 구매로 현재 플랫폼의 모든 Pro 고급 기능 영구 잠금 해제",
+  "proOneTimePurchaseNoticeApple": "일회성 구매로 Apple 플랫폼(iPhone / iPad / Mac)의 모든 Pro 고급 기능 영구 잠금 해제",
+  "proUniversalPurchaseNoticeApple": "한 번 구매로 iPhone, iPad 및 Mac에서 모두 사용 가능",
   "iapPurchaseSuccess": "Vynody Pro 구매가 완료되었습니다! 지원해 주셔서 감사합니다!",
   "iapRestoreSuccess": "Vynody Pro 구매 내역이 성공적으로 복원되었습니다!",
   "iapPurchaseCancelledOrFailed": "구매가 완료되지 않았거나 취소되었습니다: {message}"

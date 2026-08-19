@@ -3593,6 +3593,14 @@ class AppLocalizationsKo extends AppLocalizations {
       '일회성 구매로 현재 플랫폼의 모든 Pro 고급 기능 영구 잠금 해제';
 
   @override
+  String get proOneTimePurchaseNoticeApple =>
+      '일회성 구매로 Apple 플랫폼(iPhone / iPad / Mac)의 모든 Pro 고급 기능 영구 잠금 해제';
+
+  @override
+  String get proUniversalPurchaseNoticeApple =>
+      '한 번 구매로 iPhone, iPad 및 Mac에서 모두 사용 가능';
+
+  @override
   String get iapPurchaseSuccess => 'Vynody Pro 구매가 완료되었습니다! 지원해 주셔서 감사합니다!';
 
   @override
