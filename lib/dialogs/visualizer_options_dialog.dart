@@ -609,6 +609,8 @@ class VisualizerOptionsDialog extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildVisualStyleDropdown(context, settings, setDialogState),
+              const SizedBox(height: 12),
               _buildOptionSlider(
                 context,
                 label: l10n.opacity,
@@ -1331,6 +1333,75 @@ class VisualizerOptionsDialog extends ConsumerWidget {
             label: Text(resetLabel ?? AppLocalizations.of(context)!.reset),
           ),
       ],
+    );
+  }
+
+  String _visualizerStyleLabel(BuildContext context, VisualizerStyle style) {
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+    return switch (style) {
+      VisualizerStyle.bars => isZh ? '经典柱状 (Classic Bars)' : 'Classic Bars',
+      VisualizerStyle.smoothWave => isZh ? '平滑波浪 (Smooth Wave)' : 'Smooth Wave',
+      VisualizerStyle.floatingBars => isZh ? '浮动顶帽 (Floating Caps)' : 'Floating Caps',
+      VisualizerStyle.radial => isZh ? '环形光晕 (Radial Halo)' : 'Radial Halo',
+      VisualizerStyle.matrix => isZh ? '点阵矩阵 (Neon Matrix)' : 'Neon Matrix',
+      VisualizerStyle.mirroredWave => isZh ? '对称镜像波 (Mirrored Wave)' : 'Mirrored Wave',
+    };
+  }
+
+  Widget _buildVisualStyleDropdown(
+    BuildContext context,
+    SettingsService settings,
+    StateSetter setDialogState,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: isPortrait ? 0 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
+            child: Text(
+              isZh ? '频谱样式' : 'Spectrum Style',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          DropdownButtonFormField<VisualizerStyle>(
+            initialValue: settings.visualizerStyle,
+            dropdownColor: isDark ? Colors.grey[900] : theme.colorScheme.surfaceContainer,
+            decoration: InputDecoration(
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: isDark ? Colors.white12 : theme.colorScheme.outlineVariant,
+                ),
+              ),
+            ),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+              fontSize: 14,
+            ),
+            items: VisualizerStyle.values.map((style) {
+              return DropdownMenuItem<VisualizerStyle>(
+                value: style,
+                child: Text(_visualizerStyleLabel(context, style)),
+              );
+            }).toList(),
+            onChanged: (val) {
+              if (val != null) {
+                settings.visualizerStyle = val;
+                setDialogState(() {});
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 

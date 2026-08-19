@@ -22,6 +22,29 @@ enum LyricsAiModelSlot { primary, fallback }
 
 enum LyricsSaveMethod { original, embedded, lrcFile }
 
+enum VisualizerStyle {
+  bars,
+  smoothWave,
+  floatingBars,
+  radial,
+  matrix,
+  mirroredWave,
+}
+
+extension VisualizerStyleX on VisualizerStyle {
+  String get storageValue => name;
+  static VisualizerStyle fromStorageValue(
+    String? value,
+    VisualizerStyle defaultValue,
+  ) {
+    if (value == null) return defaultValue;
+    return VisualizerStyle.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => defaultValue,
+    );
+  }
+}
+
 enum LyricsStyle { traditional, apple }
 
 final class LyricsAiModelSelection {
@@ -367,6 +390,7 @@ class SettingsService extends ChangeNotifier {
   static const double defaultPlaybackCustomImageBlurSigma = 0.0;
 
   // Visualizer styling keys
+  static const String _keyVisualizerStyle = 'visualizer_style';
   static const String _keyVisColor = 'visualizer_color';
   static const String _keyVisOpacity = 'visualizer_opacity';
   static const String _keyVisGradient = 'visualizer_gradient_enabled';
@@ -970,6 +994,16 @@ class SettingsService extends ChangeNotifier {
       }
       _lastKnownCustomProviderName = normalized;
     },
+  );
+
+  late final _visualizerStyleProperty = SettingProperty<VisualizerStyle>(
+    key: _keyVisualizerStyle,
+    defaultValue: VisualizerStyle.bars,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        VisualizerStyleX.fromStorageValue(prefs.getString(key), def),
+    customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
   );
 
   late final _visualizerColorProperty = SettingProperty<Color>(
@@ -1878,6 +1912,10 @@ class SettingsService extends ChangeNotifier {
     return _builtInAcoustidApiKey;
   }
 
+  VisualizerStyle get visualizerStyle => _visualizerStyleProperty.value;
+  set visualizerStyle(VisualizerStyle value) =>
+      _visualizerStyleProperty.value = value;
+
   Color get visualizerColor => _visualizerColorProperty.value;
   set visualizerColor(Color value) => _visualizerColorProperty.value = value;
 
@@ -2139,6 +2177,7 @@ class SettingsService extends ChangeNotifier {
   }
 
   void resetVisualizerAppearance() {
+    _visualizerStyleProperty.reset();
     _visualizerOpacityProperty.reset();
     _visualizerColorProperty.reset();
     _isVisualizerGradientEnabledProperty.reset();
