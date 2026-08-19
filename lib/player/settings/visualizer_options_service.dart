@@ -20,15 +20,22 @@ class VisualizerOptionsService extends ChangeNotifier {
 
   VisualizerOptimizationOptions get options => controller.visualizer.options;
 
-  Future<void> loadOptions() async {
+  Future<void> loadOptions({VisualizerStyle? style, Orientation? orientation}) async {
+    final targetStyle = style ?? settingsService.visualizerStyle;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonStr = prefs.getString(_visualizerOptionsKey);
+      final styleKey = '${_visualizerOptionsKey}_${targetStyle.name}';
+      final jsonStr = prefs.getString(styleKey) ??
+          (targetStyle == VisualizerStyle.bars
+              ? prefs.getString(_visualizerOptionsKey)
+              : null);
       if (jsonStr != null) {
         final Map<String, dynamic> map = jsonDecode(jsonStr);
         final options = VisualizerOptimizationOptions(
-          frequencyGroups: map['frequencyGroups'] ?? 172,
-          smoothingCoefficient: map['smoothingCoefficient']?.toDouble() ?? 0.8,
+          frequencyGroups: map['frequencyGroups'] ??
+              (targetStyle == VisualizerStyle.radial ? 200 : 172),
+          smoothingCoefficient:
+              map['smoothingCoefficient']?.toDouble() ?? 0.8,
           gravityCoefficient: map['gravityCoefficient']?.toDouble() ?? 1.5,
           overallMultiplier: map['overallMultiplier']?.toDouble() ?? 1.5,
           logarithmicScale: map['logarithmicScale']?.toDouble() ?? 2.0,
@@ -45,32 +52,38 @@ class VisualizerOptionsService extends ChangeNotifier {
         controller.visualizer.updateOptions(options);
       } else {
         // Apply default values if no saved settings
-        resetOptions();
+        resetOptions(style: targetStyle);
       }
 
-      // If auto mode is enabled, apply the auto settings using current orientation
-      if (settingsService.isAutoMode) {
-        final dispatcher = WidgetsBinding.instance.platformDispatcher;
-        final view = dispatcher.views.isEmpty ? null : dispatcher.views.first;
-        final Orientation orientation;
-        if (view != null) {
-          final size = view.physicalSize;
-          orientation = size.width > size.height
-              ? Orientation.landscape
-              : Orientation.portrait;
+      // If auto mode is enabled for this style, apply the auto settings using current orientation
+      if (settingsService.getIsAutoModeForStyle(targetStyle)) {
+        final Orientation effectiveOrientation;
+        if (orientation != null) {
+          effectiveOrientation = orientation;
         } else {
-          orientation = Orientation.portrait;
+          final dispatcher = WidgetsBinding.instance.platformDispatcher;
+          final view =
+              dispatcher.views.isEmpty ? null : dispatcher.views.first;
+          if (view != null) {
+            final size = view.physicalSize;
+            effectiveOrientation = size.width > size.height
+                ? Orientation.landscape
+                : Orientation.portrait;
+          } else {
+            effectiveOrientation = Orientation.portrait;
+          }
         }
-        applySettings(orientation: orientation);
+        applySettings(orientation: effectiveOrientation);
       } else {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error loading visualizer options: $e');
+      debugPrint('Error loading visualizer options for $targetStyle: $e');
     }
   }
 
-  Future<void> saveOptions() async {
+  Future<void> saveOptions({VisualizerStyle? style}) async {
+    final targetStyle = style ?? settingsService.visualizerStyle;
     try {
       final prefs = await SharedPreferences.getInstance();
       final options = controller.visualizer.options;
@@ -85,9 +98,10 @@ class VisualizerOptionsService extends ChangeNotifier {
         'normalizationFloorDb': options.normalizationFloorDb,
         'aggregationMode': options.aggregationMode.name,
       };
-      await prefs.setString(_visualizerOptionsKey, jsonEncode(map));
+      final styleKey = '${_visualizerOptionsKey}_${targetStyle.name}';
+      await prefs.setString(styleKey, jsonEncode(map));
     } catch (e) {
-      debugPrint('Error saving visualizer options: $e');
+      debugPrint('Error saving visualizer options for $targetStyle: $e');
     }
   }
 
@@ -96,9 +110,11 @@ class VisualizerOptionsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetOptions() {
-    const options = VisualizerOptimizationOptions(
-      frequencyGroups: 172,
+  void resetOptions({VisualizerStyle? style}) {
+    final targetStyle = style ?? settingsService.visualizerStyle;
+    final defaultGroups = targetStyle == VisualizerStyle.radial ? 200 : 172;
+    final options = VisualizerOptimizationOptions(
+      frequencyGroups: defaultGroups,
       smoothingCoefficient: 0.8,
       gravityCoefficient: 1.5,
       overallMultiplier: 1.5,
@@ -109,7 +125,7 @@ class VisualizerOptionsService extends ChangeNotifier {
       aggregationMode: FftAggregationMode.peak,
     );
     updateOptions(options);
-    saveOptions();
+    saveOptions(style: targetStyle);
   }
 
   VisualizerOptimizationOptions _getAutoOptions({required Orientation orientation}) {
@@ -120,7 +136,22 @@ class VisualizerOptionsService extends ChangeNotifier {
     int skipHigh = 0;
 
     // Automatic Mode Logic
-    if (isLandscape) {
+    if (settingsService.visualizerStyle == VisualizerStyle.radial) {
+      switch (settingsService.autoSpectrumQuantity) {
+        case 'high':
+          freqGroups = 200;
+          skipHigh = 12;
+          break;
+        case 'medium':
+          freqGroups = 150;
+          skipHigh = 8;
+          break;
+        case 'low':
+          freqGroups = 100;
+          skipHigh = 6;
+          break;
+      }
+    } else if (isLandscape) {
       switch (settingsService.autoSpectrumQuantity) {
         case 'high':
           freqGroups = 172;

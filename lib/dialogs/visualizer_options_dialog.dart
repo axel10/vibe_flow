@@ -245,6 +245,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
     StateSetter setDialogState,
   ) {
     final options = ref.watch(audioCurrentVisualizerOptionsProvider);
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
 
     return _buildSectionCard(
       context: context,
@@ -280,6 +281,18 @@ class VisualizerOptionsDialog extends ConsumerWidget {
             },
             onChangeEnd: () => audio.saveVisualizerOptions(),
           ),
+          if (settings.visualizerStyle == VisualizerStyle.floatingBars)
+            _buildOptionSlider(
+              context,
+              label: isZh ? '浮帽下落速度 (Cap Speed)' : 'Cap Fall Speed',
+              value: settings.visualizerCapDropSpeed,
+              min: 0.05,
+              max: 1.0,
+              onChanged: (val) {
+                settings.visualizerCapDropSpeed = val;
+                setDialogState(() {});
+              },
+            ),
           _buildOptionSlider(
             context,
             label: AppLocalizations.of(context)!.logScale,
@@ -350,62 +363,85 @@ class VisualizerOptionsDialog extends ConsumerWidget {
             },
             onChangeEnd: () => audio.saveVisualizerOptions(),
           ),
-          _buildOptionSlider(
-            context,
-            label: AppLocalizations.of(context)!.landscapeFrequencyGroups,
-            value: settings.landscapeFrequencyGroups.toDouble(),
-            min: 8,
-            max: 512,
-            onChanged: (val) {
-              settings.landscapeFrequencyGroups = val.toInt();
-              if (MediaQuery.of(context).orientation == Orientation.landscape) {
+          if (settings.visualizerStyle == VisualizerStyle.radial) ...[
+            _buildOptionSlider(
+              context,
+              label: AppLocalizations.of(context)!.spectrumQuantity,
+              value: (MediaQuery.of(context).orientation == Orientation.landscape
+                      ? settings.landscapeFrequencyGroups
+                      : settings.portraitFrequencyGroups)
+                  .toDouble(),
+              min: 8,
+              max: 512,
+              onChanged: (val) {
+                final count = val.toInt();
+                settings.landscapeFrequencyGroups = count;
+                settings.portraitFrequencyGroups = count;
                 audio.updateVisualOptions(
-                  options.copyWith(frequencyGroups: val.toInt()),
+                  options.copyWith(frequencyGroups: count),
                 );
-              }
-              setDialogState(() {});
-            },
-            onChangeEnd: () => audio.saveVisualizerOptions(),
-          ),
-          _buildOptionSlider(
-            context,
-            label: AppLocalizations.of(context)!.portraitFrequencyGroups,
-            value: settings.portraitFrequencyGroups.toDouble(),
-            min: 8,
-            max: 512,
-            onChanged: (val) {
-              settings.portraitFrequencyGroups = val.toInt();
-              if (MediaQuery.of(context).orientation == Orientation.portrait) {
-                audio.updateVisualOptions(
-                  options.copyWith(frequencyGroups: val.toInt()),
-                );
-              }
-              setDialogState(() {});
-            },
-            onChangeEnd: () => audio.saveVisualizerOptions(),
-          ),
-          _buildOptionSlider(
-            context,
-            label: AppLocalizations.of(context)!.landscapeGap,
-            value: settings.landscapeGap,
-            min: 0.0,
-            max: 10.0,
-            onChanged: (val) {
-              settings.landscapeGap = val;
-              setDialogState(() {});
-            },
-          ),
-          _buildOptionSlider(
-            context,
-            label: AppLocalizations.of(context)!.portraitGap,
-            value: settings.portraitGap,
-            min: 0.0,
-            max: 10.0,
-            onChanged: (val) {
-              settings.portraitGap = val;
-              setDialogState(() {});
-            },
-          ),
+                setDialogState(() {});
+              },
+              onChangeEnd: () => audio.saveVisualizerOptions(),
+            ),
+          ] else ...[
+            _buildOptionSlider(
+              context,
+              label: AppLocalizations.of(context)!.landscapeFrequencyGroups,
+              value: settings.landscapeFrequencyGroups.toDouble(),
+              min: 8,
+              max: 512,
+              onChanged: (val) {
+                settings.landscapeFrequencyGroups = val.toInt();
+                if (MediaQuery.of(context).orientation == Orientation.landscape) {
+                  audio.updateVisualOptions(
+                    options.copyWith(frequencyGroups: val.toInt()),
+                  );
+                }
+                setDialogState(() {});
+              },
+              onChangeEnd: () => audio.saveVisualizerOptions(),
+            ),
+            _buildOptionSlider(
+              context,
+              label: AppLocalizations.of(context)!.portraitFrequencyGroups,
+              value: settings.portraitFrequencyGroups.toDouble(),
+              min: 8,
+              max: 512,
+              onChanged: (val) {
+                settings.portraitFrequencyGroups = val.toInt();
+                if (MediaQuery.of(context).orientation == Orientation.portrait) {
+                  audio.updateVisualOptions(
+                    options.copyWith(frequencyGroups: val.toInt()),
+                  );
+                }
+                setDialogState(() {});
+              },
+              onChangeEnd: () => audio.saveVisualizerOptions(),
+            ),
+            _buildOptionSlider(
+              context,
+              label: AppLocalizations.of(context)!.landscapeGap,
+              value: settings.landscapeGap,
+              min: 0.0,
+              max: 10.0,
+              onChanged: (val) {
+                settings.landscapeGap = val;
+                setDialogState(() {});
+              },
+            ),
+            _buildOptionSlider(
+              context,
+              label: AppLocalizations.of(context)!.portraitGap,
+              value: settings.portraitGap,
+              min: 0.0,
+              max: 10.0,
+              onChanged: (val) {
+                settings.portraitGap = val;
+                setDialogState(() {});
+              },
+            ),
+          ],
           _buildAggregationModeDropdown(context, options, setDialogState),
         ],
       ),
@@ -1396,6 +1432,17 @@ class VisualizerOptionsDialog extends ConsumerWidget {
             onChanged: (val) {
               if (val != null) {
                 settings.visualizerStyle = val;
+                final orientation = MediaQuery.of(context).orientation;
+                if (settings.isAutoMode) {
+                  audio.applyVisualizerSettings(
+                    orientation: orientation,
+                  );
+                } else {
+                  audio.visualizerOptions.loadOptions(
+                    style: val,
+                    orientation: orientation,
+                  );
+                }
                 setDialogState(() {});
               }
             },

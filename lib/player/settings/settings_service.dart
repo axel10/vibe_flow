@@ -43,6 +43,20 @@ extension VisualizerStyleX on VisualizerStyle {
       orElse: () => defaultValue,
     );
   }
+
+  double get defaultOpacity => switch (this) {
+    VisualizerStyle.bars => 0.20,
+    VisualizerStyle.smoothWave => 0.06,
+    VisualizerStyle.floatingBars => 0.20,
+    VisualizerStyle.radial => 0.20,
+    VisualizerStyle.matrix => 0.25,
+    VisualizerStyle.mirroredWave => 0.06,
+  };
+
+  String get defaultAutoSpeed => switch (this) {
+    VisualizerStyle.radial => 'fast',
+    _ => 'medium',
+  };
 }
 
 enum LyricsStyle { traditional, apple }
@@ -393,6 +407,7 @@ class SettingsService extends ChangeNotifier {
   static const String _keyVisualizerStyle = 'visualizer_style';
   static const String _keyVisColor = 'visualizer_color';
   static const String _keyVisOpacity = 'visualizer_opacity';
+  static const String _keyVisCapDropSpeed = 'visualizer_cap_drop_speed';
   static const String _keyVisGradient = 'visualizer_gradient_enabled';
   static const String _keyVisStartColor = 'visualizer_start_color';
   static const String _keyVisEndColor = 'visualizer_end_color';
@@ -420,10 +435,6 @@ class SettingsService extends ChangeNotifier {
       'playback_custom_image_blur_sigma';
   static const String _keyPlaybackMeshBackgroundSpeed =
       'playback_mesh_background_speed';
-  static const String _keyIsAutoMode = 'visualizer_auto_mode';
-  static const String _keyAutoSpectrumQuantity =
-      'visualizer_auto_spectrum_quantity';
-  static const String _keyAutoSpeed = 'visualizer_auto_speed';
   static const String _keyPortraitFrequencyGroups =
       'visualizer_portrait_frequency_groups';
   static const String _keyLandscapeFrequencyGroups =
@@ -1022,6 +1033,13 @@ class SettingsService extends ChangeNotifier {
     onChanged: notifyListeners,
   );
 
+  late final _visualizerCapDropSpeedProperty = SettingProperty<double>(
+    key: _keyVisCapDropSpeed,
+    defaultValue: 0.20,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
   late final _isVisualizerGradientEnabledProperty = SettingProperty<bool>(
     key: _keyVisGradient,
     defaultValue: false,
@@ -1149,27 +1167,6 @@ class SettingsService extends ChangeNotifier {
   late final _playbackMeshBackgroundSpeedProperty = SettingProperty<double>(
     key: _keyPlaybackMeshBackgroundSpeed,
     defaultValue: 0.05,
-    prefs: _prefs,
-    onChanged: notifyListeners,
-  );
-
-  late final _isAutoModeProperty = SettingProperty<bool>(
-    key: _keyIsAutoMode,
-    defaultValue: true,
-    prefs: _prefs,
-    onChanged: notifyListeners,
-  );
-
-  late final _autoSpectrumQuantityProperty = SettingProperty<String>(
-    key: _keyAutoSpectrumQuantity,
-    defaultValue: 'high',
-    prefs: _prefs,
-    onChanged: notifyListeners,
-  );
-
-  late final _autoSpeedProperty = SettingProperty<String>(
-    key: _keyAutoSpeed,
-    defaultValue: 'medium',
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1919,9 +1916,26 @@ class SettingsService extends ChangeNotifier {
   Color get visualizerColor => _visualizerColorProperty.value;
   set visualizerColor(Color value) => _visualizerColorProperty.value = value;
 
-  double get visualizerOpacity => _visualizerOpacityProperty.value;
+  double getVisualizerOpacityForStyle(VisualizerStyle style) {
+    final key = 'visualizer_opacity_${style.name}';
+    final stored = _prefs.getDouble(key);
+    if (stored != null) return stored;
+    return style.defaultOpacity;
+  }
+
+  void setVisualizerOpacityForStyle(VisualizerStyle style, double value) {
+    final key = 'visualizer_opacity_${style.name}';
+    _prefs.setDouble(key, value);
+    notifyListeners();
+  }
+
+  double get visualizerOpacity => getVisualizerOpacityForStyle(visualizerStyle);
   set visualizerOpacity(double value) =>
-      _visualizerOpacityProperty.value = value;
+      setVisualizerOpacityForStyle(visualizerStyle, value);
+
+  double get visualizerCapDropSpeed => _visualizerCapDropSpeedProperty.value;
+  set visualizerCapDropSpeed(double value) =>
+      _visualizerCapDropSpeedProperty.value = value;
 
   bool get isVisualizerGradientEnabled =>
       _isVisualizerGradientEnabledProperty.value;
@@ -2006,15 +2020,55 @@ class SettingsService extends ChangeNotifier {
   set playbackMeshBackgroundSpeed(double value) =>
       _playbackMeshBackgroundSpeedProperty.value = value;
 
-  bool get isAutoMode => _isAutoModeProperty.value;
-  set isAutoMode(bool value) => _isAutoModeProperty.value = value;
+  bool getIsAutoModeForStyle(VisualizerStyle style) {
+    final key = 'visualizer_auto_mode_${style.name}';
+    final stored = _prefs.getBool(key);
+    if (stored != null) return stored;
+    return true; // Defaults to auto mode
+  }
 
-  String get autoSpectrumQuantity => _autoSpectrumQuantityProperty.value;
+  void setIsAutoModeForStyle(VisualizerStyle style, bool value) {
+    final key = 'visualizer_auto_mode_${style.name}';
+    _prefs.setBool(key, value);
+    notifyListeners();
+  }
+
+  bool get isAutoMode => getIsAutoModeForStyle(visualizerStyle);
+  set isAutoMode(bool value) => setIsAutoModeForStyle(visualizerStyle, value);
+
+  String getAutoSpectrumQuantityForStyle(VisualizerStyle style) {
+    final key = 'visualizer_auto_quantity_${style.name}';
+    final stored = _prefs.getString(key);
+    if (stored != null) return stored;
+    return 'high';
+  }
+
+  void setAutoSpectrumQuantityForStyle(VisualizerStyle style, String value) {
+    final key = 'visualizer_auto_quantity_${style.name}';
+    _prefs.setString(key, value);
+    notifyListeners();
+  }
+
+  String get autoSpectrumQuantity =>
+      getAutoSpectrumQuantityForStyle(visualizerStyle);
   set autoSpectrumQuantity(String value) =>
-      _autoSpectrumQuantityProperty.value = value;
+      setAutoSpectrumQuantityForStyle(visualizerStyle, value);
 
-  String get autoSpeed => _autoSpeedProperty.value;
-  set autoSpeed(String value) => _autoSpeedProperty.value = value;
+  String getAutoSpeedForStyle(VisualizerStyle style) {
+    final key = 'visualizer_auto_speed_${style.name}';
+    final stored = _prefs.getString(key);
+    if (stored != null) return stored;
+    return style.defaultAutoSpeed;
+  }
+
+  void setAutoSpeedForStyle(VisualizerStyle style, String value) {
+    final key = 'visualizer_auto_speed_${style.name}';
+    _prefs.setString(key, value);
+    notifyListeners();
+  }
+
+  String get autoSpeed => getAutoSpeedForStyle(visualizerStyle);
+  set autoSpeed(String value) => setAutoSpeedForStyle(visualizerStyle, value);
 
   int get portraitFrequencyGroups => _portraitFrequencyGroupsProperty.value;
   set portraitFrequencyGroups(int value) =>
@@ -2179,6 +2233,13 @@ class SettingsService extends ChangeNotifier {
   void resetVisualizerAppearance() {
     _visualizerStyleProperty.reset();
     _visualizerOpacityProperty.reset();
+    for (final s in VisualizerStyle.values) {
+      _prefs.remove('visualizer_opacity_${s.name}');
+      _prefs.remove('visualizer_auto_mode_${s.name}');
+      _prefs.remove('visualizer_auto_quantity_${s.name}');
+      _prefs.remove('visualizer_auto_speed_${s.name}');
+    }
+    _visualizerCapDropSpeedProperty.reset();
     _visualizerColorProperty.reset();
     _isVisualizerGradientEnabledProperty.reset();
     _visualizerStartColorProperty.reset();
@@ -2197,9 +2258,6 @@ class SettingsService extends ChangeNotifier {
     _playbackBackgroundLyricsOpacityProperty.reset();
     _playbackBlurredArtworkBlurSigmaProperty.reset();
     _playbackCustomImageBlurSigmaProperty.reset();
-    _isAutoModeProperty.reset();
-    _autoSpectrumQuantityProperty.reset();
-    _autoSpeedProperty.reset();
     _portraitFrequencyGroupsProperty.reset();
     _landscapeFrequencyGroupsProperty.reset();
     _portraitGapProperty.reset();

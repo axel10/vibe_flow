@@ -14,6 +14,7 @@ class FftPainter extends CustomPainter {
   final double? gradientStop2;
   final int? gradientTileMode;
   final double gap;
+  final double capDropSpeed;
 
   static _GradientShaderKey? _cachedShaderKey;
   static Shader? _cachedShader;
@@ -34,6 +35,7 @@ class FftPainter extends CustomPainter {
     this.gradientStop2,
     this.gradientTileMode,
     this.gap = 1.0,
+    this.capDropSpeed = 0.20,
   });
 
   Shader _getOrCreateShader(Size size) {
@@ -202,7 +204,7 @@ class FftPainter extends CustomPainter {
       _peakCaps = List<double>.filled(barCount, 0.0);
     }
 
-    final dropPerSec = size.height * 0.45;
+    final dropPerSec = size.height * capDropSpeed;
     final dropAmount = dropPerSec * dt;
 
     final capPaint = Paint()..style = PaintingStyle.fill;
@@ -250,8 +252,15 @@ class FftPainter extends CustomPainter {
 
     final center = Offset(size.width * 0.5, size.height * 0.5);
     final minDimension = math.min(size.width, size.height);
-    final baseRadius = minDimension * 0.22;
-    final maxBarLength = minDimension * 0.28;
+    final maxAllowedOuterRadius = minDimension * 0.5;
+
+    final baseRadius = minDimension * 0.16;
+    final maxBassPulse = minDimension * 0.05;
+    const ringPadding = 4.0;
+    final maxBarLength = math.max(
+      10.0,
+      maxAllowedOuterRadius - (baseRadius + maxBassPulse + ringPadding),
+    );
 
     // Calculate low-frequency bass energy to pulsate the inner ring
     double bassSum = 0;
@@ -259,7 +268,8 @@ class FftPainter extends CustomPainter {
     for (int i = 0; i < bassCount; i++) {
       bassSum += values[i];
     }
-    final bassPulse = (bassSum / bassCount) * (minDimension * 0.07);
+    final bassRatio = (bassSum / bassCount).clamp(0.0, 1.0);
+    final bassPulse = bassRatio * maxBassPulse;
     final pulsingRadius = baseRadius + bassPulse;
 
     // Draw inner subtle ring
@@ -299,7 +309,6 @@ class FftPainter extends CustomPainter {
           : ((totalBars - i) / halfCount);
 
       // Low frequencies at bottom (distFromTop = 1.0) or top (distFromTop = 0.0)
-      // Here: low frequencies at bottom (1.0), high frequencies at top (0.0)
       final samplePos = ((1.0 - distFromTop) * (barCount - 1))
           .clamp(0.0, (barCount - 1).toDouble());
       final idx0 = samplePos.floor();
@@ -307,23 +316,25 @@ class FftPainter extends CustomPainter {
       final fract = samplePos - idx0;
       final rawVal = values[idx0] * (1.0 - fract) + values[idx1] * fract;
 
-      // High-frequency energy compensation so mid/high frequencies are visibly active
+      // High-frequency energy compensation with smooth exponential saturation
+      // to avoid flat cutoffs/truncation at high amplitudes.
       final freqRatio = (samplePos / (barCount - 1)).clamp(0.0, 1.0);
-      final boost = 1.0 + math.pow(freqRatio, 0.5) * 1.8;
-      final val = (rawVal * boost).clamp(0.0, 1.2);
+      final boost = 1.0 + math.pow(freqRatio, 0.5) * 1.5;
+      final x = math.max(0.0, rawVal * boost);
+      final compressed = 1.0 - math.exp(-x * 1.2);
 
-      final len = (val * maxBarLength).clamp(2.0, maxBarLength);
+      final len = math.max(2.0, compressed * maxBarLength);
 
       final cosA = math.cos(angle);
       final sinA = math.sin(angle);
 
       final startOffset = Offset(
-        center.dx + cosA * (pulsingRadius + 4),
-        center.dy + sinA * (pulsingRadius + 4),
+        center.dx + cosA * (pulsingRadius + ringPadding),
+        center.dy + sinA * (pulsingRadius + ringPadding),
       );
       final endOffset = Offset(
-        center.dx + cosA * (pulsingRadius + 4 + len),
-        center.dy + sinA * (pulsingRadius + 4 + len),
+        center.dx + cosA * (pulsingRadius + ringPadding + len),
+        center.dy + sinA * (pulsingRadius + ringPadding + len),
       );
 
       canvas.drawLine(startOffset, endOffset, linePaint);

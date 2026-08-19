@@ -1669,6 +1669,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                   values: frame.values,
                   style: settings.visualizerStyle,
                   gap: gap,
+                  capDropSpeed: settings.visualizerCapDropSpeed,
                   color: settings.isVisualizerDynamicColor
                       ? (dynamicStartColor ?? settings.visualizerColor)
                       : settings.visualizerColor,
