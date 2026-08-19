@@ -20,6 +20,7 @@ import 'package:vynody/utils/localized_text.dart';
 import 'package:vynody/player/lyrics/lyrics_ai_shared.dart';
 import 'package:vynody/player/lyrics/lyrics_ai_stream_parser.dart';
 import 'package:vynody/player/lyrics/lyrics_generation_result.dart';
+import 'package:vynody/player/settings/settings_service.dart';
 
 class LyricsAiOpenRouterClient {
   LyricsAiOpenRouterClient({
@@ -133,6 +134,7 @@ class LyricsAiOpenRouterClient {
       return LyricsGenerationResult.failure(
         _formatGenerationErrorMessage(
           e,
+          modelId: modelId,
           fallback: _l10n().unknownGenerationError,
         ),
       );
@@ -252,6 +254,7 @@ class LyricsAiOpenRouterClient {
       return LyricsGenerationResult.failure(
         _formatGenerationErrorMessage(
           e,
+          modelId: modelId,
           fallback: _l10n().unknownTimelineGenerationError,
         ),
       );
@@ -506,7 +509,49 @@ class LyricsAiOpenRouterClient {
     }
   }
 
-  String _formatGenerationErrorMessage(Object error, {String? fallback}) {
+  static bool isOpenRouter403Forbidden(Object error) {
+    if (error is DioException) {
+      if (error.response?.statusCode == 403) {
+        return true;
+      }
+      final responseData = error.response?.data;
+      if (responseData is Map) {
+        final errorMap = responseData['error'];
+        if (errorMap is Map) {
+          final code = errorMap['code'];
+          if (code == 403 || code == '403') {
+            return true;
+          }
+        }
+        final code = responseData['code'];
+        if (code == 403 || code == '403') {
+          return true;
+        }
+      }
+      final message = error.message;
+      if (message != null && message.contains('403')) {
+        return true;
+      }
+    }
+    final text = error.toString();
+    return text.contains('403');
+  }
+
+  String _formatGenerationErrorMessage(
+    Object error, {
+    String? modelId,
+    String? fallback,
+  }) {
+    if (isOpenRouter403Forbidden(error)) {
+      final modelName = modelId != null && modelId.trim().isNotEmpty
+          ? SettingsService.lyricsModelDisplayName(modelId.trim())
+          : '';
+      final displayName = modelName.isNotEmpty ? modelName : (modelId?.trim() ?? '');
+      if (displayName.isNotEmpty) {
+        return _l10n().locationNotSupportedForModel(displayName);
+      }
+    }
+
     if (error is DioException) {
       if (_isNetworkUnavailableError(error)) {
         return _networkUnavailableMessage;

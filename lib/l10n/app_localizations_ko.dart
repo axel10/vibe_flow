@@ -2022,6 +2022,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String locationNotSupportedForModel(String modelName) {
+    return '현재 위치에서는 $modelName을(를) 지원하지 않습니다';
+  }
+
+  @override
   String get googleServerFlaky => 'Google에 일시적인 문제가 있습니다. 다시 시도하면 성공할 수 있습니다.';
 
   @override

@@ -903,11 +903,21 @@ class LyricsAiService {
       if (CancelToken.isCancel(error)) {
         return 'cancelled';
       }
+      if (LyricsAiOpenRouterClient.isOpenRouter403Forbidden(error)) {
+        final modelName = SettingsService.lyricsModelDisplayName(modelId);
+        final displayName = modelName.isNotEmpty ? modelName : modelId;
+        return _l10n().locationNotSupportedForModel(displayName);
+      }
       return _formatGenerationErrorMessage(
         error,
         fallback: _l10n().unknownTranslationError,
       );
     } catch (error) {
+      if (LyricsAiOpenRouterClient.isOpenRouter403Forbidden(error)) {
+        final modelName = SettingsService.lyricsModelDisplayName(modelId);
+        final displayName = modelName.isNotEmpty ? modelName : modelId;
+        return _l10n().locationNotSupportedForModel(displayName);
+      }
       return _formatGenerationErrorMessage(
         error,
         fallback: _l10n().unknownTranslationError,

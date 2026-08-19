@@ -3873,6 +3873,12 @@ abstract class AppLocalizations {
   /// **'未找到 {providerName} API Key，无法{action}。'**
   String missingApiKeyForAction(Object action, Object providerName);
 
+  /// No description provided for @locationNotSupportedForModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'所在位置不支持 {modelName}'**
+  String locationNotSupportedForModel(String modelName);
+
   /// No description provided for @googleServerFlaky.
   ///
   /// In zh, this message translates to:

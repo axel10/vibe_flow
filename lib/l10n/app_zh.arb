@@ -1303,6 +1303,14 @@
   "googleAiHeavyLoad": "谷歌AI服务遭遇大量请求，暂时不可用",
   "lyricsGenerationFailedWithError": "生成歌词失败：{error}",
   "missingApiKeyForAction": "未找到 {providerName} API Key，无法{action}。",
+  "locationNotSupportedForModel": "所在位置不支持 {modelName}",
+  "@locationNotSupportedForModel": {
+    "placeholders": {
+      "modelName": {
+        "type": "String"
+      }
+    }
+  },
   "googleServerFlaky": "Google服务器开小差了，重试一下或许会成功哦",
   "translateLyricsAction": "翻译歌词",
   "generateLyricsAction": "生成歌词",

@@ -2020,6 +2020,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String locationNotSupportedForModel(String modelName) {
+    return '現在の地域では $modelName はサポートされていません';
+  }
+
+  @override
   String get googleServerFlaky => 'Googleの調子が良くないようです。再試行すると成功する場合があります。';
 
   @override

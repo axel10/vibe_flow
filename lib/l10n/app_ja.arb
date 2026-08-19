@@ -798,6 +798,7 @@
     }
   },
   "missingApiKeyForAction": "{providerName}のAPIキーが見つからないため、{action}は利用できません。",
+  "locationNotSupportedForModel": "現在の地域では {modelName} はサポートされていません",
   "@missingApiKeyForAction": {
     "placeholders": {
       "action": {},

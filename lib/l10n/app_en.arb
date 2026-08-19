@@ -798,6 +798,7 @@
   "googleAiHeavyLoad": "Google AI is under heavy load and is temporarily unavailable.",
   "lyricsGenerationFailedWithError": "Lyrics generation failed: {error}",
   "missingApiKeyForAction": "API key for {providerName} was not found, so {action} is unavailable.",
+  "locationNotSupportedForModel": "Location is not supported for {modelName}",
   "googleServerFlaky": "Google is having a rough moment. Please try again and it may succeed.",
   "translateLyricsAction": "translate lyrics",
   "generateLyricsAction": "generate lyrics",

@@ -793,6 +793,7 @@
   "googleAiHeavyLoad": "Google AI ist stark ausgelastet und vorübergehend nicht verfügbar.",
   "lyricsGenerationFailedWithError": "Songtext-Generierung fehlgeschlagen: {error}",
   "missingApiKeyForAction": "Kein API-Schlüssel für {providerName} gefunden. {action} nicht möglich.",
+  "locationNotSupportedForModel": "Standort wird für {modelName} nicht unterstützt",
   "googleServerFlaky": "Google hat gerade Probleme. Ein erneuter Versuch könnte funktionieren.",
   "translateLyricsAction": "Songtext übersetzen",
   "generateLyricsAction": "Songtext generieren",

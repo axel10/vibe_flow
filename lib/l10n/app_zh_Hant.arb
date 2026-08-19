@@ -627,6 +627,7 @@
   "googleAiHeavyLoad": "Google AI 服務承載大量請求，暫時無法使用",
   "lyricsGenerationFailedWithError": "生成歌詞失敗：{error}",
   "missingApiKeyForAction": "找不到 {providerName} API Key，無法{action}。",
+  "locationNotSupportedForModel": "所在位置不支援 {modelName}",
   "googleServerFlaky": "Google 伺服器暫時有點狀況，重試一下或許就會成功",
   "translateLyricsAction": "翻譯歌詞",
   "generateLyricsAction": "生成歌詞",

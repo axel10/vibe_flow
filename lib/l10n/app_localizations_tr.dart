@@ -2087,6 +2087,11 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String locationNotSupportedForModel(String modelName) {
+    return 'Konumunuz $modelName için desteklenmiyor';
+  }
+
+  @override
   String get googleServerFlaky =>
       'Google sunucuları şu anda yanıt vermekte zorlanıyor. Lütfen tekrar deneyin.';
 

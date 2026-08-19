@@ -871,6 +871,7 @@
   "googleAiHeavyLoad": "Google AI sunucularında yoğunluk var ve geçici olarak kullanılamıyor.",
   "lyricsGenerationFailedWithError": "Söz oluşturma başarısız: {error}",
   "missingApiKeyForAction": "{providerName} API anahtarı bulunamadı, {action} kullanılamaz.",
+  "locationNotSupportedForModel": "Konumunuz {modelName} için desteklenmiyor",
   "googleServerFlaky": "Google sunucuları şu anda yanıt vermekte zorlanıyor. Lütfen tekrar deneyin.",
   "translateLyricsAction": "şarkı sözlerini çevir",
   "generateLyricsAction": "şarkı sözü oluştur",

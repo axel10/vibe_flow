@@ -793,6 +793,7 @@
   "googleAiHeavyLoad": "Google AI est surchargé et temporairement indisponible.",
   "lyricsGenerationFailedWithError": "Échec de la génération des paroles : {error}",
   "missingApiKeyForAction": "Clé API pour {providerName} introuvable. Impossible de {action}.",
+  "locationNotSupportedForModel": "L'emplacement n'est pas pris en charge pour {modelName}",
   "googleServerFlaky": "Google a des difficultés. Réessayez, cela pourrait fonctionner.",
   "translateLyricsAction": "traduire les paroles",
   "generateLyricsAction": "générer les paroles",

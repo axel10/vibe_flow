@@ -2108,6 +2108,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String locationNotSupportedForModel(String modelName) {
+    return 'Standort wird für $modelName nicht unterstützt';
+  }
+
+  @override
   String get googleServerFlaky =>
       'Google hat gerade Probleme. Ein erneuter Versuch könnte funktionieren.';
 

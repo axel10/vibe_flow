@@ -1995,6 +1995,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String locationNotSupportedForModel(String modelName) {
+    return '所在位置不支持 $modelName';
+  }
+
+  @override
   String get googleServerFlaky => 'Google服务器开小差了，重试一下或许会成功哦';
 
   @override
@@ -5540,6 +5545,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String missingApiKeyForAction(Object action, Object providerName) {
     return '找不到 $providerName API Key，無法$action。';
+  }
+
+  @override
+  String locationNotSupportedForModel(String modelName) {
+    return '所在位置不支援 $modelName';
   }
 
   @override

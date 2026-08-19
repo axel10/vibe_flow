@@ -793,6 +793,7 @@
   "googleAiHeavyLoad": "Google AI está bajo gran carga y temporalmente no disponible.",
   "lyricsGenerationFailedWithError": "Error al generar letras: {error}",
   "missingApiKeyForAction": "No se encontró clave API de {providerName}. No se puede {action}.",
+  "locationNotSupportedForModel": "La ubicación no es compatible con {modelName}",
   "googleServerFlaky": "Google está teniendo problemas. Intenta de nuevo y podría funcionar.",
   "translateLyricsAction": "traducir letras",
   "generateLyricsAction": "generar letras",
