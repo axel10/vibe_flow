@@ -27,6 +27,7 @@ import 'package:vynody/player/lyrics/lyrics_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/lyrics/lyrics_generation_phase.dart';
 import 'package:vynody/player/lyrics/lyrics_song_task_state.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 
 class LyricsController extends Notifier<LyricsControllerState> {
@@ -124,6 +125,7 @@ class LyricsController extends Notifier<LyricsControllerState> {
       bumpLyricsLayoutRevision: _bumpLyricsLayoutRevision,
       isLyricsPanelScrolling: () =>
           ref.read(lyricsPanelScrollAnimatingProvider),
+      isProUnlocked: () => ref.read(isProUnlockedProvider),
       logDebug: _logDebug,
     );
     _support = LyricsControllerSupport(_context);

@@ -40,6 +40,9 @@ class LyricsTranslationCoordinator {
   Future<String?> translateLyricsForCurrentSong({
     String? targetLanguageCode,
   }) async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final song = _context.currentMusic();
     if (song == null) {
       return _l10n().noCurrentSongAvailable;
@@ -85,6 +88,9 @@ class LyricsTranslationCoordinator {
     MusicFile song, {
     required String normalizedLanguageCode,
   }) async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final currentSong = _support.songForPath(song.path);
     if (currentSong == null) {
       return _l10n().songNoLongerExistsForTranslation;

@@ -409,6 +409,9 @@ class LyricsGenerationCoordinator {
   }
 
   Future<String?> _generateLyricsForSong(MusicFile song) async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final cancelToken = CancelToken();
     _context.lyricsAiCancelToken = cancelToken;
     try {
@@ -460,6 +463,9 @@ class LyricsGenerationCoordinator {
   }
 
   Future<String?> _generateTimelineForSong(MusicFile song) async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final sourceLyrics = _timelineSourceLyricsForSong(song).trim();
     if (sourceLyrics.isEmpty) {
       debugPrint(
@@ -524,6 +530,9 @@ class LyricsGenerationCoordinator {
   }
 
   Future<String?> generateLyricsForCurrentSong() async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final song = _context.currentMusic();
     if (song == null) {
       debugPrint('[LyricsController] generate lyrics skipped: no current song');
@@ -545,6 +554,9 @@ class LyricsGenerationCoordinator {
   }
 
   Future<String?> generateTimelineForCurrentSong() async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final song = _context.currentMusic();
     if (song == null) {
       debugPrint(
@@ -569,6 +581,9 @@ class LyricsGenerationCoordinator {
   }
 
   Future<String?> regenerateLyricsForCurrentSong() async {
+    if (!_context.isProUnlocked()) {
+      return _l10n().proTrialExpired;
+    }
     final song = _context.currentMusic();
     if (song == null) {
       debugPrint(

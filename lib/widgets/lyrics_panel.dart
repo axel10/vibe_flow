@@ -1626,6 +1626,10 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         bottomSpacerHeight: widget.bottomSpacerHeight,
         bottomTabBarHeight: widget.bottomTabBarHeight,
         onGeneratePressed: () async {
+          if (!await checkProGate(context, ref, feature: ProFeature.aiLyrics)) {
+            return;
+          }
+          if (!context.mounted || !mounted) return;
           if (await _ensureLyricsApiKey()) {
             if (!mounted) return;
             final errorMessage = await _lyricsControllerActions
