@@ -1521,7 +1521,7 @@
   "proFeatureTagCompletionTitle": "楽曲メタデータ自動補完",
   "proFeatureTagCompletionDesc": "MusicBrainzを利用した楽曲タグおよびアルバム情報の自動補完",
   "proFeatureFftVisualizerTitle": "リアルタイム音声FFTスペクトラム",
-  "proFeatureFftVisualizerDesc": "没入感のあるオーディオ視覚化、多彩なスペクトラムと全画面アンビエントモード",
+  "proFeatureFftVisualizerDesc": "クラシックバー、スムーズウェーブ、フローティングキャップ、ラジアルハロー、ネオンマトリックス、ミラーウェーブなど6種類のスペクトラムと全画面アンビエントモード",
   "proFeatureWaveformBarTitle": "動的オーディオ波形プログレスバー",
   "proFeatureWaveformBarDesc": "音声波形をリアルタイム抽出し、滑らかな操作が可能なプログレスバー",
   "proFeatureLanSharingTitle": "LAN音楽ファイル共有",

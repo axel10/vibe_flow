@@ -3439,7 +3439,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      '没入感のあるオーディオ視覚化、多彩なスペクトラムと全画面アンビエントモード';
+      'クラシックバー、スムーズウェーブ、フローティングキャップ、ラジアルハロー、ネオンマトリックス、ミラーウェーブなど6種類のスペクトラムと全画面アンビエントモード';
 
   @override
   String get proFeatureWaveformBarTitle => '動的オーディオ波形プログレスバー';

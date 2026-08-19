@@ -3613,7 +3613,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      'Visualización inmersiva, espectros variados y modo ambiente a pantalla completa';
+      '6 estilos de espectro (Barras clásicas, Onda suave, Tapas flotantes, Halo radial, Matriz de neón, Onda espejada) y modo ambiente a pantalla completa';
 
   @override
   String get proFeatureWaveformBarTitle => 'Barra de progreso de forma de onda';

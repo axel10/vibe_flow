@@ -3575,7 +3575,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      'Sürükleyici ses görselleştirme, çoklu spektrum stilleri ve tam ekran ortam modu';
+      '6 spektrum stili (Klasik Çubuklar, Pürüzsüz Dalga, Kayan Başlıklar, Radyal Işık Halkası, Neon Matris, Aynalanmış Dalga) ve tam ekran ortam modu';
 
   @override
   String get proFeatureWaveformBarTitle =>

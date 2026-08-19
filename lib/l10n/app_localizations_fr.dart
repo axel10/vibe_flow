@@ -3617,7 +3617,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      'Visualisation audio immersive, spectres variés et mode ambiant plein écran';
+      '6 styles de spectre (Barres classiques, Onde fluide, Chapeaux flottants, Halo radial, Matrice néon, Onde miroir) et mode ambiant plein écran';
 
   @override
   String get proFeatureWaveformBarTitle =>

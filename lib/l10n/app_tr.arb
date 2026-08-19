@@ -1546,7 +1546,7 @@
   "proFeatureTagCompletionTitle": "Şarkı Meta Verilerini Otomatik Tamamlama",
   "proFeatureTagCompletionDesc": "MusicBrainz ile şarkı etiketlerini ve albüm meta verilerini otomatik tamamlama",
   "proFeatureFftVisualizerTitle": "Gerçek Zamanlı FFT Ses Spektrumu",
-  "proFeatureFftVisualizerDesc": "Sürükleyici ses görselleştirme, çoklu spektrum stilleri ve tam ekran ortam modu",
+  "proFeatureFftVisualizerDesc": "6 spektrum stili (Klasik Çubuklar, Pürüzsüz Dalga, Kayan Başlıklar, Radyal Işık Halkası, Neon Matris, Aynalanmış Dalga) ve tam ekran ortam modu",
   "proFeatureWaveformBarTitle": "Dinamik Ses Dalgası İlerleme Çubuğu",
   "proFeatureWaveformBarDesc": "Gerçek zamanlı dalga formu çıkarma ve akıcı etkileşimli arama",
   "proFeatureLanSharingTitle": "LAN Müzik Dosyası Paylaşımı",

@@ -3604,7 +3604,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      'Immersive Audiovisualisierung, vielseitige Spektren und Vollbild-Ambient-Modus';
+      '6 Spektrum-Stile (Klassische Balken, Glatte Welle, Schwebende Kappen, Radial Halo, Neon-Matrix, Gespiegelte Welle) & Vollbild-Ambient-Modus';
 
   @override
   String get proFeatureWaveformBarTitle =>

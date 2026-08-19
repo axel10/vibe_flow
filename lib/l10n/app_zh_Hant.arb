@@ -1117,7 +1117,7 @@
   "proFeatureTagCompletionTitle": "歌曲元數據自動補全",
   "proFeatureTagCompletionDesc": "基於 MusicBrainz 自動補全歌曲標籤與專輯元數據資訊",
   "proFeatureFftVisualizerTitle": "即時音訊 FFT 頻譜",
-  "proFeatureFftVisualizerDesc": "沉浸式音訊視覺化動效、多樣式頻譜與全螢幕氛圍模式",
+  "proFeatureFftVisualizerDesc": "支援經典柱狀、平滑波浪、浮動頂帽、環形光暈、點陣矩陣、對稱鏡像波等 6 種頻譜樣式與全螢幕氛圍模式",
   "proFeatureWaveformBarTitle": "動態音訊波形進度條",
   "proFeatureWaveformBarDesc": "即時擷取音訊振幅波形，高幀率動態互動進度條",
   "proFeatureLanSharingTitle": "區域網路歌曲檔案分享",

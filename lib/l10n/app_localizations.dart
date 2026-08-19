@@ -6384,7 +6384,7 @@ abstract class AppLocalizations {
   /// Pro feature description for FFT audio visualizer
   ///
   /// In zh, this message translates to:
-  /// **'沉浸式音频可视化动效、多样式频谱与全屏氛围模式'**
+  /// **'支持经典柱状、平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式与全屏氛围模式'**
   String get proFeatureFftVisualizerDesc;
 
   /// Pro feature title for dynamic waveform progress bar

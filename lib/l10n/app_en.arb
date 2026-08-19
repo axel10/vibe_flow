@@ -1505,7 +1505,7 @@
   "proFeatureTagCompletionTitle": "Song Metadata Auto-Completion",
   "proFeatureTagCompletionDesc": "Auto-complete tags and album metadata via MusicBrainz",
   "proFeatureFftVisualizerTitle": "Real-time FFT Audio Spectrum",
-  "proFeatureFftVisualizerDesc": "Immersive audio visualization, multi-style spectrum, and full-screen ambient mode",
+  "proFeatureFftVisualizerDesc": "6 spectrum styles (Classic Bars, Smooth Wave, Floating Caps, Radial Halo, Neon Matrix, Mirrored Wave) & full-screen ambient mode",
   "proFeatureWaveformBarTitle": "Dynamic Waveform Progress Bar",
   "proFeatureWaveformBarDesc": "Real-time audio waveform extraction with high-frame-rate interactive seeking",
   "proFeatureLanSharingTitle": "LAN Music File Sharing",

@@ -3568,7 +3568,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      'Immersive audio visualization, multi-style spectrum, and full-screen ambient mode';
+      '6 spectrum styles (Classic Bars, Smooth Wave, Floating Caps, Radial Halo, Neon Matrix, Mirrored Wave) & full-screen ambient mode';
 
   @override
   String get proFeatureWaveformBarTitle => 'Dynamic Waveform Progress Bar';

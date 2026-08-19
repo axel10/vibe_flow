@@ -3442,7 +3442,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get proFeatureFftVisualizerDesc =>
-      '몰입형 오디오 시각화, 다양한 스타일의 스펙트럼 및 전체 화면 앰비언트 모드';
+      '클래식 바, 스무스 웨이브, 플로팅 캡, 래디얼 헤일로, 네온 매트릭스, 미러 웨이브 등 6가지 스펙트럼 스타일 및 전체 화면 앰비언트 모드';
 
   @override
   String get proFeatureWaveformBarTitle => '동적 오디오 파형 진행률 바';

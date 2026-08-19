@@ -1422,7 +1422,7 @@
   "proFeatureTagCompletionTitle": "Metadaten-Autovervollständigung",
   "proFeatureTagCompletionDesc": "Automatische Vervollständigung von Tags und Album-Metadaten über MusicBrainz",
   "proFeatureFftVisualizerTitle": "Echtzeit-FFT-Audiospektrum",
-  "proFeatureFftVisualizerDesc": "Immersive Audiovisualisierung, vielseitige Spektren und Vollbild-Ambient-Modus",
+  "proFeatureFftVisualizerDesc": "6 Spektrum-Stile (Klassische Balken, Glatte Welle, Schwebende Kappen, Radial Halo, Neon-Matrix, Gespiegelte Welle) & Vollbild-Ambient-Modus",
   "proFeatureWaveformBarTitle": "Dynamische Wellenform-Fortschrittsleiste",
   "proFeatureWaveformBarDesc": "Echtzeit-Wellenformextraktion mit flüssiger interaktiver Suche",
   "proFeatureLanSharingTitle": "LAN-Musikfreigabe",

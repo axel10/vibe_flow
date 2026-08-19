@@ -3387,7 +3387,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get proFeatureFftVisualizerTitle => '实时音频 FFT 频谱';
 
   @override
-  String get proFeatureFftVisualizerDesc => '沉浸式音频可视化动效、多样式频谱与全屏氛围模式';
+  String get proFeatureFftVisualizerDesc =>
+      '支持经典柱状、平滑波浪、浮动顶帽、环形光晕、点阵矩阵、对称镜像波等 6 种频谱样式与全屏氛围模式';
 
   @override
   String get proFeatureWaveformBarTitle => '动态音频波形进度条';
@@ -6915,7 +6916,8 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get proFeatureFftVisualizerTitle => '即時音訊 FFT 頻譜';
 
   @override
-  String get proFeatureFftVisualizerDesc => '沉浸式音訊視覺化動效、多樣式頻譜與全螢幕氛圍模式';
+  String get proFeatureFftVisualizerDesc =>
+      '支援經典柱狀、平滑波浪、浮動頂帽、環形光暈、點陣矩陣、對稱鏡像波等 6 種頻譜樣式與全螢幕氛圍模式';
 
   @override
   String get proFeatureWaveformBarTitle => '動態音訊波形進度條';

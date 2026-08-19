@@ -1422,7 +1422,7 @@
   "proFeatureTagCompletionTitle": "음악 메타데이터 자동 완성",
   "proFeatureTagCompletionDesc": "MusicBrainz를 통한 곡 태그 및 앨범 메타데이터 자동 완성",
   "proFeatureFftVisualizerTitle": "실시간 FFT 오디오 스펙트럼",
-  "proFeatureFftVisualizerDesc": "몰입형 오디오 시각화, 다양한 스타일의 스펙트럼 및 전체 화면 앰비언트 모드",
+  "proFeatureFftVisualizerDesc": "클래식 바, 스무스 웨이브, 플로팅 캡, 래디얼 헤일로, 네온 매트릭스, 미러 웨이브 등 6가지 스펙트럼 스타일 및 전체 화면 앰비언트 모드",
   "proFeatureWaveformBarTitle": "동적 오디오 파형 진행률 바",
   "proFeatureWaveformBarDesc": "실시간 오디오 진폭 파형 추출 및 부드러운 인터랙티브 탐색",
   "proFeatureLanSharingTitle": "LAN 음악 파일 공유",
