@@ -9,6 +9,7 @@ import 'package:audio_service_mpris/mpris.dart';
 import 'package:audio_service_mpris/metadata.dart';
 import 'package:dbus/dbus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:vynody/player/audio/audio_service.dart' as app; // To distinguish from package:audio_service
 import 'package:vynody/player/audio/audio_handler.dart';
 import 'package:vynody/models/music_file.dart';
@@ -44,6 +45,24 @@ class CustomMprisObject extends OrgMprisMediaPlayer2 {
       ]),
       super.introspect()[1],
     ];
+  }
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.interface == 'org.mpris.MediaPlayer2') {
+      if (methodCall.name == 'Raise') {
+        try {
+          await windowManager.show();
+          await windowManager.focus();
+        } catch (e) {
+          debugPrint('Error raising window from MPRIS: $e');
+        }
+        return DBusMethodSuccessResponse();
+      } else if (methodCall.name == 'Quit') {
+        exit(0);
+      }
+    }
+    return super.handleMethodCall(methodCall);
   }
 
   @override
