@@ -10,6 +10,7 @@
 #include <memory>
 #include <shobjidl.h>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Services.Store.h>
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
@@ -90,17 +91,7 @@ bool FlutterWindow::OnCreate() {
                       for (auto const& pair : addOnLicenses) {
                         auto const& addOn = pair.Value();
                         if (addOn.IsActive()) {
-                          if (addOn.IsTrial()) {
-                            isProTrial = true;
-                            auto timeRemaining = addOn.TrialTimeRemaining();
-                            int64_t sec = std::chrono::duration_cast<std::chrono::seconds>(timeRemaining).count();
-                            if (sec > remainingSeconds) {
-                              remainingSeconds = sec;
-                              remainingDays = static_cast<int>(std::ceil(static_cast<double>(sec) / 86400.0));
-                            }
-                          } else {
-                            isProPurchased = true;
-                          }
+                          isProPurchased = true;
                         }
                       }
 
