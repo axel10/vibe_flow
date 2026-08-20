@@ -79,23 +79,47 @@ bool FlutterWindow::OnCreate() {
                   try {
                     if (status == winrt::Windows::Foundation::AsyncStatus::Completed) {
                       auto license = asyncOp.GetResults();
-                      bool isActive = license.IsActive();
-                      bool isTrial = license.IsTrial();
+                      bool isAppActive = license.IsActive();
+                      bool isProPurchased = false;
+                      bool isProTrial = false;
                       int remainingDays = 0;
                       int64_t remainingSeconds = 0;
 
-                      if (isTrial) {
+                      // Check Add-on licenses (e.g. 9NS00LQ3KGZN / pro_lifetime)
+                      auto addOnLicenses = license.AddOnLicenses();
+                      for (auto const& pair : addOnLicenses) {
+                        auto const& addOn = pair.Value();
+                        if (addOn.IsActive()) {
+                          if (addOn.IsTrial()) {
+                            isProTrial = true;
+                            auto timeRemaining = addOn.TrialTimeRemaining();
+                            int64_t sec = std::chrono::duration_cast<std::chrono::seconds>(timeRemaining).count();
+                            if (sec > remainingSeconds) {
+                              remainingSeconds = sec;
+                              remainingDays = static_cast<int>(std::ceil(static_cast<double>(sec) / 86400.0));
+                            }
+                          } else {
+                            isProPurchased = true;
+                          }
+                        }
+                      }
+
+                      // Fallback: If base app itself is configured with a store trial
+                      if (!isProPurchased && license.IsTrial()) {
+                        isProTrial = true;
                         auto timeRemaining = license.TrialTimeRemaining();
-                        remainingSeconds = std::chrono::duration_cast<std::chrono::seconds>(timeRemaining).count();
-                        if (remainingSeconds > 0) {
-                          remainingDays = static_cast<int>(std::ceil(static_cast<double>(remainingSeconds) / 86400.0));
+                        int64_t sec = std::chrono::duration_cast<std::chrono::seconds>(timeRemaining).count();
+                        if (sec > remainingSeconds) {
+                          remainingSeconds = sec;
+                          remainingDays = static_cast<int>(std::ceil(static_cast<double>(sec) / 86400.0));
                         }
                       }
 
                       flutter::EncodableMap res;
                       res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(true);
-                      res[flutter::EncodableValue("isActive")] = flutter::EncodableValue(isActive);
-                      res[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(isTrial);
+                      res[flutter::EncodableValue("isActive")] = flutter::EncodableValue(isAppActive);
+                      res[flutter::EncodableValue("isProPurchased")] = flutter::EncodableValue(isProPurchased);
+                      res[flutter::EncodableValue("isTrial")] = flutter::EncodableValue(isProTrial);
                       res[flutter::EncodableValue("remainingDays")] = flutter::EncodableValue(remainingDays);
                       res[flutter::EncodableValue("remainingSeconds")] = flutter::EncodableValue(remainingSeconds);
 
@@ -121,6 +145,68 @@ bool FlutterWindow::OnCreate() {
             flutter::EncodableMap res;
             res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(false);
             result_ptr->Success(flutter::EncodableValue(res));
+          }
+        } else if (call.method_name() == "purchaseStoreProduct") {
+          auto result_ptr = std::shared_ptr<flutter::MethodResult<flutter::EncodableValue>>(std::move(result));
+          try {
+            UINT32 length = 0;
+            LONG rc = GetCurrentPackageFullName(&length, NULL);
+            if (rc == APPMODEL_ERROR_NO_PACKAGE) {
+              flutter::EncodableMap res;
+              res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(false);
+              res[flutter::EncodableValue("success")] = flutter::EncodableValue(false);
+              result_ptr->Success(flutter::EncodableValue(res));
+              return;
+            }
+
+            std::string store_id_str = "9NS00LQ3KGZN";
+            if (auto args = std::get_if<flutter::EncodableMap>(call.arguments())) {
+              auto it = args->find(flutter::EncodableValue("storeId"));
+              if (it != args->end() && std::holds_alternative<std::string>(it->second)) {
+                store_id_str = std::get<std::string>(it->second);
+              }
+            }
+
+            winrt::Windows::Services::Store::StoreContext context =
+                winrt::Windows::Services::Store::StoreContext::GetDefault();
+
+            auto initWindow = context.try_as<IInitializeWithWindow>();
+            if (initWindow && hwnd != nullptr) {
+              initWindow->Initialize(hwnd);
+            }
+
+            winrt::hstring storeId = winrt::to_hstring(store_id_str);
+            context.RequestPurchaseAsync(storeId).Completed(
+                [result_ptr](winrt::Windows::Foundation::IAsyncOperation<winrt::Windows::Services::Store::StorePurchaseResult> const& asyncOp,
+                             winrt::Windows::Foundation::AsyncStatus const status) {
+                  try {
+                    if (status == winrt::Windows::Foundation::AsyncStatus::Completed) {
+                      auto purchaseResult = asyncOp.GetResults();
+                      auto purchaseStatus = purchaseResult.Status();
+                      bool success = (purchaseStatus == winrt::Windows::Services::Store::StorePurchaseStatus::Succeeded ||
+                                      purchaseStatus == winrt::Windows::Services::Store::StorePurchaseStatus::AlreadyPurchased);
+                      flutter::EncodableMap res;
+                      res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(true);
+                      res[flutter::EncodableValue("success")] = flutter::EncodableValue(success);
+                      res[flutter::EncodableValue("status")] = flutter::EncodableValue(static_cast<int>(purchaseStatus));
+                      result_ptr->Success(flutter::EncodableValue(res));
+                    } else {
+                      flutter::EncodableMap res;
+                      res[flutter::EncodableValue("isPackaged")] = flutter::EncodableValue(true);
+                      res[flutter::EncodableValue("success")] = flutter::EncodableValue(false);
+                      res[flutter::EncodableValue("status")] = flutter::EncodableValue(-1);
+                      result_ptr->Success(flutter::EncodableValue(res));
+                    }
+                  } catch (const std::exception& ex) {
+                    result_ptr->Error("PURCHASE_EXCEPTION", ex.what());
+                  } catch (...) {
+                    result_ptr->Error("PURCHASE_EXCEPTION", "Unknown winrt exception during purchase");
+                  }
+                });
+          } catch (const std::exception& ex) {
+            result_ptr->Error("PURCHASE_EXCEPTION", ex.what());
+          } catch (...) {
+            result_ptr->Error("PURCHASE_EXCEPTION", "Unknown winrt exception");
           }
         } else {
           result->NotImplemented();

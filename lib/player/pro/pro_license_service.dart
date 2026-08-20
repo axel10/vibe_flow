@@ -40,11 +40,11 @@ class ProLicenseService extends ChangeNotifier {
         const channel = MethodChannel('vynody/single_instance');
         final dynamic res = await channel.invokeMethod('getStoreLicense');
         if (res is Map && res['isPackaged'] == true) {
-          final isTrial = res['isTrial'] as bool? ?? true;
+          final isProPurchased = res['isProPurchased'] as bool? ?? false;
+          final isTrial = res['isTrial'] as bool? ?? false;
           final remainingDays = res['remainingDays'] as int? ?? 0;
-          final isActive = res['isActive'] as bool? ?? true;
 
-          if (!isTrial && isActive) {
+          if (isProPurchased) {
             _state = const LicenseState(type: LicenseType.purchasedPro);
             notifyListeners();
             return;
@@ -56,7 +56,7 @@ class ProLicenseService extends ChangeNotifier {
             );
             notifyListeners();
             return;
-          } else {
+          } else if (isTrial && remainingDays <= 0) {
             _state = const LicenseState(
               type: LicenseType.expiredTrial,
               trialTotalDays: ProConfig.trialDays,

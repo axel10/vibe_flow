@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -148,12 +149,27 @@ class IapService extends ChangeNotifier {
     if (_state.isPurchasing) return false;
 
     if (Platform.isWindows) {
-      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=${ProConfig.msStoreProductId}');
+      try {
+        const channel = MethodChannel('vynody/single_instance');
+        final dynamic res = await channel.invokeMethod('purchaseStoreProduct', {
+          'storeId': ProConfig.msStoreAddOnId,
+        });
+        if (res is Map && res['success'] == true) {
+          await _ref.read(proLicenseServiceProvider).refreshLicense();
+          showToast(currentAppL10n.iapPurchaseSuccess);
+          return true;
+        }
+      } catch (e) {
+        debugPrint('[IAP] Native MS Store purchase failed/skipped: $e');
+      }
+
+      // Fallback: Launch Microsoft Store PDP for the Add-on
+      final storeUri = Uri.parse('ms-windows-store://pdp/?productid=${ProConfig.msStoreAddOnId}');
       try {
         if (await canLaunchUrl(storeUri)) {
           await launchUrl(storeUri);
         } else {
-          final webUri = Uri.parse('https://apps.microsoft.com/detail/${ProConfig.msStoreProductId}');
+          final webUri = Uri.parse('https://apps.microsoft.com/detail/${ProConfig.msStoreAddOnId}');
           await launchUrl(webUri);
         }
         return true;

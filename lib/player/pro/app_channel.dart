@@ -58,11 +58,20 @@ class ProConfig {
     defaultValue: 15,
   );
 
-  /// Microsoft Store Product ID for StoreKit / URI purchase redirection.
+  /// Microsoft Store Product ID for the main application (used for store review, etc.).
   static const String msStoreProductId = String.fromEnvironment(
     'MS_STORE_PRODUCT_ID',
     defaultValue: '9NMZRZZ6RSD3',
   );
+
+  /// Microsoft Store Add-on (IAP) Store ID for Pro Lifetime (15-day trial & lifetime purchase).
+  static const String msStoreAddOnId = String.fromEnvironment(
+    'MS_STORE_ADDON_ID',
+    defaultValue: '9NS00LQ3KGZN',
+  );
+
+  /// In-App Offer Token configured in Partner Center for this add-on.
+  static const String msStoreInAppOfferToken = 'pro_lifetime';
 }
 
 
