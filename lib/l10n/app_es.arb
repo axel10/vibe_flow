@@ -414,7 +414,7 @@
   "googleAiStudioApiKeyDescription": "Se usa para generación de letras, generación de línea de tiempo y traducción en Google AI Studio.",
   "pasteGoogleAiStudioApiKey": "Pegar clave API de Google AI Studio",
   "enterOpenRouterApiKeyTitle": "Ingresar clave API de OpenRouter",
-  "openRouterApiKeyDescription": "Se usa para generación de letras y línea de tiempo en OpenRouter. La traducción siempre usa Gemini.",
+  "openRouterApiKeyDescription": "Se usa para generación de letras, línea de tiempo y traducción de letras en OpenRouter.",
   "pasteOpenRouterApiKey": "Pegar clave API de OpenRouter",
   "enterGeminiApiKeyTitle": "Ingresar clave API de Gemini",
   "geminiApiKeyDescription": "Se usa para traducción de letras.",

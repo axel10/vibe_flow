@@ -1102,7 +1102,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'Se usa para generación de letras y línea de tiempo en OpenRouter. La traducción siempre usa Gemini.';
+      'Se usa para generación de letras, línea de tiempo y traducción de letras en OpenRouter.';
 
   @override
   String get pasteOpenRouterApiKey => 'Pegar clave API de OpenRouter';

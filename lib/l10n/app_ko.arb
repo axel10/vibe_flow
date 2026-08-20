@@ -414,7 +414,7 @@
   "googleAiStudioApiKeyDescription": "Google AI Studio에서 가사 생성, 타임라인 생성 및 번역에 사용됩니다.",
   "pasteGoogleAiStudioApiKey": "Google AI Studio API 키 붙여넣기",
   "enterOpenRouterApiKeyTitle": "OpenRouter API 키 입력",
-  "openRouterApiKeyDescription": "OpenRouter에서 가사 생성 및 타임라인 생성에 사용됩니다. 번역은 항상 Gemini를 사용합니다.",
+  "openRouterApiKeyDescription": "OpenRouter에서 가사 생성, 타임라인 생성 및 가사 번역에 사용됩니다.",
   "pasteOpenRouterApiKey": "OpenRouter API 키 붙여넣기",
   "enterGeminiApiKeyTitle": "Gemini API 키 입력",
   "geminiApiKeyDescription": "가사 번역에 사용됩니다.",

@@ -414,7 +414,7 @@
   "googleAiStudioApiKeyDescription": "Wird für Songtext-Generierung, Zeitachse und Übersetzung verwendet.",
   "pasteGoogleAiStudioApiKey": "Google AI Studio-API-Schlüssel einfügen",
   "enterOpenRouterApiKeyTitle": "OpenRouter-API-Schlüssel eingeben",
-  "openRouterApiKeyDescription": "Für Songtext- und Zeitachsen-Generierung. Übersetzung verwendet immer Gemini.",
+  "openRouterApiKeyDescription": "Für OpenRouter-Songtext-Generierung, Zeitachsen-Generierung und Songtext-Übersetzung.",
   "pasteOpenRouterApiKey": "OpenRouter-API-Schlüssel einfügen",
   "enterGeminiApiKeyTitle": "Gemini-API-Schlüssel eingeben",
   "geminiApiKeyDescription": "Wird für die Songtext-Übersetzung verwendet.",

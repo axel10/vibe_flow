@@ -1063,7 +1063,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'OpenRouterでの歌詞生成とタイムライン生成に使用されます。翻訳は常にGeminiを使用します。';
+      'OpenRouterでの歌詞生成、タイムライン生成、歌詞翻訳に使用されます。';
 
   @override
   String get pasteOpenRouterApiKey => 'OpenRouter APIキーを貼り付け';

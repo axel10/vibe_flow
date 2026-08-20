@@ -419,7 +419,7 @@
   "googleAiStudioApiKeyDescription": "Used for lyric generation, timeline generation, and translation in Google AI Studio.",
   "pasteGoogleAiStudioApiKey": "Paste Google AI Studio API Key",
   "enterOpenRouterApiKeyTitle": "Enter OpenRouter API Key",
-  "openRouterApiKeyDescription": "Used for lyric generation and timeline generation in OpenRouter. Translation always uses Gemini.",
+  "openRouterApiKeyDescription": "Used for OpenRouter lyric generation, timeline generation, and lyric translation.",
   "pasteOpenRouterApiKey": "Paste OpenRouter API Key",
   "enterGeminiApiKeyTitle": "Enter Gemini API Key",
   "geminiApiKeyDescription": "Used for lyric translation.",

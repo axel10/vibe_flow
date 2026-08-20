@@ -907,7 +907,7 @@
   "googleAiStudioApiKeyDescription": "用于 Google AI Studio 的歌词生成、时间轴生成和翻译。",
   "pasteGoogleAiStudioApiKey": "粘贴 Google AI Studio API Key",
   "enterOpenRouterApiKeyTitle": "填写 OpenRouter API Key",
-  "openRouterApiKeyDescription": "用于 OpenRouter 的歌词生成和时间轴生成，翻译始终走 Gemini。",
+  "openRouterApiKeyDescription": "用于 OpenRouter 歌词生成、时间轴生成和歌词翻译。",
   "pasteOpenRouterApiKey": "粘贴 OpenRouter API Key",
   "enterGeminiApiKeyTitle": "填写 Gemini API Key",
   "geminiApiKeyDescription": "用于歌词翻译。",

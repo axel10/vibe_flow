@@ -1098,7 +1098,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'Für Songtext- und Zeitachsen-Generierung. Übersetzung verwendet immer Gemini.';
+      'Für OpenRouter-Songtext-Generierung, Zeitachsen-Generierung und Songtext-Übersetzung.';
 
   @override
   String get pasteOpenRouterApiKey => 'OpenRouter-API-Schlüssel einfügen';

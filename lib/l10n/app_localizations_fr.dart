@@ -1100,7 +1100,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'Utilisé pour la génération de paroles et de chronologie. La traduction utilise toujours Gemini.';
+      'Utilisé pour la génération de paroles, de chronologie et la traduction de paroles dans OpenRouter.';
 
   @override
   String get pasteOpenRouterApiKey => 'Coller la clé API OpenRouter';

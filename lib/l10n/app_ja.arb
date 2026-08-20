@@ -414,7 +414,7 @@
   "googleAiStudioApiKeyDescription": "Google AI Studioでの歌詞生成、タイムライン生成、翻訳に使用されます。",
   "pasteGoogleAiStudioApiKey": "Google AI Studio APIキーを貼り付け",
   "enterOpenRouterApiKeyTitle": "OpenRouter APIキーを入力",
-  "openRouterApiKeyDescription": "OpenRouterでの歌詞生成とタイムライン生成に使用されます。翻訳は常にGeminiを使用します。",
+  "openRouterApiKeyDescription": "OpenRouterでの歌詞生成、タイムライン生成、歌詞翻訳に使用されます。",
   "pasteOpenRouterApiKey": "OpenRouter APIキーを貼り付け",
   "enterGeminiApiKeyTitle": "Gemini APIキーを入力",
   "geminiApiKeyDescription": "歌詞の翻訳に使用されます。",

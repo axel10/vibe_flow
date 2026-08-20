@@ -1068,7 +1068,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'OpenRouter에서 가사 생성 및 타임라인 생성에 사용됩니다. 번역은 항상 Gemini를 사용합니다.';
+      'OpenRouter에서 가사 생성, 타임라인 생성 및 가사 번역에 사용됩니다.';
 
   @override
   String get pasteOpenRouterApiKey => 'OpenRouter API 키 붙여넣기';

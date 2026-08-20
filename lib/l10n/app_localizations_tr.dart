@@ -1088,7 +1088,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'OpenRouter\'da söz oluşturma ve zaman çizelgesi hizalama için kullanılır. Çeviri her zaman Gemini kullanır.';
+      'OpenRouter\'da söz oluşturma, zaman çizelgesi hizalama ve söz çevirisi için kullanılır.';
 
   @override
   String get pasteOpenRouterApiKey => 'OpenRouter API Anahtarını yapıştırın';

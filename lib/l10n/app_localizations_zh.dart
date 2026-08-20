@@ -1058,8 +1058,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterOpenRouterApiKeyTitle => '填写 OpenRouter API Key';
 
   @override
-  String get openRouterApiKeyDescription =>
-      '用于 OpenRouter 的歌词生成和时间轴生成，翻译始终走 Gemini。';
+  String get openRouterApiKeyDescription => '用于 OpenRouter 歌词生成、时间轴生成和歌词翻译。';
 
   @override
   String get pasteOpenRouterApiKey => '粘贴 OpenRouter API Key';
@@ -4611,8 +4610,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get enterOpenRouterApiKeyTitle => '填寫 OpenRouter API Key';
 
   @override
-  String get openRouterApiKeyDescription =>
-      '用於 OpenRouter 的歌詞生成和時間軸生成，翻譯始終使用 Gemini。';
+  String get openRouterApiKeyDescription => '用於 OpenRouter 歌詞生成、時間軸生成和歌詞翻譯。';
 
   @override
   String get pasteOpenRouterApiKey => '貼上 OpenRouter API Key';

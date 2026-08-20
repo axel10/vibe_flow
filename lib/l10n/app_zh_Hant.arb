@@ -334,7 +334,7 @@
   "googleAiStudioApiKeyDescription": "用於 Google AI Studio 的歌詞生成、時間軸生成和翻譯。",
   "pasteGoogleAiStudioApiKey": "貼上 Google AI Studio API Key",
   "enterOpenRouterApiKeyTitle": "填寫 OpenRouter API Key",
-  "openRouterApiKeyDescription": "用於 OpenRouter 的歌詞生成和時間軸生成，翻譯始終使用 Gemini。",
+  "openRouterApiKeyDescription": "用於 OpenRouter 歌詞生成、時間軸生成和歌詞翻譯。",
   "pasteOpenRouterApiKey": "貼上 OpenRouter API Key",
   "enterGeminiApiKeyTitle": "填寫 Gemini API Key",
   "geminiApiKeyDescription": "用於歌詞翻譯。",

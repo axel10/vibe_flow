@@ -414,7 +414,7 @@
   "googleAiStudioApiKeyDescription": "Utilisé pour la génération de paroles, la chronologie et la traduction.",
   "pasteGoogleAiStudioApiKey": "Coller la clé API Google AI Studio",
   "enterOpenRouterApiKeyTitle": "Saisir la clé API OpenRouter",
-  "openRouterApiKeyDescription": "Utilisé pour la génération de paroles et de chronologie. La traduction utilise toujours Gemini.",
+  "openRouterApiKeyDescription": "Utilisé pour la génération de paroles, de chronologie et la traduction de paroles dans OpenRouter.",
   "pasteOpenRouterApiKey": "Coller la clé API OpenRouter",
   "enterGeminiApiKeyTitle": "Saisir la clé API Gemini",
   "geminiApiKeyDescription": "Utilisé pour la traduction des paroles.",

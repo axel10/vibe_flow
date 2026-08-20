@@ -1085,7 +1085,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openRouterApiKeyDescription =>
-      'Used for lyric generation and timeline generation in OpenRouter. Translation always uses Gemini.';
+      'Used for OpenRouter lyric generation, timeline generation, and lyric translation.';
 
   @override
   String get pasteOpenRouterApiKey => 'Paste OpenRouter API Key';

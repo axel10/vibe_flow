@@ -2118,7 +2118,7 @@ abstract class AppLocalizations {
   /// No description provided for @openRouterApiKeyDescription.
   ///
   /// In zh, this message translates to:
-  /// **'用于 OpenRouter 的歌词生成和时间轴生成，翻译始终走 Gemini。'**
+  /// **'用于 OpenRouter 歌词生成、时间轴生成和歌词翻译。'**
   String get openRouterApiKeyDescription;
 
   /// No description provided for @pasteOpenRouterApiKey.

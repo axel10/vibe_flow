@@ -478,7 +478,7 @@
   "googleAiStudioApiKeyDescription": "Google AI Studio'da söz oluşturma, zaman çizelgesi hizalama ve çeviri için kullanılır.",
   "pasteGoogleAiStudioApiKey": "Google AI Studio API Anahtarını yapıştırın",
   "enterOpenRouterApiKeyTitle": "OpenRouter API Anahtarını Girin",
-  "openRouterApiKeyDescription": "OpenRouter'da söz oluşturma ve zaman çizelgesi hizalama için kullanılır. Çeviri her zaman Gemini kullanır.",
+  "openRouterApiKeyDescription": "OpenRouter'da söz oluşturma, zaman çizelgesi hizalama ve söz çevirisi için kullanılır.",
   "pasteOpenRouterApiKey": "OpenRouter API Anahtarını yapıştırın",
   "enterGeminiApiKeyTitle": "Gemini API Anahtarını Girin",
   "geminiApiKeyDescription": "Şarkı sözü çevirisi için kullanılır.",
