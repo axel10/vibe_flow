@@ -303,15 +303,22 @@ class PlaybackControls extends ConsumerWidget {
                     ),
                     if (sleepTimerRemaining != null) ...[
                       const SizedBox(height: 2),
-                      Text(
-                        _formatSleepTimer(sleepTimerRemaining),
-                        maxLines: 1,
-                        overflow: TextOverflow.visible,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 10 * controlsScale,
-                          height: 1.0,
-                          fontWeight: FontWeight.w600,
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 1.0 * controlsScale,
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _formatSleepTimer(sleepTimerRemaining),
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 10 * controlsScale,
+                              height: 1.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ],
