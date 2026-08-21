@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
@@ -20,11 +21,75 @@ class ProLicenseService extends ChangeNotifier {
   }
 
   final SharedPreferences? _prefs;
+  static const _secureStorage = FlutterSecureStorage(
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    mOptions: MacOsOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
+
   LicenseState _state = const LicenseState(
     type: LicenseType.unlimitedCommunity,
   );
 
   LicenseState get state => _state;
+
+  /// Reads the trial start timestamp from SharedPreferences, Windows PasswordVault, or Keychain.
+  Future<int?> _readPersistentFirstLaunchMs(SharedPreferences prefs) async {
+    // 1. Fast check in SharedPreferences
+    final prefMs = prefs.getInt(_kFirstLaunchTimeKey);
+    if (prefMs != null && prefMs > 0) {
+      return prefMs;
+    }
+
+    // 2. Windows: check PasswordVault via native MethodChannel
+    if (Platform.isWindows) {
+      try {
+        const channel = MethodChannel('vynody/single_instance');
+        final dynamic vaultMs = await channel.invokeMethod('getSecureVaultTrialTime');
+        if (vaultMs is int && vaultMs > 0) {
+          await prefs.setInt(_kFirstLaunchTimeKey, vaultMs);
+          return vaultMs;
+        }
+      } catch (e) {
+        debugPrint('[ProLicenseService] Failed to read trial time from PasswordVault: $e');
+      }
+    }
+
+    // 3. Apple/Other: check Keychain via FlutterSecureStorage
+    try {
+      final secureVal = await _secureStorage.read(key: _kFirstLaunchTimeKey);
+      if (secureVal != null) {
+        final parsed = int.tryParse(secureVal);
+        if (parsed != null && parsed > 0) {
+          await prefs.setInt(_kFirstLaunchTimeKey, parsed);
+          return parsed;
+        }
+      }
+    } catch (e) {
+      debugPrint('[ProLicenseService] Failed to read trial time from SecureStorage: $e');
+    }
+
+    return null;
+  }
+
+  /// Writes the trial start timestamp to SharedPreferences, Windows PasswordVault, and Keychain.
+  Future<void> _writePersistentFirstLaunchMs(SharedPreferences prefs, int epochMs) async {
+    await prefs.setInt(_kFirstLaunchTimeKey, epochMs);
+
+    if (Platform.isWindows) {
+      try {
+        const channel = MethodChannel('vynody/single_instance');
+        await channel.invokeMethod('setSecureVaultTrialTime', {'epochMs': epochMs});
+      } catch (e) {
+        debugPrint('[ProLicenseService] Failed to write trial time to PasswordVault: $e');
+      }
+    }
+
+    try {
+      await _secureStorage.write(key: _kFirstLaunchTimeKey, value: epochMs.toString());
+    } catch (e) {
+      debugPrint('[ProLicenseService] Failed to write trial time to SecureStorage: $e');
+    }
+  }
 
   Future<void> _init() async {
     // 1. If running GitHub Community build, permanently unlock.
@@ -82,12 +147,15 @@ class ProLicenseService extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    int? firstLaunchMs = prefs.getInt(_kFirstLaunchTimeKey);
+    int? firstLaunchMs = await _readPersistentFirstLaunchMs(prefs);
 
     if (firstLaunchMs == null) {
       // First time launching Store version: record start timestamp
       firstLaunchMs = now.millisecondsSinceEpoch;
-      await prefs.setInt(_kFirstLaunchTimeKey, firstLaunchMs);
+      await _writePersistentFirstLaunchMs(prefs, firstLaunchMs);
+    } else {
+      // Ensure all persistent layers are in sync
+      await _writePersistentFirstLaunchMs(prefs, firstLaunchMs);
     }
 
     final firstLaunchTime = DateTime.fromMillisecondsSinceEpoch(firstLaunchMs);
@@ -138,7 +206,7 @@ class ProLicenseService extends ChangeNotifier {
   Future<void> debugResetTrial({int offsetDays = 0}) async {
     final prefs = _prefs ?? await SharedPreferences.getInstance();
     final newStart = DateTime.now().subtract(Duration(days: offsetDays));
-    await prefs.setInt(_kFirstLaunchTimeKey, newStart.millisecondsSinceEpoch);
+    await _writePersistentFirstLaunchMs(prefs, newStart.millisecondsSinceEpoch);
     await prefs.setBool(_kProPurchasedKey, false);
     await _init();
   }

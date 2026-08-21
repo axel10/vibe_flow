@@ -12,6 +12,7 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Services.Store.h>
+#include <winrt/Windows.Security.Credentials.h>
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -195,9 +196,48 @@ bool FlutterWindow::OnCreate() {
                   }
                 });
           } catch (const std::exception& ex) {
-            result_ptr->Error("PURCHASE_EXCEPTION", ex.what());
-          } catch (...) {
             result_ptr->Error("PURCHASE_EXCEPTION", "Unknown winrt exception");
+          }
+        } else if (call.method_name() == "getSecureVaultTrialTime") {
+          try {
+            winrt::Windows::Security::Credentials::PasswordVault vault;
+            auto cred = vault.Retrieve(L"VynodyApp", L"TrialFirstLaunchEpochMs");
+            cred.RetrievePassword();
+            std::wstring pass = cred.Password().c_str();
+            int64_t epoch_ms = _wtoi64(pass.c_str());
+            result->Success(flutter::EncodableValue(epoch_ms));
+          } catch (...) {
+            result->Success(flutter::EncodableValue());
+          }
+        } else if (call.method_name() == "setSecureVaultTrialTime") {
+          try {
+            int64_t epoch_ms = 0;
+            if (auto args = std::get_if<flutter::EncodableMap>(call.arguments())) {
+              auto it = args->find(flutter::EncodableValue("epochMs"));
+              if (it != args->end()) {
+                if (std::holds_alternative<int64_t>(it->second)) {
+                  epoch_ms = std::get<int64_t>(it->second);
+                } else if (std::holds_alternative<int32_t>(it->second)) {
+                  epoch_ms = std::get<int32_t>(it->second);
+                }
+              }
+            }
+            winrt::Windows::Security::Credentials::PasswordVault vault;
+            try {
+              auto existing = vault.Retrieve(L"VynodyApp", L"TrialFirstLaunchEpochMs");
+              vault.Remove(existing);
+            } catch (...) {}
+            if (epoch_ms > 0) {
+              std::wstring pass = std::to_wstring(epoch_ms);
+              winrt::Windows::Security::Credentials::PasswordCredential cred(
+                  L"VynodyApp", L"TrialFirstLaunchEpochMs", winrt::hstring(pass));
+              vault.Add(cred);
+            }
+            result->Success(flutter::EncodableValue(true));
+          } catch (const std::exception& ex) {
+            result->Error("VAULT_EXCEPTION", ex.what());
+          } catch (...) {
+            result->Error("VAULT_EXCEPTION", "Unknown error writing to PasswordVault");
           }
         } else {
           result->NotImplemented();
