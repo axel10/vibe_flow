@@ -14,7 +14,6 @@ import 'song_thumbnail.dart';
 import 'playing_equalizer_icon.dart';
 import 'library_selection_panel.dart';
 import 'library_selection_scope.dart';
-import 'scroll_to_top_wrapper.dart';
 
 class LibraryRankedSongList extends ConsumerStatefulWidget {
   const LibraryRankedSongList({
@@ -481,41 +480,37 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
       ),
     );
 
-    return ScrollToTopWrapper(
-      scrollController: _scrollController,
-      bottomOffset: 140.0 + (_isSelectionMode ? 220.0 : 0.0),
-      child: Stack(
-        children: [
-          currentBody,
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              reverseDuration: const Duration(milliseconds: 200),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) {
-                final offsetAnimation = Tween<Offset>(
-                  begin: const Offset(0, 1.0),
-                  end: Offset.zero,
-                ).animate(animation);
-                return SlideTransition(position: offsetAnimation, child: child);
-              },
-              child: _isSelectionMode
-                  ? LibrarySelectionPanel(
-                      key: const ValueKey('library-selection-panel'),
-                      selectedSongs: selectedSongs,
-                      allSongs: filteredItems.map((e) => e.song).toList(),
-                      onToggleSelectAll: toggleSelectAll,
-                      onCancel: _cancelSelection,
-                    )
-                  : const SizedBox.shrink(key: ValueKey('library-selection-panel-hidden')),
-            ),
+    return Stack(
+      children: [
+        currentBody,
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            reverseDuration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              final offsetAnimation = Tween<Offset>(
+                begin: const Offset(0, 1.0),
+                end: Offset.zero,
+              ).animate(animation);
+              return SlideTransition(position: offsetAnimation, child: child);
+            },
+            child: _isSelectionMode
+                ? LibrarySelectionPanel(
+                    key: const ValueKey('library-selection-panel'),
+                    selectedSongs: selectedSongs,
+                    allSongs: filteredItems.map((e) => e.song).toList(),
+                    onToggleSelectAll: toggleSelectAll,
+                    onCancel: _cancelSelection,
+                  )
+                : const SizedBox.shrink(key: ValueKey('library-selection-panel-hidden')),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

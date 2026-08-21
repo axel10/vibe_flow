@@ -196,6 +196,8 @@ bool FlutterWindow::OnCreate() {
                   }
                 });
           } catch (const std::exception& ex) {
+            result_ptr->Error("PURCHASE_EXCEPTION", ex.what());
+          } catch (...) {
             result_ptr->Error("PURCHASE_EXCEPTION", "Unknown winrt exception");
           }
         } else if (call.method_name() == "getSecureVaultTrialTime") {

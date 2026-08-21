@@ -15,7 +15,6 @@ import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/utils/playlist_name.dart';
 import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
-import '../widgets/scroll_to_top_wrapper.dart';
 
 class PlaylistTab extends ConsumerStatefulWidget {
   const PlaylistTab({super.key});
@@ -743,14 +742,9 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
       });
     }
 
-    return ScrollToTopWrapper(
-      scrollController: _scrollController,
-      bottomOffset:
-          (currentMusic != null ? 140.0 : 40.0) +
-          (isSelectionMode ? 220.0 : 0.0),
-      child: Stack(
-        children: [
-          CustomScrollView(
+    return Stack(
+      children: [
+        CustomScrollView(
             controller: _scrollController,
             cacheExtent: 1000,
             slivers: [
@@ -939,7 +933,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
             ),
           ),
         ],
-      ),
-    );
+      );
+    }
   }
-}
+
