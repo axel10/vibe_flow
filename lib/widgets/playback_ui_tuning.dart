@@ -35,13 +35,31 @@ class PlaybackPageUiTuning {
   static const double appleLyricsTranslationFontSizePortrait = 11.0; // 苹果样式歌词翻译在竖屏模式下的字体大小
   static const double appleLyricsTranslationFontSizeLandscape = 11.0; // 苹果样式歌词翻译在横屏模式下的字体大小
 
-  static const double appleLyricsTopPaddingPortrait = 50.0; // 苹果样式歌词竖屏顶部边距
-  static const double appleLyricsTopPaddingLandscape = 50.0; // 苹果样式歌词横屏顶部边距 (原为120.0，调整为与竖屏一致)
-  static const double appleLyricsTopPaddingSmallWin = 30.0; // 苹果样式歌词小窗顶部边距
+  static const double appleLyricsTopPaddingPortrait = 50.0; // 苹果样式歌词竖屏顶部边距 (基准值)
+  static const double appleLyricsTopPaddingLandscape = 50.0; // 苹果样式歌词横屏顶部边距 (基准值)
+  static const double appleLyricsTopPaddingSmallWin = 30.0; // 苹果样式歌词小窗顶部边距 (基准值)
 
-  static const double appleLyricsScrollOffsetPortrait = 25.0; // 苹果样式歌词竖屏滚动偏移量
-  static const double appleLyricsScrollOffsetLandscape = 25.0; // 苹果样式歌词横屏滚动偏移量 (原为100.0，调整为与竖屏一致)
-  static const double appleLyricsScrollOffsetSmallWin = 25.0; // 苹果样式歌词小窗滚动偏移量
+  static const double appleLyricsScrollOffsetPortrait = 25.0; // 苹果样式歌词竖屏滚动偏移量 (基准值)
+  static const double appleLyricsScrollOffsetLandscape = 25.0; // 苹果样式歌词横屏滚动偏移量 (基准值)
+  static const double appleLyricsScrollOffsetSmallWin = 25.0; // 苹果样式歌词小窗滚动偏移量 (基准值)
+
+  // 苹果样式歌词按字号缩放比例自适应顶部边距与滚动偏移系数
+  // 确保在任何屏幕（竖屏/横屏/小窗）及不同字号下，当前歌词上方统一只显示上一句歌词最后一行的一半
+  static const double appleLyricsTopPaddingFactor = 20.0; // 顶部内边距系数 (乘以 lyricsFontScale)
+  static const double appleLyricsScrollOffsetFactor = 10.0; // 滚动对齐偏移系数 (乘以 lyricsFontScale)
+  static const double appleLyricsTopFadeHeightFactor = 12.0; // 顶部渐变遮罩高度系数 (乘以 lyricsFontScale)
+
+  static double appleLyricsTopPadding(double lyricsFontScale, {bool isSmallWin = false}) {
+    return appleLyricsTopPaddingFactor * lyricsFontScale;
+  }
+
+  static double appleLyricsScrollOffset(double lyricsFontScale, {bool isSmallWin = false}) {
+    return appleLyricsScrollOffsetFactor * lyricsFontScale;
+  }
+
+  static double appleLyricsTopFadeHeight(double lyricsFontScale) {
+    return appleLyricsTopFadeHeightFactor * lyricsFontScale;
+  }
 
   // 苹果样式歌词高斯模糊相关参数
   static const double appleLyricsBaseBlurSigma = 1.8; // 苹果样式歌词基础模糊强度

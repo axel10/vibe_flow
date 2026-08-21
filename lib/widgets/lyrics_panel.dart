@@ -529,6 +529,8 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         _seekTargetTimestamp = null;
         _isFocusMode = true;
         _lastActiveIndex = -1;
+        _lastScrollDelta = 0.0;
+        _scrollTriggerTime = 0;
       }
     }
     final oldOffset = _timelineOffsetToSeconds(
@@ -1011,7 +1013,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
 
     bool shouldScroll = true;
 
-    final isInitialScroll = _lastActiveIndex == -1;
+    final isInitialScroll = _lastActiveIndex == -1 || activeIndex == 0;
     final lyricsStyle = ref.read(settingsServiceProvider).lyricsStyle;
     if (lyricsStyle == LyricsStyle.apple) {
       if (!force) {
@@ -1100,7 +1102,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       }
       _scrollToLineIndex(
         activeIndex,
-        animate: animate,
+        animate: animate && !isInitialScroll,
         itemCenters: itemCenters,
         isInitialScroll: isInitialScroll,
       );
@@ -1378,11 +1380,11 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     final double target;
     if (lyricsStyle == LyricsStyle.apple && index < _currentLineHeights.length) {
       final topOfLine = itemCenters[index] - _currentLineHeights[index] / 2;
-      final offset = isSmallWin
-          ? PlaybackPageUiTuning.appleLyricsScrollOffsetSmallWin
-          : (isPortrait
-              ? PlaybackPageUiTuning.appleLyricsScrollOffsetPortrait
-              : PlaybackPageUiTuning.appleLyricsScrollOffsetLandscape);
+      final fontScale = _lastMeasuredFontScale ?? _lastBuiltFontScale ?? 1.0;
+      final offset = PlaybackPageUiTuning.appleLyricsScrollOffset(
+        fontScale,
+        isSmallWin: isSmallWin,
+      );
       target = math.max(0.0, math.min(topOfLine - offset, maxExtent));
     } else {
       final targetCenter = itemCenters[index];
@@ -1415,13 +1417,14 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       final isGenerating = _taskStateForSongPath(currentSong?.path).isGenerationBusy;
       if (lyricsStyle == LyricsStyle.apple && _isFocusMode && !isGenerating) {
         final delta = target - currentOffset;
+        final bool isBigJump = delta.abs() > 300.0 || index == 0 || isInitialScroll;
         _scrollController.jumpTo(target);
         final isEntering = _enteringFocusModeTriggered;
         _enteringFocusModeTriggered = false;
         final firstVisible = _findClosestLineIndex(target, itemCenters);
         if (mounted) {
           setState(() {
-            if (widget.isTransitioning || isInitialScroll) {
+            if (widget.isTransitioning || isInitialScroll || isBigJump) {
               _lastScrollDelta = 0.0;
               _scrollTriggerTime = 0;
             } else {
@@ -1442,6 +1445,12 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         );
       }
     } else {
+      if (lyricsStyle == LyricsStyle.apple && mounted) {
+        setState(() {
+          _lastScrollDelta = 0.0;
+          _scrollTriggerTime = 0;
+        });
+      }
       _scrollController.jumpTo(target);
     }
   }
@@ -1848,15 +1857,24 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
                 _lastBuiltIsGenerating == true && !isGenerating;
             final bool displayLinesChanged =
                 _lastBuiltDisplayLines != null && !listEquals(_lastBuiltDisplayLines, displayLines);
+            final bool songChanged = _lastBuiltCurrentSong != null &&
+                _lastBuiltCurrentSong?.path != currentSong?.path;
 
-            final bool forceScroll = transitionEnded || generationJustFinished || (displayLinesChanged && !isGenerating);
-            if (generationJustFinished || (displayLinesChanged && !isGenerating)) {
+            final bool forceScroll = transitionEnded ||
+                generationJustFinished ||
+                (displayLinesChanged && !isGenerating) ||
+                songChanged;
+            if (generationJustFinished ||
+                (displayLinesChanged && !isGenerating) ||
+                songChanged) {
               _lastActiveIndex = -1;
+              _lastScrollDelta = 0.0;
+              _scrollTriggerTime = 0;
             }
 
             _scheduleScrollIfNeeded(
               force: forceScroll,
-              animate: !transitionEnded,
+              animate: !transitionEnded && !songChanged && !displayLinesChanged,
               displayLines: displayLines,
               itemCenters: itemCenters,
             );

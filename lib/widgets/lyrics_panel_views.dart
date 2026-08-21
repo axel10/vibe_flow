@@ -218,6 +218,8 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
             child: _LyricsFadeShaderMask(
               bottomSpacerHeight: widget.bottomSpacerHeight + widget.bottomTabBarHeight,
               isSmallWin: widget.isSmallWin,
+              lyricsFontScale: widget.lyricsFontScale,
+              lyricsStyle: widget.lyricsStyle,
               child: ClipRect(
                 clipper: const _VerticalOnlyClipper(),
                 child: LayoutBuilder(
@@ -225,16 +227,14 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                     final viewportHeight = constraints.maxHeight;
                     final double extraBottomPadding;
                     if (widget.lyricsStyle == LyricsStyle.apple && widget.lineHeights.isNotEmpty) {
-                      final topPadding = widget.isSmallWin
-                          ? PlaybackPageUiTuning.appleLyricsTopPaddingSmallWin
-                          : (isPortrait
-                              ? PlaybackPageUiTuning.appleLyricsTopPaddingPortrait
-                              : PlaybackPageUiTuning.appleLyricsTopPaddingLandscape);
-                      final offset = widget.isSmallWin
-                          ? PlaybackPageUiTuning.appleLyricsScrollOffsetSmallWin
-                          : (isPortrait
-                              ? PlaybackPageUiTuning.appleLyricsScrollOffsetPortrait
-                              : PlaybackPageUiTuning.appleLyricsScrollOffsetLandscape);
+                      final topPadding = PlaybackPageUiTuning.appleLyricsTopPadding(
+                        widget.lyricsFontScale,
+                        isSmallWin: widget.isSmallWin,
+                      );
+                      final offset = PlaybackPageUiTuning.appleLyricsScrollOffset(
+                        widget.lyricsFontScale,
+                        isSmallWin: widget.isSmallWin,
+                      );
                       final lastLineHeight = widget.lineHeights.last;
                       extraBottomPadding = math.max(
                         0.0,
@@ -264,11 +264,10 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                               ),
                         padding: EdgeInsets.only(
                           top: widget.lyricsStyle == LyricsStyle.apple
-                              ? (widget.isSmallWin
-                                  ? PlaybackPageUiTuning.appleLyricsTopPaddingSmallWin
-                                  : (isPortrait
-                                      ? PlaybackPageUiTuning.appleLyricsTopPaddingPortrait
-                                      : PlaybackPageUiTuning.appleLyricsTopPaddingLandscape))
+                              ? PlaybackPageUiTuning.appleLyricsTopPadding(
+                                  widget.lyricsFontScale,
+                                  isSmallWin: widget.isSmallWin,
+                                )
                               : 0.0,
                           bottom: widget.bottomSpacerHeight + widget.bottomTabBarHeight + extraBottomPadding,
                         ),
@@ -570,11 +569,15 @@ class _LyricsFadeShaderMask extends StatelessWidget {
   const _LyricsFadeShaderMask({
     required this.bottomSpacerHeight,
     required this.isSmallWin,
+    required this.lyricsFontScale,
+    required this.lyricsStyle,
     required this.child,
   });
 
   final double bottomSpacerHeight;
   final bool isSmallWin;
+  final double lyricsFontScale;
+  final LyricsStyle lyricsStyle;
   final Widget child;
 
   @override
@@ -590,7 +593,9 @@ class _LyricsFadeShaderMask extends StatelessWidget {
             ).createShader(bounds);
           }
 
-          const topFadeHeight = 30.0;
+          final topFadeHeight = lyricsStyle == LyricsStyle.apple
+              ? PlaybackPageUiTuning.appleLyricsTopFadeHeight(lyricsFontScale)
+              : 30.0;
           final topFadeEnd = (topFadeHeight / height).clamp(0.0, 1.0);
 
           final isPortrait =
@@ -695,7 +700,10 @@ class _StaggeredAppleLyricsScrollWrapperState
     );
 
     final timePassed = DateTime.now().millisecondsSinceEpoch - widget.scrollTriggerTime;
-    if (widget.scrollTriggerTime > 0 && !widget.isTransitioning && timePassed < 700) {
+    if (widget.scrollTriggerTime > 0 &&
+        !widget.isTransitioning &&
+        timePassed < 700 &&
+        widget.scrollDelta.abs() <= 300.0) {
       _startOffset = widget.scrollDelta;
       _currentOffset = widget.scrollDelta;
 
@@ -728,7 +736,9 @@ class _StaggeredAppleLyricsScrollWrapperState
   void didUpdateWidget(StaggeredAppleLyricsScrollWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.isTransitioning) {
+    if (widget.isTransitioning ||
+        widget.scrollTriggerTime <= 0 ||
+        widget.scrollDelta.abs() > 300.0) {
       _delayTimer?.cancel();
       _controller.stop();
       _currentOffset = 0.0;
@@ -745,6 +755,12 @@ class _StaggeredAppleLyricsScrollWrapperState
   void _startAnimation() {
     _delayTimer?.cancel();
     _controller.stop();
+
+    if (widget.scrollDelta.abs() > 300.0 || widget.scrollTriggerTime <= 0) {
+      _currentOffset = 0.0;
+      _startOffset = 0.0;
+      return;
+    }
 
     final int delayMs;
     if (widget.isEnteringFocusMode) {
