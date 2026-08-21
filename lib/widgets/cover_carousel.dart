@@ -126,14 +126,29 @@ class _CoverCarouselState extends State<CoverCarousel>
       'currentVal=${_animationController.value} currentPage=$_currentPage',
     );
     final double currentVal = _animationController.value;
-    final int targetPage = page;
+    final int targetPage = page.clamp(0, widget.playlist.length - 1);
     final double diff = targetPage - currentVal;
 
-    if (diff == 0) return;
+    if (diff == 0) {
+      if (_currentPage != targetPage) {
+        setState(() {
+          _currentPage = targetPage;
+        });
+        widget.onPageChanged?.call(targetPage);
+      }
+      _notifyAnimationComplete(targetPage);
+      return;
+    }
 
-    if (diff.abs() > 1.5) {
+    if (_currentPage != targetPage) {
+      setState(() {
+        _currentPage = targetPage;
+      });
+      widget.onPageChanged?.call(targetPage);
+    }
+
+    if (diff.abs() > 2.5) {
       _indexOverrides.clear();
-      _currentPage = targetPage;
       _animationController.value = targetPage.toDouble();
       _notifyAnimationComplete(targetPage);
       return;
@@ -143,32 +158,27 @@ class _CoverCarouselState extends State<CoverCarousel>
         .animateTo(
           targetPage.toDouble(),
           duration: Duration(
-            milliseconds: velocity != null && velocity.abs() > 500
+            milliseconds: velocity != null && velocity.abs() > 400
                 ? 250
-                : 400,
+                : 350,
           ),
           curve: Curves.easeOutCubic,
         )
         .then((_) {
-          if (mounted) {
+          if (mounted && !_isDragging) {
             _logCarouselTrace(
               '_animateToPage complete -> page=$targetPage '
               'currentVal=${_animationController.value}',
             );
             _oldSongBeforePlaylistChange = null;
             _oldPageBeforePlaylistChange = null;
-            if (_currentPage != targetPage) {
-              setState(() {
-                _currentPage = targetPage;
-              });
-              widget.onPageChanged?.call(targetPage);
-            }
             _notifyAnimationComplete(targetPage);
           }
         });
   }
 
   void _notifyAnimationComplete(int page) {
+    if (page < 0 || page >= widget.playlist.length) return;
     final currentSong = widget.playlist[page];
     final loadedBytes = _loadedCovers[page]?.bytes ?? currentSong.artworkBytes;
     _logCarouselTrace(
@@ -207,6 +217,9 @@ class _CoverCarouselState extends State<CoverCarousel>
         return GestureDetector(
           onHorizontalDragStart: (details) {
             _isDragging = true;
+            if (_animationController.isAnimating) {
+              _animationController.stop();
+            }
           },
           onHorizontalDragUpdate: (details) {
             if (!_isDragging) return;
@@ -227,24 +240,27 @@ class _CoverCarouselState extends State<CoverCarousel>
             if (!_isDragging) return;
 
             final velocity = details.primaryVelocity ?? 0;
-            int targetPage = _currentPage;
             final currentVal = _animationController.value;
+            int targetPage;
 
-            if (velocity.abs() > 500) {
-              if (velocity < 0 && _currentPage < widget.playlist.length - 1) {
-                targetPage = _currentPage + 1;
-              } else if (velocity > 0 && _currentPage > 0) {
-                targetPage = _currentPage - 1;
+            if (velocity.abs() > 400) {
+              if (velocity < 0) {
+                targetPage = math.max(_currentPage, currentVal.floor()) + 1;
+              } else {
+                targetPage = math.min(_currentPage, currentVal.ceil()) - 1;
               }
             } else {
               final diff = currentVal - _currentPage;
-              if (diff > _swipeThreshold &&
-                  _currentPage < widget.playlist.length - 1) {
-                targetPage = _currentPage + 1;
-              } else if (diff < -_swipeThreshold && _currentPage > 0) {
-                targetPage = _currentPage - 1;
+              if (diff > _swipeThreshold) {
+                targetPage = math.max(_currentPage, currentVal.floor()) + 1;
+              } else if (diff < -_swipeThreshold) {
+                targetPage = math.min(_currentPage, currentVal.ceil()) - 1;
+              } else {
+                targetPage = currentVal.round();
               }
             }
+
+            targetPage = targetPage.clamp(0, widget.playlist.length - 1);
 
             _isDragging = false;
             _animateToPage(targetPage, velocity: velocity);
