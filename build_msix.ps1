@@ -1,5 +1,10 @@
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue build/flutter_assets, build/windows/x64/runner/Release/data/flutter_assets
-flutter build windows --release --dart-define=CHANNEL=store
+# Clean up debug JIT cache (kernel_blob.bin ~105MB) from previous flutter run
+Remove-Item -Force -ErrorAction SilentlyContinue "build/flutter_assets/kernel_blob.bin", "build/windows/x64/runner/Release/data/flutter_assets/kernel_blob.bin"
+
+flutter build windows --release --no-tree-shake-icons --dart-define=CHANNEL=store
+
+# Ensure no leftover kernel_blob.bin in Release before packaging
+Remove-Item -Force -ErrorAction SilentlyContinue "build/windows/x64/runner/Release/data/flutter_assets/kernel_blob.bin"
 
 # Bundle VC Runtime DLLs into Release directory before packaging MSIX
 $dlls = @("msvcp140.dll", "msvcp140_1.dll", "msvcp140_2.dll", "msvcp140_codecvt_ids.dll", "vcruntime140.dll", "vcruntime140_1.dll", "vcruntime140_threads.dll")
