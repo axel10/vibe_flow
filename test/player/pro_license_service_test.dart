@@ -47,5 +47,12 @@ void main() {
       expect(expiredState.isTrialExpired, isTrue);
       expect(expiredState.isProUnlocked, isFalse);
     });
+
+    test('ProFeature enum contains dynamicMeshBackground and customImageBackground', () {
+      expect(ProFeature.values, contains(ProFeature.dynamicMeshBackground));
+      expect(ProFeature.values, contains(ProFeature.customImageBackground));
+      expect(ProFeature.dynamicMeshBackground.icon, isNotNull);
+      expect(ProFeature.customImageBackground.icon, isNotNull);
+    });
   });
 }

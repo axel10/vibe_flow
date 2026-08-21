@@ -3627,6 +3627,21 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kayıpsız formatları hızlı dönüştürme ve taşınabilir cihazlar için toplu dışa aktarma';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle => 'Dinamik Mesh Arka Planı';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      'Albüm kapağı renklerinden üretilen akıcı gradyan animasyonu ve ayarlanabilir hız';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle =>
+      'Özel Çalma Arka Plan Duvar Kağıdı';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      'Favori yerel resimlerinizi ve fotoğraflarınızı oynatıcı arka planı olarak ayarlayın';
+
+  @override
   String get proCommunityUnlocked =>
       'Topluluk Sürümü: Tüm Pro özelliklerinin kilidi kalıcı olarak açıldı';
 

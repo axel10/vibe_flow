@@ -3488,6 +3488,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get proFeatureTranscoderDesc => '무손실 형식 빠른 변환 및 휴대용 기기를 위한 일괄 내보내기';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle => '동적 메시 배경';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      '앨범 아트 색상 기반의 유체 그라데이션 애니메이션 및 속도 조절';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle => '사용자 지정 재생 배경';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      '로컬 이미지와 사진을 재생 화면 배경으로 자유롭게 설정';
+
+  @override
   String get proCommunityUnlocked => '커뮤니티 버전: 모든 Pro 기능이 영구 잠금 해제되었습니다';
 
   @override

@@ -39,6 +39,8 @@ class UpgradeToProDialog extends ConsumerWidget {
 
     final features = [
       ProFeatureInfo.fromFeature(ProFeature.aiLyrics, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.dynamicMeshBackground, l10n),
+      ProFeatureInfo.fromFeature(ProFeature.customImageBackground, l10n),
       ProFeatureInfo.fromFeature(ProFeature.tagCompletion, l10n),
       ProFeatureInfo.fromFeature(ProFeature.equalizer, l10n),
       ProFeatureInfo.fromFeature(ProFeature.customThemeColor, l10n),

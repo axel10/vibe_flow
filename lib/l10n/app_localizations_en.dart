@@ -3620,6 +3620,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fast lossless format conversion and batch export for portable devices';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle => 'Dynamic Mesh Background';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      'Fluid animated gradient mesh generated from artwork colors with customizable speed';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle =>
+      'Custom Playback Wallpaper';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      'Import your favorite local photos and wallpapers for an immersive playback background';
+
+  @override
   String get proCommunityUnlocked =>
       'Community edition: all Pro features permanently unlocked';
 

@@ -3486,6 +3486,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get proFeatureTranscoderDesc => 'ロスレス形式の高速変換・圧縮とポータブルデバイス向け一括エクスポート';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle => '流体メッシュ動的背景';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      'アートワークの色から生成される流体グラデーションアニメーションと速度調整';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle => 'カスタム再生背景壁紙';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      'お好みの画像や写真をインポートして再生画面の背景に設定';
+
+  @override
   String get proCommunityUnlocked => 'コミュニティ版：すべてのPro機能が無制限で永久解放されています';
 
   @override

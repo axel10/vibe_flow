@@ -3658,6 +3658,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Schnelle verlustfreie Formatkonvertierung und Export für tragbare Geräte';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle =>
+      'Dynamischer Mesh-Hintergrund';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      'Fließende Farbverlaufsanimationen basierend auf Album-Cover mit anpassbarer Geschwindigkeit';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle =>
+      'Benutzerdefiniertes Hintergrundbild';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      'Eigene Bilder und Fotos als immersiven Wiedergabehintergrund importieren';
+
+  @override
   String get proCommunityUnlocked =>
       'Community-Edition: Alle Pro-Funktionen dauerhaft freigeschaltet';
 

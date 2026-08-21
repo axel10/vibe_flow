@@ -10,6 +10,9 @@ import '../l10n/app_localizations.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
+import 'package:vynody/widgets/pro/pro_badge.dart';
 
 import 'playback_button_layout_dialog.dart';
 
@@ -74,7 +77,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
               child: TabBarView(
                 children: [
                   _buildAlgorithmTab(context, ref, setDialogState),
-                  _buildAppearanceTab(context, settings, setDialogState),
+                  _buildAppearanceTab(context, ref, settings, setDialogState),
                   PlaybackButtonLayoutView(
                     settings: settings,
                     onChanged: () => setDialogState(() {}),
@@ -542,6 +545,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
 
   Widget _buildAppearanceTab(
     BuildContext context,
+    WidgetRef ref,
     SettingsService settings,
     StateSetter setDialogState,
   ) {
@@ -562,7 +566,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBackgroundTypeDropdown(context, settings, setDialogState),
+                _buildBackgroundTypeDropdown(context, ref, settings, setDialogState),
                 if (settings.playbackBackgroundType == 0) ...[
                   const SizedBox(height: 20),
                   _buildOpacitySettings(context, settings, setDialogState),
@@ -584,7 +588,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
                 if (isSolidColorBackground)
                   _buildSolidColorControls(context, settings, setDialogState),
                 if (isCustomImageBackground)
-                  _buildCustomImageControls(context, settings, setDialogState),
+                  _buildCustomImageControls(context, ref, settings, setDialogState),
                 const SizedBox(height: 12),
                 SwitchListTile(
                   contentPadding: isPortrait ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 12),
@@ -1010,12 +1014,15 @@ class VisualizerOptionsDialog extends ConsumerWidget {
 
   Widget _buildBackgroundTypeDropdown(
     BuildContext context,
+    WidgetRef ref,
     SettingsService settings,
     StateSetter setDialogState,
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final l10n = AppLocalizations.of(context)!;
+    final isProUnlocked = ref.watch(isProUnlockedProvider);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isPortrait ? 0 : 12),
@@ -1024,57 +1031,97 @@ class VisualizerOptionsDialog extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: Text(
-            AppLocalizations.of(context)!.playbackBackground,
-            style: TextStyle(
-              color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        DropdownButtonFormField<int>(
-          initialValue: settings.playbackBackgroundType,
-          dropdownColor: isDark ? Colors.grey[900] : theme.colorScheme.surfaceContainer,
-          decoration: InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: isDark ? Colors.white12 : theme.colorScheme.outlineVariant,
+            child: Text(
+              l10n.playbackBackground,
+              style: TextStyle(
+                color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                fontSize: 13,
               ),
             ),
           ),
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: isDark ? Colors.white : theme.colorScheme.onSurface,
-            fontSize: 14,
+          DropdownButtonFormField<int>(
+            key: ValueKey('bg_type_${settings.playbackBackgroundType}_$isProUnlocked'),
+            initialValue: settings.playbackBackgroundType,
+            dropdownColor: isDark ? Colors.grey[900] : theme.colorScheme.surfaceContainer,
+            decoration: InputDecoration(
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(
+                  color: isDark ? Colors.white12 : theme.colorScheme.outlineVariant,
+                ),
+              ),
+            ),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: isDark ? Colors.white : theme.colorScheme.onSurface,
+              fontSize: 14,
+            ),
+            items: [
+              DropdownMenuItem(
+                value: 0,
+                child: Text(l10n.blurredArtwork),
+              ),
+              DropdownMenuItem(
+                value: 1,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.dynamicMesh),
+                    if (!isProUnlocked) ...[
+                      const SizedBox(width: 8),
+                      const ProBadge(size: 9.5),
+                    ],
+                  ],
+                ),
+              ),
+              DropdownMenuItem(
+                value: 2,
+                child: Text(l10n.solidColor),
+              ),
+              DropdownMenuItem(
+                value: 3,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.customImage),
+                    if (!isProUnlocked) ...[
+                      const SizedBox(width: 8),
+                      const ProBadge(size: 9.5),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+            onChanged: (val) async {
+              if (val != null) {
+                if (val == 1) {
+                  final allowed = await checkProGate(
+                    context,
+                    ref,
+                    feature: ProFeature.dynamicMeshBackground,
+                  );
+                  if (!allowed) {
+                    setDialogState(() {});
+                    return;
+                  }
+                } else if (val == 3) {
+                  final allowed = await checkProGate(
+                    context,
+                    ref,
+                    feature: ProFeature.customImageBackground,
+                  );
+                  if (!allowed) {
+                    setDialogState(() {});
+                    return;
+                  }
+                }
+                settings.playbackBackgroundType = val;
+                setDialogState(() {});
+              }
+            },
           ),
-          items: [
-            DropdownMenuItem(
-              value: 0,
-              child: Text(AppLocalizations.of(context)!.blurredArtwork),
-            ),
-            DropdownMenuItem(
-              value: 1,
-              child: Text(AppLocalizations.of(context)!.dynamicMesh),
-            ),
-            DropdownMenuItem(
-              value: 2,
-              child: Text(AppLocalizations.of(context)!.solidColor),
-            ),
-            DropdownMenuItem(
-              value: 3,
-              child: Text(AppLocalizations.of(context)!.customImage),
-            ),
-          ],
-          onChanged: (val) {
-            if (val != null) {
-              settings.playbackBackgroundType = val;
-              setDialogState(() {});
-            }
-          },
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildSolidColorControls(
     BuildContext context,
@@ -1213,6 +1260,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
 
   Widget _buildCustomImageControls(
     BuildContext context,
+    WidgetRef ref,
     SettingsService settings,
     StateSetter setDialogState,
   ) {
@@ -1269,7 +1317,7 @@ class VisualizerOptionsDialog extends ConsumerWidget {
                 ),
               const Spacer(),
               FilledButton.icon(
-                onPressed: () => _pickCustomImage(context, settings, setDialogState),
+                onPressed: () => _pickCustomImage(context, ref, settings, setDialogState),
                 icon: const Icon(Icons.upload_file_rounded, size: 18),
                 label: Text(l10n.uploadImage),
                 style: FilledButton.styleFrom(
@@ -1288,9 +1336,17 @@ class VisualizerOptionsDialog extends ConsumerWidget {
 
   Future<void> _pickCustomImage(
     BuildContext context,
+    WidgetRef ref,
     SettingsService settings,
     StateSetter setDialogState,
   ) async {
+    final allowed = await checkProGate(
+      context,
+      ref,
+      feature: ProFeature.customImageBackground,
+    );
+    if (!allowed) return;
+
     try {
       final originalPath = await FileSelectorHelper.pickFile(
         label: 'Images',

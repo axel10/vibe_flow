@@ -32,7 +32,13 @@ enum ProFeature {
   transcoder,
 
   /// Automatic song metadata & tag completion via MusicBrainz
-  tagCompletion;
+  tagCompletion,
+
+  /// Fluid dynamic mesh animated playback background
+  dynamicMeshBackground,
+
+  /// Custom photo and wallpaper playback background
+  customImageBackground;
 
   String getTitle(AppLocalizations l10n) {
     switch (this) {
@@ -55,6 +61,10 @@ enum ProFeature {
         return l10n.proFeatureTranscoderTitle;
       case ProFeature.tagCompletion:
         return l10n.proFeatureTagCompletionTitle;
+      case ProFeature.dynamicMeshBackground:
+        return l10n.proFeatureDynamicMeshBackgroundTitle;
+      case ProFeature.customImageBackground:
+        return l10n.proFeatureCustomImageBackgroundTitle;
     }
   }
 
@@ -79,6 +89,10 @@ enum ProFeature {
         return l10n.proFeatureTranscoderDesc;
       case ProFeature.tagCompletion:
         return l10n.proFeatureTagCompletionDesc;
+      case ProFeature.dynamicMeshBackground:
+        return l10n.proFeatureDynamicMeshBackgroundDesc;
+      case ProFeature.customImageBackground:
+        return l10n.proFeatureCustomImageBackgroundDesc;
     }
   }
 
@@ -103,6 +117,10 @@ enum ProFeature {
         return Icons.transform;
       case ProFeature.tagCompletion:
         return Icons.auto_fix_high_rounded;
+      case ProFeature.dynamicMeshBackground:
+        return Icons.blur_on_rounded;
+      case ProFeature.customImageBackground:
+        return Icons.wallpaper_rounded;
     }
   }
 }

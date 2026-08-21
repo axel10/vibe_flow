@@ -3665,6 +3665,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Conversión rápida de formatos sin pérdida y exportación por lotes para portátiles';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle => 'Fondo de malla dinámico';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      'Animación de degradado fluido generado a partir de la carátula con velocidad personalizable';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle =>
+      'Fondo de reproducción personalizado';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      'Importe sus imágenes y fotos favoritas como fondo inmersivo de reproducción';
+
+  @override
   String get proCommunityUnlocked =>
       'Edición comunitaria: todas las funciones Pro desbloqueadas permanentemente';
 

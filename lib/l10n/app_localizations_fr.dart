@@ -3670,6 +3670,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Conversion rapide de formats sans perte et export par lot pour appareils portables';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle =>
+      'Arrière-plan maillage dynamique';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc =>
+      'Animation de dégradé fluide basée sur les couleurs de la pochette avec vitesse réglable';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle =>
+      'Fond de lecture personnalisé';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc =>
+      'Importez vos propres photos et fonds d\'écran comme arrière-plan immersif';
+
+  @override
   String get proCommunityUnlocked =>
       'Édition communautaire : toutes les fonctionnalités Pro débloquées à vie';
 

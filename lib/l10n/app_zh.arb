@@ -2079,6 +2079,22 @@
     "description": "Pro feature description for audio batch transcoder"
   },
   "proFeatureTranscoderDesc": "无损格式快速压缩转换与随身设备批量导出",
+  "@proFeatureDynamicMeshBackgroundTitle": {
+    "description": "Pro feature title for dynamic mesh background"
+  },
+  "proFeatureDynamicMeshBackgroundTitle": "流体 Mesh 动态背景",
+  "@proFeatureDynamicMeshBackgroundDesc": {
+    "description": "Pro feature description for dynamic mesh background"
+  },
+  "proFeatureDynamicMeshBackgroundDesc": "基于封面色彩的高清流体渐变动效与流动速度自定义",
+  "@proFeatureCustomImageBackgroundTitle": {
+    "description": "Pro feature title for custom image background"
+  },
+  "proFeatureCustomImageBackgroundTitle": "自定义播放背景壁纸",
+  "@proFeatureCustomImageBackgroundDesc": {
+    "description": "Pro feature description for custom image background"
+  },
+  "proFeatureCustomImageBackgroundDesc": "自由导入本地高清壁纸与照片作为播放页沉浸背景",
   "@proCommunityUnlocked": {
     "description": "Status text for unlimited community release"
   },

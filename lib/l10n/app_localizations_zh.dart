@@ -3431,6 +3431,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get proFeatureTranscoderDesc => '无损格式快速压缩转换与随身设备批量导出';
 
   @override
+  String get proFeatureDynamicMeshBackgroundTitle => '流体 Mesh 动态背景';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc => '基于封面色彩的高清流体渐变动效与流动速度自定义';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle => '自定义播放背景壁纸';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc => '自由导入本地高清壁纸与照片作为播放页沉浸背景';
+
+  @override
   String get proCommunityUnlocked => '社区完全版已永久解锁全部高级特性';
 
   @override
@@ -6981,6 +6993,18 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get proFeatureTranscoderDesc => '無損格式快速壓縮轉換與隨身裝置批次匯出';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundTitle => '流體 Mesh 動態背景';
+
+  @override
+  String get proFeatureDynamicMeshBackgroundDesc => '基於封面色彩的高畫質流體漸變動效與流動速度自訂';
+
+  @override
+  String get proFeatureCustomImageBackgroundTitle => '自訂播放背景桌布';
+
+  @override
+  String get proFeatureCustomImageBackgroundDesc => '自由匯入本機高畫質桌布與照片作為播放頁沉浸背景';
 
   @override
   String get proCommunityUnlocked => '社群完全版已永久解鎖全部高級特性';

@@ -6465,6 +6465,30 @@ abstract class AppLocalizations {
   /// **'无损格式快速压缩转换与随身设备批量导出'**
   String get proFeatureTranscoderDesc;
 
+  /// Pro feature title for dynamic mesh background
+  ///
+  /// In zh, this message translates to:
+  /// **'流体 Mesh 动态背景'**
+  String get proFeatureDynamicMeshBackgroundTitle;
+
+  /// Pro feature description for dynamic mesh background
+  ///
+  /// In zh, this message translates to:
+  /// **'基于封面色彩的高清流体渐变动效与流动速度自定义'**
+  String get proFeatureDynamicMeshBackgroundDesc;
+
+  /// Pro feature title for custom image background
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义播放背景壁纸'**
+  String get proFeatureCustomImageBackgroundTitle;
+
+  /// Pro feature description for custom image background
+  ///
+  /// In zh, this message translates to:
+  /// **'自由导入本地高清壁纸与照片作为播放页沉浸背景'**
+  String get proFeatureCustomImageBackgroundDesc;
+
   /// Status text for unlimited community release
   ///
   /// In zh, this message translates to:
