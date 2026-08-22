@@ -388,6 +388,58 @@ class SharingService {
     await _resolveSharingPath();
   }
 
+  static const MethodChannel _appleFileAccessChannel = MethodChannel(
+    'audio_core.player',
+  );
+
+  Future<bool> _beginAppleScopedAccess(String path) async {
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      return true;
+    }
+    try {
+      final bool? result = await _appleFileAccessChannel.invokeMethod<bool>(
+        'beginScopedAccess',
+        <String, Object?>{'path': path},
+      );
+      return result ?? false;
+    } catch (e) {
+      debugPrint(
+        '[SharingService] _beginAppleScopedAccess failed for $path: $e',
+      );
+      return false;
+    }
+  }
+
+  Future<void> _endAppleScopedAccess(String path) async {
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      return;
+    }
+    try {
+      await _appleFileAccessChannel.invokeMethod(
+        'endScopedAccess',
+        <String, Object?>{'path': path},
+      );
+    } catch (_) {}
+  }
+
+  Future<bool> _registerApplePersistentAccess(String path) async {
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      return true;
+    }
+    try {
+      final bool? result = await _appleFileAccessChannel.invokeMethod<bool>(
+        'registerPersistentAccess',
+        <String, Object?>{'path': path},
+      );
+      return result ?? false;
+    } catch (e) {
+      debugPrint(
+        '[SharingService] _registerApplePersistentAccess failed for $path: $e',
+      );
+      return false;
+    }
+  }
+
   Future<void> _resolveSharingPath() async {
     String basePath = '';
     final settings = _ref.read(settingsServiceProvider);
@@ -419,6 +471,13 @@ class SharingService {
 
     _sharingFolderPath = basePath;
 
+    if (Platform.isIOS || Platform.isMacOS) {
+      if (_sharingFolderPath.isNotEmpty) {
+        await _registerApplePersistentAccess(_sharingFolderPath);
+        await _beginAppleScopedAccess(_sharingFolderPath);
+      }
+    }
+
     // Check if we should skip creating the directory synchronously on Android (if using SAF)
     bool shouldCreateDir = true;
     if (Platform.isAndroid && savedPath.isNotEmpty) {
@@ -445,6 +504,10 @@ class SharingService {
   }
 
   Future<void> updateSharingFolderPath(String newPath) async {
+    if (Platform.isIOS || Platform.isMacOS) {
+      await _registerApplePersistentAccess(newPath);
+      await _beginAppleScopedAccess(newPath);
+    }
     _ref.read(settingsServiceProvider).lanSharingFolderPath = newPath;
     _sharingFolderPath = newPath;
     await _ensureRegisteredInScanner();
@@ -455,6 +518,9 @@ class SharingService {
     final savedPath = settings.lanSharingFolderPath;
 
     if (savedPath.isEmpty) {
+      if (Platform.isIOS || Platform.isMacOS) {
+        await _beginAppleScopedAccess(_sharingFolderPath);
+      }
       return Directory(_sharingFolderPath).existsSync();
     }
 
@@ -465,6 +531,9 @@ class SharingService {
       }
     }
 
+    if (Platform.isIOS || Platform.isMacOS) {
+      await _beginAppleScopedAccess(savedPath);
+    }
     return Directory(savedPath).existsSync();
   }
 
@@ -1173,6 +1242,18 @@ class SharingService {
           activeFiles: metadata.activeFilesMap.values.toList(),
         );
 
+    bool scopedAccessBegan = false;
+    if (Platform.isIOS || Platform.isMacOS) {
+      scopedAccessBegan = await _beginAppleScopedAccess(_sharingFolderPath);
+      if (!scopedAccessBegan) {
+        await _registerApplePersistentAccess(_sharingFolderPath);
+        scopedAccessBegan = await _beginAppleScopedAccess(_sharingFolderPath);
+      }
+      if (!scopedAccessBegan) {
+        scopedAccessBegan = await _beginAppleScopedAccess(targetPath);
+      }
+    }
+
     bool useSaf = false;
     String? treeUri;
     if (Platform.isAndroid) {
@@ -1614,6 +1695,10 @@ class SharingService {
         }),
       );
     } finally {
+      if (scopedAccessBegan) {
+        await _endAppleScopedAccess(_sharingFolderPath);
+        await _endAppleScopedAccess(targetPath);
+      }
       if (_currentReceiverRequests[sessionId] != null) {
         _currentReceiverRequests[sessionId]!.remove(request);
         if (_currentReceiverRequests[sessionId]!.isEmpty) {
