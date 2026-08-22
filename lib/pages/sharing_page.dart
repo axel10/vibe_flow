@@ -34,9 +34,174 @@ class _SharingPageState extends ConsumerState<SharingPage> {
   late final SharingServerStateNotifier _sharingServerNotifier;
   bool _didSyncInitialSharingState = false;
   final Set<String> _shownDialogSessionIds = {};
+  bool _isFolderWritable = true;
+  String _lastCheckedFolderPath = '';
+
+  Future<void> _verifyFolderPermission() async {
+    if (!mounted) return;
+    final service = ref.read(sharingServiceProvider);
+    final settings = ref.read(settingsServiceProvider);
+    final currentPath = settings.lanSharingFolderPath.isNotEmpty
+        ? settings.lanSharingFolderPath
+        : service.sharingFolderPath;
+
+    _lastCheckedFolderPath = currentPath;
+    final writable = await service.checkSharingFolderWritable(currentPath);
+    if (mounted && _lastCheckedFolderPath == currentPath) {
+      if (_isFolderWritable != writable) {
+        setState(() {
+          _isFolderWritable = writable;
+        });
+      }
+    }
+  }
 
   Future<String?> _getDirectoryPath() {
     return FileSelectorHelper.pickDirectory(lockParentWindow: false);
+  }
+
+  Future<void> _showDirectoryOptionsDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final service = ref.read(sharingServiceProvider);
+    final defaultPath = await service.getDefaultSharingFolderPath();
+
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      l10n.receiveDirectoryTitle,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.restart_alt_rounded, color: theme.colorScheme.primary),
+                  ),
+                  title: Text(l10n.restoreDefaultDirectory),
+                  subtitle: Text(
+                    defaultPath,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    await service.resetSharingFolderPathToDefault();
+                    if (mounted) {
+                      showToast(l10n.receiveDirectoryRestoredDefault);
+                      await _verifyFolderPermission();
+                      setState(() {});
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.folder_open_rounded, color: theme.colorScheme.secondary),
+                  ),
+                  title: Text(l10n.chooseOtherDirectory),
+                  onTap: () async {
+                    Navigator.of(ctx).pop();
+                    final dirPath = await _getDirectoryPath();
+                    if (dirPath != null && mounted) {
+                      await service.updateSharingFolderPath(dirPath);
+                      showToast(l10n.receiveDirectoryUpdated(dirPath));
+                      await _verifyFolderPermission();
+                      setState(() {});
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleReceiveDirectoryTap() async {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = ref.read(settingsServiceProvider);
+    final service = ref.read(sharingServiceProvider);
+
+    if (Platform.isAndroid) {
+      final androidOutputDirectory = await ref
+          .read(transcodeServiceProvider)
+          .pickAndroidOutputDirectory();
+      if (androidOutputDirectory != null) {
+        await AndroidSafStorageHelper.saveMapping(
+          androidOutputDirectory.displayPath,
+          androidOutputDirectory.treeUri,
+        );
+        await service.updateSharingFolderPath(
+          androidOutputDirectory.displayPath,
+        );
+        if (mounted) {
+          showToast(
+            l10n.receiveDirectoryUpdated(
+              androidOutputDirectory.displayPath,
+            ),
+          );
+          await _verifyFolderPermission();
+          setState(() {});
+        }
+      }
+      return;
+    }
+
+    if (!_isFolderWritable || settings.lanSharingFolderPath.isNotEmpty) {
+      await _showDirectoryOptionsDialog();
+    } else {
+      final dirPath = await _getDirectoryPath();
+      if (dirPath != null && mounted) {
+        await service.updateSharingFolderPath(dirPath);
+        showToast(l10n.receiveDirectoryUpdated(dirPath));
+        await _verifyFolderPermission();
+        setState(() {});
+      }
+    }
   }
 
   Future<void> _handleOpenReceiveDirectory() async {
@@ -62,6 +227,9 @@ class _SharingPageState extends ConsumerState<SharingPage> {
   void initState() {
     super.initState();
     _sharingServerNotifier = ref.read(sharingServerStateProvider.notifier);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _verifyFolderPermission();
+    });
   }
 
   @override
@@ -464,6 +632,18 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         bottomPadding;
 
     final isProUnlocked = ref.watch(isProUnlockedProvider);
+    final currentFolderPath = settings.lanSharingFolderPath.isNotEmpty
+        ? settings.lanSharingFolderPath
+        : ref.watch(sharingServiceProvider).sharingFolderPath;
+
+    if (currentFolderPath != _lastCheckedFolderPath) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _verifyFolderPermission();
+      });
+    }
+
+    final bool isReceiveDirWarning = !_isFolderWritable ||
+        (Platform.isAndroid && !settings.hasLanSharingFolderPath);
 
     if (!_didSyncInitialSharingState) {
       _didSyncInitialSharingState = true;
@@ -626,9 +806,12 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.45,
-                    ),
+                    color: isReceiveDirWarning
+                        ? theme.colorScheme.error.withValues(alpha: 0.6)
+                        : theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.45,
+                          ),
+                    width: isReceiveDirWarning ? 1.5 : 1.0,
                   ),
                 ),
                 child: Column(
@@ -710,40 +893,17 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                       borderRadius: const BorderRadius.vertical(
                         bottom: Radius.circular(20),
                       ),
-                      onTap: () async {
-                        if (Platform.isAndroid) {
-                          final androidOutputDirectory = await ref
-                              .read(transcodeServiceProvider)
-                              .pickAndroidOutputDirectory();
-                          if (androidOutputDirectory != null) {
-                            await AndroidSafStorageHelper.saveMapping(
-                              androidOutputDirectory.displayPath,
-                              androidOutputDirectory.treeUri,
-                            );
-                            await ref
-                                .read(sharingServiceProvider)
-                                .updateSharingFolderPath(
-                                  androidOutputDirectory.displayPath,
-                                );
-                            showToast(
-                              l10n.receiveDirectoryUpdated(
-                                androidOutputDirectory.displayPath,
-                              ),
-                            );
-                            setState(() {});
-                          }
-                        } else {
-                          final dirPath = await _getDirectoryPath();
-                          if (dirPath != null) {
-                            await ref
-                                .read(sharingServiceProvider)
-                                .updateSharingFolderPath(dirPath);
-                            showToast(l10n.receiveDirectoryUpdated(dirPath));
-                            setState(() {});
-                          }
-                        }
-                      },
-                      child: Padding(
+                      onTap: _handleReceiveDirectoryTap,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isReceiveDirWarning
+                              ? theme.colorScheme.errorContainer
+                                  .withValues(alpha: 0.15)
+                              : null,
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(20),
+                          ),
+                        ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16.0,
                           vertical: 12.0,
@@ -753,14 +913,19 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.1,
-                                ),
+                                color: (isReceiveDirWarning
+                                        ? theme.colorScheme.error
+                                        : theme.colorScheme.primary)
+                                    .withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                Icons.folder_open,
-                                color: theme.colorScheme.primary,
+                                isReceiveDirWarning
+                                    ? Icons.folder_off_rounded
+                                    : Icons.folder_open,
+                                color: isReceiveDirWarning
+                                    ? theme.colorScheme.error
+                                    : theme.colorScheme.primary,
                                 size: 20,
                               ),
                             ),
@@ -771,18 +936,17 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                                 children: [
                                   Text(
                                     l10n.receiveDirectoryTitle,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
+                                      color: isReceiveDirWarning
+                                          ? theme.colorScheme.error
+                                          : null,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    settings.lanSharingFolderPath.isNotEmpty
-                                        ? settings.lanSharingFolderPath
-                                        : ref
-                                            .watch(sharingServiceProvider)
-                                            .sharingFolderPath,
+                                    currentFolderPath,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -791,18 +955,54 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                                       fontSize: 12,
                                     ),
                                   ),
-                                  if (Platform.isAndroid &&
+                                  if (!_isFolderWritable) ...[
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.warning_amber_rounded,
+                                          size: 14,
+                                          color: theme.colorScheme.error,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            l10n.receiveDirectoryNoWritePermission,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: theme.colorScheme.error,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ] else if (Platform.isAndroid &&
                                       !settings.hasLanSharingFolderPath) ...[
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      l10n.receiveDirectoryNotSetWarning,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: theme.colorScheme.error
-                                            .withValues(alpha: 0.8),
-                                        fontSize: 11,
-                                      ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.warning_amber_rounded,
+                                          size: 14,
+                                          color: theme.colorScheme.error,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            l10n.receiveDirectoryNotSetWarning,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: theme.colorScheme.error
+                                                  .withValues(alpha: 0.8),
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ],
@@ -824,9 +1024,11 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                             Icon(
                               Icons.chevron_right,
                               size: 20,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.4,
-                              ),
+                              color: isReceiveDirWarning
+                                  ? theme.colorScheme.error
+                                  : theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.4,
+                                    ),
                             ),
                           ],
                         ),

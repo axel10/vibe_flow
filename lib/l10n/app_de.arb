@@ -1047,6 +1047,10 @@
   "lanSharingRunningStatus": "Lokale IP: {ip} (Port: {port})",
   "lanSharingDefaultOffHint": "Standardmäßig deaktiviert. Die Aktivierung erfordert LAN-Berechtigung.",
   "receiveDirectoryNotSetWarning": "Kein Empfangsverzeichnis festgelegt. Bitte eins einrichten.",
+  "receiveDirectoryNoWritePermission": "Das aktuelle Verzeichnis hat keine Schreibberechtigung. Bitte ändern.",
+  "restoreDefaultDirectory": "Standardverzeichnis wiederherstellen",
+  "chooseOtherDirectory": "Anderes Verzeichnis wählen",
+  "receiveDirectoryRestoredDefault": "Standard-Empfangsverzeichnis wiederhergestellt",
   "@receiveDirectoryUpdated": {
     "description": "Toast when receive directory is updated",
     "placeholders": {

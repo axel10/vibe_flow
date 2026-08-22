@@ -2796,6 +2796,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'A receive directory must be set to receive files. Please set one.';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      'The current save directory has no write permission. Please change it.';
+
+  @override
+  String get restoreDefaultDirectory => 'Restore Default Directory';
+
+  @override
+  String get chooseOtherDirectory => 'Choose Another Directory';
+
+  @override
+  String get receiveDirectoryRestoredDefault =>
+      'Restored to default receive directory';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return 'Receive directory updated to: $path';
   }

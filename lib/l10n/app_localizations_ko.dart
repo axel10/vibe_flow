@@ -2704,6 +2704,19 @@ class AppLocalizationsKo extends AppLocalizations {
       '파일을 수신하려면 수신 디렉토리를 설정해야 합니다. 설정해주세요.';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      '현재 저장 디렉토리에 쓰기 권한이 없습니다. 다시 설정해주세요.';
+
+  @override
+  String get restoreDefaultDirectory => '기본 디렉토리로 복원';
+
+  @override
+  String get chooseOtherDirectory => '다른 디렉토리 선택';
+
+  @override
+  String get receiveDirectoryRestoredDefault => '기본 수신 디렉토리로 복원되었습니다';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return '수신 디렉토리가 업데이트되었습니다: $path';
   }

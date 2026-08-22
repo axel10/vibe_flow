@@ -1047,6 +1047,10 @@
   "lanSharingRunningStatus": "IP local: {ip} (Puerto: {port})",
   "lanSharingDefaultOffHint": "Desactivado por defecto. Al activarlo se solicitará permiso de LAN.",
   "receiveDirectoryNotSetWarning": "No se ha establecido un directorio de recepción. Se recomienda configurarlo.",
+  "receiveDirectoryNoWritePermission": "El directorio actual no tiene permisos de escritura. Por favor, cámbielo.",
+  "restoreDefaultDirectory": "Restaurar directorio predeterminado",
+  "chooseOtherDirectory": "Elegir otro directorio",
+  "receiveDirectoryRestoredDefault": "Se ha restaurado el directorio de recepción predeterminado",
   "@receiveDirectoryUpdated": {
     "description": "Toast when receive directory is updated",
     "placeholders": {

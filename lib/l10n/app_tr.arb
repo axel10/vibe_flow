@@ -1125,6 +1125,10 @@
   "lanSharingRunningStatus": "Yerel IP: {ip} (Port: {port})",
   "lanSharingDefaultOffHint": "Varsayılan olarak kapalıdır. Etkinleştirildiğinde yerel ağ izni istenecektir.",
   "receiveDirectoryNotSetWarning": "Dosya alabilmek için bir alıcı dizini ayarlanmalıdır. Lütfen bir dizin seçin.",
+  "receiveDirectoryNoWritePermission": "Mevcut kayıt dizini için yazma izni yok. Lütfen değiştirin.",
+  "restoreDefaultDirectory": "Varsayılan Dizini Geri Yükle",
+  "chooseOtherDirectory": "Başka Bir Dizin Seç",
+  "receiveDirectoryRestoredDefault": "Varsayılan alıcı dizini geri yüklendi",
   "@receiveDirectoryUpdated": {
     "description": "Toast when receive directory is updated",
     "placeholders": {

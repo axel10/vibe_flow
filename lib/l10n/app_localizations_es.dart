@@ -2830,6 +2830,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se ha establecido un directorio de recepción. Se recomienda configurarlo.';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      'El directorio actual no tiene permisos de escritura. Por favor, cámbielo.';
+
+  @override
+  String get restoreDefaultDirectory => 'Restaurar directorio predeterminado';
+
+  @override
+  String get chooseOtherDirectory => 'Elegir otro directorio';
+
+  @override
+  String get receiveDirectoryRestoredDefault =>
+      'Se ha restaurado el directorio de recepción predeterminado';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return 'Directorio de recepción actualizado a: $path';
   }

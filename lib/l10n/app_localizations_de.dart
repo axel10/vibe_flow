@@ -2825,6 +2825,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Empfangsverzeichnis festgelegt. Bitte eins einrichten.';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      'Das aktuelle Verzeichnis hat keine Schreibberechtigung. Bitte ändern.';
+
+  @override
+  String get restoreDefaultDirectory => 'Standardverzeichnis wiederherstellen';
+
+  @override
+  String get chooseOtherDirectory => 'Anderes Verzeichnis wählen';
+
+  @override
+  String get receiveDirectoryRestoredDefault =>
+      'Standard-Empfangsverzeichnis wiederhergestellt';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return 'Empfangsverzeichnis aktualisiert auf: $path';
   }

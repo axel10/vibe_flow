@@ -5091,6 +5091,30 @@ abstract class AppLocalizations {
   /// **'未设置接收文件保存目录时将无法接收文件，建议先设置。'**
   String get receiveDirectoryNotSetWarning;
 
+  /// No description provided for @receiveDirectoryNoWritePermission.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前保存目录无写入权限，请重新设置'**
+  String get receiveDirectoryNoWritePermission;
+
+  /// No description provided for @restoreDefaultDirectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复默认目录'**
+  String get restoreDefaultDirectory;
+
+  /// No description provided for @chooseOtherDirectory.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择其他目录'**
+  String get chooseOtherDirectory;
+
+  /// No description provided for @receiveDirectoryRestoredDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'已恢复为默认保存目录'**
+  String get receiveDirectoryRestoredDefault;
+
   /// Toast when receive directory is updated
   ///
   /// In zh, this message translates to:

@@ -1052,6 +1052,10 @@
   "lanSharingRunningStatus": "Local IP: {ip} (Port: {port})",
   "lanSharingDefaultOffHint": "Disabled by default. Enabling will request local network permission.",
   "receiveDirectoryNotSetWarning": "A receive directory must be set to receive files. Please set one.",
+  "receiveDirectoryNoWritePermission": "The current save directory has no write permission. Please change it.",
+  "restoreDefaultDirectory": "Restore Default Directory",
+  "chooseOtherDirectory": "Choose Another Directory",
+  "receiveDirectoryRestoredDefault": "Restored to default receive directory",
   "@receiveDirectoryUpdated": {
     "description": "Toast when receive directory is updated",
     "placeholders": {

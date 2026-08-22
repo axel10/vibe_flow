@@ -503,6 +503,34 @@ class SharingService {
     }
   }
 
+  Future<String> getDefaultSharingFolderPath() async {
+    if (Platform.isIOS || Platform.isAndroid) {
+      final docDir = await getApplicationDocumentsDirectory();
+      return p.join(docDir.path, 'Vynody Music');
+    } else if (Platform.isMacOS) {
+      return p.join(
+        Platform.environment['HOME'] ?? '',
+        'Music',
+        'Vynody Music',
+      );
+    } else if (Platform.isWindows) {
+      final userProfile = Platform.environment['USERPROFILE'] ?? '';
+      return p.join(userProfile, 'Music', 'Vynody Music');
+    } else {
+      return p.join(
+        Platform.environment['HOME'] ?? '',
+        'Music',
+        'Vynody Music',
+      );
+    }
+  }
+
+  Future<void> resetSharingFolderPathToDefault() async {
+    _ref.read(settingsServiceProvider).lanSharingFolderPath = '';
+    await _resolveSharingPath();
+    await _ensureRegisteredInScanner();
+  }
+
   Future<void> updateSharingFolderPath(String newPath) async {
     if (Platform.isIOS || Platform.isMacOS) {
       await _registerApplePersistentAccess(newPath);
@@ -513,28 +541,45 @@ class SharingService {
     await _ensureRegisteredInScanner();
   }
 
-  Future<bool> _isSharingFolderValid() async {
-    final settings = _ref.read(settingsServiceProvider);
-    final savedPath = settings.lanSharingFolderPath;
+  Future<bool> checkSharingFolderWritable([String? pathToCheck]) async {
+    final target = pathToCheck ?? _sharingFolderPath;
+    if (target.isEmpty) return false;
 
-    if (savedPath.isEmpty) {
-      if (Platform.isIOS || Platform.isMacOS) {
-        await _beginAppleScopedAccess(_sharingFolderPath);
-      }
-      return Directory(_sharingFolderPath).existsSync();
+    if (Platform.isIOS || Platform.isMacOS) {
+      await _beginAppleScopedAccess(target);
     }
 
     if (Platform.isAndroid) {
-      final mapping = await AndroidSafStorageHelper.findBestMapping(savedPath);
+      final mapping = await AndroidSafStorageHelper.findBestMapping(target);
       if (mapping != null) {
         return await AndroidSafStorageHelper.directoryExists(mapping.value);
       }
     }
 
-    if (Platform.isIOS || Platform.isMacOS) {
-      await _beginAppleScopedAccess(savedPath);
+    try {
+      final dir = Directory(target);
+      if (!dir.existsSync()) {
+        dir.createSync(recursive: true);
+      }
+      final probeFile = File(
+        p.join(
+          dir.path,
+          '.probe_write_${DateTime.now().microsecondsSinceEpoch}',
+        ),
+      );
+      probeFile.writeAsStringSync('probe', flush: true);
+      if (probeFile.existsSync()) {
+        probeFile.deleteSync();
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[SharingService] Directory $target write test failed: $e');
+      return false;
     }
-    return Directory(savedPath).existsSync();
+  }
+
+  Future<bool> _isSharingFolderValid() async {
+    return await checkSharingFolderWritable();
   }
 
   Future<void> _cleanObsoleteIosPaths() async {
@@ -1050,11 +1095,11 @@ class SharingService {
     if (!folderExists) {
       _ref
           .read(sharingWarningProvider.notifier)
-          .setWarning('接收文件保存目录已不存在，请重新设置。');
+          .setWarning('接收文件保存目录不存在或无写入权限，请重新设置。');
 
       request.response.statusCode = HttpStatus.ok;
       request.response.write(
-        jsonEncode({'accepted': false, 'reason': '接收端文件保存目录已不存在'}),
+        jsonEncode({'accepted': false, 'reason': '接收端文件保存目录不可写或无权限'}),
       );
       await request.response.close();
       return;

@@ -2703,6 +2703,19 @@ class AppLocalizationsJa extends AppLocalizations {
       'ファイルを受信するには受信ディレクトリを設定する必要があります。設定してください。';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      '現在の保存先ディレクトリへの書き込み権限がありません。再設定してください。';
+
+  @override
+  String get restoreDefaultDirectory => 'デフォルトディレクトリに戻す';
+
+  @override
+  String get chooseOtherDirectory => '他のディレクトリを選択';
+
+  @override
+  String get receiveDirectoryRestoredDefault => 'デフォルトの受信ディレクトリに復元しました';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return '受信ディレクトリが更新されました: $path';
   }

@@ -2831,6 +2831,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun répertoire de réception défini. Veuillez en configurer un.';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      'Le répertoire actuel n\'a pas de permission d\'écriture. Veuillez le modifier.';
+
+  @override
+  String get restoreDefaultDirectory => 'Restaurer le répertoire par défaut';
+
+  @override
+  String get chooseOtherDirectory => 'Choisir un autre répertoire';
+
+  @override
+  String get receiveDirectoryRestoredDefault =>
+      'Répertoire de réception par défaut restauré';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return 'Répertoire de réception mis à jour : $path';
   }

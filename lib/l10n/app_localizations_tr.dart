@@ -2802,6 +2802,20 @@ class AppLocalizationsTr extends AppLocalizations {
       'Dosya alabilmek için bir alıcı dizini ayarlanmalıdır. Lütfen bir dizin seçin.';
 
   @override
+  String get receiveDirectoryNoWritePermission =>
+      'Mevcut kayıt dizini için yazma izni yok. Lütfen değiştirin.';
+
+  @override
+  String get restoreDefaultDirectory => 'Varsayılan Dizini Geri Yükle';
+
+  @override
+  String get chooseOtherDirectory => 'Başka Bir Dizin Seç';
+
+  @override
+  String get receiveDirectoryRestoredDefault =>
+      'Varsayılan alıcı dizini geri yüklendi';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return 'Alıcı dizini güncellendi: $path';
   }

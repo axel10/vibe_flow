@@ -2664,6 +2664,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get receiveDirectoryNotSetWarning => '未设置接收文件保存目录时将无法接收文件，建议先设置。';
 
   @override
+  String get receiveDirectoryNoWritePermission => '当前保存目录无写入权限，请重新设置';
+
+  @override
+  String get restoreDefaultDirectory => '恢复默认目录';
+
+  @override
+  String get chooseOtherDirectory => '选择其他目录';
+
+  @override
+  String get receiveDirectoryRestoredDefault => '已恢复为默认保存目录';
+
+  @override
   String receiveDirectoryUpdated(Object path) {
     return '接收目录已更新为: $path';
   }
@@ -6227,6 +6239,18 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get receiveDirectoryNotSetWarning => '未設定接收檔案儲存目錄時將無法接收檔案，建議先設定。';
+
+  @override
+  String get receiveDirectoryNoWritePermission => '目前儲存目錄無寫入權限，請重新設定';
+
+  @override
+  String get restoreDefaultDirectory => '恢復預設目錄';
+
+  @override
+  String get chooseOtherDirectory => '選擇其他目錄';
+
+  @override
+  String get receiveDirectoryRestoredDefault => '已恢復為預設儲存目錄';
 
   @override
   String receiveDirectoryUpdated(Object path) {
