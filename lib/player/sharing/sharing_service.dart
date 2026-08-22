@@ -914,9 +914,13 @@ class SharingService {
         request.response.statusCode = HttpStatus.notFound;
         await request.response.close();
       }
-    } catch (e) {
-      debugPrint('[SharingService] Error handling request: $e');
+    } catch (e, st) {
+      debugPrint('[SharingService] Error handling request $path: $e\n$st');
       request.response.statusCode = HttpStatus.internalServerError;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'error': 'Server error: $e', 'stack': st.toString()}),
+      );
       try {
         await request.response.close();
       } catch (_) {}
@@ -1488,7 +1492,13 @@ class SharingService {
       }
 
       // Ensure the sharing folder is added to scanner now that we have received a file
-      await _ensureRegisteredInScanner();
+      try {
+        await _ensureRegisteredInScanner();
+      } catch (e, st) {
+        debugPrint(
+          '[SharingService] Receiver: Warning - failed to register folder in scanner: $e\n$st',
+        );
+      }
 
       // Save lyrics package if available
       try {
@@ -1517,8 +1527,8 @@ class SharingService {
             incomingPackage: fileItem.lyricsPackage!,
           );
         }
-      } catch (e) {
-        debugPrint('[SharingService] Error importing lyrics package: $e');
+      } catch (e, st) {
+        debugPrint('[SharingService] Error importing lyrics package: $e\n$st');
       }
 
       // Track completed file
@@ -1559,10 +1569,11 @@ class SharingService {
       }
 
       request.response.statusCode = HttpStatus.ok;
+      request.response.headers.contentType = ContentType.json;
       request.response.write(jsonEncode({'success': true, 'path': targetPath}));
-    } catch (e) {
+    } catch (e, st) {
       debugPrint(
-        '[SharingService] Receiver: Error uploading file $relativePath: $e',
+        '[SharingService] Receiver: Error uploading file $relativePath: $e\n$st',
       );
       try {
         await ioSink.close();
@@ -1594,7 +1605,14 @@ class SharingService {
       _checkAndResumeScanner();
 
       request.response.statusCode = HttpStatus.internalServerError;
-      request.response.write(jsonEncode({'error': 'Transfer interrupted: $e'}));
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({
+          'error': 'Transfer interrupted: $e',
+          'stack': st.toString(),
+          'file': relativePath,
+        }),
+      );
     } finally {
       if (_currentReceiverRequests[sessionId] != null) {
         _currentReceiverRequests[sessionId]!.remove(request);
@@ -1799,7 +1817,13 @@ class SharingService {
         '[SharingService] Preflight response status: ${response.statusCode}',
       );
       if (response.statusCode != HttpStatus.ok) {
-        await response.drain();
+        String preflightError = '';
+        try {
+          preflightError = await utf8.decoder.bind(response).join();
+        } catch (_) {}
+        debugPrint(
+          '[SharingService] Preflight failed with status ${response.statusCode}. Response: $preflightError',
+        );
         _ref
             .read(activeTransfersProvider.notifier)
             .updateStatus(sessionId, TransferStatus.failed);
@@ -1973,12 +1997,19 @@ class SharingService {
               '[SharingService] Response received for ${fileInfo.relativeName}: ${uploadResponse.statusCode}',
             );
 
-            await uploadResponse.drain();
-
             if (uploadResponse.statusCode != HttpStatus.ok) {
-              throw Exception(
-                'Upload failed with status code ${uploadResponse.statusCode}',
+              String errorDetail = '';
+              try {
+                errorDetail = await utf8.decoder.bind(uploadResponse).join();
+              } catch (_) {}
+              debugPrint(
+                '[SharingService] Upload failed with status ${uploadResponse.statusCode} for ${fileInfo.relativeName}. Response: $errorDetail',
               );
+              throw Exception(
+                'Upload failed with status code ${uploadResponse.statusCode}: $errorDetail',
+              );
+            } else {
+              await uploadResponse.drain();
             }
 
             localActiveFiles.remove(fileInfo.relativeName);
