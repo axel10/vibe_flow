@@ -18,6 +18,7 @@ class EqualizerPanel extends ConsumerStatefulWidget {
 
 class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
   String? _selectedPresetId;
+  final ScrollController _eqScrollController = ScrollController();
 
   @override
   void initState() {
@@ -27,6 +28,12 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
       final bandCount = ref.read(settingsServiceProvider).equalizerBandCount;
       ref.read(audioServiceProvider).ensureEqualizerBandCount(bandCount);
     });
+  }
+
+  @override
+  void dispose() {
+    _eqScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1071,7 +1078,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     const double minItemWidth = 48.0;
 
     return SizedBox(
-      height: 220,
+      height: 224,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final totalWidthNeeded = minItemWidth * bandCount;
@@ -1093,19 +1100,23 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                     onChanged: (val) => audio.setEqualizerBandGain(index, val),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  frequencies.length > index
-                      ? _formatFreq(frequencies[index])
-                      : '',
-                  style: TextStyle(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.6)
-                        : theme.colorScheme.onSurfaceVariant,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    frequencies.length > index
+                        ? _formatFreq(frequencies[index])
+                        : '',
+                    style: TextStyle(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.6)
+                          : theme.colorScheme.onSurfaceVariant,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
+                if (needsScroll) const SizedBox(height: 6),
               ],
             );
 
@@ -1128,12 +1139,27 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                   PointerDeviceKind.trackpad,
                 },
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: sliders,
+              child: RawScrollbar(
+                controller: _eqScrollController,
+                thumbVisibility: true,
+                interactive: true,
+                thickness: 4.0,
+                radius: const Radius.circular(2),
+                thumbColor: accentColor.withValues(alpha: isDark ? 0.45 : 0.4),
+                trackVisibility: true,
+                trackColor: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.05),
+                trackRadius: const Radius.circular(2),
+                padding: const EdgeInsets.only(bottom: 0),
+                child: SingleChildScrollView(
+                  controller: _eqScrollController,
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: sliders,
+                  ),
                 ),
               ),
             );
@@ -1890,24 +1916,29 @@ class _VerticalEqSlider extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return RotatedBox(
-      quarterTurns: 3,
-      child: SliderTheme(
-        data: SliderTheme.of(context).copyWith(
-          trackHeight: 6,
-          thumbShape: _CustomThumbShape(color: activeColor),
-          overlayShape: const RoundSliderOverlayShape(overlayRadius: 0),
-          activeTrackColor: activeColor,
-          inactiveTrackColor: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          trackShape: const RoundedRectSliderTrackShape(),
-        ),
-        child: Slider(
-          value: value.clamp(min, max),
-          min: min,
-          max: max,
-          onChanged: onChanged,
+    return Center(
+      child: SizedBox(
+        width: 32,
+        child: RotatedBox(
+          quarterTurns: 3,
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 6,
+              thumbShape: _CustomThumbShape(color: activeColor),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 0),
+              activeTrackColor: activeColor,
+              inactiveTrackColor: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              trackShape: const RoundedRectSliderTrackShape(),
+            ),
+            child: Slider(
+              value: value.clamp(min, max),
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
+          ),
         ),
       ),
     );
