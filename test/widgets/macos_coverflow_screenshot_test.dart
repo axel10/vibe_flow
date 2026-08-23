@@ -87,7 +87,7 @@ void main() {
       extraOverrides: [
         albumLibraryProvider.overrideWith((ref) => Stream.value(demoData.albums)),
       ],
-      saveWindowFileName: 'macos_window_03_coverflow.png',
+      saveWindowFileName: ScreenshotPaths.raw('macos_window_03_coverflow.png'),
       configureSettings: (s) {
         s.visualizerColor = const Color(0xFFF59E0B);
       },
@@ -97,22 +97,22 @@ void main() {
     await renderMacosStorePoster(
       tester: tester,
       windowBytes: windowBytes,
-      config: const MacosPosterConfig(
+      config: MacosPosterConfig(
         tagText: '经典唱片美学',
-        tagColor: Color(0xFFFBBF24),
+        tagColor: const Color(0xFFFBBF24),
         title: '唱片画廊',
         subtitle: '经典 3D 唱片墙 · 极速分类与智能曲库管理',
-        backgroundGradient: [
+        backgroundGradient: const [
           Color(0xFF26180C),
           Color(0xFF140D07),
           Color(0xFF070503),
         ],
-        glowColors: [
+        glowColors: const [
           Color(0x3DD97706),
           Color(0x1CF59E0B),
           Colors.transparent,
         ],
-        outputFileName: 'macos_store_03_coverflow.png',
+        outputFileName: ScreenshotPaths.store('macos_store_03_coverflow.png'),
       ),
     );
   });

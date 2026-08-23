@@ -73,7 +73,7 @@ void main() {
       metadataMap: demoData.metadataMap,
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: '经典唱片美学',
       tagColor: Color(0xFFFBBF24),
       title: '唱片美学',
@@ -98,8 +98,8 @@ void main() {
         onSurface: Colors.white,
         onSurfaceVariant: Color(0xFFD6C7B8),
       ),
-      outputPosterFileName: 'ios_store_03_coverflow.png',
-      outputScreenFileName: 'ios_screen_03_coverflow.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_03_coverflow.png'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_03_coverflow.png'),
     );
 
     await runTwoStageMobilePosterTest(

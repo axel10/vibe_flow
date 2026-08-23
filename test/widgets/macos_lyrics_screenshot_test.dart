@@ -149,7 +149,7 @@ void main() {
       snapshot: snapshot,
       lyricsState: lyricsState,
       lyrics: lyrics,
-      saveWindowFileName: 'macos_window_02_lyrics.png',
+      saveWindowFileName: ScreenshotPaths.raw('macos_window_02_lyrics.png'),
       configureSettings: (s) {
         s.lyricsStyle = LyricsStyle.apple;
         s.collapseButtonsInLandscapeLyrics = true;
@@ -161,22 +161,22 @@ void main() {
     await renderMacosStorePoster(
       tester: tester,
       windowBytes: windowBytes,
-      config: const MacosPosterConfig(
+      config: MacosPosterConfig(
         tagText: '全屏沉浸歌词',
-        tagColor: Color(0xFFFF8E72),
+        tagColor: const Color(0xFFFF8E72),
         title: '聚焦歌词',
         subtitle: '逐行平滑滚动 · 动态高斯虚化与双语对照',
-        backgroundGradient: [
+        backgroundGradient: const [
           Color(0xFF201322),
           Color(0xFF100B17),
           Color(0xFF050408),
         ],
-        glowColors: [
+        glowColors: const [
           Color(0x3DC83A3A),
           Color(0x217A2062),
           Colors.transparent,
         ],
-        outputFileName: 'macos_store_02_lyrics.png',
+        outputFileName: ScreenshotPaths.store('macos_store_02_lyrics.png'),
       ),
     );
   });

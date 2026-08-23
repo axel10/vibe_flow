@@ -120,7 +120,7 @@ void main() {
       ],
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: 'IMMERSIVE AUDIO EXPERIENCE',
       tagColor: Color(0xFFFDBA74),
       title: 'Immersive Playback',
@@ -131,8 +131,8 @@ void main() {
         Color(0xFF06070B),
       ],
       glowColor: Color(0xFFE2824A),
-      outputPosterFileName: 'ios_store_en_01_playback.png',
-      outputScreenFileName: 'ios_screen_en_01_playback.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_en_01_playback.png', lang: 'en'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_en_01_playback.png', lang: 'en'),
     );
 
     await runTwoStageMobilePosterTest(
@@ -300,7 +300,7 @@ void main() {
       lyrics: lyrics,
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: 'SYNCED LYRICS & GLOW EFFECTS',
       tagColor: Color(0xFFFDA4AF),
       title: 'Dynamic Lyrics',
@@ -311,8 +311,8 @@ void main() {
         Color(0xFF07070B),
       ],
       glowColor: Color(0xFFE11D48),
-      outputPosterFileName: 'ios_store_en_02_lyrics.png',
-      outputScreenFileName: 'ios_screen_en_02_lyrics.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_en_02_lyrics.png', lang: 'en'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_en_02_lyrics.png', lang: 'en'),
     );
 
     await runTwoStageMobilePosterTest(
@@ -401,7 +401,7 @@ void main() {
       metadataMap: demoData.metadataMap,
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: 'CLASSIC VINYL AESTHETICS',
       tagColor: Color(0xFFFBBF24),
       title: 'Cover Flow',
@@ -426,8 +426,8 @@ void main() {
         onSurface: Colors.white,
         onSurfaceVariant: Color(0xFFD6C7B8),
       ),
-      outputPosterFileName: 'ios_store_en_03_coverflow.png',
-      outputScreenFileName: 'ios_screen_en_03_coverflow.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_en_03_coverflow.png', lang: 'en'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_en_03_coverflow.png', lang: 'en'),
     );
 
     await runTwoStageMobilePosterTest(
@@ -586,7 +586,7 @@ void main() {
       },
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: 'PRO 10-BAND / 31-BAND EQ',
       tagColor: Color(0xFF38BDF8),
       title: 'Studio Equalizer',
@@ -597,8 +597,8 @@ void main() {
         Color(0xFF060913),
       ],
       glowColor: Color(0xFF38BDF8),
-      outputPosterFileName: 'ios_store_en_04_equalizer.png',
-      outputScreenFileName: 'ios_screen_en_04_equalizer.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_en_04_equalizer.png', lang: 'en'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_en_04_equalizer.png', lang: 'en'),
     );
 
     await runTwoStageMobilePosterTest(
@@ -640,7 +640,7 @@ void main() {
     settingsService.allowRemoteControl = true;
     settingsService.lanSharingFolderPath = '/Users/axel10/Music/Vynody Music';
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: 'CROSS-DEVICE WIRELESS SYNC',
       tagColor: Color(0xFF38BDF8),
       title: 'Multi-Device Hub',
@@ -651,8 +651,8 @@ void main() {
         Color(0xFF05080E),
       ],
       glowColor: Color(0xFF0284C7),
-      outputPosterFileName: 'ios_store_en_05_multidevice.png',
-      outputScreenFileName: 'ios_screen_en_05_multidevice.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_en_05_multidevice.png', lang: 'en'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_en_05_multidevice.png', lang: 'en'),
     );
 
     await runTwoStageMobilePosterTest(

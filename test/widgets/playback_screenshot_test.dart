@@ -112,19 +112,19 @@ void main() {
       ],
     );
 
-    const posterConfig = MobilePosterConfig(
-      tagText: '沉浸式音频体验',
+    final posterConfig = MobilePosterConfig(
+      tagText: '全格式无损播放',
       tagColor: Color(0xFFFDBA74),
       title: '沉浸播放',
-      subtitle: '纯净声学 · 灵动频谱与多款定制背景',
+      subtitle: '全格式无损解码 · 灵动频谱与实时声学波形',
       backgroundGradient: [
         Color(0xFF181124),
         Color(0xFF0D0F18),
         Color(0xFF06070B),
       ],
       glowColor: Color(0xFFE2824A),
-      outputPosterFileName: 'ios_store_01_playback.png',
-      outputScreenFileName: 'ios_screen_01_playback.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_01_playback.png'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_01_playback.png'),
     );
 
     await runTwoStageMobilePosterTest(

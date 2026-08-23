@@ -94,7 +94,7 @@ void main() {
       tester: tester,
       song: demoSong,
       snapshot: snapshot,
-      saveWindowFileName: 'macos_window_01_playback.png',
+      saveWindowFileName: ScreenshotPaths.raw('macos_window_01_playback.png'),
       configureSettings: (s) {
         s.visualizerColor = const Color(0xFFFFA066);
       },
@@ -104,22 +104,22 @@ void main() {
     await renderMacosStorePoster(
       tester: tester,
       windowBytes: windowBytes,
-      config: const MacosPosterConfig(
-        tagText: '沉浸式音频体验',
-        tagColor: Color(0xFF69F0AE),
+      config: MacosPosterConfig(
+        tagText: '全格式无损播放',
+        tagColor: const Color(0xFF69F0AE),
         title: '沉浸播放',
-        subtitle: '纯净声学 · 灵动频谱与多款定制背景',
-        backgroundGradient: [
+        subtitle: '全格式无损解码 · 灵动频谱与实时声学波形',
+        backgroundGradient: const [
           Color(0xFF0D241C),
           Color(0xFF081410),
           Color(0xFF030706),
         ],
-        glowColors: [
+        glowColors: const [
           Color(0x2E00E676),
           Color(0x1A00B0FF),
           Colors.transparent,
         ],
-        outputFileName: 'macos_store_01_playback.png',
+        outputFileName: ScreenshotPaths.store('macos_store_01_playback.png'),
       ),
     );
   });

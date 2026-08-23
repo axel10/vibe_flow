@@ -144,7 +144,7 @@ void main() {
         seedColor: const Color(0xFF38BDF8),
         brightness: Brightness.dark,
       ),
-      saveWindowFileName: 'macos_window_04_equalizer.png',
+      saveWindowFileName: ScreenshotPaths.raw('macos_window_04_equalizer.png'),
       configureSettings: (s) {
         s.equalizerBandCount = 10;
         s.visualizerColor = const Color(0xFF38BDF8);
@@ -155,22 +155,22 @@ void main() {
     await renderMacosStorePoster(
       tester: tester,
       windowBytes: windowBytes,
-      config: const MacosPosterConfig(
+      config: MacosPosterConfig(
         tagText: '专业声学引擎',
-        tagColor: Color(0xFF38BDF8),
+        tagColor: const Color(0xFF38BDF8),
         title: '专业调音',
         subtitle: '5~20 段高精度 EQ · 丰富声学预设与低音增强',
-        backgroundGradient: [
+        backgroundGradient: const [
           Color(0xFF0E1A30),
           Color(0xFF08101D),
           Color(0xFF04060A),
         ],
-        glowColors: [
+        glowColors: const [
           Color(0x3D38BDF8),
           Color(0x1C6366F1),
           Colors.transparent,
         ],
-        outputFileName: 'macos_store_04_equalizer.png',
+        outputFileName: ScreenshotPaths.store('macos_store_04_equalizer.png'),
       ),
     );
   });

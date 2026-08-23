@@ -23,7 +23,7 @@ void main() {
     settingsService.allowRemoteControl = true;
     settingsService.lanSharingFolderPath = '/Users/axel10/Music/Vynody Music';
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: '全平台安全互联',
       tagColor: Color(0xFF38BDF8),
       title: '多端互联',
@@ -34,8 +34,8 @@ void main() {
         Color(0xFF05080E),
       ],
       glowColor: Color(0xFF0284C7),
-      outputPosterFileName: 'ios_store_05_multidevice.png',
-      outputScreenFileName: 'ios_screen_05_multidevice.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_05_multidevice.png'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_05_multidevice.png'),
     );
 
     await runTwoStageMobilePosterTest(

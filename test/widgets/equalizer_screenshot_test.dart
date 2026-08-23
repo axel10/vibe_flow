@@ -146,7 +146,7 @@ void main() {
       },
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: 'Hi-Fi 级 10段 / 31段 EQ',
       tagColor: Color(0xFF38BDF8),
       title: '专业均衡器',
@@ -157,8 +157,8 @@ void main() {
         Color(0xFF060913),
       ],
       glowColor: Color(0xFF38BDF8),
-      outputPosterFileName: 'ios_store_04_equalizer.png',
-      outputScreenFileName: 'ios_screen_04_equalizer.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_04_equalizer.png'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_04_equalizer.png'),
     );
 
     await runTwoStageMobilePosterTest(

@@ -162,7 +162,7 @@ void main() {
       lyrics: lyrics,
     );
 
-    const posterConfig = MobilePosterConfig(
+    final posterConfig = MobilePosterConfig(
       tagText: '双语同步与逐字光效',
       tagColor: Color(0xFFFDA4AF),
       title: '动感歌词',
@@ -173,8 +173,8 @@ void main() {
         Color(0xFF07070B),
       ],
       glowColor: Color(0xFFE11D48),
-      outputPosterFileName: 'ios_store_02_lyrics.png',
-      outputScreenFileName: 'ios_screen_02_lyrics.png',
+      outputPosterFileName: ScreenshotPaths.store('ios_store_02_lyrics.png'),
+      outputScreenFileName: ScreenshotPaths.raw('ios_screen_02_lyrics.png'),
     );
 
     await runTwoStageMobilePosterTest(

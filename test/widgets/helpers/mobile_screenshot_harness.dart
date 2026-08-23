@@ -38,6 +38,8 @@ import 'package:vynody/player/sharing/remote_control/remote_playback_model.dart'
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
 
+import 'screenshot_paths.dart';
+
 // Re-export common types for test ergonomics
 export 'dart:typed_data';
 export 'package:audio_core/audio_core.dart' hide RepeatMode;
@@ -54,17 +56,10 @@ export 'package:vynody/player/audio/equalizer_presets.dart';
 export 'package:vynody/player/lyrics/lyrics_controller_state.dart';
 export 'package:vynody/player/settings/settings_service.dart';
 export 'package:vynody/player/sharing/lan_device.dart';
-
-/// Default screenshot output directory in the project workspace
-const String defaultMobileScreenshotOutputDir = '/Volumes/Untitled/projects/vibe_flow/screenshots';
+export 'screenshot_paths.dart';
 
 /// Helper function to resolve full output path
-File resolveScreenshotOutputFile(String pathOrFilename) {
-  if (pathOrFilename.startsWith('/') || pathOrFilename.contains(':\\')) {
-    return File(pathOrFilename);
-  }
-  return File('$defaultMobileScreenshotOutputDir/$pathOrFilename');
-}
+File resolveScreenshotOutputFile(String pathOrFilename) => ScreenshotPaths.resolve(pathOrFilename);
 
 class _MockMobileStorageListenerPlatform extends MobileStorageListenerPlatform
     with MockPlatformInterfaceMixin {

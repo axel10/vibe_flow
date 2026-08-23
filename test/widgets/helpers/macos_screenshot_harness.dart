@@ -44,6 +44,7 @@ import 'package:mobile_storage_listener/mobile_storage_event.dart';
 import 'package:mobile_storage_listener/mobile_storage_listener_platform_interface.dart';
 
 import 'package:vynody/models/album_summary.dart';
+import 'screenshot_paths.dart';
 
 // Re-export common types for test ergonomics
 export 'package:audio_core/audio_core.dart';
@@ -72,6 +73,10 @@ export 'package:vynody/player/sharing/remote_control/remote_playback_model.dart'
 export 'package:vynody/player/sharing/sharing_riverpod.dart';
 export 'package:vynody/player/sharing/sharing_service.dart';
 export 'package:vynody/widgets/equalizer_panel.dart';
+export 'screenshot_paths.dart';
+
+/// Helper function to resolve full output path
+File resolveMacosScreenshotOutputFile(String pathOrFilename) => ScreenshotPaths.resolve(pathOrFilename);
 
 class DemoItem {
   final String filename;
@@ -1064,16 +1069,11 @@ Future<Uint8List> captureMacosWindow({
     }
     windowPngBytes = windowByteData.buffer.asUint8List();
 
-    if (saveWindowFileName != null) {
-      File('/tmp/$saveWindowFileName').writeAsBytesSync(windowPngBytes!);
-      final projectScreenshotsDir =
-          Directory('/Volumes/Untitled/projects/vibe_flow/screenshots');
-      if (!projectScreenshotsDir.existsSync()) {
-        projectScreenshotsDir.createSync(recursive: true);
-      }
-      File('${projectScreenshotsDir.path}/$saveWindowFileName')
-          .writeAsBytesSync(windowPngBytes!);
-      print('SUCCESS_SAVED_WINDOW: /tmp/$saveWindowFileName (${windowPngBytes!.length} bytes)');
+    if (saveWindowFileName != null && saveWindowFileName.isNotEmpty) {
+      final file = resolveMacosScreenshotOutputFile(saveWindowFileName);
+      file.parent.createSync(recursive: true);
+      file.writeAsBytesSync(windowPngBytes!);
+      print('SUCCESS_SAVED_WINDOW: ${file.path} (${windowPngBytes!.length} bytes)');
     }
   });
 
@@ -1299,21 +1299,19 @@ Future<Uint8List> renderMacosStorePoster({
       if (byteData != null) {
         posterPngBytes = byteData.buffer.asUint8List();
 
-        final projectScreenshotsDir =
-            Directory('/Volumes/Untitled/projects/vibe_flow/screenshots');
-        if (!projectScreenshotsDir.existsSync()) {
-          projectScreenshotsDir.createSync(recursive: true);
-        }
-        final destPath = '${projectScreenshotsDir.path}/${config.outputFileName}';
-        File(destPath).writeAsBytesSync(posterPngBytes!);
+        final file = resolveMacosScreenshotOutputFile(config.outputFileName);
+        file.parent.createSync(recursive: true);
+        file.writeAsBytesSync(posterPngBytes!);
 
         final outDir = Directory(
             '/Users/axel10/.gemini/antigravity-ide/brain/ac9c6dcc-f11e-4cb7-aaad-460f09c22d96');
         if (outDir.existsSync()) {
-          File('${outDir.path}/${config.outputFileName}').writeAsBytesSync(posterPngBytes!);
+          final brainFile = File('${outDir.path}/${config.outputFileName}');
+          brainFile.parent.createSync(recursive: true);
+          brainFile.writeAsBytesSync(posterPngBytes!);
         }
 
-        print('SUCCESS_MACOS_POSTER_SAVED: $destPath (${posterPngBytes!.length} bytes)');
+        print('SUCCESS_MACOS_POSTER_SAVED: ${file.path} (${posterPngBytes!.length} bytes)');
       }
     }
   });

@@ -142,7 +142,7 @@ void main() {
         seedColor: const Color(0xFF38BDF8),
         brightness: Brightness.dark,
       ),
-      saveWindowFileName: 'macos_window_05_multidevice.png',
+      saveWindowFileName: ScreenshotPaths.raw('macos_window_05_multidevice.png'),
       configureSettings: (s) {
         s.lanSharingEnabled = true;
         s.allowRemoteControl = true;
@@ -155,22 +155,22 @@ void main() {
     await renderMacosStorePoster(
       tester: tester,
       windowBytes: windowBytes,
-      config: const MacosPosterConfig(
+      config: MacosPosterConfig(
         tagText: '全平台安全互联',
-        tagColor: Color(0xFF38BDF8),
+        tagColor: const Color(0xFF38BDF8),
         title: '多端互联',
         subtitle: 'TLS 端到端加密 · 局域网无损秒传与跨端遥控',
-        backgroundGradient: [
+        backgroundGradient: const [
           Color(0xFF0D1B2A),
           Color(0xFF08111D),
           Color(0xFF04060A),
         ],
-        glowColors: [
+        glowColors: const [
           Color(0x3D38BDF8),
           Color(0x1C0284C7),
           Colors.transparent,
         ],
-        outputFileName: 'macos_store_05_multidevice.png',
+        outputFileName: ScreenshotPaths.store('macos_store_05_multidevice.png'),
       ),
     );
   });
