@@ -259,6 +259,7 @@ class PlaybackControls extends ConsumerWidget {
               ),
               style: IconButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                enableFeedback: false,
               ),
               icon: Icon(
                 Icons.auto_fix_high_rounded,
@@ -469,6 +470,7 @@ class PlaybackControls extends ConsumerWidget {
             constraints: const BoxConstraints(),
             style: IconButton.styleFrom(
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              enableFeedback: false,
             ),
             icon: iconBuilder(controlIconColor, true),
             onPressed: onPressed,
@@ -484,6 +486,7 @@ class PlaybackControls extends ConsumerWidget {
           padding: EdgeInsets.zero,
           style: IconButton.styleFrom(
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            enableFeedback: false,
           ),
           icon: iconBuilder(Colors.white, false),
           onPressed: onPressed,

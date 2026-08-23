@@ -641,6 +641,7 @@ class _ArtistListItem extends ConsumerWidget {
         },
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
+          enableFeedback: false,
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(12),

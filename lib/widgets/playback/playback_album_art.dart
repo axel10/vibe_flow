@@ -172,7 +172,6 @@ class PlaybackAlbumArt extends ConsumerWidget {
         );
       },
       onLongPressStart: (details) {
-        HapticFeedback.mediumImpact();
         _showCoverContextMenu(
           context,
           ref,

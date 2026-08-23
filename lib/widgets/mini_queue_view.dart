@@ -288,6 +288,7 @@ class _MiniQueueTileState extends State<_MiniQueueTile> {
             borderRadius: BorderRadius.circular(8),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
+              enableFeedback: false,
               onTap: widget.onTap,
               hoverColor: _miniQueueHoverColor,
               child: Padding(

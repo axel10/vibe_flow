@@ -583,6 +583,7 @@ class _SongListItem extends ConsumerWidget {
                 : theme.colorScheme.surfaceContainerLow,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
+          enableFeedback: false,
           onTap: onTap,
           onLongPress: onLongPress,
           child: GestureDetector(

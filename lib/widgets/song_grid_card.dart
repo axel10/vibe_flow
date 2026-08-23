@@ -66,6 +66,7 @@ class SongGridCard extends ConsumerWidget {
       onLongPress: onLongPress,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
+        enableFeedback: false,
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),

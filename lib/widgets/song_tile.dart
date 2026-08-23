@@ -154,6 +154,7 @@ class SongTile extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
+            enableFeedback: false,
             onTap: onTap,
             onLongPress: onLongPress,
             hoverColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),

@@ -53,7 +53,6 @@ class LyricsPanelEmptyState extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onSecondaryTapDown: (details) => onContextMenu(details.globalPosition),
       onLongPressStart: (details) {
-        HapticFeedback.mediumImpact();
         onContextMenu(details.globalPosition);
       },
       child: Center(
@@ -209,7 +208,6 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
       onVerticalDragCancel: widget.isAutoScrollPaused || widget.lyricsStyle == LyricsStyle.apple ? null : widget.onVerticalDragCancel,
       onSecondaryTapDown: (details) => widget.onContextMenu(details.globalPosition),
       onLongPressStart: (details) {
-        HapticFeedback.mediumImpact();
         widget.onContextMenu(details.globalPosition);
       },
       child: Column(

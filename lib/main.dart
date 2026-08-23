@@ -538,7 +538,16 @@ class _MyAppState extends ConsumerState<MyApp>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         elevation: 0,
       ),
+      listTileTheme: const ListTileThemeData(
+        enableFeedback: false,
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          enableFeedback: false,
+        ),
+      ),
       popupMenuTheme: PopupMenuThemeData(
+        enableFeedback: false,
         color: isDark ? null : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 6,

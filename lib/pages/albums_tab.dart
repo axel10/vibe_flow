@@ -620,6 +620,7 @@ class _AlbumCard extends ConsumerWidget {
         },
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
+          enableFeedback: false,
           onTap: onTap ?? () => _openAlbumDetail(context),
           child: Ink(
             decoration: BoxDecoration(

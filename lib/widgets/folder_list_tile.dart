@@ -135,6 +135,7 @@ class FolderListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: InkWell(
             borderRadius: BorderRadius.circular(8),
+            enableFeedback: false,
             onTap: onTap,
             onLongPress: onLongPress,
             hoverColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),

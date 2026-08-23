@@ -731,6 +731,7 @@ class _AlbumSongTile extends StatelessWidget {
                 borderRadius: borderRadius,
                 clipBehavior: borderRadius != null ? Clip.antiAlias : Clip.none,
                 child: InkWell(
+                  enableFeedback: false,
                   canRequestFocus: false,
                   borderRadius: borderRadius,
                   onTap: onTap,

@@ -80,6 +80,7 @@ class FolderGridCard extends StatelessWidget {
       onLongPress: onLongPress,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
+        enableFeedback: false,
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(

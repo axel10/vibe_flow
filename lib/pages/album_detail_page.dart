@@ -467,6 +467,7 @@ class _AlbumSongItem extends StatelessWidget {
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
             : Colors.transparent,
         child: InkWell(
+          enableFeedback: false,
           canRequestFocus: false,
           onTap: onTap,
           onLongPress: onLongPress,

@@ -349,7 +349,6 @@ class PlaybackTrackInfo extends ConsumerWidget {
                 );
               },
               onLongPressStart: (details) {
-                HapticFeedback.mediumImpact();
                 _showTrackInfoContextMenu(
                   context,
                   details.globalPosition,
@@ -407,7 +406,6 @@ class PlaybackTrackInfo extends ConsumerWidget {
                     );
                   },
                   onLongPressStart: (details) {
-                    HapticFeedback.mediumImpact();
                     _showTrackInfoContextMenu(
                       context,
                       details.globalPosition,
