@@ -18,7 +18,7 @@ void main() {
       expect(EqualizerPresets.hifi.id, 'hifi');
       expect(
         EqualizerPresets.hifi.referenceGains,
-        const [5.0, 5.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 2.0, 5.0],
+        const [5.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 2.0, 5.0],
       );
     });
 
