@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audio_core/audio_core.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
+import 'package:vynody/player/audio/equalizer_presets.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import '../l10n/app_localizations.dart';
 
@@ -65,7 +66,9 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(audio, config, l10n),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            _buildPresetChips(audio, config, accentColor, bandCount, frequencies, l10n),
+            const SizedBox(height: 20),
             _buildEqSliders(audio, config, accentColor, bandCount, frequencies),
             const SizedBox(height: 32),
             _buildBottomControls(audio, config, accentColor, l10n),
@@ -287,6 +290,69 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           onChanged: (val) => audio.setEqualizerEnabled(val),
         ),
       ],
+    );
+  }
+
+  Widget _buildPresetChips(
+    AudioService audio,
+    EqualizerConfig config,
+    Color accentColor,
+    int bandCount,
+    List<double> frequencies,
+    AppLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final currentGains = config.bandGainsDb.length >= bandCount
+        ? config.bandGainsDb.sublist(0, bandCount)
+        : config.bandGainsDb.toList();
+    final matchedPreset = EqualizerPresets.findMatchingPreset(
+      currentGains,
+      frequencies,
+    );
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: EqualizerPresets.all.map((preset) {
+          final isSelected = matchedPreset?.id == preset.id;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ChoiceChip(
+              label: Text(
+                preset.getLocalizedName(l10n),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected
+                      ? (isDark ? Colors.black : Colors.white)
+                      : (isDark ? Colors.white70 : Colors.black87),
+                ),
+              ),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  if (!config.enabled) {
+                    audio.setEqualizerEnabled(true);
+                  }
+                  final gains = EqualizerPresets.calculateGainsForBands(
+                    preset,
+                    frequencies,
+                  );
+                  audio.setEqualizerBandGains(gains);
+                }
+              },
+              showCheckmark: false,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              selectedColor: accentColor,
+              backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 

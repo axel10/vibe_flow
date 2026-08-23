@@ -1008,6 +1008,36 @@ class AppLocalizationsTr extends AppLocalizations {
   String get equalizerDisabledStatus => 'Ekolayzer devre dışı bırakıldı';
 
   @override
+  String get eqPresetFlat => 'Düz';
+
+  @override
+  String get eqPresetPop => 'Pop';
+
+  @override
+  String get eqPresetRock => 'Rock';
+
+  @override
+  String get eqPresetVocal => 'Vokal';
+
+  @override
+  String get eqPresetBassBoost => 'Bas Güçlendirme';
+
+  @override
+  String get eqPresetElectronic => 'Elektronik';
+
+  @override
+  String get eqPresetJazz => 'Caz';
+
+  @override
+  String get eqPresetClassical => 'Klasik';
+
+  @override
+  String get eqPresetAcoustic => 'Akustik';
+
+  @override
+  String get eqPresetDance => 'Dans';
+
+  @override
   String get effects => 'Efektler';
 
   @override

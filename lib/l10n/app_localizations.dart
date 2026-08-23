@@ -1977,6 +1977,66 @@ abstract class AppLocalizations {
   /// **'已禁用'**
   String get equalizerDisabledStatus;
 
+  /// No description provided for @eqPresetFlat.
+  ///
+  /// In zh, this message translates to:
+  /// **'原声平直'**
+  String get eqPresetFlat;
+
+  /// No description provided for @eqPresetPop.
+  ///
+  /// In zh, this message translates to:
+  /// **'流行'**
+  String get eqPresetPop;
+
+  /// No description provided for @eqPresetRock.
+  ///
+  /// In zh, this message translates to:
+  /// **'摇滚'**
+  String get eqPresetRock;
+
+  /// No description provided for @eqPresetVocal.
+  ///
+  /// In zh, this message translates to:
+  /// **'清亮人声'**
+  String get eqPresetVocal;
+
+  /// No description provided for @eqPresetBassBoost.
+  ///
+  /// In zh, this message translates to:
+  /// **'重低音'**
+  String get eqPresetBassBoost;
+
+  /// No description provided for @eqPresetElectronic.
+  ///
+  /// In zh, this message translates to:
+  /// **'电子'**
+  String get eqPresetElectronic;
+
+  /// No description provided for @eqPresetJazz.
+  ///
+  /// In zh, this message translates to:
+  /// **'爵士'**
+  String get eqPresetJazz;
+
+  /// No description provided for @eqPresetClassical.
+  ///
+  /// In zh, this message translates to:
+  /// **'古典'**
+  String get eqPresetClassical;
+
+  /// No description provided for @eqPresetAcoustic.
+  ///
+  /// In zh, this message translates to:
+  /// **'柔和原声'**
+  String get eqPresetAcoustic;
+
+  /// No description provided for @eqPresetDance.
+  ///
+  /// In zh, this message translates to:
+  /// **'舞曲'**
+  String get eqPresetDance;
+
   /// No description provided for @effects.
   ///
   /// In zh, this message translates to:

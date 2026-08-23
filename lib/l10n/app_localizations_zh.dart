@@ -984,6 +984,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equalizerDisabledStatus => '已禁用';
 
   @override
+  String get eqPresetFlat => '原声平直';
+
+  @override
+  String get eqPresetPop => '流行';
+
+  @override
+  String get eqPresetRock => '摇滚';
+
+  @override
+  String get eqPresetVocal => '清亮人声';
+
+  @override
+  String get eqPresetBassBoost => '重低音';
+
+  @override
+  String get eqPresetElectronic => '电子';
+
+  @override
+  String get eqPresetJazz => '爵士';
+
+  @override
+  String get eqPresetClassical => '古典';
+
+  @override
+  String get eqPresetAcoustic => '柔和原声';
+
+  @override
+  String get eqPresetDance => '舞曲';
+
+  @override
   String get effects => '特效';
 
   @override
@@ -4558,6 +4588,36 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get equalizerDisabledStatus => '已停用';
+
+  @override
+  String get eqPresetFlat => '原聲平直';
+
+  @override
+  String get eqPresetPop => '流行';
+
+  @override
+  String get eqPresetRock => '搖滾';
+
+  @override
+  String get eqPresetVocal => '清亮人聲';
+
+  @override
+  String get eqPresetBassBoost => '重低音';
+
+  @override
+  String get eqPresetElectronic => '電子';
+
+  @override
+  String get eqPresetJazz => '爵士';
+
+  @override
+  String get eqPresetClassical => '古典';
+
+  @override
+  String get eqPresetAcoustic => '柔和原聲';
+
+  @override
+  String get eqPresetDance => '舞曲';
 
   @override
   String get effects => '特效';

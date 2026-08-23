@@ -1023,6 +1023,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equalizerDisabledStatus => 'Desactivado';
 
   @override
+  String get eqPresetFlat => 'Plano';
+
+  @override
+  String get eqPresetPop => 'Pop';
+
+  @override
+  String get eqPresetRock => 'Rock';
+
+  @override
+  String get eqPresetVocal => 'Voz';
+
+  @override
+  String get eqPresetBassBoost => 'Refuerzo de graves';
+
+  @override
+  String get eqPresetElectronic => 'Electrónica';
+
+  @override
+  String get eqPresetJazz => 'Jazz';
+
+  @override
+  String get eqPresetClassical => 'Clásica';
+
+  @override
+  String get eqPresetAcoustic => 'Acústico';
+
+  @override
+  String get eqPresetDance => 'Dance';
+
+  @override
   String get effects => 'Efectos';
 
   @override

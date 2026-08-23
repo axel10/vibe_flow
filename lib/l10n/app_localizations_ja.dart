@@ -987,6 +987,36 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equalizerDisabledStatus => '無効';
 
   @override
+  String get eqPresetFlat => 'フラット';
+
+  @override
+  String get eqPresetPop => 'ポップ';
+
+  @override
+  String get eqPresetRock => 'ロック';
+
+  @override
+  String get eqPresetVocal => 'ボーカル';
+
+  @override
+  String get eqPresetBassBoost => '低音強調';
+
+  @override
+  String get eqPresetElectronic => 'エレクトロニック';
+
+  @override
+  String get eqPresetJazz => 'ジャズ';
+
+  @override
+  String get eqPresetClassical => 'クラシック';
+
+  @override
+  String get eqPresetAcoustic => 'アコースティック';
+
+  @override
+  String get eqPresetDance => 'ダンス';
+
+  @override
   String get effects => 'エフェクト';
 
   @override

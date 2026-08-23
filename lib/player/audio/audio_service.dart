@@ -1362,6 +1362,11 @@ class AudioService extends Notifier<AudioSnapshot> {
     notifyListeners();
   }
 
+  void setEqualizerBandGains(List<double> gains) {
+    _player.setEqualizerBandGains(gains);
+    notifyListeners();
+  }
+
   void setBassBoost(double value) {
     _player.setBassBoost(value);
     notifyListeners();

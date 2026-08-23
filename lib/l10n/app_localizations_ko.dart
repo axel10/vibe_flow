@@ -991,6 +991,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String get equalizerDisabledStatus => '비활성화됨';
 
   @override
+  String get eqPresetFlat => '플랫';
+
+  @override
+  String get eqPresetPop => '팝';
+
+  @override
+  String get eqPresetRock => '락';
+
+  @override
+  String get eqPresetVocal => '보컬';
+
+  @override
+  String get eqPresetBassBoost => '베이스 부스트';
+
+  @override
+  String get eqPresetElectronic => '일렉트로닉';
+
+  @override
+  String get eqPresetJazz => '재즈';
+
+  @override
+  String get eqPresetClassical => '클래식';
+
+  @override
+  String get eqPresetAcoustic => '어쿠스틱';
+
+  @override
+  String get eqPresetDance => '댄스';
+
+  @override
   String get effects => '효과';
 
   @override
