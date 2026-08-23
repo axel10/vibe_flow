@@ -13,7 +13,16 @@ import 'recently_added_tab.dart';
 // 媒体库页面
 
 class LibraryPage extends ConsumerStatefulWidget {
-  const LibraryPage({super.key});
+  final int initialTabIndex;
+  final bool initialAlbums3DView;
+  final int initialAlbums3DIndex;
+
+  const LibraryPage({
+    super.key,
+    this.initialTabIndex = 0,
+    this.initialAlbums3DView = false,
+    this.initialAlbums3DIndex = 0,
+  });
 
   @override
   ConsumerState<LibraryPage> createState() => _LibraryPageState();
@@ -27,7 +36,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this)
+    _tabIndex = widget.initialTabIndex;
+    _tabController = TabController(
+      length: 6,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    )
       ..addListener(() {
         if (_tabController.indexIsChanging) return;
         if (_tabIndex == _tabController.index) return;
@@ -68,13 +82,18 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          KeepAliveWrapper(child: PlaylistTab()),
-          KeepAliveWrapper(child: RecentlyPlayedTab()),
-          KeepAliveWrapper(child: MostPlayedTab()),
-          KeepAliveWrapper(child: RecentlyAddedTab()),
-          KeepAliveWrapper(child: AlbumsTab()),
-          KeepAliveWrapper(child: ArtistsTab()),
+        children: [
+          const KeepAliveWrapper(child: PlaylistTab()),
+          const KeepAliveWrapper(child: RecentlyPlayedTab()),
+          const KeepAliveWrapper(child: MostPlayedTab()),
+          const KeepAliveWrapper(child: RecentlyAddedTab()),
+          KeepAliveWrapper(
+            child: AlbumsTab(
+              initial3DView: widget.initialAlbums3DView,
+              initial3DIndex: widget.initialAlbums3DIndex,
+            ),
+          ),
+          const KeepAliveWrapper(child: ArtistsTab()),
         ],
       ),
     );

@@ -134,8 +134,18 @@ class ExitFullScreenAction extends Action<ExitFullScreenIntent> {
 class MainLayout extends ConsumerStatefulWidget {
   final List<String> args;
   final int initialIndex;
+  final int initialLibraryTabIndex;
+  final bool initialAlbums3DView;
+  final int initialAlbums3DIndex;
 
-  const MainLayout({super.key, required this.args, this.initialIndex = 1});
+  const MainLayout({
+    super.key,
+    required this.args,
+    this.initialIndex = 1,
+    this.initialLibraryTabIndex = 0,
+    this.initialAlbums3DView = false,
+    this.initialAlbums3DIndex = 0,
+  });
 
   @override
   ConsumerState<MainLayout> createState() => _MainLayoutState();
@@ -643,7 +653,11 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       case 2:
         return Padding(
           padding: EdgeInsets.only(top: isDesktop ? 32 : 0, left: leftPadding),
-          child: const LibraryPage(),
+          child: LibraryPage(
+            initialTabIndex: widget.initialLibraryTabIndex,
+            initialAlbums3DView: widget.initialAlbums3DView,
+            initialAlbums3DIndex: widget.initialAlbums3DIndex,
+          ),
         );
       case 3:
         return Padding(

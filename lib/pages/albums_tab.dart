@@ -21,7 +21,14 @@ import '../dialogs/sort_options_dialog.dart';
 enum _AlbumSortField { artist, title, trackCount, duration, recentAdded }
 
 class AlbumsTab extends ConsumerStatefulWidget {
-  const AlbumsTab({super.key});
+  const AlbumsTab({
+    super.key,
+    this.initial3DView = false,
+    this.initial3DIndex = 0,
+  });
+
+  final bool initial3DView;
+  final int initial3DIndex;
 
   @override
   ConsumerState<AlbumsTab> createState() => _AlbumsTabState();
@@ -33,7 +40,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   String _searchQuery = '';
   _AlbumSortField _sortField = _AlbumSortField.artist;
   bool _sortAscending = true;
-  bool _is3DView = false;
+  late bool _is3DView;
   final Set<String> _selectedAlbumIds = {};
   bool _isShuffledMode = false;
   List<AlbumSummary>? _shuffledAlbums;
@@ -51,6 +58,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   @override
   void initState() {
     super.initState();
+    _is3DView = widget.initial3DView;
     _librarySelectionScopeController =
         ref.read(librarySelectionScopeProvider.notifier);
   }
@@ -59,9 +67,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
-    Future.microtask(() {
+    try {
       _librarySelectionScopeController.clear();
-    });
+    } catch (_) {}
     super.dispose();
   }
 
@@ -278,6 +286,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                                   : _Album3DCoverFlowView(
                                       key: _coverFlowKey,
                                       albums: visibleAlbums,
+                                      initialIndex: widget.initial3DIndex,
                                       isSelectionMode: isSelectionMode,
                                       selectedAlbumIds: _selectedAlbumIds,
                                       bottomOffset: bottomOffset,
@@ -556,6 +565,7 @@ class _AlbumCard extends ConsumerWidget {
             SongThumbnail(
               path: album.representativeSong.path,
               id: album.representativeSong.id,
+              bytes: album.representativeSong.artworkBytes,
               size: 250,
               width: double.infinity,
               height: double.infinity,
@@ -1104,12 +1114,14 @@ class _AlbumsToolbar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
+        color: is3DView ? Colors.transparent : theme.colorScheme.surface,
+        border: is3DView
+            ? null
+            : Border(
+                bottom: BorderSide(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                ),
+              ),
       ),
       child: isWide
           ? Row(
@@ -1141,6 +1153,7 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
   const _Album3DCoverFlowView({
     super.key,
     required this.albums,
+    this.initialIndex = 0,
     required this.isSelectionMode,
     required this.selectedAlbumIds,
     required this.bottomOffset,
@@ -1150,6 +1163,7 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
   });
 
   final List<AlbumSummary> albums;
+  final int initialIndex;
   final bool isSelectionMode;
   final Set<String> selectedAlbumIds;
   final double bottomOffset;
@@ -1167,13 +1181,19 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
   late AnimationController _animController;
   late AnimationController _shuffleAnimController;
   Animation<double>? _animation;
-  double _currentPage = 0.0;
-  int _targetIndex = 0;
+  late double _currentPage;
+  late int _targetIndex;
   final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    final validIndex = widget.initialIndex.clamp(
+      0,
+      widget.albums.isNotEmpty ? widget.albums.length - 1 : 0,
+    );
+    _currentPage = validIndex.toDouble();
+    _targetIndex = validIndex;
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 350),
@@ -1693,6 +1713,7 @@ class _Album3DCoverCard extends StatelessWidget {
               child: SongThumbnail(
                 path: album.representativeSong.path,
                 id: album.representativeSong.id,
+                bytes: album.representativeSong.artworkBytes,
                 size: coverSize,
                 width: coverSize,
                 height: coverSize,
@@ -1745,6 +1766,7 @@ class _Album3DCoverCard extends StatelessWidget {
             SongThumbnail(
               path: album.representativeSong.path,
               id: album.representativeSong.id,
+              bytes: album.representativeSong.artworkBytes,
               size: coverSize,
               width: double.infinity,
               height: double.infinity,

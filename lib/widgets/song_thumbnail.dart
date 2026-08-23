@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -13,6 +14,7 @@ class SongThumbnail extends ConsumerStatefulWidget {
   final String path;
   final int? id;
   final String? thumbnailPath;
+  final Uint8List? bytes;
   final double size;
   final double? width;
   final double? height;
@@ -24,6 +26,7 @@ class SongThumbnail extends ConsumerStatefulWidget {
     required this.path,
     this.id,
     this.thumbnailPath,
+    this.bytes,
     this.size = 40.0,
     this.width,
     this.height,
@@ -247,6 +250,19 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
     }
 
     final radius = widget.borderRadius ?? BorderRadius.circular(4);
+
+    if (widget.bytes != null && widget.bytes!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: Image.memory(
+          widget.bytes!,
+          width: layoutWidth,
+          height: layoutHeight,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _fallbackIcon(layoutWidth, layoutHeight, radius),
+        ),
+      );
+    }
 
     if (imagePath != null) {
       final file = File(imagePath);
