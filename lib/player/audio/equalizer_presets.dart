@@ -103,79 +103,80 @@ class EqualizerPresets {
     referenceGains: const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   );
 
-  // 2. Pop
-  static final EqPreset pop = EqPreset(
-    id: 'pop',
-    nameBuilder: (l10n) => l10n.eqPresetPop,
-    referenceGains: const [-1.0, 1.5, 3.5, 4.0, 2.0, -0.5, 1.5, 3.0, 2.0, 0.0],
-  );
-
-  // 3. Rock
-  static final EqPreset rock = EqPreset(
-    id: 'rock',
-    nameBuilder: (l10n) => l10n.eqPresetRock,
-    referenceGains: const [4.5, 3.5, 2.0, -1.0, -2.0, -0.5, 2.0, 3.5, 4.5, 4.0],
-  );
-
-  // 4. Vocal / Clear
-  static final EqPreset vocal = EqPreset(
-    id: 'vocal',
-    nameBuilder: (l10n) => l10n.eqPresetVocal,
-    referenceGains: const [-3.0, -2.0, -1.0, 1.0, 3.0, 4.5, 3.5, 1.5, 0.0, -1.5],
-  );
-
-  // 5. Bass Boost
-  static final EqPreset bassBoost = EqPreset(
-    id: 'bass_boost',
-    nameBuilder: (l10n) => l10n.eqPresetBassBoost,
-    referenceGains: const [6.0, 5.0, 4.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-  );
-
-  // 6. Electronic
-  static final EqPreset electronic = EqPreset(
-    id: 'electronic',
-    nameBuilder: (l10n) => l10n.eqPresetElectronic,
-    referenceGains: const [4.0, 3.5, 1.5, 0.0, -1.5, 2.0, 1.0, 2.5, 4.0, 4.5],
-  );
-
-  // 7. Jazz
-  static final EqPreset jazz = EqPreset(
-    id: 'jazz',
-    nameBuilder: (l10n) => l10n.eqPresetJazz,
-    referenceGains: const [3.0, 2.0, 1.0, 1.5, -1.5, -1.5, 0.0, 1.5, 2.5, 3.0],
-  );
-
-  // 8. Classical
-  static final EqPreset classical = EqPreset(
-    id: 'classical',
-    nameBuilder: (l10n) => l10n.eqPresetClassical,
-    referenceGains: const [4.0, 3.0, 2.0, 1.5, -1.0, -1.0, 0.0, 2.0, 3.0, 3.5],
-  );
-
-  // 9. Acoustic / Soft
-  static final EqPreset acoustic = EqPreset(
-    id: 'acoustic',
-    nameBuilder: (l10n) => l10n.eqPresetAcoustic,
-    referenceGains: const [2.5, 2.0, 1.5, 0.5, 1.0, 1.0, 2.0, 2.5, 2.0, 1.0],
-  );
-
-  // 10. Dance
-  static final EqPreset dance = EqPreset(
-    id: 'dance',
-    nameBuilder: (l10n) => l10n.eqPresetDance,
-    referenceGains: const [5.0, 4.5, 2.5, 0.0, 2.0, 3.0, 4.0, 3.5, 2.5, 0.0],
-  );
-
-  // 11. Hi-Fi
+  // 2. Hi-Fi
   static final EqPreset hifi = EqPreset(
     id: 'hifi',
     nameBuilder: (l10n) => l10n.eqPresetHifi,
     referenceGains: const [5.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 2.0, 5.0],
   );
 
+  // 3. Pop
+  static final EqPreset pop = EqPreset(
+    id: 'pop',
+    nameBuilder: (l10n) => l10n.eqPresetPop,
+    referenceGains: const [-1.0, 1.5, 3.5, 4.0, 2.0, -0.5, 1.5, 3.0, 2.0, 0.0],
+  );
+
+  // 4. Rock
+  static final EqPreset rock = EqPreset(
+    id: 'rock',
+    nameBuilder: (l10n) => l10n.eqPresetRock,
+    referenceGains: const [4.5, 3.5, 2.0, -1.0, -2.0, -0.5, 2.0, 3.5, 4.5, 4.0],
+  );
+
+  // 5. Vocal / Clear
+  static final EqPreset vocal = EqPreset(
+    id: 'vocal',
+    nameBuilder: (l10n) => l10n.eqPresetVocal,
+    referenceGains: const [-3.0, -2.0, -1.0, 1.0, 3.0, 4.5, 3.5, 1.5, 0.0, -1.5],
+  );
+
+  // 6. Bass Boost
+  static final EqPreset bassBoost = EqPreset(
+    id: 'bass_boost',
+    nameBuilder: (l10n) => l10n.eqPresetBassBoost,
+    referenceGains: const [6.0, 5.0, 4.0, 2.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  );
+
+  // 7. Electronic
+  static final EqPreset electronic = EqPreset(
+    id: 'electronic',
+    nameBuilder: (l10n) => l10n.eqPresetElectronic,
+    referenceGains: const [4.0, 3.5, 1.5, 0.0, -1.5, 2.0, 1.0, 2.5, 4.0, 4.5],
+  );
+
+  // 8. Jazz
+  static final EqPreset jazz = EqPreset(
+    id: 'jazz',
+    nameBuilder: (l10n) => l10n.eqPresetJazz,
+    referenceGains: const [3.0, 2.0, 1.0, 1.5, -1.5, -1.5, 0.0, 1.5, 2.5, 3.0],
+  );
+
+  // 9. Classical
+  static final EqPreset classical = EqPreset(
+    id: 'classical',
+    nameBuilder: (l10n) => l10n.eqPresetClassical,
+    referenceGains: const [4.0, 3.0, 2.0, 1.5, -1.0, -1.0, 0.0, 2.0, 3.0, 3.5],
+  );
+
+  // 10. Acoustic / Soft
+  static final EqPreset acoustic = EqPreset(
+    id: 'acoustic',
+    nameBuilder: (l10n) => l10n.eqPresetAcoustic,
+    referenceGains: const [2.5, 2.0, 1.5, 0.5, 1.0, 1.0, 2.0, 2.5, 2.0, 1.0],
+  );
+
+  // 11. Dance
+  static final EqPreset dance = EqPreset(
+    id: 'dance',
+    nameBuilder: (l10n) => l10n.eqPresetDance,
+    referenceGains: const [5.0, 4.5, 2.5, 0.0, 2.0, 3.0, 4.0, 3.5, 2.5, 0.0],
+  );
+
   /// All predefined presets in display order.
   static final List<EqPreset> all = [
     flat,
+    hifi,
     pop,
     rock,
     vocal,
@@ -185,7 +186,6 @@ class EqualizerPresets {
     classical,
     acoustic,
     dance,
-    hifi,
   ];
 
   /// Interpolates the 10-band reference gains to arbitrary target frequencies
