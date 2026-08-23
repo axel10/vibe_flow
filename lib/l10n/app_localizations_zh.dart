@@ -1089,6 +1089,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playbackSpeed => '播放速度';
 
   @override
+  String get playbackSpeedLimit5x => '5倍速上限';
+
+  @override
   String get normal => '正常';
 
   @override
@@ -4759,6 +4762,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get playbackSpeed => '播放速度';
+
+  @override
+  String get playbackSpeedLimit5x => '5倍速上限';
 
   @override
   String get normal => '正常';

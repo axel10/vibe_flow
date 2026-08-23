@@ -1056,76 +1056,83 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eqPresetHifi => 'Hi-Fi';
 
   @override
-  String get eqPresets => '均衡器预设';
+  String get eqPresets => 'Ajustes predefinidos de EQ';
 
   @override
-  String get customPresets => '自定义预设';
+  String get customPresets => 'Ajustes personalizados';
 
   @override
-  String get builtInPresets => '官方预设';
+  String get builtInPresets => 'Ajustes integrados';
 
   @override
-  String get saveAsPreset => '保存为预设';
+  String get saveAsPreset => 'Guardar como ajuste predefinido';
 
   @override
-  String get saveCurrentAsPreset => '保存当前效果为新预设';
+  String get saveCurrentAsPreset =>
+      'Guardar ajuste actual como nuevo ajuste predefinido';
 
   @override
-  String get enterPresetName => '请输入预设名称';
+  String get enterPresetName => 'Introduce el nombre del ajuste';
 
   @override
-  String get presetName => '预设名称';
+  String get presetName => 'Nombre del ajuste';
 
   @override
-  String get presetNameAlreadyExists => '预设名称已存在';
+  String get presetNameAlreadyExists => 'El nombre del ajuste ya existe';
 
   @override
-  String get presetNameCannotBeEmpty => '预设名称不能为空';
+  String get presetNameCannotBeEmpty =>
+      'El nombre del ajuste no puede estar vacío';
 
   @override
-  String get presetSaved => '预设已保存';
+  String get presetSaved => 'Ajuste guardado';
 
   @override
-  String get updatePreset => '更新预设';
+  String get updatePreset => 'Actualizar ajuste';
 
   @override
-  String get presetUpdated => '预设已更新';
+  String get presetUpdated => 'Ajuste actualizado';
 
   @override
-  String get renamePreset => '重命名预设';
+  String get renamePreset => 'Renombrar ajuste';
 
   @override
-  String get presetRenamed => '预设已重命名';
+  String get presetRenamed => 'Ajuste renombrado';
 
   @override
-  String get saveAsNewPreset => '另存为新预设';
+  String get saveAsNewPreset => 'Guardar como nuevo ajuste';
 
   @override
-  String get updateWithCurrentSettings => '用当前效果覆盖';
+  String get updateWithCurrentSettings => 'Sobrescribir con ajustes actuales';
 
   @override
-  String get modified => '已修改';
+  String get modified => 'Modificado';
 
   @override
-  String get deletePreset => '删除预设';
+  String get deletePreset => 'Eliminar ajuste';
 
   @override
-  String get deletePresetConfirm => '确定要删除该预设吗？';
+  String get deletePresetConfirm =>
+      '¿Seguro que deseas eliminar este ajuste predefinido?';
 
   @override
   String get custom => 'Personalizado';
 
   @override
-  String get noCustomPresets => '暂无自定义预设';
+  String get noCustomPresets => 'Aún no hay ajustes personalizados';
 
   @override
-  String get savePresetPrompt => '保存当前调节的 EQ 频段增益、低音增强和前置增益';
+  String get savePresetPrompt =>
+      'Guardar ganancias de bandas de EQ actuales, refuerzo de graves y ganancia de previo';
 
   @override
   String get effects => 'Efectos';
 
   @override
   String get playbackSpeed => 'Velocidad de reproducción';
+
+  @override
+  String get playbackSpeedLimit5x => 'Límite de velocidad 5x';
 
   @override
   String get normal => 'Normal';

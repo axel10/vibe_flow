@@ -1114,6 +1114,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playbackSpeed => 'Playback Speed';
 
   @override
+  String get playbackSpeedLimit5x => '5x Speed Limit';
+
+  @override
   String get normal => 'Normal';
 
   @override

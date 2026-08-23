@@ -421,6 +421,7 @@
   "savePresetPrompt": "Save current EQ band gains, bass boost, and preamp gain",
   "effects": "Effects",
   "playbackSpeed": "Playback Speed",
+  "playbackSpeedLimit5x": "5x Speed Limit",
   "normal": "Normal",
   "bassBoost": "Bass Boost",
   "preampGain": "Preamp Gain",

@@ -909,6 +909,7 @@
   "savePresetPrompt": "保存当前调节的 EQ 频段增益、低音增强和前置增益",
   "effects": "特效",
   "playbackSpeed": "播放速度",
+  "playbackSpeedLimit5x": "5倍速上限",
   "normal": "正常",
   "bassBoost": "低音增强",
   "preampGain": "前置增益",

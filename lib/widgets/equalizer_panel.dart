@@ -142,10 +142,6 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     final limit5x = settings.playbackSpeedLimit5x;
     final maxLimit = limit5x ? 5.0 : 2.0;
 
-    final locale = Localizations.localeOf(context);
-    final isChinese = locale.languageCode == 'zh';
-    final switchLabel = isChinese ? '5倍速上限' : '5x Speed Limit';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -196,8 +192,8 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                   divisions: limit5x ? 90 : 30,
                   activeColor: accentColor,
                   inactiveColor: isDark
-                      ? Colors.white12
-                      : theme.colorScheme.outlineVariant,
+                    ? Colors.white12
+                    : theme.colorScheme.outlineVariant,
                   onChanged: (val) => audio.setPlaybackSpeed(val),
                 ),
               ),
@@ -278,7 +274,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              switchLabel,
+              l10n.playbackSpeedLimit5x,
               style: TextStyle(
                 color: isDark
                     ? Colors.white70

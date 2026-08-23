@@ -2187,6 +2187,12 @@ abstract class AppLocalizations {
   /// **'播放速度'**
   String get playbackSpeed;
 
+  /// No description provided for @playbackSpeedLimit5x.
+  ///
+  /// In zh, this message translates to:
+  /// **'5倍速上限'**
+  String get playbackSpeedLimit5x;
+
   /// No description provided for @normal.
   ///
   /// In zh, this message translates to:
