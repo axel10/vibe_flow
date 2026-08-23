@@ -1022,6 +1022,11 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
             );
           }
 
+          final targetPlatform = Theme.of(context).platform;
+          final isDesktop = targetPlatform == TargetPlatform.windows ||
+              targetPlatform == TargetPlatform.macOS ||
+              targetPlatform == TargetPlatform.linux;
+
           final content = SafeArea(
             bottom: false,
             child: AnimatedPadding(
@@ -1036,9 +1041,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
               ),
               child: Column(
                 children: [
-                  if (Platform.isWindows ||
-                      Platform.isMacOS ||
-                      Platform.isLinux)
+                  if (isDesktop)
                     const DragToMoveArea(
                       child: SizedBox(
                         height: PlaybackPageUiTuning.desktopTopSpacer,
@@ -1046,7 +1049,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                     ),
                   if (showMiniPanel) ...[
                     SizedBox(
-                      height: 360.0 - PlaybackPageUiTuning.desktopTopSpacer,
+                      height: 360.0 - (isDesktop ? PlaybackPageUiTuning.desktopTopSpacer : 0.0),
                       child: Center(child: buildPlayerCard()),
                     ),
                     Expanded(
@@ -1061,10 +1064,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                     ),
                   ] else
                     Expanded(child: Center(child: buildPlayerCard())),
-                  if (isLandscape &&
-                      (Platform.isWindows ||
-                          Platform.isMacOS ||
-                          Platform.isLinux))
+                  if (isLandscape && isDesktop)
                     const SizedBox(
                       height: PlaybackPageUiTuning.desktopTopSpacer,
                     ),

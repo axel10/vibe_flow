@@ -535,7 +535,7 @@ class DemoItem {
   });
 }
 
-/// Default 22-album demo set for CoverFlow / Library tests
+/// Default 22-album demo set for CoverFlow / Library tests (Chinese)
 const defaultDemoList = [
   DemoItem(
     filename: '01 - Neon After Rain.mp3',
@@ -715,6 +715,186 @@ const defaultDemoList = [
   ),
 ];
 
+/// Default 22-album demo set for CoverFlow / Library tests (English)
+const defaultDemoListEn = [
+  DemoItem(
+    filename: '01 - Neon After Rain.mp3',
+    title: 'Neon After Rain',
+    artist: 'Lin Zhou',
+    album: 'City Glimmer',
+    durationMs: 192000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_01.jpg',
+  ),
+  DemoItem(
+    filename: '02 - Sea Breeze Passing.mp3',
+    title: 'Sea Breeze Passing',
+    artist: 'Sen Mo',
+    album: 'Tide Memoir',
+    durationMs: 207974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_02.jpg',
+  ),
+  DemoItem(
+    filename: '03 - Moon at 2AM.mp3',
+    title: 'Moon at 2AM',
+    artist: 'White Noise Forest',
+    album: 'Sleepless Radio',
+    durationMs: 224974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_03.jpg',
+  ),
+  DemoItem(
+    filename: '04 - Walking Home at Sunset.mp3',
+    title: 'Walking Home at Sunset',
+    artist: 'Soda Pop',
+    album: 'Summer Slow Motion',
+    durationMs: 251974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_04.jpg',
+  ),
+  DemoItem(
+    filename: '05 - Floating Practice.mp3',
+    title: 'Floating Practice',
+    artist: 'Qing Ye',
+    album: 'Weightless Things',
+    durationMs: 199974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_05.jpg',
+  ),
+  DemoItem(
+    filename: '06 - Blue Room.mp3',
+    title: 'Blue Room',
+    artist: 'Noon Park',
+    album: 'Room 204',
+    durationMs: 274974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_06.jpg',
+  ),
+  DemoItem(
+    filename: '07 - Letter from Afar.mp3',
+    title: 'Letter from Afar',
+    artist: 'Haruno',
+    album: 'Unfinished Journey',
+    durationMs: 215974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_07.jpg',
+  ),
+  DemoItem(
+    filename: '08 - Glass Sea.mp3',
+    title: 'Glass Sea',
+    artist: 'Constellation Band',
+    album: 'Beyond Coastlines',
+    durationMs: 261974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_08.jpg',
+  ),
+  DemoItem(
+    filename: '09 - Wind Through Old Vinyl.mp3',
+    title: 'Wind Through Old Vinyl',
+    artist: 'Friday Club',
+    album: 'Slow Replay',
+    durationMs: 237974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_09.jpg',
+  ),
+  DemoItem(
+    filename: '10 - Leave a Light On.mp3',
+    title: 'Leave a Light On',
+    artist: 'Night Whisper',
+    album: 'Bedtime Stories',
+    durationMs: 289974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_10.jpg',
+  ),
+  DemoItem(
+    filename: '11 - Velvet Midnight.mp3',
+    title: 'Velvet Midnight',
+    artist: 'Lunar Waves',
+    album: 'Nightfall Symphony',
+    durationMs: 213975,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_11.jpg',
+  ),
+  DemoItem(
+    filename: '12 - Golden Hour Echoes.mp3',
+    title: 'Golden Hour Echoes',
+    artist: 'Solar Drift',
+    album: 'Warm Horizon',
+    durationMs: 247974,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_12.jpg',
+  ),
+  DemoItem(
+    filename: '13 - Chasing Fireflies.mp3',
+    title: 'Chasing Fireflies',
+    artist: 'Amber Glow',
+    album: 'Childhood Echoes',
+    durationMs: 195000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_13.jpg',
+  ),
+  DemoItem(
+    filename: '14 - Summer Afternoon Nostalgia.mp3',
+    title: 'Summer Afternoon Nostalgia',
+    artist: 'Sunset Club',
+    album: 'July Postcard',
+    durationMs: 271973,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_14.jpg',
+  ),
+  DemoItem(
+    filename: '15 - Gentle Awakening.mp3',
+    title: 'Gentle Awakening',
+    artist: 'Serene Trail',
+    album: 'Morning Dew',
+    durationMs: 227975,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_15.jpg',
+  ),
+  DemoItem(
+    filename: '16 - Vintage Polaroid.mp3',
+    title: 'Vintage Polaroid',
+    artist: 'Tape Dreams',
+    album: 'Analog Era',
+    durationMs: 260000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_16.jpg',
+  ),
+  DemoItem(
+    filename: '17 - Prism Spectrum.mp3',
+    title: 'Prism Spectrum',
+    artist: 'Neon Mirage',
+    album: 'Geometric Moods',
+    durationMs: 188000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_17.jpg',
+  ),
+  DemoItem(
+    filename: '18 - Playground Symphony.mp3',
+    title: 'Playground Symphony',
+    artist: 'Sketchbook',
+    album: 'Doodle Wonderland',
+    durationMs: 236000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_18.jpg',
+  ),
+  DemoItem(
+    filename: '19 - Desert Wind Whisper.mp3',
+    title: 'Desert Wind Whisper',
+    artist: 'Oasis Mirage',
+    album: 'Silent Dunes',
+    durationMs: 283973,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_19.jpg',
+  ),
+  DemoItem(
+    filename: '20 - Cosmic Particles.mp3',
+    title: 'Cosmic Particles',
+    artist: 'Starlight Theory',
+    album: 'Circular Infinity',
+    durationMs: 242000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_20.jpg',
+  ),
+  DemoItem(
+    filename: '21 - Crystal Ballroom.mp3',
+    title: 'Crystal Ballroom',
+    artist: 'Gilded Age',
+    album: 'Art Deco Reverie',
+    durationMs: 217975,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_21.jpg',
+  ),
+  DemoItem(
+    filename: 'demo1.mp3',
+    title: 'Midnight Skyline',
+    artist: 'Nova Ensemble',
+    album: 'Metropolitan Daydreams',
+    durationMs: 185000,
+    coverPath: '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_22.jpg',
+  ),
+];
+
 /// Helper to create demo songs and album summaries
 ({
   List<MusicFile> songs,
@@ -722,13 +902,14 @@ const defaultDemoList = [
   Map<String, SongMetadata> metadataMap
 }) createDemoLibraryData({
   String basePath = '/Users/axel10/Music/Vynody Music/Demo Music/zh/Demo Music',
+  List<DemoItem> demoItems = defaultDemoList,
 }) {
   final metadataMap = <String, SongMetadata>{};
   final musicFiles = <MusicFile>[];
   final albumSummaries = <AlbumSummary>[];
 
-  for (int i = 0; i < defaultDemoList.length; i++) {
-    final item = defaultDemoList[i];
+  for (int i = 0; i < demoItems.length; i++) {
+    final item = demoItems[i];
     final songPath = '$basePath/${item.filename}';
 
     Uint8List? coverBytes;
@@ -908,7 +1089,8 @@ Future<Uint8List> captureMobileScreen({
   }
 
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 200));
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.pump(const Duration(milliseconds: 400));
 
   Uint8List? screenPngBytes;
   await tester.runAsync(() async {
