@@ -107,7 +107,7 @@ class EqualizerPresets {
   static final EqPreset hifi = EqPreset(
     id: 'hifi',
     nameBuilder: (l10n) => l10n.eqPresetHifi,
-    referenceGains: const [5.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 2.0, 5.0],
+    referenceGains: const [5.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 1.0, 5.0],
   );
 
   // 3. Pop
