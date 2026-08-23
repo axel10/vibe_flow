@@ -391,6 +391,7 @@
   "eqPresetClassical": "클래식",
   "eqPresetAcoustic": "어쿠스틱",
   "eqPresetDance": "댄스",
+  "eqPresetHifi": "Hi-Fi",
   "effects": "효과",
   "playbackSpeed": "재생 속도",
   "normal": "일반",

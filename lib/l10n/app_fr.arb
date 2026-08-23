@@ -391,6 +391,7 @@
   "eqPresetClassical": "Classique",
   "eqPresetAcoustic": "Acoustique",
   "eqPresetDance": "Dance",
+  "eqPresetHifi": "Hi-Fi",
   "effects": "Effets",
   "playbackSpeed": "Vitesse de lecture",
   "normal": "Normal",

@@ -391,6 +391,7 @@
   "eqPresetClassical": "クラシック",
   "eqPresetAcoustic": "アコースティック",
   "eqPresetDance": "ダンス",
+  "eqPresetHifi": "Hi-Fi",
   "effects": "エフェクト",
   "playbackSpeed": "再生速度",
   "normal": "通常",

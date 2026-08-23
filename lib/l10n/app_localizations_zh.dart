@@ -1014,6 +1014,75 @@ class AppLocalizationsZh extends AppLocalizations {
   String get eqPresetDance => '舞曲';
 
   @override
+  String get eqPresetHifi => 'Hi-Fi';
+
+  @override
+  String get eqPresets => '均衡器预设';
+
+  @override
+  String get customPresets => '自定义预设';
+
+  @override
+  String get builtInPresets => '官方预设';
+
+  @override
+  String get saveAsPreset => '保存为预设';
+
+  @override
+  String get saveCurrentAsPreset => '保存当前效果为新预设';
+
+  @override
+  String get enterPresetName => '请输入预设名称';
+
+  @override
+  String get presetName => '预设名称';
+
+  @override
+  String get presetNameAlreadyExists => '预设名称已存在';
+
+  @override
+  String get presetNameCannotBeEmpty => '预设名称不能为空';
+
+  @override
+  String get presetSaved => '预设已保存';
+
+  @override
+  String get updatePreset => '更新预设';
+
+  @override
+  String get presetUpdated => '预设已更新';
+
+  @override
+  String get renamePreset => '重命名预设';
+
+  @override
+  String get presetRenamed => '预设已重命名';
+
+  @override
+  String get saveAsNewPreset => '另存为新预设';
+
+  @override
+  String get updateWithCurrentSettings => '用当前效果覆盖';
+
+  @override
+  String get modified => '已修改';
+
+  @override
+  String get deletePreset => '删除预设';
+
+  @override
+  String get deletePresetConfirm => '确定要删除该预设吗？';
+
+  @override
+  String get custom => '自定义';
+
+  @override
+  String get noCustomPresets => '暂无自定义预设';
+
+  @override
+  String get savePresetPrompt => '保存当前调节的 EQ 频段增益、低音增强和前置增益';
+
+  @override
   String get effects => '特效';
 
   @override
@@ -2105,9 +2174,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get doubao => '豆包';
-
-  @override
-  String get custom => '自定义';
 
   @override
   String get noModelSelected => '未选择模型';
@@ -4620,6 +4686,75 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get eqPresetDance => '舞曲';
 
   @override
+  String get eqPresetHifi => 'Hi-Fi';
+
+  @override
+  String get eqPresets => '等化器預設';
+
+  @override
+  String get customPresets => '自訂預設';
+
+  @override
+  String get builtInPresets => '官方預設';
+
+  @override
+  String get saveAsPreset => '儲存為預設';
+
+  @override
+  String get saveCurrentAsPreset => '儲存目前效果為新預設';
+
+  @override
+  String get enterPresetName => '請輸入預設名稱';
+
+  @override
+  String get presetName => '預設名稱';
+
+  @override
+  String get presetNameAlreadyExists => '預設名稱已存在';
+
+  @override
+  String get presetNameCannotBeEmpty => '預設名稱不能為空';
+
+  @override
+  String get presetSaved => '預設已儲存';
+
+  @override
+  String get updatePreset => '更新預設';
+
+  @override
+  String get presetUpdated => '預設已更新';
+
+  @override
+  String get renamePreset => '重命名預設';
+
+  @override
+  String get presetRenamed => '預設已重命名';
+
+  @override
+  String get saveAsNewPreset => '另存為新預設';
+
+  @override
+  String get updateWithCurrentSettings => '用目前效果覆蓋';
+
+  @override
+  String get modified => '已修改';
+
+  @override
+  String get deletePreset => '刪除預設';
+
+  @override
+  String get deletePresetConfirm => '確定要刪除該預設嗎？';
+
+  @override
+  String get custom => '自訂';
+
+  @override
+  String get noCustomPresets => '暫無自訂預設';
+
+  @override
+  String get savePresetPrompt => '儲存目前調節的 EQ 頻段增益、低音增強和前置增益';
+
+  @override
   String get effects => '特效';
 
   @override
@@ -5711,9 +5846,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get doubao => '豆包';
-
-  @override
-  String get custom => '自訂';
 
   @override
   String get noModelSelected => '未選擇模型';

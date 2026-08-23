@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vynody/player/audio/equalizer_presets.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 
 void main() {
@@ -280,6 +281,46 @@ void main() {
       // Verify loaded from stored preferences
       final restoredSettings = SettingsService(prefs);
       expect(restoredSettings.themeColor, newColor);
+    });
+
+    test('customEqPresets persists, saves, and deletes correctly', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      expect(settings.customEqPresets, isEmpty);
+
+      final preset1 = EqualizerPresets.createCustomPreset(
+        name: 'Preset 1',
+        currentGains: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+        targetFreqs: EqualizerPresets.standard10Frequencies,
+        bassBoost: 20,
+        preamp: 2.5,
+      );
+
+      final preset2 = EqualizerPresets.createCustomPreset(
+        name: 'Preset 2',
+        currentGains: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        targetFreqs: EqualizerPresets.standard10Frequencies,
+      );
+
+      settings.saveCustomEqPreset(preset1);
+      settings.saveCustomEqPreset(preset2);
+
+      expect(settings.customEqPresets.length, 2);
+      expect(settings.customEqPresets.first.customName, 'Preset 2');
+      expect(settings.customEqPresets.last.customName, 'Preset 1');
+
+      // Verify restored from prefs
+      final restoredSettings = SettingsService(prefs);
+      expect(restoredSettings.customEqPresets.length, 2);
+      expect(restoredSettings.customEqPresets.last.bassBoost, 20);
+      expect(restoredSettings.customEqPresets.last.preamp, 2.5);
+
+      // Delete preset
+      restoredSettings.deleteCustomEqPreset(preset1.id);
+      expect(restoredSettings.customEqPresets.length, 1);
+      expect(restoredSettings.customEqPresets.first.id, preset2.id);
     });
   });
 }

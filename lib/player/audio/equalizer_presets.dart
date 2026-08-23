@@ -4,16 +4,78 @@ import '../../l10n/app_localizations.dart';
 /// Represents an Equalizer preset with standard 10-band reference gains.
 class EqPreset {
   final String id;
-  final String Function(AppLocalizations l10n) nameBuilder;
+  final String? customName;
+  final String Function(AppLocalizations l10n)? nameBuilder;
   final List<double> referenceGains;
+  final double? bassBoost;
+  final double? preamp;
+  final bool isCustom;
+  final int? createdAt;
 
   const EqPreset({
     required this.id,
-    required this.nameBuilder,
+    this.customName,
+    this.nameBuilder,
     required this.referenceGains,
+    this.bassBoost,
+    this.preamp,
+    this.isCustom = false,
+    this.createdAt,
   });
 
-  String getLocalizedName(AppLocalizations l10n) => nameBuilder(l10n);
+  String getLocalizedName(AppLocalizations l10n) {
+    if (isCustom && customName != null && customName!.isNotEmpty) {
+      return customName!;
+    }
+    return nameBuilder?.call(l10n) ?? customName ?? id;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'customName': customName,
+        'referenceGains': referenceGains,
+        if (bassBoost != null) 'bassBoost': bassBoost,
+        if (preamp != null) 'preamp': preamp,
+        'isCustom': isCustom,
+        'createdAt': createdAt ?? DateTime.now().millisecondsSinceEpoch,
+      };
+
+  EqPreset copyWith({
+    String? id,
+    String? customName,
+    String Function(AppLocalizations l10n)? nameBuilder,
+    List<double>? referenceGains,
+    double? bassBoost,
+    double? preamp,
+    bool? isCustom,
+    int? createdAt,
+  }) =>
+      EqPreset(
+        id: id ?? this.id,
+        customName: customName ?? this.customName,
+        nameBuilder: nameBuilder ?? this.nameBuilder,
+        referenceGains: referenceGains ?? this.referenceGains,
+        bassBoost: bassBoost ?? this.bassBoost,
+        preamp: preamp ?? this.preamp,
+        isCustom: isCustom ?? this.isCustom,
+        createdAt: createdAt ?? this.createdAt,
+      );
+
+  factory EqPreset.fromJson(Map<String, dynamic> json) => EqPreset(
+        id: json['id'] as String? ??
+            'custom_${DateTime.now().millisecondsSinceEpoch}',
+        customName: json['customName'] as String? ??
+            json['name'] as String? ??
+            'Custom Preset',
+        referenceGains: (json['referenceGains'] as List<dynamic>?)
+                ?.map((e) => (e as num).toDouble())
+                .toList() ??
+            const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        bassBoost: (json['bassBoost'] as num?)?.toDouble(),
+        preamp: (json['preamp'] as num?)?.toDouble(),
+        isCustom: true,
+        createdAt: json['createdAt'] as int?,
+      );
 }
 
 /// Collection of standard EQ presets and log-frequency interpolation algorithm.
@@ -104,6 +166,13 @@ class EqualizerPresets {
     referenceGains: const [5.0, 4.5, 2.5, 0.0, 2.0, 3.0, 4.0, 3.5, 2.5, 0.0],
   );
 
+  // 11. Hi-Fi
+  static final EqPreset hifi = EqPreset(
+    id: 'hifi',
+    nameBuilder: (l10n) => l10n.eqPresetHifi,
+    referenceGains: const [5.0, 5.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 2.0, 5.0],
+  );
+
   /// All predefined presets in display order.
   static final List<EqPreset> all = [
     flat,
@@ -116,6 +185,7 @@ class EqualizerPresets {
     classical,
     acoustic,
     dance,
+    hifi,
   ];
 
   /// Interpolates the 10-band reference gains to arbitrary target frequencies
@@ -144,7 +214,8 @@ class EqualizerPresets {
           final logF0 = math.log(f0);
           final logF1 = math.log(f1);
           final t = (logF - logF0) / (logF1 - logF0);
-          final interpolated = refGains[i] + t * (refGains[i + 1] - refGains[i]);
+          final interpolated =
+              refGains[i] + t * (refGains[i + 1] - refGains[i]);
           final rounded = (interpolated * 10).roundToDouble() / 10.0;
           return rounded.clamp(-12.0, 12.0);
         }
@@ -153,16 +224,106 @@ class EqualizerPresets {
     }).toList(growable: false);
   }
 
-  /// Checks if the currently configured gains match any predefined preset.
+  /// Interpolates arbitrary frequency-gain pairs into standard 10-band reference gains.
+  static List<double> interpolateToStandard10Bands(
+    List<double> sourceGains,
+    List<double> sourceFreqs,
+  ) {
+    if (sourceGains.isEmpty || sourceFreqs.isEmpty) {
+      return const [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+    }
+    final count = math.min(sourceGains.length, sourceFreqs.length);
+    if (count == 1) {
+      return List.filled(10, sourceGains[0].clamp(-12.0, 12.0));
+    }
+
+    final targetFreqs = standard10Frequencies;
+    return targetFreqs.map((f) {
+      if (f <= sourceFreqs.first) {
+        return sourceGains.first.clamp(-12.0, 12.0);
+      }
+      if (f >= sourceFreqs[count - 1]) {
+        return sourceGains[count - 1].clamp(-12.0, 12.0);
+      }
+
+      final logF = math.log(f);
+      for (int i = 0; i < count - 1; i++) {
+        final f0 = sourceFreqs[i];
+        final f1 = sourceFreqs[i + 1];
+        if (f >= f0 && f <= f1) {
+          final logF0 = math.log(f0);
+          final logF1 = math.log(f1);
+          final t = (logF - logF0) / (logF1 - logF0);
+          final interpolated =
+              sourceGains[i] + t * (sourceGains[i + 1] - sourceGains[i]);
+          final rounded = (interpolated * 10).roundToDouble() / 10.0;
+          return rounded.clamp(-12.0, 12.0);
+        }
+      }
+      return 0.0;
+    }).toList(growable: false);
+  }
+
+  static int _customPresetCounter = 0;
+
+  /// Creates a custom EqPreset from current gains and frequencies.
+  static EqPreset createCustomPreset({
+    required String name,
+    required List<double> currentGains,
+    required List<double> targetFreqs,
+    String? id,
+    double? bassBoost,
+    double? preamp,
+  }) {
+    final refGains = interpolateToStandard10Bands(currentGains, targetFreqs);
+    final count = ++_customPresetCounter;
+    return EqPreset(
+      id: id ?? 'custom_${DateTime.now().microsecondsSinceEpoch}_$count',
+      customName: name.trim(),
+      referenceGains: refGains,
+      bassBoost: bassBoost,
+      preamp: preamp,
+      isCustom: true,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
+  /// Updates an existing custom EqPreset with current gains, target frequencies, and other parameters.
+  static EqPreset updateCustomPreset({
+    required EqPreset existing,
+    required List<double> currentGains,
+    required List<double> targetFreqs,
+    double? bassBoost,
+    double? preamp,
+    String? newName,
+  }) {
+    final refGains = interpolateToStandard10Bands(currentGains, targetFreqs);
+    return existing.copyWith(
+      customName: (newName != null && newName.trim().isNotEmpty)
+          ? newName.trim()
+          : existing.customName,
+      referenceGains: refGains,
+      bassBoost: bassBoost,
+      preamp: preamp,
+    );
+  }
+
+  /// Checks if the currently configured gains match any predefined or custom preset.
   static EqPreset? findMatchingPreset(
     List<double> currentGains,
     List<double> targetFreqs, {
+    List<EqPreset>? customPresets,
     double tolerance = 0.2,
   }) {
     if (currentGains.isEmpty || targetFreqs.isEmpty) return null;
     final count = math.min(currentGains.length, targetFreqs.length);
 
-    for (final preset in all) {
+    final allPresets = [
+      ...?customPresets,
+      ...all,
+    ];
+
+    for (final preset in allPresets) {
       final expected = calculateGainsForBands(preset, targetFreqs);
       if (expected.length < count) continue;
 

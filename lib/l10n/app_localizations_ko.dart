@@ -1021,6 +1021,75 @@ class AppLocalizationsKo extends AppLocalizations {
   String get eqPresetDance => '댄스';
 
   @override
+  String get eqPresetHifi => 'Hi-Fi';
+
+  @override
+  String get eqPresets => '均衡器预设';
+
+  @override
+  String get customPresets => '自定义预设';
+
+  @override
+  String get builtInPresets => '官方预设';
+
+  @override
+  String get saveAsPreset => '保存为预设';
+
+  @override
+  String get saveCurrentAsPreset => '保存当前效果为新预设';
+
+  @override
+  String get enterPresetName => '请输入预设名称';
+
+  @override
+  String get presetName => '预设名称';
+
+  @override
+  String get presetNameAlreadyExists => '预设名称已存在';
+
+  @override
+  String get presetNameCannotBeEmpty => '预设名称不能为空';
+
+  @override
+  String get presetSaved => '预设已保存';
+
+  @override
+  String get updatePreset => '更新预设';
+
+  @override
+  String get presetUpdated => '预设已更新';
+
+  @override
+  String get renamePreset => '重命名预设';
+
+  @override
+  String get presetRenamed => '预设已重命名';
+
+  @override
+  String get saveAsNewPreset => '另存为新预设';
+
+  @override
+  String get updateWithCurrentSettings => '用当前效果覆盖';
+
+  @override
+  String get modified => '已修改';
+
+  @override
+  String get deletePreset => '删除预设';
+
+  @override
+  String get deletePresetConfirm => '确定要删除该预设吗？';
+
+  @override
+  String get custom => '사용자 지정';
+
+  @override
+  String get noCustomPresets => '暂无自定义预设';
+
+  @override
+  String get savePresetPrompt => '保存当前调节的 EQ 频段增益、低音增强和前置增益';
+
+  @override
   String get effects => '효과';
 
   @override
@@ -2134,9 +2203,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get doubao => 'Doubao';
-
-  @override
-  String get custom => '사용자 지정';
 
   @override
   String get noModelSelected => '선택된 모델 없음';

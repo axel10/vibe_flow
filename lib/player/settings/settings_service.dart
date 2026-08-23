@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:vynody/player/audio/equalizer_presets.dart';
 import 'package:vynody/player/settings/shortcut_bindings.dart';
 import 'package:vynody/transcode/transcode_models.dart';
 import 'package:vynody/utils/language_code_utils.dart';
@@ -452,6 +453,7 @@ class SettingsService extends ChangeNotifier {
   static const double maxWaveformLongPressSeekSpeed = 5.0;
   static const String _keyPlaybackSpeedLimit5x = 'playback_speed_limit_5x';
   static const String _keyEqualizerBandCount = 'equalizer_band_count';
+  static const String _keyCustomEqPresets = 'custom_eq_presets';
   static const String _keyShowDeveloperOptions = 'show_developer_options';
   static const String skipShortAudioScanEnabledStorageKey =
       'scan_skip_short_audio_enabled';
@@ -1245,6 +1247,30 @@ class SettingsService extends ChangeNotifier {
     defaultValue: 10,
     prefs: _prefs,
     onChanged: notifyListeners,
+  );
+
+  late final _customEqPresetsProperty = SettingProperty<List<EqPreset>>(
+    key: _keyCustomEqPresets,
+    defaultValue: const <EqPreset>[],
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) {
+      final raw = prefs.getString(key);
+      if (raw == null || raw.trim().isEmpty) return def;
+      try {
+        final List<dynamic> list = jsonDecode(raw);
+        return list
+            .map((e) => EqPreset.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      } catch (e) {
+        debugPrint('Failed to parse custom_eq_presets: $e');
+      }
+      return def;
+    },
+    customWrite: (prefs, key, value) {
+      final jsonList = value.map((e) => e.toJson()).toList();
+      prefs.setString(key, jsonEncode(jsonList));
+    },
   );
 
   late final _showDeveloperOptionsProperty = SettingProperty<bool>(
@@ -2109,6 +2135,38 @@ class SettingsService extends ChangeNotifier {
   int get equalizerBandCount => _equalizerBandCountProperty.value;
   set equalizerBandCount(int value) =>
       _equalizerBandCountProperty.value = value;
+
+  List<EqPreset> get customEqPresets => _customEqPresetsProperty.value;
+
+  void saveCustomEqPreset(EqPreset preset) {
+    final current = List<EqPreset>.from(_customEqPresetsProperty.value);
+    final existingIndex = current.indexWhere((p) => p.id == preset.id);
+    if (existingIndex >= 0) {
+      current[existingIndex] = preset;
+    } else {
+      current.insert(0, preset);
+    }
+    _customEqPresetsProperty.value = current;
+  }
+
+  void deleteCustomEqPreset(String id) {
+    final current = List<EqPreset>.from(_customEqPresetsProperty.value);
+    current.removeWhere((p) => p.id == id);
+    _customEqPresetsProperty.value = current;
+  }
+
+  void renameCustomEqPreset(String id, String newName) {
+    final trimmed = newName.trim();
+    if (trimmed.isEmpty) return;
+    final current = List<EqPreset>.from(_customEqPresetsProperty.value);
+    final existingIndex = current.indexWhere((p) => p.id == id);
+    if (existingIndex >= 0) {
+      current[existingIndex] = current[existingIndex].copyWith(
+        customName: trimmed,
+      );
+      _customEqPresetsProperty.value = current;
+    }
+  }
 
   bool get showDeveloperOptions => _showDeveloperOptionsProperty.value;
   set showDeveloperOptions(bool value) =>

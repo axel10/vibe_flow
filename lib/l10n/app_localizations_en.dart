@@ -1037,6 +1037,77 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eqPresetDance => 'Dance';
 
   @override
+  String get eqPresetHifi => 'Hi-Fi';
+
+  @override
+  String get eqPresets => 'EQ Presets';
+
+  @override
+  String get customPresets => 'Custom Presets';
+
+  @override
+  String get builtInPresets => 'Built-in Presets';
+
+  @override
+  String get saveAsPreset => 'Save as Preset';
+
+  @override
+  String get saveCurrentAsPreset => 'Save Current as New Preset';
+
+  @override
+  String get enterPresetName => 'Enter preset name';
+
+  @override
+  String get presetName => 'Preset Name';
+
+  @override
+  String get presetNameAlreadyExists => 'Preset name already exists';
+
+  @override
+  String get presetNameCannotBeEmpty => 'Preset name cannot be empty';
+
+  @override
+  String get presetSaved => 'Preset saved';
+
+  @override
+  String get updatePreset => 'Update Preset';
+
+  @override
+  String get presetUpdated => 'Preset updated';
+
+  @override
+  String get renamePreset => 'Rename Preset';
+
+  @override
+  String get presetRenamed => 'Preset renamed';
+
+  @override
+  String get saveAsNewPreset => 'Save as New Preset';
+
+  @override
+  String get updateWithCurrentSettings => 'Overwrite with Current Settings';
+
+  @override
+  String get modified => 'Modified';
+
+  @override
+  String get deletePreset => 'Delete Preset';
+
+  @override
+  String get deletePresetConfirm =>
+      'Are you sure you want to delete this preset?';
+
+  @override
+  String get custom => 'Custom';
+
+  @override
+  String get noCustomPresets => 'No custom presets yet';
+
+  @override
+  String get savePresetPrompt =>
+      'Save current EQ band gains, bass boost, and preamp gain';
+
+  @override
   String get effects => 'Effects';
 
   @override
@@ -2204,9 +2275,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get doubao => 'Doubao';
-
-  @override
-  String get custom => 'Custom';
 
   @override
   String get noModelSelected => 'No model selected';

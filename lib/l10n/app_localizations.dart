@@ -2037,6 +2037,144 @@ abstract class AppLocalizations {
   /// **'舞曲'**
   String get eqPresetDance;
 
+  /// No description provided for @eqPresetHifi.
+  ///
+  /// In zh, this message translates to:
+  /// **'Hi-Fi'**
+  String get eqPresetHifi;
+
+  /// No description provided for @eqPresets.
+  ///
+  /// In zh, this message translates to:
+  /// **'均衡器预设'**
+  String get eqPresets;
+
+  /// No description provided for @customPresets.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义预设'**
+  String get customPresets;
+
+  /// No description provided for @builtInPresets.
+  ///
+  /// In zh, this message translates to:
+  /// **'官方预设'**
+  String get builtInPresets;
+
+  /// No description provided for @saveAsPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存为预设'**
+  String get saveAsPreset;
+
+  /// No description provided for @saveCurrentAsPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存当前效果为新预设'**
+  String get saveCurrentAsPreset;
+
+  /// No description provided for @enterPresetName.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入预设名称'**
+  String get enterPresetName;
+
+  /// No description provided for @presetName.
+  ///
+  /// In zh, this message translates to:
+  /// **'预设名称'**
+  String get presetName;
+
+  /// No description provided for @presetNameAlreadyExists.
+  ///
+  /// In zh, this message translates to:
+  /// **'预设名称已存在'**
+  String get presetNameAlreadyExists;
+
+  /// No description provided for @presetNameCannotBeEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'预设名称不能为空'**
+  String get presetNameCannotBeEmpty;
+
+  /// No description provided for @presetSaved.
+  ///
+  /// In zh, this message translates to:
+  /// **'预设已保存'**
+  String get presetSaved;
+
+  /// No description provided for @updatePreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新预设'**
+  String get updatePreset;
+
+  /// No description provided for @presetUpdated.
+  ///
+  /// In zh, this message translates to:
+  /// **'预设已更新'**
+  String get presetUpdated;
+
+  /// No description provided for @renamePreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'重命名预设'**
+  String get renamePreset;
+
+  /// No description provided for @presetRenamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'预设已重命名'**
+  String get presetRenamed;
+
+  /// No description provided for @saveAsNewPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'另存为新预设'**
+  String get saveAsNewPreset;
+
+  /// No description provided for @updateWithCurrentSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'用当前效果覆盖'**
+  String get updateWithCurrentSettings;
+
+  /// No description provided for @modified.
+  ///
+  /// In zh, this message translates to:
+  /// **'已修改'**
+  String get modified;
+
+  /// No description provided for @deletePreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除预设'**
+  String get deletePreset;
+
+  /// No description provided for @deletePresetConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除该预设吗？'**
+  String get deletePresetConfirm;
+
+  /// No description provided for @custom.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义'**
+  String get custom;
+
+  /// No description provided for @noCustomPresets.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无自定义预设'**
+  String get noCustomPresets;
+
+  /// No description provided for @savePresetPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存当前调节的 EQ 频段增益、低音增强和前置增益'**
+  String get savePresetPrompt;
+
   /// No description provided for @effects.
   ///
   /// In zh, this message translates to:
@@ -4070,12 +4208,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'豆包'**
   String get doubao;
-
-  /// No description provided for @custom.
-  ///
-  /// In zh, this message translates to:
-  /// **'自定义'**
-  String get custom;
 
   /// No description provided for @noModelSelected.
   ///

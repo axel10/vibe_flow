@@ -218,6 +218,7 @@ class AudioService extends Notifier<AudioSnapshot> {
           )
         : null;
     _player.addListener(_handlePlayerChanges);
+    _player.equalizer.addListener(notifyListeners);
     _settingsListener = () {
       if (_disposed) return;
       final fadeEnabled = settingsService.enableFadeEffect;
@@ -1352,32 +1353,32 @@ class AudioService extends Notifier<AudioSnapshot> {
     return _player.getEqualizerBandCenters(bandCount: bandCount);
   }
 
-  void setEqualizerEnabled(bool value) {
-    _player.setEqualizerEnabled(value);
+  Future<void> setEqualizerEnabled(bool value) async {
+    await _player.setEqualizerEnabled(value);
     notifyListeners();
   }
 
-  void setEqualizerBandGain(int index, double value) {
-    _player.setEqualizerBandGain(index, value);
+  Future<void> setEqualizerBandGain(int index, double value) async {
+    await _player.setEqualizerBandGain(index, value);
     notifyListeners();
   }
 
-  void setEqualizerBandGains(List<double> gains) {
-    _player.setEqualizerBandGains(gains);
+  Future<void> setEqualizerBandGains(List<double> gains) async {
+    await _player.setEqualizerBandGains(gains);
     notifyListeners();
   }
 
-  void setBassBoost(double value) {
-    _player.setBassBoost(value);
+  Future<void> setBassBoost(double value) async {
+    await _player.setBassBoost(value);
     notifyListeners();
   }
 
-  void setEqualizerPreamp(double value) {
-    _player.setEqualizerPreamp(value);
+  Future<void> setEqualizerPreamp(double value) async {
+    await _player.setEqualizerPreamp(value);
     notifyListeners();
   }
 
-  void resetEqualizerDefaults() {
+  Future<void> resetEqualizerDefaults() async {
     _player.resetEqualizerDefaults();
     notifyListeners();
   }
@@ -2800,6 +2801,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     _sessionManager.dispose();
     _sleepTimer?.cancel();
     _player.removeListener(_handlePlayerChanges);
+    _player.equalizer.removeListener(notifyListeners);
     settingsService.removeListener(_settingsListener);
     _queueProcessor.dispose();
     _player.visualizer.removeOutput('mini_player');

@@ -17,6 +17,8 @@ class EqualizerPanel extends ConsumerStatefulWidget {
 }
 
 class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
+  String? _selectedPresetId;
+
   @override
   void initState() {
     super.initState();
@@ -49,37 +51,73 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     final isDark = theme.brightness == Brightness.dark;
     final accentColor = theme.colorScheme.primary;
 
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? Colors.black.withValues(alpha: 0.7) : theme.colorScheme.surface.withValues(alpha: 0.9),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          border: Border.all(
-            color: isDark ? Colors.white.withValues(alpha: 0.1) : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(audio, config, l10n),
-            const SizedBox(height: 16),
-            _buildPresetChips(audio, config, accentColor, bandCount, frequencies, l10n),
-            const SizedBox(height: 20),
-            _buildEqSliders(audio, config, accentColor, bandCount, frequencies),
-            const SizedBox(height: 32),
-            _buildBottomControls(audio, config, accentColor, l10n),
-            const SizedBox(height: 24),
-            Divider(
-              height: 1,
-              color: isDark ? Colors.white10 : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).pop(),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {},
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.75)
+                      : theme.colorScheme.surface.withValues(alpha: 0.95),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(32)),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(audio, config, l10n),
+                    const SizedBox(height: 14),
+                    _buildPresetBar(
+                      audio,
+                      config,
+                      accentColor,
+                      bandCount,
+                      frequencies,
+                      l10n,
+                    ),
+                    const SizedBox(height: 18),
+                    _buildEqSliders(
+                      audio,
+                      config,
+                      accentColor,
+                      bandCount,
+                      frequencies,
+                    ),
+                    const SizedBox(height: 28),
+                    _buildBottomControls(audio, config, accentColor, l10n),
+                    const SizedBox(height: 24),
+                    Divider(
+                      height: 1,
+                      color: isDark
+                          ? Colors.white10
+                          : theme.colorScheme.outlineVariant
+                              .withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSpeedControl(audio, playbackSpeed, accentColor, l10n),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
-            _buildSpeedControl(audio, playbackSpeed, accentColor, l10n),
-          ],
+          ),
         ),
       ),
     );
@@ -110,7 +148,9 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
             Text(
               l10n.playbackSpeed,
               style: TextStyle(
-                color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                color: isDark
+                    ? Colors.white70
+                    : theme.colorScheme.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -148,16 +188,21 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                   max: maxLimit,
                   divisions: limit5x ? 90 : 30,
                   activeColor: accentColor,
-                  inactiveColor: isDark ? Colors.white12 : theme.colorScheme.outlineVariant,
+                  inactiveColor: isDark
+                      ? Colors.white12
+                      : theme.colorScheme.outlineVariant,
                   onChanged: (val) => audio.setPlaybackSpeed(val),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             TextButton(
-              onPressed: playbackSpeed == 1.0 ? null : () => audio.setPlaybackSpeed(1.0),
+              onPressed: playbackSpeed == 1.0
+                  ? null
+                  : () => audio.setPlaybackSpeed(1.0),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -174,39 +219,51 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           ],
         ),
         const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 5.0]
-                .where((speed) => speed <= maxLimit)
-                .map((speed) {
-              final isSelected = (playbackSpeed - speed).abs() < 0.01;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ChoiceChip(
-                  label: Text(
-                    speed == 1.0 ? '1.0x (${l10n.normal})' : '${speed}x',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isSelected
-                          ? (isDark ? Colors.black : Colors.white)
-                          : (isDark ? Colors.white70 : Colors.black87),
+        ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            dragDevices: {
+              PointerDeviceKind.touch,
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 5.0]
+                  .where((speed) => speed <= maxLimit)
+                  .map((speed) {
+                final isSelected = (playbackSpeed - speed).abs() < 0.01;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ChoiceChip(
+                    label: Text(
+                      speed == 1.0 ? '1.0x (${l10n.normal})' : '${speed}x',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isSelected
+                            ? (isDark ? Colors.black : Colors.white)
+                            : (isDark ? Colors.white70 : Colors.black87),
+                      ),
                     ),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        audio.setPlaybackSpeed(speed);
+                      }
+                    },
+                    showCheckmark: false,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    selectedColor: accentColor,
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.04),
                   ),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      audio.setPlaybackSpeed(speed);
-                    }
-                  },
-                  showCheckmark: false,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  selectedColor: accentColor,
-                  backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -216,7 +273,9 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
             Text(
               switchLabel,
               style: TextStyle(
-                color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                color: isDark
+                    ? Colors.white70
+                    : theme.colorScheme.onSurfaceVariant,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -267,17 +326,21 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
               l10n.equalizer,
               style: TextStyle(
                 color: isDark ? Colors.white : theme.colorScheme.onSurface,
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+                letterSpacing: 1.1,
               ),
             ),
+            const SizedBox(height: 2),
             Text(
               config.enabled
                   ? l10n.equalizerEnabledStatus
                   : l10n.equalizerDisabledStatus,
               style: TextStyle(
-                color: isDark ? Colors.white.withValues(alpha: 0.5) : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.5)
+                    : theme.colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.7),
                 fontSize: 12,
               ),
             ),
@@ -293,7 +356,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     );
   }
 
-  Widget _buildPresetChips(
+  Widget _buildPresetBar(
     AudioService audio,
     EqualizerConfig config,
     Color accentColor,
@@ -303,6 +366,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final settings = ref.watch(settingsServiceProvider);
 
     final currentGains = config.bandGainsDb.length >= bandCount
         ? config.bandGainsDb.sublist(0, bandCount)
@@ -310,50 +374,688 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     final matchedPreset = EqualizerPresets.findMatchingPreset(
       currentGains,
       frequencies,
+      customPresets: settings.customEqPresets,
     );
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
+    if (matchedPreset != null) {
+      _selectedPresetId = matchedPreset.id;
+    }
+
+    EqPreset? activePreset;
+    if (_selectedPresetId != null) {
+      final allPresets = [...settings.customEqPresets, ...EqualizerPresets.all];
+      activePreset =
+          allPresets.where((p) => p.id == _selectedPresetId).firstOrNull;
+    }
+
+    final bool isModified = matchedPreset == null && activePreset != null;
+    final bool isCustomPreset =
+        (matchedPreset?.isCustom ?? activePreset?.isCustom) ?? false;
+
+    final String presetName;
+    if (matchedPreset != null) {
+      presetName = matchedPreset.getLocalizedName(l10n);
+    } else if (activePreset != null) {
+      presetName = '${activePreset.getLocalizedName(l10n)} (${l10n.modified})';
+    } else {
+      presetName = l10n.custom;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+        ),
+      ),
       child: Row(
-        children: EqualizerPresets.all.map((preset) {
-          final isSelected = matchedPreset?.id == preset.id;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text(
-                preset.getLocalizedName(l10n),
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? (isDark ? Colors.black : Colors.white)
-                      : (isDark ? Colors.white70 : Colors.black87),
+        children: [
+          // Preset selector trigger button
+          Expanded(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showPresetPickerModal(
+                  context,
+                  audio,
+                  config,
+                  frequencies,
+                  bandCount,
+                  l10n,
+                ),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  child: Row(
+                    children: [
+                      Icon(
+                        matchedPreset != null
+                            ? (isCustomPreset
+                                ? Icons.person_pin_circle_outlined
+                                : Icons.graphic_eq_rounded)
+                            : (isModified
+                                ? Icons.tune_rounded
+                                : Icons.tune_rounded),
+                        size: 18,
+                        color: accentColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${l10n.eqPresets}:',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark
+                              ? Colors.white60
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          presetName,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white
+                                : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: isDark
+                            ? Colors.white54
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  if (!config.enabled) {
-                    audio.setEqualizerEnabled(true);
-                  }
-                  final gains = EqualizerPresets.calculateGainsForBands(
-                    preset,
-                    frequencies,
-                  );
-                  audio.setEqualizerBandGains(gains);
-                }
-              },
-              showCheckmark: false,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              selectedColor: accentColor,
-              backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
             ),
-          );
-        }).toList(),
+          ),
+          const SizedBox(width: 8),
+          if (activePreset != null && activePreset.isCustom && isModified) ...[
+            // Update current custom preset
+            FilledButton.icon(
+              onPressed: () => _updateCurrentCustomPreset(
+                context,
+                activePreset!,
+                currentGains,
+                frequencies,
+                config.bassBoostDb,
+                config.preampDb,
+                l10n,
+              ),
+              icon: const Icon(Icons.save_rounded, size: 15),
+              label: Text(
+                l10n.updatePreset,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: accentColor,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(width: 6),
+            // Save as new preset option
+            IconButton(
+              onPressed: () => _showSavePresetDialog(
+                context,
+                currentGains,
+                frequencies,
+                config.bassBoostDb,
+                config.preampDb,
+                l10n,
+              ),
+              icon: const Icon(Icons.bookmark_add_outlined, size: 16),
+              color: accentColor,
+              style: IconButton.styleFrom(
+                backgroundColor: accentColor.withValues(alpha: 0.12),
+                padding: const EdgeInsets.all(8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              tooltip: l10n.saveAsNewPreset,
+            ),
+          ] else ...[
+            // Save as preset action button
+            TextButton.icon(
+              onPressed: () => _showSavePresetDialog(
+                context,
+                currentGains,
+                frequencies,
+                config.bassBoostDb,
+                config.preampDb,
+                l10n,
+              ),
+              icon: const Icon(Icons.bookmark_add_outlined, size: 16),
+              label: Text(
+                l10n.saveAsPreset,
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: accentColor,
+                backgroundColor: accentColor.withValues(alpha: 0.12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+          ],
+        ],
       ),
     );
+  }
+
+  void _updateCurrentCustomPreset(
+    BuildContext context,
+    EqPreset preset,
+    List<double> currentGains,
+    List<double> frequencies,
+    double bassBoost,
+    double preamp,
+    AppLocalizations l10n,
+  ) {
+    final updated = EqualizerPresets.updateCustomPreset(
+      existing: preset,
+      currentGains: currentGains,
+      targetFreqs: frequencies,
+      bassBoost: bassBoost,
+      preamp: preamp,
+    );
+    ref.read(settingsServiceProvider).saveCustomEqPreset(updated);
+    setState(() {
+      _selectedPresetId = updated.id;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${l10n.presetUpdated}: ${updated.getLocalizedName(l10n)}',
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showPresetPickerModal(
+    BuildContext context,
+    AudioService audio,
+    EqualizerConfig config,
+    List<double> frequencies,
+    int bandCount,
+    AppLocalizations l10n,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => _PresetPickerDialog(
+        audio: audio,
+        config: config,
+        frequencies: frequencies,
+        bandCount: bandCount,
+        onPresetSelected: (preset) {
+          setState(() {
+            _selectedPresetId = preset.id;
+          });
+        },
+        onSaveNewPresetTap: () {
+          Navigator.of(dialogContext).pop();
+          final currentGains = config.bandGainsDb.length >= bandCount
+              ? config.bandGainsDb.sublist(0, bandCount)
+              : config.bandGainsDb.toList();
+          _showSavePresetDialog(
+            context,
+            currentGains,
+            frequencies,
+            config.bassBoostDb,
+            config.preampDb,
+            l10n,
+          );
+        },
+        onRenamePresetTap: (preset) {
+          _showRenamePresetDialog(context, preset, l10n);
+        },
+        onUpdatePresetTap: (preset) {
+          final currentGains = config.bandGainsDb.length >= bandCount
+              ? config.bandGainsDb.sublist(0, bandCount)
+              : config.bandGainsDb.toList();
+          _updateCurrentCustomPreset(
+            context,
+            preset,
+            currentGains,
+            frequencies,
+            config.bassBoostDb,
+            config.preampDb,
+            l10n,
+          );
+        },
+      ),
+    );
+  }
+
+  bool _isPresetNameDuplicate({
+    required String name,
+    required AppLocalizations l10n,
+    String? excludeId,
+  }) {
+    final trimmed = name.trim().toLowerCase();
+    if (trimmed.isEmpty) return false;
+
+    // Check built-in preset localized names & ids
+    for (final p in EqualizerPresets.all) {
+      if (p.getLocalizedName(l10n).trim().toLowerCase() == trimmed ||
+          p.id.trim().toLowerCase() == trimmed) {
+        return true;
+      }
+    }
+
+    // Check custom presets
+    final customPresets = ref.read(settingsServiceProvider).customEqPresets;
+    for (final p in customPresets) {
+      if (excludeId != null && p.id == excludeId) continue;
+      if (p.getLocalizedName(l10n).trim().toLowerCase() == trimmed) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Future<void> _showRenamePresetDialog(
+    BuildContext context,
+    EqPreset preset,
+    AppLocalizations l10n,
+  ) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = theme.colorScheme.primary;
+
+    final initialName = preset.getLocalizedName(l10n);
+    final controller = TextEditingController(text: initialName);
+    final messenger = ScaffoldMessenger.of(context);
+    String? errorText;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          void validate(String val) {
+            final trimmed = val.trim();
+            if (trimmed.isEmpty) {
+              setDialogState(() {
+                errorText = null;
+              });
+              return;
+            }
+            if (_isPresetNameDuplicate(
+              name: trimmed,
+              l10n: l10n,
+              excludeId: preset.id,
+            )) {
+              setDialogState(() {
+                errorText = l10n.presetNameAlreadyExists;
+              });
+            } else {
+              setDialogState(() {
+                errorText = null;
+              });
+            }
+          }
+
+          final trimmed = controller.text.trim();
+          final isDuplicate = _isPresetNameDuplicate(
+            name: trimmed,
+            l10n: l10n,
+            excludeId: preset.id,
+          );
+          final canSubmit =
+              trimmed.isNotEmpty && !isDuplicate && trimmed != initialName;
+
+          return AlertDialog(
+            backgroundColor:
+                isDark ? const Color(0xFF1E1E1E) : theme.colorScheme.surface,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Icon(Icons.edit_rounded, color: accentColor),
+                const SizedBox(width: 10),
+                Text(
+                  l10n.renamePreset,
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLength: 30,
+                  decoration: InputDecoration(
+                    hintText: l10n.enterPresetName,
+                    labelText: l10n.presetName,
+                    errorText: errorText,
+                    counterText: '',
+                    prefixIcon: const Icon(Icons.edit_outlined, size: 20),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.white12
+                            : theme.colorScheme.outlineVariant,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: accentColor, width: 2),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    validate(val);
+                  },
+                  onSubmitted: (val) {
+                    final text = val.trim();
+                    if (text.isEmpty) {
+                      setDialogState(() {
+                        errorText = l10n.presetNameCannotBeEmpty;
+                      });
+                      return;
+                    }
+                    if (_isPresetNameDuplicate(
+                      name: text,
+                      l10n: l10n,
+                      excludeId: preset.id,
+                    )) {
+                      setDialogState(() {
+                        errorText = l10n.presetNameAlreadyExists;
+                      });
+                      return;
+                    }
+                    Navigator.of(dialogCtx).pop(text);
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+                child: Text(
+                  MaterialLocalizations.of(dialogCtx).cancelButtonLabel,
+                  style: TextStyle(
+                    color: isDark
+                        ? Colors.white60
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              FilledButton(
+                onPressed: canSubmit
+                    ? () {
+                        final text = controller.text.trim();
+                        if (text.isEmpty) {
+                          setDialogState(() {
+                            errorText = l10n.presetNameCannotBeEmpty;
+                          });
+                          return;
+                        }
+                        if (_isPresetNameDuplicate(
+                          name: text,
+                          l10n: l10n,
+                          excludeId: preset.id,
+                        )) {
+                          setDialogState(() {
+                            errorText = l10n.presetNameAlreadyExists;
+                          });
+                          return;
+                        }
+                        Navigator.of(dialogCtx).pop(text);
+                      }
+                    : null,
+                child: Text(MaterialLocalizations.of(dialogCtx).okButtonLabel),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      ref.read(settingsServiceProvider).renameCustomEqPreset(preset.id, result);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${l10n.presetRenamed}: $result'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showSavePresetDialog(
+    BuildContext context,
+    List<double> currentGains,
+    List<double> frequencies,
+    double bassBoost,
+    double preamp,
+    AppLocalizations l10n,
+  ) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = theme.colorScheme.primary;
+
+    final controller = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+    String? errorText;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          void validate(String val) {
+            final trimmed = val.trim();
+            if (trimmed.isEmpty) {
+              setDialogState(() {
+                errorText = null;
+              });
+              return;
+            }
+            if (_isPresetNameDuplicate(name: trimmed, l10n: l10n)) {
+              setDialogState(() {
+                errorText = l10n.presetNameAlreadyExists;
+              });
+            } else {
+              setDialogState(() {
+                errorText = null;
+              });
+            }
+          }
+
+          final trimmed = controller.text.trim();
+          final isDuplicate = _isPresetNameDuplicate(name: trimmed, l10n: l10n);
+          final canSubmit = trimmed.isNotEmpty && !isDuplicate;
+
+          return AlertDialog(
+            backgroundColor:
+                isDark ? const Color(0xFF1E1E1E) : theme.colorScheme.surface,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Icon(Icons.bookmark_add_rounded, color: accentColor),
+                const SizedBox(width: 10),
+                Text(
+                  l10n.saveAsPreset,
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.savePresetPrompt,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark
+                        ? Colors.white60
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLength: 30,
+                  decoration: InputDecoration(
+                    hintText: l10n.enterPresetName,
+                    labelText: l10n.presetName,
+                    errorText: errorText,
+                    counterText: '',
+                    prefixIcon: const Icon(Icons.edit_outlined, size: 20),
+                    filled: true,
+                    fillColor: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.white12
+                            : theme.colorScheme.outlineVariant,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: accentColor, width: 2),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    validate(val);
+                  },
+                  onSubmitted: (val) {
+                    final text = val.trim();
+                    if (text.isEmpty) {
+                      setDialogState(() {
+                        errorText = l10n.presetNameCannotBeEmpty;
+                      });
+                      return;
+                    }
+                    if (_isPresetNameDuplicate(name: text, l10n: l10n)) {
+                      setDialogState(() {
+                        errorText = l10n.presetNameAlreadyExists;
+                      });
+                      return;
+                    }
+                    Navigator.of(dialogCtx).pop(text);
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+                child: Text(
+                  MaterialLocalizations.of(dialogCtx).cancelButtonLabel,
+                  style: TextStyle(
+                    color: isDark
+                        ? Colors.white60
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              FilledButton(
+                onPressed: canSubmit
+                    ? () {
+                        final text = controller.text.trim();
+                        if (text.isEmpty) {
+                          setDialogState(() {
+                            errorText = l10n.presetNameCannotBeEmpty;
+                          });
+                          return;
+                        }
+                        if (_isPresetNameDuplicate(name: text, l10n: l10n)) {
+                          setDialogState(() {
+                            errorText = l10n.presetNameAlreadyExists;
+                          });
+                          return;
+                        }
+                        Navigator.of(dialogCtx).pop(text);
+                      }
+                    : null,
+                child: Text(MaterialLocalizations.of(dialogCtx).okButtonLabel),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      final newPreset = EqualizerPresets.createCustomPreset(
+        name: result,
+        currentGains: currentGains,
+        targetFreqs: frequencies,
+        bassBoost: bassBoost,
+        preamp: preamp,
+      );
+      ref.read(settingsServiceProvider).saveCustomEqPreset(newPreset);
+      setState(() {
+        _selectedPresetId = newPreset.id;
+      });
+
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('${l10n.presetSaved}: $result'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildEqSliders(
@@ -476,7 +1178,9 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                   Text(
                     l10n.preampGain,
                     style: TextStyle(
-                      color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
+                      color: isDark
+                          ? Colors.white70
+                          : theme.colorScheme.onSurfaceVariant,
                       fontSize: 14,
                     ),
                   ),
@@ -506,7 +1210,9 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                   min: -12.0,
                   max: 12.0,
                   activeColor: accentColor,
-                  inactiveColor: isDark ? Colors.white12 : theme.colorScheme.outlineVariant,
+                  inactiveColor: isDark
+                      ? Colors.white12
+                      : theme.colorScheme.outlineVariant,
                   onChanged: (val) => audio.setEqualizerPreamp(val),
                 ),
               ),
@@ -576,6 +1282,594 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
   }
 }
 
+/// Dialog for choosing and managing EQ presets.
+class _PresetPickerDialog extends ConsumerWidget {
+  final AudioService audio;
+  final EqualizerConfig config;
+  final List<double> frequencies;
+  final int bandCount;
+  final ValueChanged<EqPreset> onPresetSelected;
+  final VoidCallback onSaveNewPresetTap;
+  final ValueChanged<EqPreset> onRenamePresetTap;
+  final ValueChanged<EqPreset> onUpdatePresetTap;
+
+  const _PresetPickerDialog({
+    required this.audio,
+    required this.config,
+    required this.frequencies,
+    required this.bandCount,
+    required this.onPresetSelected,
+    required this.onSaveNewPresetTap,
+    required this.onRenamePresetTap,
+    required this.onUpdatePresetTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = theme.colorScheme.primary;
+    final settings = ref.watch(settingsServiceProvider);
+
+    final currentGains = config.bandGainsDb.length >= bandCount
+        ? config.bandGainsDb.sublist(0, bandCount)
+        : config.bandGainsDb.toList();
+    final matchedPreset = EqualizerPresets.findMatchingPreset(
+      currentGains,
+      frequencies,
+      customPresets: settings.customEqPresets,
+    );
+
+    final customPresets = settings.customEqPresets;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 680, maxHeight: 560),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF18181B).withValues(alpha: 0.95)
+                : theme.colorScheme.surface.withValues(alpha: 0.98),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 32,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.equalizer_rounded,
+                        color: accentColor, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.eqPresets,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? Colors.white
+                            : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: onSaveNewPresetTap,
+                    icon: const Icon(Icons.add, size: 16),
+                    label: Text(
+                      l10n.saveAsPreset,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: accentColor,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, size: 20),
+                    style: IconButton.styleFrom(
+                      padding: const EdgeInsets.all(6),
+                      minimumSize: Size.zero,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Divider(
+                height: 1,
+                color: isDark
+                    ? Colors.white10
+                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 12),
+
+              // Presets list scrollable content
+              Flexible(
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.trackpad,
+                    },
+                  ),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      // 1. Custom Presets Section
+                      if (customPresets.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 4, top: 4, bottom: 8),
+                          child: Row(
+                            children: [
+                              Text(
+                                l10n.customPresets,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: accentColor,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: accentColor.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '${customPresets.length}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildPresetGrid(
+                          context: context,
+                          ref: ref,
+                          presets: customPresets,
+                          matchedPreset: matchedPreset,
+                          accentColor: accentColor,
+                          isDark: isDark,
+                          l10n: l10n,
+                          isCustomSection: true,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // 2. Built-in Presets Section
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 4, top: 4, bottom: 8),
+                        child: Text(
+                          l10n.builtInPresets,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? Colors.white70
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      _buildPresetGrid(
+                        context: context,
+                        ref: ref,
+                        presets: EqualizerPresets.all,
+                        matchedPreset: matchedPreset,
+                        accentColor: accentColor,
+                        isDark: isDark,
+                        l10n: l10n,
+                        isCustomSection: false,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetGrid({
+    required BuildContext context,
+    required WidgetRef ref,
+    required List<EqPreset> presets,
+    required EqPreset? matchedPreset,
+    required Color accentColor,
+    required bool isDark,
+    required AppLocalizations l10n,
+    bool isCustomSection = false,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 500 ? 3 : 2;
+        final itemWidth =
+            (constraints.maxWidth - (crossAxisCount - 1) * 10) / crossAxisCount;
+
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: presets.map((preset) {
+            final isSelected = matchedPreset?.id == preset.id;
+            return SizedBox(
+              width: itemWidth,
+              child: _buildPresetCard(
+                context: context,
+                ref: ref,
+                preset: preset,
+                isSelected: isSelected,
+                accentColor: accentColor,
+                isDark: isDark,
+                l10n: l10n,
+                isCustom: isCustomSection,
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildPresetCard({
+    required BuildContext context,
+    required WidgetRef ref,
+    required EqPreset preset,
+    required bool isSelected,
+    required Color accentColor,
+    required bool isDark,
+    required AppLocalizations l10n,
+    required bool isCustom,
+  }) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          if (!config.enabled) {
+            await audio.setEqualizerEnabled(true);
+          }
+          final gains = EqualizerPresets.calculateGainsForBands(
+            preset,
+            frequencies,
+          );
+          await audio.setEqualizerBandGains(gains);
+          if (preset.bassBoost != null) {
+            await audio.setBassBoost(preset.bassBoost!);
+          }
+          if (preset.preamp != null) {
+            await audio.setEqualizerPreamp(preset.preamp!);
+          }
+          onPresetSelected(preset);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? accentColor.withValues(alpha: 0.15)
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.35)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? accentColor
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : theme.colorScheme.outlineVariant
+                          .withValues(alpha: 0.3)),
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            preset.getLocalizedName(l10n),
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? accentColor
+                                  : (isDark
+                                      ? Colors.white
+                                      : theme.colorScheme.onSurface),
+                            ),
+                          ),
+                        ),
+                        if (isSelected) ...[
+                          const SizedBox(width: 4),
+                          Icon(Icons.check_circle_rounded,
+                              size: 14, color: accentColor),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    _MiniEqPreview(
+                      referenceGains: preset.referenceGains,
+                      color: isSelected
+                          ? accentColor
+                          : (isDark ? Colors.white38 : Colors.black38),
+                    ),
+                  ],
+                ),
+              ),
+              if (isCustom)
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    size: 18,
+                    color: isDark ? Colors.white54 : Colors.black54,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  color: isDark
+                      ? const Color(0xFF27272A)
+                      : theme.colorScheme.surface,
+                  tooltip: '',
+                  onSelected: (value) {
+                    if (value == 'rename') {
+                      onRenamePresetTap(preset);
+                    } else if (value == 'update') {
+                      onUpdatePresetTap(preset);
+                    } else if (value == 'delete') {
+                      _confirmDeletePreset(context, ref, preset, l10n);
+                    }
+                  },
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem<String>(
+                      value: 'rename',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined,
+                              size: 16,
+                              color: isDark ? Colors.white70 : Colors.black87),
+                          const SizedBox(width: 10),
+                          Text(l10n.renamePreset,
+                              style: const TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'update',
+                      child: Row(
+                        children: [
+                          Icon(Icons.sync_rounded,
+                              size: 16, color: accentColor),
+                          const SizedBox(width: 10),
+                          Text(
+                            l10n.updateWithCurrentSettings,
+                            style:
+                                TextStyle(fontSize: 13, color: accentColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline_rounded,
+                              size: 16, color: Colors.redAccent),
+                          const SizedBox(width: 10),
+                          Text(
+                            l10n.deletePreset,
+                            style: const TextStyle(
+                                fontSize: 13, color: Colors.redAccent),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeletePreset(
+    BuildContext context,
+    WidgetRef ref,
+    EqPreset preset,
+    AppLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor:
+            isDark ? const Color(0xFF1E1E1E) : theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          l10n.deletePreset,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          '${l10n.deletePresetConfirm}\n"${preset.getLocalizedName(l10n)}"',
+          style: TextStyle(
+            fontSize: 14,
+            color: isDark
+                ? Colors.white70
+                : theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: Text(
+              MaterialLocalizations.of(dialogCtx).cancelButtonLabel,
+              style: TextStyle(
+                color: isDark
+                    ? Colors.white60
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.of(dialogCtx).pop();
+              ref.read(settingsServiceProvider).deleteCustomEqPreset(preset.id);
+            },
+            child: Text(MaterialLocalizations.of(dialogCtx).deleteButtonTooltip),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Miniature EQ curve painter for visual preset preview.
+class _MiniEqPreview extends StatelessWidget {
+  final List<double> referenceGains;
+  final Color color;
+
+  const _MiniEqPreview({
+    required this.referenceGains,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 46,
+      height: 18,
+      child: CustomPaint(
+        painter: _MiniEqCurvePainter(
+          gains: referenceGains,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniEqCurvePainter extends CustomPainter {
+  final List<double> gains;
+  final Color color;
+
+  _MiniEqCurvePainter({required this.gains, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (gains.isEmpty) return;
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: 0.18)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final fillPath = Path();
+
+    final midY = size.height / 2;
+    // Draw subtle zero baseline
+    canvas.drawLine(
+      Offset(0, midY),
+      Offset(size.width, midY),
+      Paint()
+        ..color = color.withValues(alpha: 0.2)
+        ..strokeWidth = 0.8,
+    );
+
+    final stepX = size.width / (gains.length - 1);
+    for (int i = 0; i < gains.length; i++) {
+      final x = i * stepX;
+      // gain is -12 to +12 dB. Map to height: +12 -> 2, -12 -> height-2
+      final normalized = (-gains[i].clamp(-12.0, 12.0) + 12.0) / 24.0;
+      final y = 2.0 + normalized * (size.height - 4.0);
+
+      if (i == 0) {
+        path.moveTo(x, y);
+        fillPath.moveTo(x, midY);
+        fillPath.lineTo(x, y);
+      } else {
+        path.lineTo(x, y);
+        fillPath.lineTo(x, y);
+      }
+    }
+
+    fillPath.lineTo(size.width, midY);
+    fillPath.close();
+
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MiniEqCurvePainter oldDelegate) =>
+      oldDelegate.gains != gains || oldDelegate.color != color;
+}
+
 class _VerticalEqSlider extends StatelessWidget {
   final double value;
   final double min;
@@ -604,7 +1898,9 @@ class _VerticalEqSlider extends StatelessWidget {
           thumbShape: _CustomThumbShape(color: activeColor),
           overlayShape: const RoundSliderOverlayShape(overlayRadius: 0),
           activeTrackColor: activeColor,
-          inactiveTrackColor: isDark ? Colors.white.withValues(alpha: 0.1) : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          inactiveTrackColor: isDark
+              ? Colors.white.withValues(alpha: 0.1)
+              : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
           trackShape: const RoundedRectSliderTrackShape(),
         ),
         child: Slider(
@@ -842,5 +2138,7 @@ class _KnobPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _KnobPainter oldDelegate) =>
-      oldDelegate.value != value || oldDelegate.themeColor != themeColor || oldDelegate.context != context;
+      oldDelegate.value != value ||
+      oldDelegate.themeColor != themeColor ||
+      oldDelegate.context != context;
 }
