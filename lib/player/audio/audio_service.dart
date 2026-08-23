@@ -254,7 +254,30 @@ class AudioService extends Notifier<AudioSnapshot> {
     unawaited(
       _player.initialize().then((_) async {
         if (_disposed) return;
-        _player.setEqualizerBandCount(settingsService.equalizerBandCount);
+        final bandCount = settingsService.equalizerBandCount;
+        final savedEnabled = settingsService.equalizerEnabled;
+        final savedGains = settingsService.equalizerGains;
+        final savedPreamp = settingsService.equalizerPreamp;
+        final savedBassBoost = settingsService.equalizerBassBoost;
+
+        final gainsList = Float32List(EqualizerController.maxEqualizerBands);
+        for (int i = 0;
+            i < savedGains.length && i < EqualizerController.maxEqualizerBands;
+            i++) {
+          gainsList[i] = savedGains[i];
+        }
+
+        await _player.setEqualizerConfig(
+          EqualizerConfig(
+            enabled: savedEnabled,
+            bandCount: bandCount,
+            preampDb: savedPreamp,
+            bassBoostDb: savedBassBoost,
+            bassBoostFrequencyHz: EqualizerController.bassBoostFrequencyHz,
+            bassBoostQ: EqualizerController.bassBoostQ,
+            bandGainsDb: gainsList,
+          ),
+        );
         await _restorePlaybackSession();
         if (_disposed) return;
 
@@ -1346,6 +1369,7 @@ class AudioService extends Notifier<AudioSnapshot> {
       return;
     }
     _player.setEqualizerBandCount(bandCount);
+    settingsService.equalizerBandCount = bandCount;
     notifyListeners();
   }
 
@@ -1355,31 +1379,42 @@ class AudioService extends Notifier<AudioSnapshot> {
 
   Future<void> setEqualizerEnabled(bool value) async {
     await _player.setEqualizerEnabled(value);
+    settingsService.equalizerEnabled = value;
     notifyListeners();
   }
 
   Future<void> setEqualizerBandGain(int index, double value) async {
     await _player.setEqualizerBandGain(index, value);
+    settingsService.equalizerGains =
+        _player.equalizerConfig.bandGainsDb.toList();
     notifyListeners();
   }
 
   Future<void> setEqualizerBandGains(List<double> gains) async {
     await _player.setEqualizerBandGains(gains);
+    settingsService.equalizerGains =
+        _player.equalizerConfig.bandGainsDb.toList();
     notifyListeners();
   }
 
   Future<void> setBassBoost(double value) async {
     await _player.setBassBoost(value);
+    settingsService.equalizerBassBoost = value;
     notifyListeners();
   }
 
   Future<void> setEqualizerPreamp(double value) async {
     await _player.setEqualizerPreamp(value);
+    settingsService.equalizerPreamp = value;
     notifyListeners();
   }
 
   Future<void> resetEqualizerDefaults() async {
     _player.resetEqualizerDefaults();
+    settingsService.equalizerEnabled = false;
+    settingsService.equalizerGains = const [];
+    settingsService.equalizerPreamp = 0.0;
+    settingsService.equalizerBassBoost = 0.0;
     notifyListeners();
   }
 

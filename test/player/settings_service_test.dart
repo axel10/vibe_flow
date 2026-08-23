@@ -322,5 +322,35 @@ void main() {
       expect(restoredSettings.customEqPresets.length, 1);
       expect(restoredSettings.customEqPresets.first.id, preset2.id);
     });
+
+    test('equalizer state (enabled, gains, preamp, bassBoost) persists correctly', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      // Default values
+      expect(settings.equalizerEnabled, isFalse);
+      expect(settings.equalizerGains, isEmpty);
+      expect(settings.equalizerPreamp, 0.0);
+      expect(settings.equalizerBassBoost, 0.0);
+
+      // Modify values
+      settings.equalizerEnabled = true;
+      settings.equalizerGains = [1.5, -2.0, 3.2, 0.0, 4.0];
+      settings.equalizerPreamp = -3.0;
+      settings.equalizerBassBoost = 5.0;
+
+      expect(settings.equalizerEnabled, isTrue);
+      expect(settings.equalizerGains, [1.5, -2.0, 3.2, 0.0, 4.0]);
+      expect(settings.equalizerPreamp, -3.0);
+      expect(settings.equalizerBassBoost, 5.0);
+
+      // Verify restored from prefs
+      final restoredSettings = SettingsService(prefs);
+      expect(restoredSettings.equalizerEnabled, isTrue);
+      expect(restoredSettings.equalizerGains, [1.5, -2.0, 3.2, 0.0, 4.0]);
+      expect(restoredSettings.equalizerPreamp, -3.0);
+      expect(restoredSettings.equalizerBassBoost, 5.0);
+    });
   });
 }

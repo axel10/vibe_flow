@@ -453,6 +453,10 @@ class SettingsService extends ChangeNotifier {
   static const double maxWaveformLongPressSeekSpeed = 5.0;
   static const String _keyPlaybackSpeedLimit5x = 'playback_speed_limit_5x';
   static const String _keyEqualizerBandCount = 'equalizer_band_count';
+  static const String _keyEqualizerEnabled = 'equalizer_enabled';
+  static const String _keyEqualizerGains = 'equalizer_gains';
+  static const String _keyEqualizerPreamp = 'equalizer_preamp';
+  static const String _keyEqualizerBassBoost = 'equalizer_bass_boost';
   static const String _keyCustomEqPresets = 'custom_eq_presets';
   static const String _keyShowDeveloperOptions = 'show_developer_options';
   static const String skipShortAudioScanEnabledStorageKey =
@@ -1245,6 +1249,48 @@ class SettingsService extends ChangeNotifier {
   late final _equalizerBandCountProperty = SettingProperty<int>(
     key: _keyEqualizerBandCount,
     defaultValue: 10,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _equalizerEnabledProperty = SettingProperty<bool>(
+    key: _keyEqualizerEnabled,
+    defaultValue: false,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _equalizerGainsProperty = SettingProperty<List<double>>(
+    key: _keyEqualizerGains,
+    defaultValue: const <double>[],
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) {
+      final raw = prefs.getString(key);
+      if (raw == null || raw.trim().isEmpty) return def;
+      try {
+        final List<dynamic> list = jsonDecode(raw);
+        return list.map((e) => (e as num).toDouble()).toList();
+      } catch (e) {
+        debugPrint('Failed to parse equalizer_gains: $e');
+      }
+      return def;
+    },
+    customWrite: (prefs, key, value) {
+      prefs.setString(key, jsonEncode(value));
+    },
+  );
+
+  late final _equalizerPreampProperty = SettingProperty<double>(
+    key: _keyEqualizerPreamp,
+    defaultValue: 0.0,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _equalizerBassBoostProperty = SettingProperty<double>(
+    key: _keyEqualizerBassBoost,
+    defaultValue: 0.0,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -2135,6 +2181,20 @@ class SettingsService extends ChangeNotifier {
   int get equalizerBandCount => _equalizerBandCountProperty.value;
   set equalizerBandCount(int value) =>
       _equalizerBandCountProperty.value = value;
+
+  bool get equalizerEnabled => _equalizerEnabledProperty.value;
+  set equalizerEnabled(bool value) => _equalizerEnabledProperty.value = value;
+
+  List<double> get equalizerGains => _equalizerGainsProperty.value;
+  set equalizerGains(List<double> value) =>
+      _equalizerGainsProperty.value = value;
+
+  double get equalizerPreamp => _equalizerPreampProperty.value;
+  set equalizerPreamp(double value) => _equalizerPreampProperty.value = value;
+
+  double get equalizerBassBoost => _equalizerBassBoostProperty.value;
+  set equalizerBassBoost(double value) =>
+      _equalizerBassBoostProperty.value = value;
 
   List<EqPreset> get customEqPresets => _customEqPresetsProperty.value;
 
