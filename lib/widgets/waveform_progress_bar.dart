@@ -76,7 +76,7 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 400),
     );
 
     _animatedWaveform = _getEffectiveWaveform(widget.waveform);

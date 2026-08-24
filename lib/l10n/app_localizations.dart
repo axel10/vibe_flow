@@ -6932,6 +6932,120 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'购买未完成或已取消: {message}'**
   String iapPurchaseCancelledOrFailed(String message);
+
+  /// No description provided for @tabLanSharing.
+  ///
+  /// In zh, this message translates to:
+  /// **'局域网互传 & 遥控'**
+  String get tabLanSharing;
+
+  /// No description provided for @tabCloudServers.
+  ///
+  /// In zh, this message translates to:
+  /// **'云端媒体库'**
+  String get tabCloudServers;
+
+  /// No description provided for @addRemoteServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加媒体服务器'**
+  String get addRemoteServer;
+
+  /// No description provided for @editRemoteServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑媒体服务器'**
+  String get editRemoteServer;
+
+  /// No description provided for @serverName.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务器名称'**
+  String get serverName;
+
+  /// No description provided for @serverType.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务类型'**
+  String get serverType;
+
+  /// No description provided for @serverUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务器地址 (URL)'**
+  String get serverUrl;
+
+  /// No description provided for @serverUsername.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户名'**
+  String get serverUsername;
+
+  /// No description provided for @serverPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码 / Token'**
+  String get serverPassword;
+
+  /// No description provided for @customPath.
+  ///
+  /// In zh, this message translates to:
+  /// **'指定路径 (可选)'**
+  String get customPath;
+
+  /// No description provided for @maxBitRate.
+  ///
+  /// In zh, this message translates to:
+  /// **'转码码率限制 (kbps)'**
+  String get maxBitRate;
+
+  /// No description provided for @ignoreSsl.
+  ///
+  /// In zh, this message translates to:
+  /// **'忽略 SSL 证书校验'**
+  String get ignoreSsl;
+
+  /// No description provided for @connectionSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接成功'**
+  String get connectionSuccess;
+
+  /// No description provided for @connectionFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接失败'**
+  String get connectionFailed;
+
+  /// No description provided for @noRemoteServers.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无连接的媒体服务器'**
+  String get noRemoteServers;
+
+  /// No description provided for @noRemoteServersDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加 Navidrome (Subsonic) 或 WebDAV 服务器，畅享自建私有云音乐'**
+  String get noRemoteServersDesc;
+
+  /// No description provided for @browseServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'浏览'**
+  String get browseServer;
+
+  /// No description provided for @manageServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理'**
+  String get manageServer;
+
+  /// No description provided for @deleteServerConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除此媒体服务器连接吗？'**
+  String get deleteServerConfirm;
 }
 
 class _AppLocalizationsDelegate

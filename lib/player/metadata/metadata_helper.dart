@@ -502,6 +502,9 @@ class MetadataHelper {
     int? sourceFlags,
     Map<String, String?>? dirCache,
   }) async {
+    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
+      return null;
+    }
     final db = MetadataDatabase();
     final file = File(filePath);
     if (!await file.exists()) {
@@ -765,6 +768,9 @@ class MetadataHelper {
 
   /// 从文件直接读取原始标签，不请求网络，不存入数据库
   static Future<SongMetadata?> readMetadataFromFile(String filePath) async {
+    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
+      return null;
+    }
     try {
       final metadata = await compute(_readMetadataIsolateEntryPoint, <String, dynamic>{
         'path': filePath,
@@ -796,6 +802,9 @@ class MetadataHelper {
     String filePath, {
     bool generateThumbnail = false,
   }) async {
+    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
+      return null;
+    }
     final db = MetadataDatabase();
     final cached = await db.getSongMetadata(filePath);
     if (cached != null) {
@@ -811,6 +820,9 @@ class MetadataHelper {
 
   /// 解码文件内嵌封面，分辨率限制在 [maxWidth] * [maxHeight]
   static Future<Uint8List?> decodeEmbeddedArtwork(String filePath) async {
+    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
+      return null;
+    }
     try {
       final metadata = await compute(_readMetadataWithImageIsolateEntryPoint, <String, dynamic>{
         'path': filePath,
@@ -827,6 +839,9 @@ class MetadataHelper {
 
   /// 探测文件内是否存在内嵌封面，不生成任何缓存文件。
   static Future<bool> hasEmbeddedArtwork(String filePath) async {
+    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
+      return false;
+    }
     try {
       final metadata = await compute(_readMetadataIsolateEntryPoint, <String, dynamic>{
         'path': filePath,

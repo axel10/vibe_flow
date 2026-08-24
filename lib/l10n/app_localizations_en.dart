@@ -3885,4 +3885,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String iapPurchaseCancelledOrFailed(String message) {
     return 'Purchase not completed or cancelled: $message';
   }
+
+  @override
+  String get tabLanSharing => 'LAN & Remote';
+
+  @override
+  String get tabCloudServers => 'Cloud Servers';
+
+  @override
+  String get addRemoteServer => 'Add Media Server';
+
+  @override
+  String get editRemoteServer => 'Edit Media Server';
+
+  @override
+  String get serverName => 'Server Name';
+
+  @override
+  String get serverType => 'Server Type';
+
+  @override
+  String get serverUrl => 'Server URL';
+
+  @override
+  String get serverUsername => 'Username';
+
+  @override
+  String get serverPassword => 'Password / Token';
+
+  @override
+  String get customPath => 'Custom Path (Optional)';
+
+  @override
+  String get maxBitRate => 'Max Transcode Bitrate (kbps)';
+
+  @override
+  String get ignoreSsl => 'Ignore SSL Certificate Errors';
+
+  @override
+  String get connectionSuccess => 'Connected successfully';
+
+  @override
+  String get connectionFailed => 'Connection failed';
+
+  @override
+  String get noRemoteServers => 'No remote servers added';
+
+  @override
+  String get noRemoteServersDesc =>
+      'Add Navidrome (Subsonic) or WebDAV servers to stream your self-hosted music library';
+
+  @override
+  String get browseServer => 'Browse';
+
+  @override
+  String get manageServer => 'Manage';
+
+  @override
+  String get deleteServerConfirm =>
+      'Are you sure you want to remove this media server?';
 }

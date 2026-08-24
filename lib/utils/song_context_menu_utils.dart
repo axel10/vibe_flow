@@ -127,10 +127,14 @@ Future<void> showSongContextMenu(
   final hasTitle = titleText.isNotEmpty;
   final hasArtist = isVisibleSongText(artistText);
   final hasAlbum = isVisibleSongText(albumText);
+  final isRemoteSong = song != null &&
+      (song.path.startsWith('subsonic://') || song.path.startsWith('webdav://'));
   final hasFilePath = song != null && song.path.trim().isNotEmpty;
   final canOpenLocation =
       (Platform.isWindows || Platform.isMacOS || Platform.isLinux) &&
-      hasFilePath;
+      hasFilePath &&
+      !isRemoteSong;
+
 
   final items = <PopupMenuEntry<String>>[];
 

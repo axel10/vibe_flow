@@ -16,6 +16,7 @@ import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/player/settings/theme_color_helper.dart';
 import 'package:vynody/player/settings/track_artwork_theme_service.dart';
 import 'package:vynody/player/audio/waveform_service.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/utils/memory_trace.dart';
 
 /// Handles background processing of the playback queue (waveforms, colors, etc.)
@@ -172,9 +173,10 @@ class PlaybackQueueProcessor {
 
       for (final song in artworkPrioritySongs) {
         if (_disposed || myId != _currentProcessId) return;
+        final isRemote = RemoteMediaResolver.isRemoteUri(song.path);
         if (song.isMissing ||
             song.path.isEmpty ||
-            !File(song.path).existsSync()) {
+            (!isRemote && !File(song.path).existsSync())) {
           continue;
         }
 
@@ -235,9 +237,10 @@ class PlaybackQueueProcessor {
     await _waitUntilResumed();
 
     try {
+      final isRemote = RemoteMediaResolver.isRemoteUri(song.path);
       if (song.isMissing ||
           song.path.isEmpty ||
-          !File(song.path).existsSync()) {
+          (!isRemote && !File(song.path).existsSync())) {
         return;
       }
 
@@ -276,7 +279,9 @@ class PlaybackQueueProcessor {
 
       // Decide what needs to be done
       final lastModified = existing?.lastModifiedTime ??
-          (await File(song.path).lastModified()).millisecondsSinceEpoch;
+          (!isRemote && File(song.path).existsSync()
+              ? (await File(song.path).lastModified()).millisecondsSinceEpoch
+              : DateTime.now().millisecondsSinceEpoch);
 
       final bool hasScannedImg = existing != null &&
           existing.metadataImgScanned != null &&
@@ -300,12 +305,24 @@ class PlaybackQueueProcessor {
         // We need a metadata object (either from DB or a quick scan) to get the artwork path
         SongMetadata? m = existing;
         if (m == null) {
-          final result = await MetadataHelper.processMetadata(
-            song.path,
-            generateThumbnail: false,
-          );
-          if (_disposed || myId != _currentProcessId) return;
-          m = result?.$1;
+          if (!isRemote) {
+            final result = await MetadataHelper.processMetadata(
+              song.path,
+              generateThumbnail: false,
+            );
+            if (_disposed || myId != _currentProcessId) return;
+            m = result?.$1;
+          } else {
+            m = SongMetadata(
+              path: song.path,
+              title: song.title ?? song.name,
+              artist: song.artist ?? 'Unknown Artist',
+              album: song.album ?? 'Unknown Album',
+              trackNumber: song.trackNumber,
+              duration: song.durationMillis != null ? song.durationMillis! ~/ 1000 : null,
+              artworkPath: song.artworkPath,
+            );
+          }
         }
 
         if (m != null) {

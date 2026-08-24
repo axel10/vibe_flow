@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_dependencies.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/lyrics/lyrics_controller.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_state.dart';
 import 'package:vynody/player/lyrics/lyrics_ai_service.dart';
 import 'package:vynody/player/lyrics/lyrics_service.dart';
+import 'package:vynody/player/remote/remote_service_providers.dart';
 
 final lyricsControllerDependenciesProvider =
     Provider<LyricsControllerDependencies>((ref) {
@@ -40,8 +42,15 @@ final lyricsAiServiceProvider = Provider<LyricsAiService>((ref) {
 });
 
 final lyricsServiceProvider = Provider<LyricsService>((ref) {
-  return LyricsService();
+  return LyricsService(
+    remoteLyricsFetcher: (uri) async {
+      final resolver = await ref.read(remoteMediaResolverProvider.future);
+      return resolver.fetchLyrics(MusicFile(path: uri, name: ''));
+    },
+  );
 });
+
+
 
 final lyricsTranslationLanguageCodeProvider = Provider<String>((ref) {
   return ref.watch(

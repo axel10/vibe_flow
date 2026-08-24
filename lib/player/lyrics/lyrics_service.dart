@@ -14,6 +14,7 @@ import 'package:vynody/utils/lrc_utils.dart';
 import 'package:vynody/models/lyric_line.dart';
 import 'package:vynody/player/lyrics/lyrics_cache_repository.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
 part 'lyrics_service.freezed.dart';
 
@@ -149,11 +150,14 @@ class LyricsService {
     NetworkClient? client,
     MetadataDatabase? db,
     LyricsCacheRepository? cacheRepository,
-  }) : _client = client ?? NetworkClient.instance,
-       _cacheRepository = cacheRepository ?? LyricsCacheRepository(db: db);
+    Future<String?> Function(String uri)? remoteLyricsFetcher,
+  })  : _client = client ?? NetworkClient.instance,
+        _cacheRepository = cacheRepository ?? LyricsCacheRepository(db: db),
+        _remoteLyricsFetcher = remoteLyricsFetcher;
 
   final NetworkClient _client;
   final LyricsCacheRepository _cacheRepository;
+  final Future<String?> Function(String uri)? _remoteLyricsFetcher;
   final Map<String, Future<LyricSelectionResult?>> _inFlight = {};
 
   static const double _acceptThreshold = 65.0;
@@ -291,8 +295,60 @@ class LyricsService {
       return normalizedCachedFromDb;
     }
 
+    // 尝试拉取远程服务器专属歌词（Subsonic / WebDAV）
+    if (_remoteLyricsFetcher != null &&
+        (normalizedQuery.filePath.startsWith('subsonic://') ||
+            normalizedQuery.filePath.startsWith('webdav://'))) {
+      try {
+        final remoteLrc = await _remoteLyricsFetcher(normalizedQuery.filePath);
+        if (remoteLrc != null && remoteLrc.trim().isNotEmpty) {
+          final syncedLines = _parseSyncedLyrics(remoteLrc);
+          final isSynced = syncedLines.any((line) => line.isTimed);
+          final lyricsId = LyricsIdUtils.fromLyricsText(remoteLrc);
+          final track = LyricTrack(
+            lyricsId: lyricsId,
+            name: normalizedQuery.title,
+            trackName: normalizedQuery.title,
+            artistName: normalizedQuery.artist,
+            albumName: normalizedQuery.album,
+            duration: normalizedQuery.duration?.inSeconds.toDouble(),
+            instrumental: false,
+            plainLyrics: isSynced ? null : remoteLrc,
+            syncedLyrics: isSynced ? remoteLrc : null,
+          );
+          final res = LyricSelectionResult(
+            track: track,
+            fromGetApi: false,
+            source: 'remote_server',
+            score: 100.0,
+            breakdown: LyricScoreBreakdown(
+              title: 0,
+              artist: 0,
+              album: 0,
+              duration: 0,
+              lyricsQuality: isSynced ? 5 : 3,
+              instrumentalPenalty: 0,
+            ),
+            durationDiffSeconds: 0,
+            syncedLines: syncedLines.isNotEmpty
+                ? syncedLines
+                : remoteLrc
+                    .split('\n')
+                    .map((l) => LyricLine(timestamp: Duration.zero, text: l))
+                    .toList(),
+            lyricsText: remoteLrc,
+          );
+          _logDebug('fetch remote server lyrics hit -> key="$cacheKey"');
+          return res;
+        }
+      } catch (e) {
+        _logDebug('fetch remote server lyrics error: $e');
+      }
+    }
+
     // 尝试从同目录下和歌曲同名的lrc歌词文件解析
     final localLrcLyrics = await _tryLoadFromLocalLrcFile(normalizedQuery);
+
     if (localLrcLyrics != null) {
       _logDebug('fetch local lrc hit -> key="$cacheKey"');
       if (debugLog) {
@@ -462,6 +518,9 @@ class LyricsService {
 
   /// 尝试从音频文件物理元数据读取歌词
   Future<LyricSelectionResult?> _tryLoadFromMetadata(LyricsQuery query) async {
+    if (RemoteMediaResolver.isRemoteUri(query.filePath)) {
+      return null;
+    }
     try {
       if (!taglib.TagLibFile.isSupported) {
         return null;

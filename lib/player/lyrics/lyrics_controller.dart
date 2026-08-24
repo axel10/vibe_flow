@@ -23,6 +23,7 @@ import 'package:vynody/player/lyrics/lyrics_controller_state.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_translation.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_utils.dart';
 import 'package:vynody/player/lyrics/lyrics_riverpod.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/player/lyrics/lyrics_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/lyrics/lyrics_generation_phase.dart';
@@ -361,6 +362,9 @@ class LyricsController extends Notifier<LyricsControllerState> {
   }
 
   Future<LyricsCacheRecord?> _tryLoadExternalLrcRecord(String songPath, String cacheKey) async {
+    if (RemoteMediaResolver.isRemoteUri(songPath)) {
+      return null;
+    }
     try {
       final directory = p.dirname(songPath);
       final baseName = p.basenameWithoutExtension(songPath);
@@ -397,6 +401,9 @@ class LyricsController extends Notifier<LyricsControllerState> {
   }
 
   Future<LyricsCacheRecord?> _tryLoadEmbeddedRecord(String songPath, String cacheKey) async {
+    if (RemoteMediaResolver.isRemoteUri(songPath)) {
+      return null;
+    }
     try {
       if (!taglib.TagLibFile.isSupported) {
         return null;

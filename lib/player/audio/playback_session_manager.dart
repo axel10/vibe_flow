@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/app_playback_mode.dart';
 import 'package:vynody/player/audio/playback_source.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
 class RandomPlaybackData {
   const RandomPlaybackData({
@@ -109,6 +110,7 @@ class PlaybackSessionManager {
 
   static Future<bool> songExists(String path) async {
     if (path.trim().isEmpty) return false;
+    if (RemoteMediaResolver.isRemoteUri(path)) return true;
     return File(path).exists();
   }
 

@@ -12,6 +12,8 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/models/music_file.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/settings/track_artwork_theme_service.dart';
 import 'package:vynody/utils/memory_trace.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -607,6 +609,41 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
             debugPrint('[CoverCarousel] Error querying system artwork: $e');
           }
         }
+      }
+    }
+
+    // Try remote track cover loading
+    if (RemoteMediaResolver.isRemoteUri(widget.musicFile.path)) {
+      final thumbPath = widget.musicFile.thumbnailPath;
+      if (thumbPath != null && File(thumbPath).existsSync()) {
+        try {
+          final bytes = await File(thumbPath).readAsBytes();
+          if (!mounted) return;
+          setState(() {
+            _artworkBytes = bytes;
+          });
+          widget.onArtworkLoaded?.call(bytes, null);
+          return;
+        } catch (_) {}
+      }
+
+      try {
+        final themeService = TrackArtworkThemeService();
+        final res = await themeService.getTrackArtworkTheme(
+          widget.musicFile.path,
+          controller: widget.audioService.player,
+        );
+        if (res?.thumbnailPath != null && File(res!.thumbnailPath!).existsSync()) {
+          final bytes = await File(res.thumbnailPath!).readAsBytes();
+          if (!mounted) return;
+          setState(() {
+            _artworkBytes = bytes;
+          });
+          widget.onArtworkLoaded?.call(bytes, null);
+          return;
+        }
+      } catch (e) {
+        debugPrint('[CoverCarousel] Failed to load remote artwork: $e');
       }
     }
 

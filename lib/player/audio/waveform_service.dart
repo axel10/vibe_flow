@@ -87,6 +87,59 @@ class WaveformService {
     return (waveform: waveform, waveformBlob: blob);
   }
 
+  Stream<List<double>> streamWaveform({
+    required String path,
+    int expectedChunks = 80,
+    int sampleStride = 4,
+    SongMetadata? baseMetadata,
+  }) async* {
+    var songMetadata = await db.getSongMetadata(path);
+    if (songMetadata != null && songMetadata.waveformBlob != null) {
+      yield waveformFromBlob(songMetadata.waveformBlob);
+      return;
+    }
+
+    if (songMetadata == null) {
+      final playbackMetadata = await MetadataHelper.loadMetadataForPlayback(
+        path,
+        generateThumbnail: false,
+      );
+      songMetadata = playbackMetadata?.$1;
+      if (songMetadata?.waveformBlob != null) {
+        yield waveformFromBlob(songMetadata!.waveformBlob);
+        return;
+      }
+    }
+
+    List<double> lastWaveform = const [];
+    await for (final waveformChunk in player.streamWaveform(
+      expectedChunks: expectedChunks,
+      sampleStride: sampleStride,
+      filePath: path,
+    )) {
+      if (waveformChunk.isNotEmpty) {
+        lastWaveform = waveformChunk;
+        yield waveformChunk;
+      }
+    }
+
+    if (lastWaveform.isNotEmpty) {
+      final blob = waveformToBlob(lastWaveform);
+      final fallbackMetadata =
+          baseMetadata ??
+          SongMetadata(
+            path: path,
+            title: p.basenameWithoutExtension(path),
+            album: 'Unknown Album',
+            artist: 'Unknown Artist',
+          );
+      final updated = (songMetadata ?? fallbackMetadata).copyWith(
+        waveformBlob: blob,
+      );
+      await db.insertOrUpdateSong(updated);
+    }
+  }
+
   Future<bool> hasCachedWaveform(String path) async {
     final songMetadata = await db.getSongMetadata(path);
     return songMetadata?.waveformBlob != null;

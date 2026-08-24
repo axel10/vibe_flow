@@ -3898,4 +3898,62 @@ class AppLocalizationsTr extends AppLocalizations {
   String iapPurchaseCancelledOrFailed(String message) {
     return 'Satın alma tamamlanamadı veya iptal edildi: $message';
   }
+
+  @override
+  String get tabLanSharing => '局域网互传 & 遥控';
+
+  @override
+  String get tabCloudServers => '云端媒体库';
+
+  @override
+  String get addRemoteServer => '添加媒体服务器';
+
+  @override
+  String get editRemoteServer => '编辑媒体服务器';
+
+  @override
+  String get serverName => '服务器名称';
+
+  @override
+  String get serverType => '服务类型';
+
+  @override
+  String get serverUrl => '服务器地址 (URL)';
+
+  @override
+  String get serverUsername => '用户名';
+
+  @override
+  String get serverPassword => '密码 / Token';
+
+  @override
+  String get customPath => '指定路径 (可选)';
+
+  @override
+  String get maxBitRate => '转码码率限制 (kbps)';
+
+  @override
+  String get ignoreSsl => '忽略 SSL 证书校验';
+
+  @override
+  String get connectionSuccess => '连接成功';
+
+  @override
+  String get connectionFailed => '连接失败';
+
+  @override
+  String get noRemoteServers => '暂无连接的媒体服务器';
+
+  @override
+  String get noRemoteServersDesc =>
+      '添加 Navidrome (Subsonic) 或 WebDAV 服务器，畅享自建私有云音乐';
+
+  @override
+  String get browseServer => '浏览';
+
+  @override
+  String get manageServer => '管理';
+
+  @override
+  String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
 }

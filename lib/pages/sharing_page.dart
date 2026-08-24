@@ -22,6 +22,11 @@ import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/widgets/pro/pro_badge.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import '../utils/song_context_menu_utils.dart';
+import 'package:vynody/player/remote/remote_server_models.dart';
+import 'package:vynody/player/remote/remote_server_riverpod.dart';
+import 'package:vynody/dialogs/add_edit_remote_server_dialog.dart';
+import 'remote/navidrome_library_page.dart';
+import 'remote/webdav_browser_page.dart';
 
 class SharingPage extends ConsumerStatefulWidget {
   const SharingPage({super.key});
@@ -30,7 +35,9 @@ class SharingPage extends ConsumerStatefulWidget {
   ConsumerState<SharingPage> createState() => _SharingPageState();
 }
 
-class _SharingPageState extends ConsumerState<SharingPage> {
+class _SharingPageState extends ConsumerState<SharingPage>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   late final SharingServerStateNotifier _sharingServerNotifier;
   bool _didSyncInitialSharingState = false;
   final Set<String> _shownDialogSessionIds = {};
@@ -226,6 +233,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _sharingServerNotifier = ref.read(sharingServerStateProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _verifyFolderPermission();
@@ -234,8 +242,7 @@ class _SharingPageState extends ConsumerState<SharingPage> {
 
   @override
   void dispose() {
-    // Keep server running in the background if lanSharingEnabled is true.
-    // Server lifecycle is managed by the user's toggle and app-level state.
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -619,7 +626,6 @@ class _SharingPageState extends ConsumerState<SharingPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final serverState = ref.watch(sharingServerStateProvider);
-    final devicesAsync = ref.watch(discoveredDevicesProvider);
     final theme = Theme.of(context);
     final settings = ref.watch(settingsServiceProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
@@ -641,9 +647,6 @@ class _SharingPageState extends ConsumerState<SharingPage> {
         _verifyFolderPermission();
       });
     }
-
-    final bool isReceiveDirWarning = !_isFolderWritable ||
-        (Platform.isAndroid && !settings.hasLanSharingFolderPath);
 
     if (!_didSyncInitialSharingState) {
       _didSyncInitialSharingState = true;
@@ -685,30 +688,81 @@ class _SharingPageState extends ConsumerState<SharingPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l10n.lanSharingTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+          title: TabBar(
+            controller: _tabController,
+            isScrollable: isLandscape ? false : true,
+            tabAlignment: isLandscape ? TabAlignment.fill : TabAlignment.center,
+            tabs: [
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.share_outlined, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.tabLanSharing),
+                    const SizedBox(width: 6),
+                    const ProBadge(),
+                  ],
+                ),
               ),
-              const SizedBox(width: 8),
-              const ProBadge(),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_outlined, size: 18),
+                    const SizedBox(width: 6),
+                    Text(l10n.tabCloudServers),
+                  ],
+                ),
+              ),
             ],
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add_rounded),
+              tooltip: l10n.addRemoteServer,
+              onPressed: () => AddEditRemoteServerDialog.show(context),
+            ),
+          ],
         ),
-        body: !isProUnlocked
-            ? _buildProLockedView(context, theme, l10n, bottomOffset)
-            : Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1000),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 10),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            !isProUnlocked
+                ? _buildProLockedView(context, theme, l10n, bottomOffset)
+                : _buildLanSharingContent(context, theme, l10n, bottomOffset),
+            _buildCloudServersView(context, theme, l10n, bottomOffset),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanSharingContent(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    double bottomOffset,
+  ) {
+    final serverState = ref.watch(sharingServerStateProvider);
+    final devicesAsync = ref.watch(discoveredDevicesProvider);
+    final settings = ref.watch(settingsServiceProvider);
+    final currentFolderPath = settings.lanSharingFolderPath.isNotEmpty
+        ? settings.lanSharingFolderPath
+        : ref.watch(sharingServiceProvider).sharingFolderPath;
+    final isReceiveDirWarning = !_isFolderWritable ||
+        (Platform.isAndroid && !settings.hasLanSharingFolderPath);
+
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1000),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 10),
 
               // 0. Host Remote Control Active Banner (if any)
               Builder(
@@ -1452,7 +1506,317 @@ class _SharingPageState extends ConsumerState<SharingPage> {
                   ),
                 ),
               ),
+            );
+  }
+
+  Widget _buildCloudServersView(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    double bottomOffset,
+  ) {
+    final serversAsync = ref.watch(remoteServersProvider);
+
+    return serversAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Error loading servers: $err')),
+      data: (servers) {
+        if (servers.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomOffset, left: 24, right: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.cloud_outlined,
+                    size: 72,
+                    color: theme.colorScheme.primary.withValues(alpha: 0.6),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.noRemoteServers,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.noRemoteServersDesc,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: () => AddEditRemoteServerDialog.show(context),
+                    icon: const Icon(Icons.add_rounded),
+                    label: Text(l10n.addRemoteServer),
+                  ),
+                ],
+              ),
             ),
+          );
+        }
+
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, bottomOffset + 20),
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${servers.length} ${l10n.tabCloudServers}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () => AddEditRemoteServerDialog.show(context),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: Text(l10n.addRemoteServer),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                for (final server in servers)
+                  _buildServerCard(context, theme, l10n, server),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildServerCard(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    RemoteServer server,
+  ) {
+    final isSubsonic = server.type == RemoteServerType.subsonic;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSubsonic
+                        ? Colors.orange.withValues(alpha: 0.12)
+                        : Colors.blue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    isSubsonic
+                        ? Icons.library_music_rounded
+                        : Icons.folder_copy_outlined,
+                    color: isSubsonic ? Colors.orange : Colors.blue,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              server.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSubsonic
+                                  ? Colors.orange.withValues(alpha: 0.15)
+                                  : Colors.blue.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              server.type.displayName,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isSubsonic ? Colors.orange : Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        server.url,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (val) async {
+                    if (val == 'edit') {
+                      AddEditRemoteServerDialog.show(context, server: server);
+                    } else if (val == 'delete') {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text(l10n.deleteServerConfirm),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await ref
+                            .read(remoteServersProvider.notifier)
+                            .deleteServer(server.id);
+                      }
+                    }
+                  },
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit_outlined, size: 18),
+                          const SizedBox(width: 10),
+                          Text(l10n.editRemoteServer),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: const Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                          SizedBox(width: 10),
+                          Text('Delete', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'User: ${server.username.isNotEmpty ? server.username : "Anonymous"}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: () async {
+                        showToast('Testing ${server.name}...');
+                        final pwd = await ref
+                            .read(remoteServersProvider.notifier)
+                            .getPassword(server.id);
+                        final res = await ref
+                            .read(remoteServersProvider.notifier)
+                            .testConnection(server, pwd ?? '');
+                        if (res.isSuccess) {
+                          showToast('✅ ${res.message}');
+                        } else {
+                          showToast('❌ ${res.message}');
+                        }
+                      },
+                      icon: const Icon(Icons.network_ping_rounded, size: 16),
+                      label: Text(l10n.testConnection),
+                    ),
+                    const SizedBox(width: 6),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        final pwd = await ref
+                            .read(remoteServersProvider.notifier)
+                            .getPassword(server.id);
+                        if (!context.mounted) return;
+
+                        if (server.type == RemoteServerType.subsonic) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => NavidromeLibraryPage(
+                                server: server,
+                                password: pwd ?? '',
+                              ),
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => WebDavBrowserPage(
+                                server: server,
+                                password: pwd ?? '',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                      label: Text(l10n.browseServer),
+                    ),
+
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

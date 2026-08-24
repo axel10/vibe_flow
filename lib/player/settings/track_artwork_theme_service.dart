@@ -3,10 +3,14 @@ import 'package:audio_core/audio_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/metadata/artwork_constants.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/remote/proxy/local_stream_cache_proxy.dart';
+import 'package:vynody/player/remote/remote_server_storage.dart';
 
 class TrackArtworkThemeResult {
   const TrackArtworkThemeResult({
@@ -141,11 +145,15 @@ class TrackArtworkThemeService {
       final hasArtwork =
           (cached.artworkPath?.isNotEmpty ?? false) ||
           (cached.thumbnailPath?.isNotEmpty ?? false);
-      final dirCover = MetadataHelper.findDirectoryCover(normalizedPath);
-      final hasDirCover = dirCover != null;
-      if (cached.metadataImgScanned != null &&
-          cached.metadataImgScanned == lastModified &&
-          (hasArtwork || !hasDirCover)) {
+      if (!RemoteMediaResolver.isRemoteUri(normalizedPath)) {
+        final dirCover = MetadataHelper.findDirectoryCover(normalizedPath);
+        final hasDirCover = dirCover != null;
+        if (cached.metadataImgScanned != null &&
+            cached.metadataImgScanned == lastModified &&
+            (hasArtwork || !hasDirCover)) {
+          return cachedResult;
+        }
+      } else if (hasArtwork && (cached.themeColorsBlob?.isNotEmpty ?? false)) {
         return cachedResult;
       }
     }
@@ -201,20 +209,35 @@ class TrackArtworkThemeService {
           artist: 'Unknown Artist',
         );
 
+    final isRemote = RemoteMediaResolver.isRemoteUri(path);
     final lastModified = baseMetadata.lastModifiedTime ??
-        (File(path).existsSync()
+        (!isRemote && File(path).existsSync()
             ? File(path).lastModifiedSync().millisecondsSinceEpoch
             : DateTime.now().millisecondsSinceEpoch);
 
     try {
-      var artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(path);
-      if (artworkBytes == null || artworkBytes.isEmpty) {
-        final dirCoverPath = MetadataHelper.findDirectoryCover(path);
-        if (dirCoverPath != null) {
-          try {
-            artworkBytes = await File(dirCoverPath).readAsBytes();
-          } catch (e) {
-            debugPrint('Failed to read directory cover $dirCoverPath: $e');
+      Uint8List? artworkBytes;
+      if (isRemote) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          final storage = RemoteServerStorage(prefs: prefs);
+          final proxy = LocalStreamCacheProxy();
+          final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+          final coverId = baseMetadata.artworkPath ?? cached?.artworkPath;
+          artworkBytes = await resolver.getArtworkBytes(path, coverArtId: coverId);
+        } catch (e) {
+          debugPrint('[TrackArtworkThemeService] Failed to fetch remote artwork for $path: $e');
+        }
+      } else {
+        artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(path);
+        if (artworkBytes == null || artworkBytes.isEmpty) {
+          final dirCoverPath = MetadataHelper.findDirectoryCover(path);
+          if (dirCoverPath != null) {
+            try {
+              artworkBytes = await File(dirCoverPath).readAsBytes();
+            } catch (e) {
+              debugPrint('Failed to read directory cover $dirCoverPath: $e');
+            }
           }
         }
       }

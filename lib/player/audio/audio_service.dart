@@ -42,6 +42,9 @@ import 'package:vynody/player/audio/queue_background_processor.dart';
 import 'package:vynody/player/library/library_insights_service.dart';
 import 'package:vynody/player/lyrics/lyrics_riverpod.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:vynody/player/remote/remote_server_riverpod.dart';
+import 'package:vynody/player/remote/remote_service_providers.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
 class AudioService extends Notifier<AudioSnapshot> {
   static const String _volumeStorageKey = 'player_volume';
@@ -84,6 +87,7 @@ class AudioService extends Notifier<AudioSnapshot> {
   bool _sleepTimerWaitingForTrackEnd = false;
   String? _sleepTimerWaitingTrackPath;
   int _lastWaveformChunks = -1;
+  StreamSubscription<List<double>>? _currentWaveformSubscription;
   bool _disposed = false;
   bool _restoringPlaybackSession = false;
   bool _playbackSessionReady = false;
@@ -161,6 +165,23 @@ class AudioService extends Notifier<AudioSnapshot> {
         mode: FadeMode.crossfade,
       ),
     );
+
+    _player.setUriResolver((rawUri) async {
+      if (RemoteMediaResolver.isRemoteUri(rawUri)) {
+        try {
+          final storage = ref.read(remoteServerStorageProvider).value ??
+              ref.read(remoteServerStorageProvider).asData?.value;
+          final proxy = ref.read(localStreamCacheProxyProvider);
+          if (storage != null) {
+            final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+            return await resolver.resolvePlayableLocalPath(rawUri);
+          }
+        } catch (e) {
+          debugPrint('[AudioService] Custom URI resolver error: $e');
+        }
+      }
+      return rawUri;
+    });
 
     _lifecycleListener = AppLifecycleListener(
       onStateChange: (state) {
@@ -330,8 +351,10 @@ class AudioService extends Notifier<AudioSnapshot> {
 
       if (Platform.isIOS || Platform.isMacOS) {
         for (final song in _queue) {
-          await _player.registerPersistentAccess(path: song.path);
-          await _player.beginScopedAccess(path: song.path);
+          if (!RemoteMediaResolver.isRemoteUri(song.path)) {
+            await _player.registerPersistentAccess(path: song.path);
+            await _player.beginScopedAccess(path: song.path);
+          }
         }
       }
 
@@ -725,7 +748,10 @@ class AudioService extends Notifier<AudioSnapshot> {
   }
 
   Future<MusicFile> _resolveMetadataForPlayback(MusicFile song) async {
-    if (song.isMissing || song.path.isEmpty || !File(song.path).existsSync()) {
+    if (song.isMissing ||
+        song.path.isEmpty ||
+        RemoteMediaResolver.isRemoteUri(song.path) ||
+        !File(song.path).existsSync()) {
       return song;
     }
 
@@ -842,11 +868,11 @@ class AudioService extends Notifier<AudioSnapshot> {
   Future<void> _prepareCurrentPlaybackArtwork(MusicFile song) async {
     final sw = Stopwatch()..start();
     MemoryTrace.snapshot(
-      'audio:prepareArtwork:start',
+      'audio:preparePlaybackArtwork',
       details: <String, Object?>{
         'path': song.path,
-        'queue': _queue.length,
-        'artBytes': song.artworkBytes?.length ?? 0,
+        'hasArtworkBytes': song.artworkBytes != null,
+        'artwork': song.artworkPath ?? '-',
         'thumb': song.thumbnailPath ?? '-',
       },
     );
@@ -857,7 +883,8 @@ class AudioService extends Notifier<AudioSnapshot> {
       );
       if (song.isMissing ||
           song.path.isEmpty ||
-          !File(song.path).existsSync()) {
+          (!RemoteMediaResolver.isRemoteUri(song.path) &&
+              !File(song.path).existsSync())) {
         return;
       }
 
@@ -889,31 +916,33 @@ class AudioService extends Notifier<AudioSnapshot> {
         }
       }
 
-      if (artworkBytes == null) {
-        final swDecode = Stopwatch()..start();
-        artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(song.path);
-        debugPrint(
-          '[PERF] decodeEmbeddedArtwork took ${swDecode.elapsedMilliseconds}ms, size=${artworkBytes?.length ?? 0} bytes',
-        );
-      }
+      if (!RemoteMediaResolver.isRemoteUri(song.path)) {
+        if (artworkBytes == null) {
+          final swDecode = Stopwatch()..start();
+          artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(song.path);
+          debugPrint(
+            '[PERF] decodeEmbeddedArtwork took ${swDecode.elapsedMilliseconds}ms, size=${artworkBytes?.length ?? 0} bytes',
+          );
+        }
 
-      if (thumbnailPath == null || themeColorsBlob == null) {
-        final supportDir = await getApplicationSupportDirectory();
-        final swTheme = Stopwatch()..start();
-        final artworkTheme = await artworkThemeService.getTrackArtworkTheme(
-          song.path,
-          controller: _player,
-          cacheRootPath: supportDir.path,
-          saveLargeArtwork: false,
-        );
-        debugPrint(
-          '[PERF] getTrackArtworkTheme took ${swTheme.elapsedMilliseconds}ms',
-        );
-        if (artworkTheme != null) {
-          artworkPath ??=
-              artworkTheme.artworkPath ?? artworkTheme.thumbnailPath;
-          thumbnailPath = artworkTheme.thumbnailPath;
-          themeColorsBlob = artworkTheme.themeColorsBlob;
+        if (thumbnailPath == null || themeColorsBlob == null) {
+          final supportDir = await getApplicationSupportDirectory();
+          final swTheme = Stopwatch()..start();
+          final artworkTheme = await artworkThemeService.getTrackArtworkTheme(
+            song.path,
+            controller: _player,
+            cacheRootPath: supportDir.path,
+            saveLargeArtwork: false,
+          );
+          debugPrint(
+            '[PERF] getTrackArtworkTheme took ${swTheme.elapsedMilliseconds}ms',
+          );
+          if (artworkTheme != null) {
+            artworkPath ??=
+                artworkTheme.artworkPath ?? artworkTheme.thumbnailPath;
+            thumbnailPath = artworkTheme.thumbnailPath;
+            themeColorsBlob = artworkTheme.themeColorsBlob;
+          }
         }
       }
 
@@ -1069,6 +1098,7 @@ class AudioService extends Notifier<AudioSnapshot> {
         final song = _queue[_currentIndex];
         if (song.path.isNotEmpty &&
             !song.path.startsWith('content://') &&
+            !RemoteMediaResolver.isRemoteUri(song.path) &&
             !File(song.path).existsSync()) {
           unawaited(_skipMissingCurrentTrack());
           return;
@@ -1097,10 +1127,12 @@ class AudioService extends Notifier<AudioSnapshot> {
         _currentIndex < _queue.length &&
         _queue[_currentIndex].path.isNotEmpty &&
         !_queue[_currentIndex].path.startsWith('content://') &&
+        !RemoteMediaResolver.isRemoteUri(_queue[_currentIndex].path) &&
         !(File(_queue[_currentIndex].path).existsSync())) {
       unawaited(_skipMissingCurrentTrack());
       return;
     }
+
 
     _windowsIntegration?.updateTimeline(_position, _duration);
     _androidIntegration?.updateTimeline(_position, _duration);
@@ -1549,32 +1581,42 @@ class AudioService extends Notifier<AudioSnapshot> {
 
   Future<void> _refreshCurrentWaveform({bool notify = true}) async {
     final path = currentMusic?.path;
-    if (path == null ||
-        !settingsService.isWaveformProgressBarEnabled ||
-        !File(path).existsSync()) {
+    if (path == null || !settingsService.isWaveformProgressBarEnabled) {
+      if (notify) {
+        notifyListeners();
+      }
+      return;
+    }
+    final isRemote = RemoteMediaResolver.isRemoteUri(path);
+    if (!isRemote && !File(path).existsSync()) {
       if (notify) {
         notifyListeners();
       }
       return;
     }
 
-    final waveformResult = await _waveformService.getWaveformData(
-      path: path,
-      expectedChunks: settingsService.waveformChunks,
-      sampleStride: settingsService.sampleStride,
-    );
-    if (path == currentMusic?.path && waveformResult.waveform.isNotEmpty) {
-      if (_currentIndex >= 0 &&
-          _currentIndex < _queue.length &&
-          _queue[_currentIndex].path == path) {
-        _queue[_currentIndex] = _queue[_currentIndex].copyWith(
-          waveformBlob: waveformResult.waveformBlob,
-        );
-        if (notify) {
-          notifyListeners();
+    _currentWaveformSubscription?.cancel();
+    _currentWaveformSubscription = _waveformService
+        .streamWaveform(
+          path: path,
+          expectedChunks: settingsService.waveformChunks,
+          sampleStride: settingsService.sampleStride,
+        )
+        .listen((waveformChunk) {
+      if (path == currentMusic?.path && waveformChunk.isNotEmpty) {
+        if (_currentIndex >= 0 &&
+            _currentIndex < _queue.length &&
+            _queue[_currentIndex].path == path) {
+          final blob = _waveformService.waveformToBlob(waveformChunk);
+          _queue[_currentIndex] = _queue[_currentIndex].copyWith(
+            waveformBlob: blob,
+          );
+          if (notify) {
+            notifyListeners();
+          }
         }
       }
-    }
+    });
   }
 
   Future<void> _handleWaveformChunkChange() async {
@@ -2017,6 +2059,14 @@ class AudioService extends Notifier<AudioSnapshot> {
     int? id,
     String? mediaUri,
   }) async {
+    if (RemoteMediaResolver.isRemoteUri(path)) {
+      return MusicFile(
+        path: path,
+        name: name,
+        id: id,
+        mediaUri: mediaUri,
+      );
+    }
     final resolved = await MetadataHelper.loadMetadataForPlayback(
       path,
       generateThumbnail: false,
@@ -2053,16 +2103,31 @@ class AudioService extends Notifier<AudioSnapshot> {
     if (songs.isEmpty) return;
 
     final safeIndex = startIndex.clamp(0, songs.length - 1);
-    final paths = songs.map((song) => song.path).toList(growable: false);
+    final tracks = songs.map(_audioTrackForSong).toList(growable: false);
 
+    if (Platform.isIOS || Platform.isMacOS) {
+      for (final song in songs) {
+        if (!RemoteMediaResolver.isRemoteUri(song.path)) {
+          await _player.registerPersistentAccess(path: song.path);
+          await _player.beginScopedAccess(path: song.path);
+        }
+      }
+    }
+
+    await _player.playlist.ensureQueuePlaylist();
     if (clearPlayerQueue) {
       await _player.playlist.clear();
     }
 
-    await _player.playPaths(
-      paths,
+    await _player.playlist.addTracksToPlaylist(
+      _player.playlist.queuePlaylistId,
+      tracks,
+    );
+
+    await _player.playlist.setActivePlaylist(
+      _player.playlist.queuePlaylistId,
       startIndex: safeIndex,
-      autoPlayFirst: true,
+      autoPlay: true,
     );
 
     final current = songs[safeIndex];
@@ -2158,6 +2223,8 @@ class AudioService extends Notifier<AudioSnapshot> {
         clearPlayerQueue: true,
         startBackgroundProcessing: false,
       );
+
+      _prefetchNextRemoteTracks(safeIndex);
 
       await _prepareCurrentPlaybackArtwork(current);
       unawaited(_persistPlaybackSession());
@@ -2486,12 +2553,14 @@ class AudioService extends Notifier<AudioSnapshot> {
       _logPlaybackTrace(
         'playAtIndex($index) target -> ${_debugSongLabel(song)}',
       );
+
       await _player.playTrack(
         _audioTrackForSong(song),
         preferredPlaylistId:
             _player.playlist.activePlaylistId ??
             _player.playlist.queuePlaylistId,
       );
+      _prefetchNextRemoteTracks(index);
       _currentIndex = index;
       _position = Duration.zero;
       _resetPlaybackTrackingForSong(song);
@@ -2798,6 +2867,30 @@ class AudioService extends Notifier<AudioSnapshot> {
     );
   }
 
+  void _prefetchNextRemoteTracks(int currentIndex) {
+    if (_queue.isEmpty) return;
+    unawaited(() async {
+      try {
+        final storage = ref.read(remoteServerStorageProvider).value ??
+            ref.read(remoteServerStorageProvider).asData?.value;
+        final proxy = ref.read(localStreamCacheProxyProvider);
+        if (storage == null) return;
+        final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+
+        for (var i = 1; i <= 2; i++) {
+          final nextIndex = (currentIndex + i) % _queue.length;
+          final nextSong = _queue[nextIndex];
+          if (RemoteMediaResolver.isRemoteUri(nextSong.path)) {
+            await resolver.resolvePlayableLocalPath(nextSong.path);
+          }
+        }
+      } catch (e) {
+        debugPrint('[AudioService] Error prefetching remote tracks: $e');
+      }
+    }());
+  }
+
+
   void _startQueueBackgroundProcessing({String? priorityPath}) {
     _queueBackgroundProcessor.start(
       queue: _queue,
@@ -2834,6 +2927,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     unawaited(_persistPlaybackSession(allowWhenDisposed: true));
     _disposed = true;
     _sessionManager.dispose();
+    _currentWaveformSubscription?.cancel();
     _sleepTimer?.cancel();
     _player.removeListener(_handlePlayerChanges);
     _player.equalizer.removeListener(notifyListeners);
