@@ -13,12 +13,16 @@ import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/folder_header_banner.dart';
 import '../widgets/song_thumbnail.dart';
-import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/player/remote/remote_server_models.dart';
+import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/folder_helpers.dart';
 import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_content_slivers.dart';
-import '../widgets/folder_layout_utils.dart';
+import '../widgets/remote_server_slivers.dart';
+import '../dialogs/add_edit_remote_server_dialog.dart';
+import 'remote/navidrome_library_page.dart';
+import 'remote/webdav_browser_page.dart';
 
 class FolderRootView extends ConsumerStatefulWidget {
   const FolderRootView({
@@ -170,6 +174,36 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     );
   }
 
+  Future<void> _openRemoteServer(
+    BuildContext context,
+    RemoteServer server,
+  ) async {
+    final pwd = await ref
+        .read(remoteServersProvider.notifier)
+        .getPassword(server.id);
+    if (!context.mounted) return;
+
+    if (server.type == RemoteServerType.subsonic) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => NavidromeLibraryPage(
+            server: server,
+            password: pwd ?? '',
+          ),
+        ),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => WebDavBrowserPage(
+            server: server,
+            password: pwd ?? '',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scanner = ref.watch(scannerServiceProvider);
@@ -181,6 +215,8 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     final rootFolders = ref.watch(
       scannerServiceProvider.select((scanner) => scanner.rootFolders),
     );
+    final remoteServers =
+        ref.watch(remoteServersProvider).asData?.value ?? [];
     final hasPermission = ref.watch(
       scannerServiceProvider.select((scanner) => scanner.hasPermission),
     );
@@ -307,14 +343,35 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
           ? _matchedFolders
           : rootFolders;
 
+      final matchedRemoteServers = _searchQuery.isNotEmpty
+          ? remoteServers.where((server) {
+              final q = _searchQuery.toLowerCase();
+              return server.name.toLowerCase().contains(q) ||
+                  server.url.toLowerCase().contains(q);
+            }).toList()
+          : remoteServers;
+
       final matchedSongs = _searchQuery.isNotEmpty
           ? _matchedSongs
           : <MusicFile>[];
 
-      final showSearchLoading = _searchQuery.isNotEmpty && _isSearchLoading && matchedRootFolders.isEmpty && matchedSongs.isEmpty;
-      final noResults = _searchQuery.isNotEmpty && matchedRootFolders.isEmpty && matchedSongs.isEmpty && !_isSearchLoading;
+      final showSearchLoading = _searchQuery.isNotEmpty &&
+          _isSearchLoading &&
+          matchedRootFolders.isEmpty &&
+          matchedSongs.isEmpty &&
+          matchedRemoteServers.isEmpty;
+      final noResults = _searchQuery.isNotEmpty &&
+          matchedRootFolders.isEmpty &&
+          matchedSongs.isEmpty &&
+          matchedRemoteServers.isEmpty &&
+          !_isSearchLoading;
 
-      final double foldersBottomPadding = matchedSongs.isEmpty ? 160.0 : 16.0;
+      final double localFoldersBottomPadding =
+          (matchedRemoteServers.isNotEmpty || matchedSongs.isNotEmpty)
+              ? 16.0
+              : 160.0;
+      final double remoteServersBottomPadding =
+          matchedSongs.isNotEmpty ? 16.0 : 160.0;
 
       final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
       final double headerHeight = 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0));
@@ -458,8 +515,21 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               systemMediaSubtitle: l10n.needPermissionToScan,
               onNavigateTo: widget.onNavigateTo,
               onShowFolderBottomSheet: widget.onShowFolderBottomSheet,
-              bottomPadding: foldersBottomPadding,
+              bottomPadding: localFoldersBottomPadding,
             ),
+            if (matchedRemoteServers.isNotEmpty) ...[
+              RemoteServersSectionHeaderSliver(
+                title: l10n.tabCloudServers,
+                count: matchedRemoteServers.length,
+                onAddServer: () => AddEditRemoteServerDialog.show(context),
+              ),
+              RemoteServersSliver(
+                servers: matchedRemoteServers,
+                viewMode: settings.folderViewMode,
+                onOpenServer: (server) => _openRemoteServer(context, server),
+                bottomPadding: remoteServersBottomPadding,
+              ),
+            ],
             if (matchedRootFolders.isNotEmpty && matchedSongs.isNotEmpty)
               FolderSectionHeaderSliver(
                 title: l10n.songsCountFormat(matchedSongs.length),
@@ -602,39 +672,6 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
       onSortPressed: widget.onToggleRootSelectionMode,
       isSortActive: isRootSelectionMode,
     );
-  }
-}
-
-class _RootBreadcrumbsHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
-  final double height;
-
-  _RootBreadcrumbsHeaderDelegate({
-    required this.child,
-    required this.height,
-  });
-
-  @override
-  double get minExtent => height;
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return SizedBox(
-      height: height,
-      child: child,
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _RootBreadcrumbsHeaderDelegate oldDelegate) {
-    return oldDelegate.child != child || oldDelegate.height != height;
   }
 }
 
