@@ -89,7 +89,6 @@
 		F2B661ED9F48DE6B5C02C158 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		F2F77F823033F5FA00678EB4 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		F2F77F9B3033F60100678EB4 /* Runner copy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Runner copy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F2F77F9C3033F60100678EB4 /* Runner copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Runner copy-Info.plist"; path = "/Volumes/Untitled/projects/vibe_flow/ios/Runner copy-Info.plist"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,7 +172,6 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				0455FF50ECC58BBC8709660F /* Pods */,
 				08C14362DC61F288707A9538 /* Frameworks */,
-				F2F77F9C3033F60100678EB4 /* Runner copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};

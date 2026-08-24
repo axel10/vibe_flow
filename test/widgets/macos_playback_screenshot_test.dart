@@ -10,11 +10,19 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('macOS Store 01 - 沉浸播放 (Render Window & 2880x1800 Poster)', (tester) async {
+    await loadMacosTestFonts();
+
     // 1. Prepare artwork and song data
     Uint8List? artworkBytes;
-    final coverFile = File('/tmp/neon_cover.jpg');
+    const coverPath = '/Volumes/Untitled/projects/vibe_flow/test_covers/cover_01.jpg';
+    final coverFile = File(coverPath);
     if (coverFile.existsSync()) {
       artworkBytes = Uint8List.fromList(coverFile.readAsBytesSync());
+    } else {
+      final relativeCover = File('test_covers/cover_01.jpg');
+      if (relativeCover.existsSync()) {
+        artworkBytes = Uint8List.fromList(relativeCover.readAsBytesSync());
+      }
     }
 
     const demoLrc = '''[00:00.00]雨后霓虹 - 林舟
@@ -31,6 +39,7 @@ void main() {
         '/Users/axel10/Music/Vynody Music/Demo Music/zh/Demo Music/01 - Neon After Rain.mp3';
 
     final demoSong = MusicFile(
+      id: 1,
       path: songPath,
       name: '01 - Neon After Rain.mp3',
       title: '雨后霓虹',
