@@ -41,10 +41,13 @@ class WaveformService {
   }) async {
     var songMetadata = await db.getSongMetadata(path);
     if (songMetadata != null && songMetadata.waveformBlob != null) {
-      return (
-        waveform: waveformFromBlob(songMetadata.waveformBlob),
-        waveformBlob: songMetadata.waveformBlob,
-      );
+      final cached = waveformFromBlob(songMetadata.waveformBlob);
+      if (isWaveformValid(cached)) {
+        return (
+          waveform: cached,
+          waveformBlob: songMetadata.waveformBlob,
+        );
+      }
     }
 
     if (songMetadata == null) {
@@ -54,10 +57,13 @@ class WaveformService {
       );
       songMetadata = playbackMetadata?.$1;
       if (songMetadata?.waveformBlob != null) {
-        return (
-          waveform: waveformFromBlob(songMetadata!.waveformBlob),
-          waveformBlob: songMetadata.waveformBlob,
-        );
+        final cached = waveformFromBlob(songMetadata!.waveformBlob);
+        if (isWaveformValid(cached)) {
+          return (
+            waveform: cached,
+            waveformBlob: songMetadata.waveformBlob,
+          );
+        }
       }
     }
 
@@ -70,19 +76,22 @@ class WaveformService {
       return (waveform: waveform, waveformBlob: null);
     }
 
-    final blob = waveformToBlob(waveform);
-    final fallbackMetadata =
-        baseMetadata ??
-        SongMetadata(
-          path: path,
-          title: p.basenameWithoutExtension(path),
-          album: 'Unknown Album',
-          artist: 'Unknown Artist',
-        );
-    final updated = (songMetadata ?? fallbackMetadata).copyWith(
-      waveformBlob: blob,
-    );
-    await db.insertOrUpdateSong(updated);
+    final isValid = isWaveformValid(waveform);
+    final blob = isValid ? waveformToBlob(waveform) : null;
+    if (isValid) {
+      final fallbackMetadata =
+          baseMetadata ??
+          SongMetadata(
+            path: path,
+            title: p.basenameWithoutExtension(path),
+            album: 'Unknown Album',
+            artist: 'Unknown Artist',
+          );
+      final updated = (songMetadata ?? fallbackMetadata).copyWith(
+        waveformBlob: blob,
+      );
+      await db.insertOrUpdateSong(updated);
+    }
 
     return (waveform: waveform, waveformBlob: blob);
   }
@@ -95,8 +104,11 @@ class WaveformService {
   }) async* {
     var songMetadata = await db.getSongMetadata(path);
     if (songMetadata != null && songMetadata.waveformBlob != null) {
-      yield waveformFromBlob(songMetadata.waveformBlob);
-      return;
+      final cached = waveformFromBlob(songMetadata.waveformBlob);
+      if (isWaveformValid(cached)) {
+        yield cached;
+        return;
+      }
     }
 
     if (songMetadata == null) {
@@ -106,8 +118,11 @@ class WaveformService {
       );
       songMetadata = playbackMetadata?.$1;
       if (songMetadata?.waveformBlob != null) {
-        yield waveformFromBlob(songMetadata!.waveformBlob);
-        return;
+        final cached = waveformFromBlob(songMetadata!.waveformBlob);
+        if (isWaveformValid(cached)) {
+          yield cached;
+          return;
+        }
       }
     }
 
@@ -123,7 +138,7 @@ class WaveformService {
       }
     }
 
-    if (lastWaveform.isNotEmpty) {
+    if (lastWaveform.isNotEmpty && isWaveformValid(lastWaveform)) {
       final blob = waveformToBlob(lastWaveform);
       final fallbackMetadata =
           baseMetadata ??
@@ -138,6 +153,12 @@ class WaveformService {
       );
       await db.insertOrUpdateSong(updated);
     }
+  }
+
+  /// Checks whether a generated waveform appears valid (contains non-empty samples).
+  static bool isWaveformValid(List<double> waveform) {
+    if (waveform.isEmpty) return false;
+    return waveform.any((v) => v > 0.0);
   }
 
   Future<bool> hasCachedWaveform(String path) async {

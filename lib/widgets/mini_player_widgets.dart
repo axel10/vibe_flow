@@ -15,30 +15,53 @@ class MiniArtwork extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final audioService = ref.watch(audioServiceProvider);
+
+    final thumbPath = currentMusic?.thumbnailPath;
+    final artPath = currentMusic?.artworkPath;
+    final hasValidThumbnail =
+        thumbPath != null && File(thumbPath).existsSync();
+    final hasValidArtworkPath = artPath != null && File(artPath).existsSync();
+    final memoryBytes = currentMusic?.artworkBytes ??
+        (currentMusic != null
+            ? audioService.getCachedArtwork(currentMusic.path)
+            : null);
+    final hasMemoryBytes = memoryBytes != null && memoryBytes.isNotEmpty;
+
+    ImageProvider? imageProvider;
+    if (hasValidThumbnail) {
+      imageProvider = ResizeImage(
+        FileImage(File(thumbPath)),
+        width: 120,
+        height: 120,
+        allowUpscaling: false,
+      );
+    } else if (hasValidArtworkPath) {
+      imageProvider = ResizeImage(
+        FileImage(File(artPath)),
+        width: 120,
+        height: 120,
+        allowUpscaling: false,
+      );
+    } else if (hasMemoryBytes) {
+      imageProvider = ResizeImage(
+        MemoryImage(memoryBytes),
+        width: 120,
+        height: 120,
+        allowUpscaling: false,
+      );
+    }
+
+    final hasImage = imageProvider != null;
+
     return Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
-        image: (currentMusic?.thumbnailPath != null && File(currentMusic!.thumbnailPath!).existsSync())
+        image: hasImage
             ? DecorationImage(
-                image: ResizeImage(
-                  FileImage(File(currentMusic.thumbnailPath!)),
-                  width: 120,
-                  height: 120,
-                  allowUpscaling: false,
-                ),
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.low,
-              )
-            : (currentMusic?.artworkPath != null && File(currentMusic!.artworkPath!).existsSync())
-            ? DecorationImage(
-                image: ResizeImage(
-                  FileImage(File(currentMusic.artworkPath!)),
-                  width: 120,
-                  height: 120,
-                  allowUpscaling: false,
-                ),
+                image: imageProvider,
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.low,
               )
@@ -47,9 +70,7 @@ class MiniArtwork extends ConsumerWidget {
             ? Colors.grey[900]
             : Colors.grey[200],
       ),
-      child:
-          (currentMusic?.artworkPath == null &&
-              currentMusic?.thumbnailPath == null)
+      child: !hasImage
           ? Icon(
               Icons.music_note,
               color: Theme.of(context).brightness == Brightness.dark

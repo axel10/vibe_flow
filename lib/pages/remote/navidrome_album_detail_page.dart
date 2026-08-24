@@ -1,12 +1,19 @@
+import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
+import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../widgets/remote_artwork_widget.dart';
+import '../../widgets/desktop_window_title_bar.dart';
+import '../../widgets/mini_player_wrapper.dart';
+import '../../widgets/playing_equalizer_icon.dart';
 
 class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -37,11 +44,29 @@ class _NavidromeAlbumDetailPageState
   String? _error;
   Map<String, dynamic>? _albumData;
   List<MusicFile> _tracks = [];
+  final ScrollController _scrollController = ScrollController();
+  bool _isCoverVisible = true;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _loadAlbumDetails();
+  }
+
+  void _onScroll() {
+    final isVisible = _scrollController.offset < 200.0;
+    if (isVisible != _isCoverVisible) {
+      setState(() {
+        _isCoverVisible = isVisible;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAlbumDetails() async {
@@ -99,7 +124,14 @@ class _NavidromeAlbumDetailPageState
     if (shuffle) {
       playlist.shuffle();
     }
-    await audioService.playPlaylist(playlist);
+    await audioService.playPlaylist(
+      playlist,
+      source: PlaybackSource(
+        type: PlaybackSourceType.album,
+        id: 'remote-${widget.server.id}-${widget.albumId}',
+        name: widget.albumName,
+      ),
+    );
     showToast('Playing ${_tracks.length} tracks');
   }
 
@@ -108,169 +140,327 @@ class _NavidromeAlbumDetailPageState
     final theme = Theme.of(context);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final coverId = widget.coverArtId ?? _albumData?['coverArt'] as String?;
+    final artist = widget.artistName ??
+        _albumData?['artist'] as String? ??
+        'Unknown Artist';
+    final year = _albumData?['year'] as int?;
+    final genre = _albumData?['genre'] as String?;
+    final headerColor = theme.colorScheme.secondaryContainer.withValues(
+      alpha: 0.65,
+    );
 
-    return Scaffold(
+    final isMacOS = Platform.isMacOS;
+    final bool showCustomTitleBar =
+        Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+    Widget content = Scaffold(
       appBar: AppBar(
-        title: Text(widget.albumName),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: _isCoverVisible
+              ? const SizedBox.shrink()
+              : Text(
+                  widget.albumName,
+                  key: const ValueKey('album_title'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+            )
           : _error != null
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Error: $_error'),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                        onPressed: _loadAlbumDetails,
-                        child: const Text('Retry'),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: theme.colorScheme.error,
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Error: $_error', textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: _loadAlbumDetails,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : CustomScrollView(
+                  controller: _scrollController,
                   slivers: [
+                    // Header Container
                     SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            RemoteArtworkWidget(
-                              server: widget.server,
-                              password: widget.password,
-                              coverArtId: coverId,
-                              size: 130,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.albumName,
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    widget.artistName ??
-                                        _albumData?['artist'] ??
-                                        'Unknown Artist',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    '${_tracks.length} songs',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: theme.colorScheme.onSurfaceVariant
-                                          .withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  Row(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [headerColor, theme.colorScheme.surface],
+                          ),
+                        ),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1080),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final isWide = constraints.maxWidth >= 700;
+                                  final cover = RemoteArtworkWidget(
+                                    server: widget.server,
+                                    password: widget.password,
+                                    coverArtId: coverId,
+                                    size: isWide
+                                        ? 200
+                                        : math.min(200, constraints.maxWidth),
+                                    borderRadius: BorderRadius.circular(16),
+                                  );
+
+                                  final info = _buildAlbumInfo(
+                                    theme,
+                                    artist,
+                                    year,
+                                    genre,
+                                  );
+
+                                  if (isWide) {
+                                    return Row(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        cover,
+                                        const SizedBox(width: 24),
+                                        Expanded(child: info),
+                                      ],
+                                    );
+                                  }
+
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      FilledButton.icon(
-                                        onPressed: () => _playAll(shuffle: false),
-                                        icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                                        label: const Text('Play All'),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      IconButton.filledTonal(
-                                        onPressed: () => _playAll(shuffle: true),
-                                        icon: const Icon(Icons.shuffle_rounded, size: 18),
-                                        tooltip: 'Shuffle',
-                                      ),
+                                      Center(child: cover),
+                                      const SizedBox(height: 20),
+                                      info,
                                     ],
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                    const SliverToBoxAdapter(child: Divider(height: 1)),
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final song = _tracks[index];
-                          final isPlaying = currentMusic?.path == song.path;
-                          final trackNum = song.trackNumber ?? (index + 1);
 
-                          return ListTile(
-                            leading: SizedBox(
-                              width: 32,
-                              child: Center(
-                                child: isPlaying
-                                    ? Icon(
-                                        Icons.volume_up_rounded,
-                                        color: theme.colorScheme.primary,
-                                        size: 20,
-                                      )
-                                    : Text(
-                                        '$trackNum',
-                                        style: TextStyle(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            title: Text(
-                              song.title ?? song.name,
-                              style: TextStyle(
-                                fontWeight: isPlaying
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isPlaying
-                                    ? theme.colorScheme.primary
-                                    : null,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              song.artist ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            trailing: song.durationMillis != null
-                                ? Text(
-                                    _formatDuration(song.durationMillis!),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  )
-                                : null,
+                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+                    // Track List
+                    SliverFixedExtentList.builder(
+                      itemExtent: 52.0,
+                      itemCount: _tracks.length,
+                      itemBuilder: (context, index) {
+                        final song = _tracks[index];
+                        final isPlaying = currentMusic?.path == song.path;
+                        final isAudioPlaying = ref.watch(audioIsPlayingProvider);
+                        final trackNum = song.trackNumber ?? (index + 1);
+                        final trackLabel = '$trackNum'.padLeft(2, '0');
+                        final durationLabel = song.durationMillis != null &&
+                                song.durationMillis! > 0
+                            ? _formatDuration(song.durationMillis!)
+                            : null;
+
+                        return Material(
+                          color: isPlaying
+                              ? theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.35)
+                              : Colors.transparent,
+                          child: InkWell(
                             onTap: () async {
                               final audioService =
                                   ref.read(audioServiceProvider);
                               await audioService.playPlaylist(
                                 _tracks,
                                 initialIndex: index,
+                                source: PlaybackSource(
+                                  type: PlaybackSourceType.album,
+                                  id: 'remote-${widget.server.id}-${widget.albumId}',
+                                  name: widget.albumName,
+                                ),
                               );
                             },
-                          );
-                        },
-                        childCount: _tracks.length,
-                      ),
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: ConstrainedBox(
+                                constraints:
+                                    const BoxConstraints(maxWidth: 1080),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 6,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: _tracks.length >= 100 ? 40 : 32,
+                                        child: Center(
+                                          child: isPlaying
+                                              ? PlayingEqualizerIcon(
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                  size: 16,
+                                                  isPlaying: isAudioPlaying,
+                                                )
+                                              : FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  child: Text(
+                                                    trackLabel,
+                                                    textAlign: TextAlign.center,
+                                                    style: theme
+                                                        .textTheme.bodyMedium
+                                                        ?.copyWith(
+                                                      color: theme.colorScheme
+                                                          .onSurfaceVariant,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Text(
+                                          song.displayName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: theme.textTheme.bodyLarge
+                                              ?.copyWith(
+                                            color: isPlaying
+                                                ? theme.colorScheme.primary
+                                                : null,
+                                            fontWeight: isPlaying
+                                                ? FontWeight.w700
+                                                : null,
+                                          ),
+                                        ),
+                                      ),
+                                      if (durationLabel != null) ...[
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          durationLabel,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                            color: theme
+                                                .colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 80)),
                   ],
                 ),
+    );
+
+    if (showCustomTitleBar || isMacOS) {
+      content = Material(
+        color: theme.colorScheme.surface,
+        child: Column(
+          children: [
+            if (showCustomTitleBar)
+              DesktopWindowTitleBar(brightness: theme.brightness)
+            else
+              const DragToMoveArea(child: SizedBox(height: 32)),
+            Expanded(child: content),
+          ],
+        ),
+      );
+    }
+
+    return MiniPlayerWrapper(child: content);
+  }
+
+  Widget _buildAlbumInfo(
+    ThemeData theme,
+    String artist,
+    int? year,
+    String? genre,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ALBUM',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.secondary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.1,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          widget.albumName,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          artist,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _InfoChip(label: '${_tracks.length} songs'),
+            if (year != null && year > 0) _InfoChip(label: '$year'),
+            if (genre != null && genre.isNotEmpty) _InfoChip(label: genre),
+          ],
+        ),
+        const SizedBox(height: 18),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            FilledButton.icon(
+              onPressed: _tracks.isNotEmpty ? () => _playAll(shuffle: false) : null,
+              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+              label: const Text('Play All'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _tracks.isNotEmpty ? () => _playAll(shuffle: true) : null,
+              icon: const Icon(Icons.shuffle_rounded, size: 18),
+              label: const Text('Shuffle'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -279,5 +469,30 @@ class _NavidromeAlbumDetailPageState
     final m = dur.inMinutes;
     final s = dur.inSeconds % 60;
     return '$m:${s.toString().padLeft(2, '0')}';
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }

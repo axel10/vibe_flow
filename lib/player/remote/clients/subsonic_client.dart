@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -55,8 +55,13 @@ class SubsonicClient {
   }
 
   /// Generates Subsonic authentication parameters (token + salt).
+  /// Uses a deterministic salt based on server and username so generated media and cover URLs
+  /// remain stable across widget builds and scrolls, enabling Flutter ImageCache and HTTP caching.
   Map<String, String> _buildAuthParams() {
-    final salt = _generateRandomSalt();
+    final salt = md5
+        .convert(utf8.encode('vynody_${server.id}_${server.username}'))
+        .toString()
+        .substring(0, 12);
     final token = md5.convert(utf8.encode(password + salt)).toString();
 
     return {
@@ -67,12 +72,6 @@ class SubsonicClient {
       'c': clientName,
       'f': 'json',
     };
-  }
-
-  static String _generateRandomSalt([int length = 12]) {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    final rnd = Random.secure();
-    return List.generate(length, (_) => chars[rnd.nextInt(chars.length)]).join();
   }
 
   /// Constructs a full endpoint URL with required query parameters.
@@ -101,6 +100,59 @@ class SubsonicClient {
   /// Constructs cover art URL for a given cover ID or track ID.
   String buildCoverArtUrl(String coverArtId, {int size = 300}) {
     return buildUrl('getCoverArt', {'id': coverArtId, 'size': size});
+  }
+
+  /// Fetches raw cover art bytes. Returns null if cover art is missing, server returns an error, or content is not an image.
+  Future<Uint8List?> getCoverArtBytes(String coverArtId, {int size = 300}) async {
+    try {
+      final url = buildCoverArtUrl(coverArtId, size: size);
+      final res = await _dio.get<List<int>>(
+        url,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final data = res.data;
+      if (data == null || data.isEmpty) return null;
+
+      final contentType = res.headers.value('content-type')?.toLowerCase() ?? '';
+      if (contentType.contains('json') ||
+          contentType.contains('xml') ||
+          contentType.contains('text') ||
+          contentType.contains('html')) {
+        return null;
+      }
+
+      final bytes = Uint8List.fromList(data);
+      if (!_isValidImage(bytes)) {
+        return null;
+      }
+      return bytes;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool _isValidImage(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    final first = bytes[0];
+    // Reject common textual responses: '{' (JSON), '<' (XML/HTML), '[' (JSON Array)
+    if (first == 0x7B || first == 0x3C || first == 0x5B) return false;
+
+    // JPEG (FF D8)
+    if (bytes[0] == 0xFF && bytes[1] == 0xD8) return true;
+    // PNG (89 50 4E 47)
+    if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return true;
+    // GIF (GIF87a / GIF89a: 47 49 46)
+    if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46) return true;
+    // WebP (RIFF .... WEBP)
+    if (bytes.length >= 12 &&
+        bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
+        bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50) {
+      return true;
+    }
+    // BMP (BM: 42 4D)
+    if (bytes[0] == 0x42 && bytes[1] == 0x4D) return true;
+
+    return false;
   }
 
   /// Tests the connection to the Subsonic/Navidrome server.
@@ -175,6 +227,31 @@ class SubsonicClient {
       }
     }
     return const [];
+  }
+
+  /// Fetches an artist's details including their albums and songs.
+  Future<Map<String, dynamic>?> getArtist(String artistId) async {
+    final url = buildUrl('getArtist.view', {'id': artistId});
+    final response = await _dio.get<Map<String, dynamic>>(url);
+    final artist = response.data?['subsonic-response']?['artist'];
+    if (artist is Map<String, dynamic>) {
+      return artist;
+    }
+    return null;
+  }
+
+  /// Fetches extended artist information (biography, etc.) if supported.
+  Future<Map<String, dynamic>?> getArtistInfo(String artistId) async {
+    try {
+      final url = buildUrl('getArtistInfo2.view', {'id': artistId});
+      final response = await _dio.get<Map<String, dynamic>>(url);
+      final info = response.data?['subsonic-response']?['artistInfo2'] ??
+          response.data?['subsonic-response']?['artistInfo'];
+      if (info is Map<String, dynamic>) {
+        return info;
+      }
+    } catch (_) {}
+    return null;
   }
 
   /// Fetches album list by type (e.g. 'recent', 'newest', 'frequent', 'alphabeticalByName', 'starred', 'random').

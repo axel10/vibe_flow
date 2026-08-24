@@ -710,6 +710,16 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mantén pulsado el lado derecho de la barra de onda para avanzar rápido';
 
   @override
+  String get clearWaveformCache => 'Borrar caché de forma de onda';
+
+  @override
+  String get clearWaveformCacheDescription =>
+      'Borrar los datos de forma de onda en caché de la base de datos y recalcular';
+
+  @override
+  String get waveformCacheCleared => 'Caché de forma de onda borrada';
+
+  @override
   String get randomMode => 'Modo aleatorio';
 
   @override
@@ -3995,4 +4005,8 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags =>
+      'No se pueden modificar las etiquetas de canciones remotas';
 }

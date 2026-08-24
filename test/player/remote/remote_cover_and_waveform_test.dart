@@ -3,6 +3,7 @@ import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/player/remote/proxy/local_stream_cache_proxy.dart';
 import 'package:vynody/player/remote/remote_server_storage.dart';
+import 'package:vynody/player/audio/waveform_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -66,6 +67,23 @@ void main() {
       expect(url, contains('id=al-55'));
       expect(url, contains('size=600'));
       expect(url, contains('u=admin'));
+    });
+
+    test('WaveformService.isWaveformValid correctly detects non-empty valid waveforms', () {
+      // Normal waveform: energy across the entire track
+      final normal = List<double>.generate(80, (i) => 0.2 + 0.5 * (i % 5) / 5.0);
+      expect(WaveformService.isWaveformValid(normal), isTrue);
+
+      // Track with energy in first portion and silence at the end is valid audio
+      final trackWithSilentEnding = [
+        ...List<double>.generate(20, (i) => 0.5),
+        ...List<double>.filled(60, 0.0),
+      ];
+      expect(WaveformService.isWaveformValid(trackWithSilentEnding), isTrue);
+
+      // Empty / completely silent waveform
+      expect(WaveformService.isWaveformValid(const []), isFalse);
+      expect(WaveformService.isWaveformValid(List<double>.filled(80, 0.0)), isFalse);
     });
   });
 }

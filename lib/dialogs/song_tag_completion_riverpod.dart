@@ -6,6 +6,8 @@ import 'package:vynody/player/metadata/acoustid_service.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/metadata/musicbrainz_tag_completion_service.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/remote/remote_service_providers.dart';
 import 'package:vynody/utils/localized_text.dart';
 
 AppLocalizations _l10n() => currentAppL10n;
@@ -15,6 +17,7 @@ final songTagCompletionControllerProvider = ChangeNotifierProvider.autoDispose
       return SongTagCompletionController(
         songPath: songPath,
         acoustidService: ref.read(acoustidServiceProvider),
+        remoteResolverFuture: ref.read(remoteMediaResolverProvider.future),
       );
     });
 
@@ -22,10 +25,12 @@ class SongTagCompletionController extends ChangeNotifier {
   SongTagCompletionController({
     required this.songPath,
     required this.acoustidService,
+    this.remoteResolverFuture,
   });
 
   final String songPath;
   final AcoustIDService acoustidService;
+  final Future<RemoteMediaResolver>? remoteResolverFuture;
   final MusicBrainzTagCompletionService service =
       MusicBrainzTagCompletionService();
 
@@ -106,9 +111,23 @@ class SongTagCompletionController extends ChangeNotifier {
     _emit();
 
     try {
+      String effectivePath = songPath;
+      if (RemoteMediaResolver.isRemoteUri(songPath)) {
+        if (remoteResolverFuture != null) {
+          final resolver = await remoteResolverFuture!;
+          if (_disposed) return;
+          effectivePath = await resolver.resolvePlayableLocalPath(songPath);
+          if (_disposed) return;
+        } else {
+          isAcoustIDLoading = false;
+          _emit();
+          return;
+        }
+      }
+
       final durationSec = (durationMillis ?? 0) ~/ 1000;
       final results = await acoustidService.lookupByFingerprint(
-        filePath: songPath,
+        filePath: effectivePath,
         durationSeconds: durationSec,
       );
 

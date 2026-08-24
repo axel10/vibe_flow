@@ -708,6 +708,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Maintenez le côté droit de la barre d\'onde pour une lecture accélérée';
 
   @override
+  String get clearWaveformCache => 'Vider le cache des formes d\'onde';
+
+  @override
+  String get clearWaveformCacheDescription =>
+      'Effacer les données de forme d\'onde en cache de la base de données et recalculer';
+
+  @override
+  String get waveformCacheCleared => 'Cache des formes d\'onde effacé';
+
+  @override
   String get randomMode => 'Mode aléatoire';
 
   @override
@@ -3997,4 +4007,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags =>
+      'Impossible de modifier les tags des morceaux distants';
 }

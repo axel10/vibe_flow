@@ -691,6 +691,15 @@ class AppLocalizationsKo extends AppLocalizations {
       '파형 진행 표시줄 오른쪽을 길게 눌러 빨리감기 재생을 사용합니다';
 
   @override
+  String get clearWaveformCache => '전체 곡 파형 캐시 삭제';
+
+  @override
+  String get clearWaveformCacheDescription => '데이터베이스의 파형 캐시를 지우고 다시 계산합니다';
+
+  @override
+  String get waveformCacheCleared => '파형 캐시가 삭제되었습니다';
+
+  @override
   String get randomMode => '랜덤 모드';
 
   @override
@@ -3799,4 +3808,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags => '원격 곡의 태그는 수정할 수 없습니다';
 }

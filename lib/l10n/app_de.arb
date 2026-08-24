@@ -241,6 +241,9 @@
   "waveformLongPressSeekSpeedDescription": "Wiedergabegeschwindigkeit beim Gedrückthalten der rechten Seite der Wellenform-Leiste (×)",
   "enableWaveformLongPressSeek": "Wellenform-Vorspulen per langem Drücken aktivieren",
   "enableWaveformLongPressSeekDescription": "Zum Vorspulen die rechte Seite der Wellenform-Leiste gedrückt halten",
+  "clearWaveformCache": "Wellenform-Cache leeren",
+  "clearWaveformCacheDescription": "Zwischengespeicherte Wellenformdaten aus der Datenbank löschen und neu berechnen",
+  "waveformCacheCleared": "Wellenform-Cache geleert",
   "randomMode": "Zufallsmodus",
   "randomHistory": "Zufallsverlauf",
   "randomRange": "Zufallsbereich",
@@ -1514,5 +1517,6 @@
   "proUniversalPurchaseNoticeApple": "Einmaliger Kauf, nutzbar auf iPhone, iPad und Mac",
   "iapPurchaseSuccess": "Vynody Pro erfolgreich gekauft! Vielen Dank für Ihre Unterstützung!",
   "iapRestoreSuccess": "Vynody Pro-Käufe erfolgreich wiederhergestellt!",
-  "iapPurchaseCancelledOrFailed": "Kauf nicht abgeschlossen oder abgebrochen: {message}"
+  "iapPurchaseCancelledOrFailed": "Kauf nicht abgeschlossen oder abgebrochen: {message}",
+  "remoteSongCannotEditTags": "Tags von Remote-Titeln können nicht geändert werden"
 }

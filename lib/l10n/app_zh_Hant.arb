@@ -218,6 +218,9 @@
   "waveformLongPressSeekSpeedDescription": "長按波形進度條右側時快進的播放速度（×）",
   "enableWaveformLongPressSeek": "啟用長按波形快進",
   "enableWaveformLongPressSeekDescription": "長按波形進度條右側區域啟用快進播放",
+  "clearWaveformCache": "清除全曲波形快取",
+  "clearWaveformCacheDescription": "清空資料庫中已快取的歌曲波形資料並重新擷取",
+  "waveformCacheCleared": "已清除全曲波形快取",
   "randomMode": "隨機模式",
   "randomHistory": "隨機歷史",
   "randomRange": "隨機範圍",
@@ -1209,5 +1212,6 @@
   "proUniversalPurchaseNoticeApple": "一次購買，iPhone、iPad 和 Mac 均可使用",
   "iapPurchaseSuccess": "Vynody Pro 購買成功！感謝您的支持！",
   "iapRestoreSuccess": "已成功恢復 Vynody Pro 購買權益！",
-  "iapPurchaseCancelledOrFailed": "購買未完成或已取消: {message}"
+  "iapPurchaseCancelledOrFailed": "購買未完成或已取消: {message}",
+  "remoteSongCannotEditTags": "遠端歌曲無法修改標籤"
 }

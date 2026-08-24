@@ -734,6 +734,9 @@
   "waveformLongPressSeekSpeedDescription": "长按波形进度条右侧时快进的播放速度（×）",
   "enableWaveformLongPressSeek": "启用长按波形快进",
   "enableWaveformLongPressSeekDescription": "长按波形进度条右侧区域启用快进播放",
+  "clearWaveformCache": "清除全曲波形缓存",
+  "clearWaveformCacheDescription": "清空数据库中已缓存的歌曲波形数据并重新提取",
+  "waveformCacheCleared": "已清除全曲波形缓存",
   "randomMode": "随机模式",
   "randomHistory": "随机历史",
   "randomRange": "随机范围",
@@ -2326,5 +2329,6 @@
   "noRemoteServersDesc": "添加 Navidrome (Subsonic) 或 WebDAV 服务器，畅享自建私有云音乐",
   "browseServer": "浏览",
   "manageServer": "管理",
-  "deleteServerConfirm": "确定要删除此媒体服务器连接吗？"
+  "deleteServerConfirm": "确定要删除此媒体服务器连接吗？",
+  "remoteSongCannotEditTags": "远程歌曲不可修改标签"
 }

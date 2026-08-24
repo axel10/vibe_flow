@@ -707,6 +707,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zum Vorspulen die rechte Seite der Wellenform-Leiste gedrückt halten';
 
   @override
+  String get clearWaveformCache => 'Wellenform-Cache leeren';
+
+  @override
+  String get clearWaveformCacheDescription =>
+      'Zwischengespeicherte Wellenformdaten aus der Datenbank löschen und neu berechnen';
+
+  @override
+  String get waveformCacheCleared => 'Wellenform-Cache geleert';
+
+  @override
   String get randomMode => 'Zufallsmodus';
 
   @override
@@ -3988,4 +3998,8 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags =>
+      'Tags von Remote-Titeln können nicht geändert werden';
 }

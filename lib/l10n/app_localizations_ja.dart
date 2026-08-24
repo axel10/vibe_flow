@@ -690,6 +690,15 @@ class AppLocalizationsJa extends AppLocalizations {
       '波形プログレスバーの右側を長押しして早送り再生を有効にします';
 
   @override
+  String get clearWaveformCache => '全曲波形キャッシュをクリア';
+
+  @override
+  String get clearWaveformCacheDescription => 'データベース内の波形キャッシュを削除して再計算します';
+
+  @override
+  String get waveformCacheCleared => '波形キャッシュをクリアしました';
+
+  @override
   String get randomMode => 'ランダムモード';
 
   @override
@@ -3796,4 +3805,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags => 'リモート曲のタグは変更できません';
 }

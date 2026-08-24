@@ -687,6 +687,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enableWaveformLongPressSeekDescription => '长按波形进度条右侧区域启用快进播放';
 
   @override
+  String get clearWaveformCache => '清除全曲波形缓存';
+
+  @override
+  String get clearWaveformCacheDescription => '清空数据库中已缓存的歌曲波形数据并重新提取';
+
+  @override
+  String get waveformCacheCleared => '已清除全曲波形缓存';
+
+  @override
   String get randomMode => '随机模式';
 
   @override
@@ -3735,6 +3744,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags => '远程歌曲不可修改标签';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -4418,6 +4430,15 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get enableWaveformLongPressSeekDescription => '長按波形進度條右側區域啟用快進播放';
+
+  @override
+  String get clearWaveformCache => '清除全曲波形快取';
+
+  @override
+  String get clearWaveformCacheDescription => '清空資料庫中已快取的歌曲波形資料並重新擷取';
+
+  @override
+  String get waveformCacheCleared => '已清除全曲波形快取';
 
   @override
   String get randomMode => '隨機模式';
@@ -7410,4 +7431,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String iapPurchaseCancelledOrFailed(String message) {
     return '購買未完成或已取消: $message';
   }
+
+  @override
+  String get remoteSongCannotEditTags => '遠端歌曲無法修改標籤';
 }

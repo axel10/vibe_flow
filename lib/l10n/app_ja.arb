@@ -241,6 +241,9 @@
   "waveformLongPressSeekSpeedDescription": "波形プログレスバーの右側を長押しした時の早送り再生速度（×）",
   "enableWaveformLongPressSeek": "波形長押し早送りを有効化",
   "enableWaveformLongPressSeekDescription": "波形プログレスバーの右側を長押しして早送り再生を有効にします",
+  "clearWaveformCache": "全曲波形キャッシュをクリア",
+  "clearWaveformCacheDescription": "データベース内の波形キャッシュを削除して再計算します",
+  "waveformCacheCleared": "波形キャッシュをクリアしました",
   "randomMode": "ランダムモード",
   "randomHistory": "ランダム履歴",
   "randomRange": "ランダム範囲",
@@ -1613,5 +1616,6 @@
   "proUniversalPurchaseNoticeApple": "一度の購入で、iPhone・iPad・Macすべてで利用可能",
   "iapPurchaseSuccess": "Vynody Proの購入が完了しました！ご支援ありがとうございます！",
   "iapRestoreSuccess": "Vynody Proの購入履歴を正常に復元しました！",
-  "iapPurchaseCancelledOrFailed": "購入が完了しなかったかキャンセルされました: {message}"
+  "iapPurchaseCancelledOrFailed": "購入が完了しなかったかキャンセルされました: {message}",
+  "remoteSongCannotEditTags": "リモート曲のタグは変更できません"
 }

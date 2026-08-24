@@ -11,6 +11,8 @@ class RemoteArtworkWidget extends StatelessWidget {
   final double? height;
   final BorderRadius? borderRadius;
   final BoxFit fit;
+  final bool isArtist;
+  final IconData? fallbackIcon;
 
   const RemoteArtworkWidget({
     super.key,
@@ -22,6 +24,8 @@ class RemoteArtworkWidget extends StatelessWidget {
     this.height,
     this.borderRadius,
     this.fit = BoxFit.cover,
+    this.isArtist = false,
+    this.fallbackIcon,
   });
 
   @override
@@ -47,18 +51,7 @@ class RemoteArtworkWidget extends StatelessWidget {
           fit: fit,
           loadingBuilder: (ctx, child, progress) {
             if (progress == null) return child;
-            return Container(
-              width: w,
-              height: h,
-              color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
-              child: const Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            );
+            return _buildFallback(context, w, h, radius);
           },
           errorBuilder: (_, _, _) => _buildFallback(context, w, h, radius),
         ),
@@ -70,18 +63,26 @@ class RemoteArtworkWidget extends StatelessWidget {
 
   Widget _buildFallback(BuildContext context, double w, double h, BorderRadius radius) {
     final theme = Theme.of(context);
+    final icon = fallbackIcon ?? (isArtist ? Icons.person_rounded : Icons.music_note_rounded);
+    final bgColor = isArtist
+        ? theme.colorScheme.tertiaryContainer.withValues(alpha: 0.7)
+        : theme.colorScheme.primary.withValues(alpha: 0.1);
+    final iconColor = isArtist
+        ? theme.colorScheme.onTertiaryContainer
+        : theme.colorScheme.primary.withValues(alpha: 0.7);
+
     return Container(
       width: w,
       height: h,
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        color: bgColor,
         borderRadius: radius,
       ),
       child: Center(
         child: Icon(
-          Icons.music_note_rounded,
-          color: theme.colorScheme.primary.withValues(alpha: 0.7),
-          size: (size * 0.45).clamp(16.0, 48.0),
+          icon,
+          color: iconColor,
+          size: (size * 0.5).clamp(16.0, 48.0),
         ),
       ),
     );

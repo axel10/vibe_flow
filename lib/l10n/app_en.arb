@@ -246,6 +246,9 @@
   "waveformLongPressSeekSpeedDescription": "Playback speed when holding the right side of the waveform progress bar (×)",
   "enableWaveformLongPressSeek": "Enable Long-press Waveform Seek",
   "enableWaveformLongPressSeekDescription": "Hold the right side of the waveform progress bar to fast-forward playback",
+  "clearWaveformCache": "Clear Waveform Cache",
+  "clearWaveformCacheDescription": "Clear cached waveform data from database and recalculate",
+  "waveformCacheCleared": "Waveform cache cleared",
   "randomMode": "Random Mode",
   "randomHistory": "Random History",
   "randomRange": "Random Range",
@@ -1618,5 +1621,6 @@
   "noRemoteServersDesc": "Add Navidrome (Subsonic) or WebDAV servers to stream your self-hosted music library",
   "browseServer": "Browse",
   "manageServer": "Manage",
-  "deleteServerConfirm": "Are you sure you want to remove this media server?"
+  "deleteServerConfirm": "Are you sure you want to remove this media server?",
+  "remoteSongCannotEditTags": "Remote songs cannot have tags modified"
 }

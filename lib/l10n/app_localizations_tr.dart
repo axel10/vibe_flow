@@ -704,6 +704,16 @@ class AppLocalizationsTr extends AppLocalizations {
       'Dalga formuna basılı tutarak hızlı ileri/geri sarın';
 
   @override
+  String get clearWaveformCache => 'Dalga Formu Önbelleğini Temizle';
+
+  @override
+  String get clearWaveformCacheDescription =>
+      'Veritabanındaki önbelleğe alınmış dalga formu verilerini temizle ve yeniden hesapla';
+
+  @override
+  String get waveformCacheCleared => 'Dalga formu önbelleği temizlendi';
+
+  @override
   String get randomMode => 'Rastgele Modu';
 
   @override
@@ -3956,4 +3966,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+
+  @override
+  String get remoteSongCannotEditTags =>
+      'Uzak şarkıların etiketleri değiştirilemez';
 }

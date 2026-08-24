@@ -15,8 +15,8 @@ import 'song_tag_musicbrainz_cards.dart';
 import 'song_tag_acoustid_cards.dart';
 import 'song_tag_completion_riverpod.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
-import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
 enum _SummaryCondition { title, artist, album, duration }
 
@@ -381,6 +381,10 @@ class _SongTagCompletionSheetState
     String? releaseDate,
   }) async {
     final l10n = AppLocalizations.of(context)!;
+    if (RemoteMediaResolver.isRemoteUri(widget.songPath)) {
+      showToast(l10n.remoteSongCannotEditTags);
+      return;
+    }
     final shouldSaveToSource = ref.read(settingsServiceProvider).tagCompletionSaveToSourceFile && isMetadataWritable(widget.songPath);
     final result = await _controller.applyAcoustIDSelection(
       trackResult: trackResult,
@@ -466,6 +470,10 @@ class _SongTagCompletionSheetState
     MusicBrainzReleaseMatch release,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    if (RemoteMediaResolver.isRemoteUri(widget.songPath)) {
+      showToast(l10n.remoteSongCannotEditTags);
+      return;
+    }
     final shouldSaveToSource = ref.read(settingsServiceProvider).tagCompletionSaveToSourceFile && isMetadataWritable(widget.songPath);
     final result = await _controller.applyMusicBrainzRelease(
       match: match,

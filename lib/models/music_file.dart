@@ -40,6 +40,11 @@ abstract class MusicFile with _$MusicFile {
     _waveformMemoryCacheKeys.clear();
   }
 
+  static void invalidateWaveformCache(String path) {
+    _waveformMemoryCache.remove(path);
+    _waveformMemoryCacheKeys.remove(path);
+  }
+
   List<double> get waveform {
     final cached = _waveformMemoryCache[path];
     if (cached != null) return cached;

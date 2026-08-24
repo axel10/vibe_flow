@@ -241,6 +241,9 @@
   "waveformLongPressSeekSpeedDescription": "파형 진행 표시줄 오른쪽을 길게 누를 때 빨리감기 재생 속도(×)",
   "enableWaveformLongPressSeek": "파형 길게 누르기 빨리감기 사용",
   "enableWaveformLongPressSeekDescription": "파형 진행 표시줄 오른쪽을 길게 눌러 빨리감기 재생을 사용합니다",
+  "clearWaveformCache": "전체 곡 파형 캐시 삭제",
+  "clearWaveformCacheDescription": "데이터베이스의 파형 캐시를 지우고 다시 계산합니다",
+  "waveformCacheCleared": "파형 캐시가 삭제되었습니다",
   "randomMode": "랜덤 모드",
   "randomHistory": "랜덤 기록",
   "randomRange": "랜덤 범위",
@@ -1514,5 +1517,6 @@
   "proUniversalPurchaseNoticeApple": "한 번 구매로 iPhone, iPad 및 Mac에서 모두 사용 가능",
   "iapPurchaseSuccess": "Vynody Pro 구매가 완료되었습니다! 지원해 주셔서 감사합니다!",
   "iapRestoreSuccess": "Vynody Pro 구매 내역이 성공적으로 복원되었습니다!",
-  "iapPurchaseCancelledOrFailed": "구매가 완료되지 않았거나 취소되었습니다: {message}"
+  "iapPurchaseCancelledOrFailed": "구매가 완료되지 않았거나 취소되었습니다: {message}",
+  "remoteSongCannotEditTags": "원격 곡의 태그는 수정할 수 없습니다"
 }

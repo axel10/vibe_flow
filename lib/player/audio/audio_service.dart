@@ -169,13 +169,10 @@ class AudioService extends Notifier<AudioSnapshot> {
     _player.setUriResolver((rawUri) async {
       if (RemoteMediaResolver.isRemoteUri(rawUri)) {
         try {
-          final storage = ref.read(remoteServerStorageProvider).value ??
-              ref.read(remoteServerStorageProvider).asData?.value;
+          final storage = await ref.read(remoteServerStorageProvider.future);
           final proxy = ref.read(localStreamCacheProxyProvider);
-          if (storage != null) {
-            final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
-            return await resolver.resolvePlayableLocalPath(rawUri);
-          }
+          final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+          return await resolver.resolvePlayableLocalPath(rawUri);
         } catch (e) {
           debugPrint('[AudioService] Custom URI resolver error: $e');
         }
@@ -916,7 +913,8 @@ class AudioService extends Notifier<AudioSnapshot> {
         }
       }
 
-      if (!RemoteMediaResolver.isRemoteUri(song.path)) {
+      final isRemote = RemoteMediaResolver.isRemoteUri(song.path);
+      if (!isRemote) {
         if (artworkBytes == null) {
           final swDecode = Stopwatch()..start();
           artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(song.path);
@@ -936,6 +934,37 @@ class AudioService extends Notifier<AudioSnapshot> {
           );
           debugPrint(
             '[PERF] getTrackArtworkTheme took ${swTheme.elapsedMilliseconds}ms',
+          );
+          if (artworkTheme != null) {
+            artworkPath ??=
+                artworkTheme.artworkPath ?? artworkTheme.thumbnailPath;
+            thumbnailPath = artworkTheme.thumbnailPath;
+            themeColorsBlob = artworkTheme.themeColorsBlob;
+          }
+        }
+      } else {
+        if (thumbnailPath == null ||
+            themeColorsBlob == null ||
+            (artworkBytes == null && !File(thumbnailPath).existsSync())) {
+          final supportDir = await getApplicationSupportDirectory();
+          final swTheme = Stopwatch()..start();
+          final songMeta = dbMetadata ??
+              SongMetadata(
+                path: song.path,
+                title: song.title ?? song.name,
+                artist: song.artist ?? 'Unknown Artist',
+                album: song.album ?? 'Unknown Album',
+                artworkPath: song.artworkPath,
+              );
+          final artworkTheme = await artworkThemeService.getTrackArtworkTheme(
+            song.path,
+            controller: _player,
+            cacheRootPath: supportDir.path,
+            saveLargeArtwork: false,
+            existingMetadata: songMeta,
+          );
+          debugPrint(
+            '[PERF] remote getTrackArtworkTheme took ${swTheme.elapsedMilliseconds}ms',
           );
           if (artworkTheme != null) {
             artworkPath ??=
@@ -1608,6 +1637,7 @@ class AudioService extends Notifier<AudioSnapshot> {
             _currentIndex < _queue.length &&
             _queue[_currentIndex].path == path) {
           final blob = _waveformService.waveformToBlob(waveformChunk);
+          MusicFile.invalidateWaveformCache(path);
           _queue[_currentIndex] = _queue[_currentIndex].copyWith(
             waveformBlob: blob,
           );
@@ -1619,7 +1649,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     });
   }
 
-  Future<void> _handleWaveformChunkChange() async {
+  Future<void> clearWaveformCache() async {
     await _db.clearWaveformCache();
     _clearInMemoryWaveformCache();
 
@@ -1628,6 +1658,10 @@ class AudioService extends Notifier<AudioSnapshot> {
     } else {
       notifyListeners();
     }
+  }
+
+  Future<void> _handleWaveformChunkChange() async {
+    await clearWaveformCache();
   }
 
   void _clearInMemoryWaveformCache() {
@@ -1855,23 +1889,26 @@ class AudioService extends Notifier<AudioSnapshot> {
       String? highResPath;
       String? thumbnailPath;
 
+      final isRemote = RemoteMediaResolver.isRemoteUri(path);
       final dbMetadata = await _db.getSongMetadata(path);
       if (dbMetadata != null) {
         highResPath = dbMetadata.artworkPath;
         thumbnailPath = dbMetadata.thumbnailPath;
-        if (highResPath != null && highResPath.trim().isNotEmpty) {
+        if (highResPath != null && highResPath.trim().isNotEmpty && !isRemote) {
           try {
             highResBytes = await File(highResPath).readAsBytes();
           } catch (_) {}
         }
       }
 
-      final swDecode = Stopwatch()..start();
-      highResBytes ??= await MetadataHelper.decodeEmbeddedArtwork(path);
-      if (highResBytes != null) {
-        debugPrint(
-          '[PERF] _updateCurrentMetadata decodeEmbeddedArtwork took ${swDecode.elapsedMilliseconds}ms, size=${highResBytes.length} bytes',
-        );
+      if (!isRemote) {
+        final swDecode = Stopwatch()..start();
+        highResBytes ??= await MetadataHelper.decodeEmbeddedArtwork(path);
+        if (highResBytes != null) {
+          debugPrint(
+            '[PERF] _updateCurrentMetadata decodeEmbeddedArtwork took ${swDecode.elapsedMilliseconds}ms, size=${highResBytes.length} bytes',
+          );
+        }
       }
 
       // Fallback to thumbnail bytes if needed
@@ -1882,6 +1919,34 @@ class AudioService extends Notifier<AudioSnapshot> {
             highResBytes = await file.readAsBytes();
           }
         } catch (_) {}
+      }
+
+      // If still missing for remote track, fetch via TrackArtworkThemeService
+      if (highResBytes == null && isRemote) {
+        try {
+          final artworkThemeService = TrackArtworkThemeService(db: _db);
+          final songMeta = dbMetadata ??
+              SongMetadata(
+                path: path,
+                title: song.title ?? song.name,
+                artist: song.artist ?? 'Unknown Artist',
+                album: song.album ?? 'Unknown Album',
+                artworkPath: song.artworkPath,
+              );
+          final artworkTheme = await artworkThemeService.getTrackArtworkTheme(
+            path,
+            controller: _player,
+            saveLargeArtwork: false,
+            existingMetadata: songMeta,
+          );
+          final resThumbnail = artworkTheme?.thumbnailPath;
+          if (resThumbnail != null && File(resThumbnail).existsSync()) {
+            thumbnailPath = resThumbnail;
+            highResBytes = await File(resThumbnail).readAsBytes();
+          }
+        } catch (e) {
+          debugPrint('AudioService: remote artwork hydrate error: $e');
+        }
       }
 
       if (highResBytes == null && Platform.isAndroid && song.id != null) {
@@ -2871,10 +2936,8 @@ class AudioService extends Notifier<AudioSnapshot> {
     if (_queue.isEmpty) return;
     unawaited(() async {
       try {
-        final storage = ref.read(remoteServerStorageProvider).value ??
-            ref.read(remoteServerStorageProvider).asData?.value;
+        final storage = await ref.read(remoteServerStorageProvider.future);
         final proxy = ref.read(localStreamCacheProxyProvider);
-        if (storage == null) return;
         final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
 
         for (var i = 1; i <= 2; i++) {

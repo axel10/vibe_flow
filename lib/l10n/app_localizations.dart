@@ -1419,6 +1419,24 @@ abstract class AppLocalizations {
   /// **'长按波形进度条右侧区域启用快进播放'**
   String get enableWaveformLongPressSeekDescription;
 
+  /// No description provided for @clearWaveformCache.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除全曲波形缓存'**
+  String get clearWaveformCache;
+
+  /// No description provided for @clearWaveformCacheDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空数据库中已缓存的歌曲波形数据并重新提取'**
+  String get clearWaveformCacheDescription;
+
+  /// No description provided for @waveformCacheCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'已清除全曲波形缓存'**
+  String get waveformCacheCleared;
+
   /// No description provided for @randomMode.
   ///
   /// In zh, this message translates to:
@@ -7046,6 +7064,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'确定要删除此媒体服务器连接吗？'**
   String get deleteServerConfirm;
+
+  /// No description provided for @remoteSongCannotEditTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程歌曲不可修改标签'**
+  String get remoteSongCannotEditTags;
 }
 
 class _AppLocalizationsDelegate

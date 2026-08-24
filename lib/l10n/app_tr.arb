@@ -305,6 +305,9 @@
   "waveformLongPressSeekSpeedDescription": "Dalga formuna uzun basıldığında sarma hızını ayarlar",
   "enableWaveformLongPressSeek": "Dalga Formuna Uzun Basarak Sarmayı Etkinleştir",
   "enableWaveformLongPressSeekDescription": "Dalga formuna basılı tutarak hızlı ileri/geri sarın",
+  "clearWaveformCache": "Dalga Formu Önbelleğini Temizle",
+  "clearWaveformCacheDescription": "Veritabanındaki önbelleğe alınmış dalga formu verilerini temizle ve yeniden hesapla",
+  "waveformCacheCleared": "Dalga formu önbelleği temizlendi",
   "randomMode": "Rastgele Modu",
   "randomHistory": "Rastgele Çalma Geçmişi",
   "randomRange": "Rastgele Kapsamı",
@@ -1638,5 +1641,6 @@
   "proUniversalPurchaseNoticeApple": "Tek satın alma, iPhone, iPad ve Mac'te kullanılabilir",
   "iapPurchaseSuccess": "Vynody Pro başarıyla satın alındı! Desteğiniz için teşekkür ederiz!",
   "iapRestoreSuccess": "Vynody Pro satın alımları başarıyla geri yüklendi!",
-  "iapPurchaseCancelledOrFailed": "Satın alma tamamlanamadı veya iptal edildi: {message}"
+  "iapPurchaseCancelledOrFailed": "Satın alma tamamlanamadı veya iptal edildi: {message}",
+  "remoteSongCannotEditTags": "Uzak şarkıların etiketleri değiştirilemez"
 }

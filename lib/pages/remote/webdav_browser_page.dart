@@ -1,12 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:path/path.dart' as p;
+import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/clients/webdav_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
+import '../../widgets/desktop_window_title_bar.dart';
+import '../../widgets/mini_player_wrapper.dart';
 
 class WebDavBrowserPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -107,8 +111,11 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     final theme = Theme.of(context);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final audioCount = _items.where((i) => i.isAudio).length;
+    final isMacOS = Platform.isMacOS;
+    final bool showCustomTitleBar =
+        Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
-    return PopScope(
+    Widget content = PopScope(
       canPop: _currentPath == '/' || _currentPath.isEmpty,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -248,14 +255,46 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                     subtitle: Text(
                                       _formatFileSize(item.contentLength),
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         color: theme.colorScheme.onSurfaceVariant,
                                       ),
                                     ),
+                                    trailing: isAudio
+                                        ? IconButton(
+                                            icon: Icon(
+                                              isPlaying
+                                                  ? Icons.pause_circle_rounded
+                                                  : Icons.play_circle_rounded,
+                                              size: 28,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                            onPressed: () async {
+                                              final audioService =
+                                                  ref.read(audioServiceProvider);
+                                              if (isPlaying) {
+                                                await audioService.togglePlay();
+                                                return;
+                                              }
+                                              final audioFiles = _getAudioFiles();
+                                              final target =
+                                                  RemoteMediaResolver.buildMusicFileFromWebDav(
+                                                item,
+                                                widget.server,
+                                              );
+                                              final initialIndex =
+                                                  audioFiles.indexWhere((s) => s.path == target.path);
+                                              await audioService.playPlaylist(
+                                                audioFiles.isNotEmpty ? audioFiles : [target],
+                                                initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                                              );
+                                            },
+                                          )
+                                        : null,
                                     onTap: isAudio
                                         ? () async {
                                             final audioFiles = _getAudioFiles();
-                                            final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+                                            final target =
+                                                RemoteMediaResolver.buildMusicFileFromWebDav(
                                               item,
                                               widget.server,
                                             );
@@ -278,6 +317,23 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         ),
       ),
     );
+
+    if (showCustomTitleBar || isMacOS) {
+      content = Material(
+        color: theme.colorScheme.surface,
+        child: Column(
+          children: [
+            if (showCustomTitleBar)
+              DesktopWindowTitleBar(brightness: theme.brightness)
+            else
+              const DragToMoveArea(child: SizedBox(height: 32)),
+            Expanded(child: content),
+          ],
+        ),
+      );
+    }
+
+    return MiniPlayerWrapper(child: content);
   }
 
   Widget _buildBreadcrumbs(ThemeData theme) {

@@ -699,6 +699,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Hold the right side of the waveform progress bar to fast-forward playback';
 
   @override
+  String get clearWaveformCache => 'Clear Waveform Cache';
+
+  @override
+  String get clearWaveformCacheDescription =>
+      'Clear cached waveform data from database and recalculate';
+
+  @override
+  String get waveformCacheCleared => 'Waveform cache cleared';
+
+  @override
   String get randomMode => 'Random Mode';
 
   @override
@@ -3944,4 +3954,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteServerConfirm =>
       'Are you sure you want to remove this media server?';
+
+  @override
+  String get remoteSongCannotEditTags =>
+      'Remote songs cannot have tags modified';
 }

@@ -12,7 +12,7 @@ import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:audio_core/audio_core.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:vynody/utils/app_snack_bar.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
 class SongTagEditResult {
   const SongTagEditResult({
@@ -220,7 +220,7 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
   }
 
   Future<void> _save({required bool writeToFile}) async {
-    if (_isSaving) return;
+    if (_isSaving || RemoteMediaResolver.isRemoteUri(widget.song.path)) return;
     final l10n = AppLocalizations.of(context)!;
 
     setState(() {
@@ -268,6 +268,7 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
       return;
     }
 
+    if (!mounted) return;
     Navigator.of(context).pop(
       SongTagEditResult(
         metadata: result.$1,
@@ -279,7 +280,8 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final canWriteToSourceFile = isMetadataWritable(widget.song.path);
+    final isRemote = RemoteMediaResolver.isRemoteUri(widget.song.path);
+    final canWriteToSourceFile = !isRemote && isMetadataWritable(widget.song.path);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
@@ -497,14 +499,14 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         FilledButton.tonal(
-                          onPressed: _isSaving
+                          onPressed: _isSaving || isRemote
                               ? null
                               : () => _save(writeToFile: false),
                           child: Text(l10n.saveToApp),
                         ),
                         const SizedBox(height: 10),
                         FilledButton(
-                          onPressed: _isSaving || !canWriteToSourceFile
+                          onPressed: _isSaving || !canWriteToSourceFile || isRemote
                               ? null
                               : () => _save(writeToFile: true),
                           child: _isSaving

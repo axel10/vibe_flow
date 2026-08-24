@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import '../../../models/music_file.dart';
@@ -297,21 +296,7 @@ class RemoteMediaResolver {
         resolvedCoverId = resolvedCoverId.substring('${server.id}/'.length);
       }
       final client = SubsonicClient(server: server, password: password);
-      final url = client.buildCoverArtUrl(resolvedCoverId, size: size);
-      try {
-        final res = await Dio(
-          BaseOptions(
-            connectTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 15),
-            responseType: ResponseType.bytes,
-          ),
-        ).get<List<int>>(url);
-        if (res.data != null && res.data!.isNotEmpty) {
-          return Uint8List.fromList(res.data!);
-        }
-      } catch (e) {
-        debugPrint('[RemoteMediaResolver] Failed to download cover art from $url: $e');
-      }
+      return client.getCoverArtBytes(resolvedCoverId, size: size);
     }
     return null;
   }

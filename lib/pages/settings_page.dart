@@ -2231,7 +2231,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 settings.isWaveformProgressBarEnabled = value;
               },
             ),
-            if (settings.isWaveformProgressBarEnabled && isProUnlocked)
+            if (settings.isWaveformProgressBarEnabled && isProUnlocked) ...[
               SwitchListTile(
                 title: Text(l10n.enableWaveformLongPressSeek),
                 subtitle: Text(l10n.enableWaveformLongPressSeekDescription),
@@ -2240,7 +2240,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   settings.enableWaveformLongPressSeek = value;
                 },
               ),
-            if (settings.isWaveformProgressBarEnabled && isProUnlocked)
               ListTile(
                 title: Text(l10n.waveformLongPressSeekSpeed),
                 subtitle: Text(l10n.waveformLongPressSeekSpeedDescription),
@@ -2273,6 +2272,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                 ),
               ),
+              ListTile(
+                title: Text(l10n.clearWaveformCache),
+                subtitle: Text(l10n.clearWaveformCacheDescription),
+                trailing: FilledButton.tonal(
+                  onPressed: () async {
+                    final audio = ref.read(audioServiceProvider);
+                    await audio.clearWaveformCache();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.waveformCacheCleared)),
+                      );
+                    }
+                  },
+                  child: Text(l10n.clear),
+                ),
+              ),
+            ],
           ],
         ),
         _buildGroupCard(
@@ -2403,6 +2419,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                 ],
               ),
+            ),
+          ),
+          ListTile(
+            title: Text(l10n.clearWaveformCache),
+            subtitle: Text(l10n.clearWaveformCacheDescription),
+            trailing: FilledButton.tonal(
+              onPressed: () async {
+                final audio = ref.read(audioServiceProvider);
+                await audio.clearWaveformCache();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.waveformCacheCleared)),
+                  );
+                }
+              },
+              child: Text(l10n.clear),
             ),
           ),
         ],

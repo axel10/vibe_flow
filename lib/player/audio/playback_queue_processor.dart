@@ -371,8 +371,13 @@ class PlaybackQueueProcessor {
             }
           }
 
-          // Extract waveform if missing AND enabled in settings
-          if (showWaveform && meta.waveformBlob == null) {
+          // Extract waveform if missing or invalid AND enabled in settings
+          final needsWaveform = showWaveform &&
+              (meta.waveformBlob == null ||
+                  !WaveformService.isWaveformValid(
+                    waveformService.waveformFromBlob(meta.waveformBlob),
+                  ));
+          if (needsWaveform) {
             try {
               final waveformResult = await waveformService.getWaveformData(
                 path: song.path,
@@ -382,7 +387,8 @@ class PlaybackQueueProcessor {
               );
               if (_disposed || myId != _currentProcessId) return;
 
-              if (waveformResult.waveform.isNotEmpty) {
+              if (waveformResult.waveform.isNotEmpty &&
+                  waveformResult.waveformBlob != null) {
                 meta = meta.copyWith(waveformBlob: waveformResult.waveformBlob);
                 onUpdate(song.path, {
                   'waveform': waveformResult.waveform,

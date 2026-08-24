@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/lyrics/lyrics_ai_openrouter.dart';
 
 void main() {
