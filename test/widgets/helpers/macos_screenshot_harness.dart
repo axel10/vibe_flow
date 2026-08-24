@@ -1031,7 +1031,10 @@ Future<Uint8List> captureMacosWindow({
     for (final element in find.byType(Image).evaluate()) {
       final widget = element.widget as Image;
       try {
-        await precacheImage(widget.image, element);
+        await precacheImage(widget.image, element).timeout(
+          const Duration(milliseconds: 300),
+          onTimeout: () {},
+        );
       } catch (_) {}
     }
     await Future.delayed(const Duration(milliseconds: 600));
@@ -1044,7 +1047,10 @@ Future<Uint8List> captureMacosWindow({
     for (final element in find.byType(Image).evaluate()) {
       final widget = element.widget as Image;
       try {
-        await precacheImage(widget.image, element);
+        await precacheImage(widget.image, element).timeout(
+          const Duration(milliseconds: 300),
+          onTimeout: () {},
+        );
       } catch (_) {}
     }
     await Future.delayed(const Duration(milliseconds: 400));
