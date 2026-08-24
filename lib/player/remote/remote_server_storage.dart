@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../metadata/metadata_database.dart';
 import 'remote_server_models.dart';
 
 class RemoteServerStorage {
@@ -76,6 +77,9 @@ class RemoteServerStorage {
     await saveServers(updated);
     try {
       await _secureStorage.delete(key: '$_securePasswordPrefix$serverId');
+    } catch (_) {}
+    try {
+      await MetadataDatabase().deleteRemoteSongsByServerId(serverId);
     } catch (_) {}
   }
 }

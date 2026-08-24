@@ -12,6 +12,7 @@ part of 'metadata_database.dart';
     ArtistCaches,
     ArtistImageCaches,
     ArtworkCaches,
+    RemoteSongs,
   ],
 )
 class MetadataDriftDatabase extends _$MetadataDriftDatabase {
@@ -20,7 +21,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
   static final MetadataDriftDatabase instance = MetadataDriftDatabase._();
 
   @override
-  int get schemaVersion => 31;
+  int get schemaVersion => 32;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -340,6 +341,39 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       }
       if (from < 30) {
         await _addColumnIfMissing(m, 'songs', 'mediaId', 'INTEGER');
+      }
+      if (from < 32) {
+        await m.database.customStatement('''
+          CREATE TABLE IF NOT EXISTS remote_songs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            serverId TEXT NOT NULL,
+            remoteId TEXT NOT NULL,
+            virtualUri TEXT NOT NULL,
+            title TEXT,
+            album TEXT,
+            artist TEXT,
+            duration INTEGER,
+            artworkPath TEXT,
+            thumbnailPath TEXT,
+            artworkWidth INTEGER,
+            artworkHeight INTEGER,
+            trackNumber INTEGER,
+            themeColorsBlob BLOB,
+            waveformBlob BLOB,
+            coverArtId TEXT,
+            suffix TEXT,
+            bitRate INTEGER,
+            cachedFilePath TEXT,
+            createdAt INTEGER,
+            updatedAt INTEGER,
+            deletedAt INTEGER,
+            UNIQUE(virtualUri)
+          )
+        ''');
+        await m.database.customStatement('''
+          CREATE INDEX IF NOT EXISTS idx_remote_songs_server_id
+          ON remote_songs(serverId)
+        ''');
       }
     },
   );
@@ -873,6 +907,21 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     if (normalizedPath.isEmpty) {
       return Stream<SongMetadata?>.value(null);
     }
+    if (RemoteMediaResolver.isRemoteUri(normalizedPath)) {
+      return customSelect(
+        '''
+        SELECT *
+        FROM remote_songs
+        WHERE virtualUri = ?
+          AND deletedAt IS NULL
+        LIMIT 1
+        ''',
+        variables: [Variable(normalizedPath)],
+        readsFrom: {remoteSongs},
+      ).watchSingleOrNull().map(
+        (row) => row == null ? null : _songFromRemoteRow(row),
+      );
+    }
     return customSelect(
       '''
       SELECT *
@@ -888,10 +937,30 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     );
   }
 
+  Future<SongMetadata?> getRemoteSongMetadata(String virtualUri) async {
+    final normalized = virtualUri.trim();
+    if (normalized.isEmpty) return null;
+    final row = await customSelect(
+      '''
+      SELECT *
+      FROM remote_songs
+      WHERE virtualUri = ?
+        AND deletedAt IS NULL
+      LIMIT 1
+      ''',
+      variables: [Variable(normalized)],
+      readsFrom: {remoteSongs},
+    ).getSingleOrNull();
+    return row == null ? null : _songFromRemoteRow(row);
+  }
+
   Future<SongMetadata?> getSongMetadata(String path) async {
     final normalizedPath = _normalizePath(path);
     if (normalizedPath.isEmpty) {
       return null;
+    }
+    if (RemoteMediaResolver.isRemoteUri(normalizedPath)) {
+      return getRemoteSongMetadata(normalizedPath);
     }
     final row = await customSelect(
       '''
@@ -919,17 +988,27 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       return {};
     }
 
+    final localPaths = <String>[];
+    final remotePaths = <String>[];
+    for (final p in normalizedPaths) {
+      if (RemoteMediaResolver.isRemoteUri(p)) {
+        remotePaths.add(p);
+      } else {
+        localPaths.add(p);
+      }
+    }
+
     final result = <String, SongMetadata>{};
     const batchSize = 500;
     await transaction(() async {
-      for (var i = 0; i < normalizedPaths.length; i += batchSize) {
+      for (var i = 0; i < localPaths.length; i += batchSize) {
         if (i > 0 && i % 5000 == 0) {
           await Future<void>.delayed(Duration.zero);
         }
-        final chunk = normalizedPaths.sublist(
+        final chunk = localPaths.sublist(
           i,
-          i + batchSize > normalizedPaths.length
-              ? normalizedPaths.length
+          i + batchSize > localPaths.length
+              ? localPaths.length
               : i + batchSize,
         );
         final rows = await customSelect(
@@ -948,8 +1027,98 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
               _songFromQueryRow(row);
         }
       }
+
+      for (var i = 0; i < remotePaths.length; i += batchSize) {
+        final chunk = remotePaths.sublist(
+          i,
+          i + batchSize > remotePaths.length
+              ? remotePaths.length
+              : i + batchSize,
+        );
+        final rows = await customSelect(
+          '''
+          SELECT *
+          FROM remote_songs
+          WHERE virtualUri IN (${List.filled(chunk.length, '?').join(', ')})
+            AND deletedAt IS NULL
+          ''',
+          variables: chunk.map(Variable.new).toList(growable: false),
+          readsFrom: {remoteSongs},
+        ).get();
+
+        for (final row in rows) {
+          result[_pathLookupKey(row.read<String>('virtualUri'))] =
+              _songFromRemoteRow(row);
+        }
+      }
     });
     return result;
+  }
+
+  Future<void> insertOrUpdateRemoteSong(
+    SongMetadata song, {
+    String? coverArtId,
+    String? suffix,
+    int? bitRate,
+    String? cachedFilePath,
+  }) async {
+    final virtualUri = song.path.trim();
+    if (virtualUri.isEmpty) return;
+
+    final existing = await (select(remoteSongs)
+          ..where((t) => t.virtualUri.equals(virtualUri))
+          ..limit(1))
+        .getSingleOrNull();
+
+    final companion = _remoteSongCompanion(
+      song,
+      coverArtId: coverArtId ?? existing?.coverArtId,
+      suffix: suffix ?? existing?.suffix,
+      bitRate: bitRate ?? existing?.bitRate,
+      cachedFilePath: cachedFilePath ?? existing?.cachedFilePath,
+    );
+
+    if (existing != null) {
+      await (update(remoteSongs)
+            ..where((t) => t.virtualUri.equals(existing.virtualUri)))
+          .write(companion);
+      return;
+    }
+
+    await into(remoteSongs).insert(companion);
+  }
+
+  Future<void> deleteRemoteSongsByServerId(String serverId) async {
+    final cleanServerId = serverId.trim();
+    if (cleanServerId.isEmpty) return;
+    final lowerServerId = cleanServerId.toLowerCase();
+
+    final rows = await (select(remoteSongs)
+          ..where((t) =>
+              t.serverId.equals(cleanServerId) |
+              t.serverId.equals(lowerServerId)))
+        .get();
+    await _deleteThumbnailFiles(rows.map((r) => r.thumbnailPath));
+
+    await (delete(remoteSongs)
+          ..where((t) =>
+              t.serverId.equals(cleanServerId) |
+              t.serverId.equals(lowerServerId)))
+        .go();
+  }
+
+  Future<List<SongMetadata>> getRemoteSongsByServerId(String serverId) async {
+    final cleanServerId = serverId.trim();
+    if (cleanServerId.isEmpty) return const [];
+    final lowerServerId = cleanServerId.toLowerCase();
+
+    final rows = await (select(remoteSongs)
+          ..where((t) =>
+              (t.serverId.equals(cleanServerId) |
+                  t.serverId.equals(lowerServerId)) &
+              t.deletedAt.isNull()))
+        .get();
+    return rows.map(_songFromRemoteTableRow).toList(growable: false);
   }
 
   Future<void> insertOrUpdateSong(
@@ -958,6 +1127,11 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
   }) async {
     final normalizedPath = _normalizePath(song.path);
     if (normalizedPath.isEmpty) return;
+
+    if (RemoteMediaResolver.isRemoteUri(normalizedPath)) {
+      await insertOrUpdateRemoteSong(song.copyWith(path: normalizedPath));
+      return;
+    }
 
     final existing =
         await (select(songs)
@@ -2037,6 +2211,97 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     );
   }
 
+  static (String serverId, String remoteId) _parseRemoteUri(String uriString) {
+    final info = RemoteMediaResolver.parseUri(uriString);
+    if (info != null) {
+      return (info.serverId, info.trackIdOrPath);
+    }
+    final uri = Uri.tryParse(uriString);
+    if (uri != null) {
+      final serverId = uri.host;
+      final remoteId = uri.pathSegments.isNotEmpty
+          ? uri.pathSegments.join('/')
+          : uri.path;
+      return (serverId, remoteId);
+    }
+    return ('', uriString);
+  }
+
+  RemoteSongsCompanion _remoteSongCompanion(
+    SongMetadata song, {
+    String? coverArtId,
+    String? suffix,
+    int? bitRate,
+    String? cachedFilePath,
+  }) {
+    final (serverId, remoteId) = _parseRemoteUri(song.path);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return RemoteSongsCompanion(
+      id: song.id != null ? Value(song.id!) : const Value.absent(),
+      serverId: Value(serverId),
+      remoteId: Value(remoteId),
+      virtualUri: Value(song.path),
+      title: Value(song.title),
+      album: Value(song.album),
+      artist: Value(song.artist),
+      duration: Value(song.duration),
+      artworkPath: Value(song.artworkPath),
+      thumbnailPath: Value(song.thumbnailPath),
+      artworkWidth: Value(song.artworkWidth),
+      artworkHeight: Value(song.artworkHeight),
+      trackNumber: Value(song.trackNumber),
+      themeColorsBlob: Value(song.themeColorsBlob),
+      waveformBlob: Value(song.waveformBlob),
+      coverArtId: Value(coverArtId),
+      suffix: Value(suffix),
+      bitRate: Value(bitRate),
+      cachedFilePath: Value(cachedFilePath),
+      createdAt: Value(song.createdAt ?? now),
+      updatedAt: Value(now),
+      deletedAt: Value(song.deletedAt),
+    );
+  }
+
+  SongMetadata _songFromRemoteRow(QueryRow row) {
+    return SongMetadata(
+      id: row.read<int?>('id'),
+      path: row.read<String>('virtualUri'),
+      title: row.read<String?>('title') ?? 'Unknown',
+      album: row.read<String?>('album') ?? 'Unknown',
+      artist: row.read<String?>('artist') ?? 'Unknown',
+      duration: row.read<int?>('duration'),
+      artworkPath: row.read<String?>('artworkPath'),
+      thumbnailPath: row.read<String?>('thumbnailPath'),
+      artworkWidth: row.read<int?>('artworkWidth'),
+      artworkHeight: row.read<int?>('artworkHeight'),
+      trackNumber: row.read<int?>('trackNumber'),
+      themeColorsBlob: row.read<Uint8List?>('themeColorsBlob'),
+      waveformBlob: row.read<Uint8List?>('waveformBlob'),
+      createdAt: row.read<int?>('createdAt'),
+      deletedAt: row.read<int?>('deletedAt'),
+    );
+  }
+
+  SongMetadata _songFromRemoteTableRow(RemoteSong row) {
+    return SongMetadata(
+      id: row.id,
+      path: row.virtualUri,
+      title: row.title ?? 'Unknown',
+      album: row.album ?? 'Unknown',
+      artist: row.artist ?? 'Unknown',
+      duration: row.duration,
+      artworkPath: row.artworkPath,
+      thumbnailPath: row.thumbnailPath,
+      artworkWidth: row.artworkWidth,
+      artworkHeight: row.artworkHeight,
+      trackNumber: row.trackNumber,
+      themeColorsBlob: row.themeColorsBlob,
+      waveformBlob: row.waveformBlob,
+      createdAt: row.createdAt,
+      deletedAt: row.deletedAt,
+    );
+  }
+
   LyricsCacheRecord _lyricsCacheFromRow(LyricsCache row) {
     return LyricsCacheRecord(
       id: row.id,
@@ -2622,6 +2887,38 @@ class ArtworkCaches extends Table {
 
   @override
   List<String> get customConstraints => const ['UNIQUE(md5)'];
+}
+
+class RemoteSongs extends Table {
+  @override
+  String get tableName => 'remote_songs';
+
+  IntColumn get id => integer().autoIncrement().named('id')();
+  TextColumn get serverId => text().named('serverId')();
+  TextColumn get remoteId => text().named('remoteId')();
+  TextColumn get virtualUri => text().named('virtualUri')();
+  TextColumn get title => text().nullable().named('title')();
+  TextColumn get album => text().nullable().named('album')();
+  TextColumn get artist => text().nullable().named('artist')();
+  IntColumn get duration => integer().nullable().named('duration')();
+  TextColumn get artworkPath => text().nullable().named('artworkPath')();
+  TextColumn get thumbnailPath => text().nullable().named('thumbnailPath')();
+  IntColumn get artworkWidth => integer().nullable().named('artworkWidth')();
+  IntColumn get artworkHeight => integer().nullable().named('artworkHeight')();
+  IntColumn get trackNumber => integer().nullable().named('trackNumber')();
+  BlobColumn get themeColorsBlob =>
+      blob().nullable().named('themeColorsBlob')();
+  BlobColumn get waveformBlob => blob().nullable().named('waveformBlob')();
+  TextColumn get coverArtId => text().nullable().named('coverArtId')();
+  TextColumn get suffix => text().nullable().named('suffix')();
+  IntColumn get bitRate => integer().nullable().named('bitRate')();
+  TextColumn get cachedFilePath => text().nullable().named('cachedFilePath')();
+  IntColumn get createdAt => integer().nullable().named('createdAt')();
+  IntColumn get updatedAt => integer().nullable().named('updatedAt')();
+  IntColumn get deletedAt => integer().nullable().named('deletedAt')();
+
+  @override
+  List<String> get customConstraints => const ['UNIQUE(virtualUri)'];
 }
 
 void _setupSqliteInIsolate([Object? db]) {}

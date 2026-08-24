@@ -5872,6 +5872,1247 @@ class ArtworkCachesCompanion extends UpdateCompanion<ArtworkCache> {
   }
 }
 
+class $RemoteSongsTable extends RemoteSongs
+    with TableInfo<$RemoteSongsTable, RemoteSong> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RemoteSongsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<String> serverId = GeneratedColumn<String>(
+    'serverId',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remoteId',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _virtualUriMeta = const VerificationMeta(
+    'virtualUri',
+  );
+  @override
+  late final GeneratedColumn<String> virtualUri = GeneratedColumn<String>(
+    'virtualUri',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _albumMeta = const VerificationMeta('album');
+  @override
+  late final GeneratedColumn<String> album = GeneratedColumn<String>(
+    'album',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _artistMeta = const VerificationMeta('artist');
+  @override
+  late final GeneratedColumn<String> artist = GeneratedColumn<String>(
+    'artist',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _durationMeta = const VerificationMeta(
+    'duration',
+  );
+  @override
+  late final GeneratedColumn<int> duration = GeneratedColumn<int>(
+    'duration',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _artworkPathMeta = const VerificationMeta(
+    'artworkPath',
+  );
+  @override
+  late final GeneratedColumn<String> artworkPath = GeneratedColumn<String>(
+    'artworkPath',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _thumbnailPathMeta = const VerificationMeta(
+    'thumbnailPath',
+  );
+  @override
+  late final GeneratedColumn<String> thumbnailPath = GeneratedColumn<String>(
+    'thumbnailPath',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _artworkWidthMeta = const VerificationMeta(
+    'artworkWidth',
+  );
+  @override
+  late final GeneratedColumn<int> artworkWidth = GeneratedColumn<int>(
+    'artworkWidth',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _artworkHeightMeta = const VerificationMeta(
+    'artworkHeight',
+  );
+  @override
+  late final GeneratedColumn<int> artworkHeight = GeneratedColumn<int>(
+    'artworkHeight',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _trackNumberMeta = const VerificationMeta(
+    'trackNumber',
+  );
+  @override
+  late final GeneratedColumn<int> trackNumber = GeneratedColumn<int>(
+    'trackNumber',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _themeColorsBlobMeta = const VerificationMeta(
+    'themeColorsBlob',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> themeColorsBlob =
+      GeneratedColumn<Uint8List>(
+        'themeColorsBlob',
+        aliasedName,
+        true,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _waveformBlobMeta = const VerificationMeta(
+    'waveformBlob',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> waveformBlob =
+      GeneratedColumn<Uint8List>(
+        'waveformBlob',
+        aliasedName,
+        true,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _coverArtIdMeta = const VerificationMeta(
+    'coverArtId',
+  );
+  @override
+  late final GeneratedColumn<String> coverArtId = GeneratedColumn<String>(
+    'coverArtId',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _suffixMeta = const VerificationMeta('suffix');
+  @override
+  late final GeneratedColumn<String> suffix = GeneratedColumn<String>(
+    'suffix',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bitRateMeta = const VerificationMeta(
+    'bitRate',
+  );
+  @override
+  late final GeneratedColumn<int> bitRate = GeneratedColumn<int>(
+    'bitRate',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cachedFilePathMeta = const VerificationMeta(
+    'cachedFilePath',
+  );
+  @override
+  late final GeneratedColumn<String> cachedFilePath = GeneratedColumn<String>(
+    'cachedFilePath',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'createdAt',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updatedAt',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<int> deletedAt = GeneratedColumn<int>(
+    'deletedAt',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    serverId,
+    remoteId,
+    virtualUri,
+    title,
+    album,
+    artist,
+    duration,
+    artworkPath,
+    thumbnailPath,
+    artworkWidth,
+    artworkHeight,
+    trackNumber,
+    themeColorsBlob,
+    waveformBlob,
+    coverArtId,
+    suffix,
+    bitRate,
+    cachedFilePath,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'remote_songs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RemoteSong> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('serverId')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['serverId']!, _serverIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_serverIdMeta);
+    }
+    if (data.containsKey('remoteId')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remoteId']!, _remoteIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteIdMeta);
+    }
+    if (data.containsKey('virtualUri')) {
+      context.handle(
+        _virtualUriMeta,
+        virtualUri.isAcceptableOrUnknown(data['virtualUri']!, _virtualUriMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_virtualUriMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('album')) {
+      context.handle(
+        _albumMeta,
+        album.isAcceptableOrUnknown(data['album']!, _albumMeta),
+      );
+    }
+    if (data.containsKey('artist')) {
+      context.handle(
+        _artistMeta,
+        artist.isAcceptableOrUnknown(data['artist']!, _artistMeta),
+      );
+    }
+    if (data.containsKey('duration')) {
+      context.handle(
+        _durationMeta,
+        duration.isAcceptableOrUnknown(data['duration']!, _durationMeta),
+      );
+    }
+    if (data.containsKey('artworkPath')) {
+      context.handle(
+        _artworkPathMeta,
+        artworkPath.isAcceptableOrUnknown(
+          data['artworkPath']!,
+          _artworkPathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('thumbnailPath')) {
+      context.handle(
+        _thumbnailPathMeta,
+        thumbnailPath.isAcceptableOrUnknown(
+          data['thumbnailPath']!,
+          _thumbnailPathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('artworkWidth')) {
+      context.handle(
+        _artworkWidthMeta,
+        artworkWidth.isAcceptableOrUnknown(
+          data['artworkWidth']!,
+          _artworkWidthMeta,
+        ),
+      );
+    }
+    if (data.containsKey('artworkHeight')) {
+      context.handle(
+        _artworkHeightMeta,
+        artworkHeight.isAcceptableOrUnknown(
+          data['artworkHeight']!,
+          _artworkHeightMeta,
+        ),
+      );
+    }
+    if (data.containsKey('trackNumber')) {
+      context.handle(
+        _trackNumberMeta,
+        trackNumber.isAcceptableOrUnknown(
+          data['trackNumber']!,
+          _trackNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('themeColorsBlob')) {
+      context.handle(
+        _themeColorsBlobMeta,
+        themeColorsBlob.isAcceptableOrUnknown(
+          data['themeColorsBlob']!,
+          _themeColorsBlobMeta,
+        ),
+      );
+    }
+    if (data.containsKey('waveformBlob')) {
+      context.handle(
+        _waveformBlobMeta,
+        waveformBlob.isAcceptableOrUnknown(
+          data['waveformBlob']!,
+          _waveformBlobMeta,
+        ),
+      );
+    }
+    if (data.containsKey('coverArtId')) {
+      context.handle(
+        _coverArtIdMeta,
+        coverArtId.isAcceptableOrUnknown(data['coverArtId']!, _coverArtIdMeta),
+      );
+    }
+    if (data.containsKey('suffix')) {
+      context.handle(
+        _suffixMeta,
+        suffix.isAcceptableOrUnknown(data['suffix']!, _suffixMeta),
+      );
+    }
+    if (data.containsKey('bitRate')) {
+      context.handle(
+        _bitRateMeta,
+        bitRate.isAcceptableOrUnknown(data['bitRate']!, _bitRateMeta),
+      );
+    }
+    if (data.containsKey('cachedFilePath')) {
+      context.handle(
+        _cachedFilePathMeta,
+        cachedFilePath.isAcceptableOrUnknown(
+          data['cachedFilePath']!,
+          _cachedFilePathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('createdAt')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['createdAt']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updatedAt')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deletedAt')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deletedAt']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RemoteSong map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RemoteSong(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}serverId'],
+      )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remoteId'],
+      )!,
+      virtualUri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}virtualUri'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      album: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}album'],
+      ),
+      artist: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}artist'],
+      ),
+      duration: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration'],
+      ),
+      artworkPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}artworkPath'],
+      ),
+      thumbnailPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}thumbnailPath'],
+      ),
+      artworkWidth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}artworkWidth'],
+      ),
+      artworkHeight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}artworkHeight'],
+      ),
+      trackNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}trackNumber'],
+      ),
+      themeColorsBlob: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}themeColorsBlob'],
+      ),
+      waveformBlob: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}waveformBlob'],
+      ),
+      coverArtId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}coverArtId'],
+      ),
+      suffix: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}suffix'],
+      ),
+      bitRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bitRate'],
+      ),
+      cachedFilePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cachedFilePath'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}createdAt'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updatedAt'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deletedAt'],
+      ),
+    );
+  }
+
+  @override
+  $RemoteSongsTable createAlias(String alias) {
+    return $RemoteSongsTable(attachedDatabase, alias);
+  }
+}
+
+class RemoteSong extends DataClass implements Insertable<RemoteSong> {
+  final int id;
+  final String serverId;
+  final String remoteId;
+  final String virtualUri;
+  final String? title;
+  final String? album;
+  final String? artist;
+  final int? duration;
+  final String? artworkPath;
+  final String? thumbnailPath;
+  final int? artworkWidth;
+  final int? artworkHeight;
+  final int? trackNumber;
+  final Uint8List? themeColorsBlob;
+  final Uint8List? waveformBlob;
+  final String? coverArtId;
+  final String? suffix;
+  final int? bitRate;
+  final String? cachedFilePath;
+  final int? createdAt;
+  final int? updatedAt;
+  final int? deletedAt;
+  const RemoteSong({
+    required this.id,
+    required this.serverId,
+    required this.remoteId,
+    required this.virtualUri,
+    this.title,
+    this.album,
+    this.artist,
+    this.duration,
+    this.artworkPath,
+    this.thumbnailPath,
+    this.artworkWidth,
+    this.artworkHeight,
+    this.trackNumber,
+    this.themeColorsBlob,
+    this.waveformBlob,
+    this.coverArtId,
+    this.suffix,
+    this.bitRate,
+    this.cachedFilePath,
+    this.createdAt,
+    this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['serverId'] = Variable<String>(serverId);
+    map['remoteId'] = Variable<String>(remoteId);
+    map['virtualUri'] = Variable<String>(virtualUri);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || album != null) {
+      map['album'] = Variable<String>(album);
+    }
+    if (!nullToAbsent || artist != null) {
+      map['artist'] = Variable<String>(artist);
+    }
+    if (!nullToAbsent || duration != null) {
+      map['duration'] = Variable<int>(duration);
+    }
+    if (!nullToAbsent || artworkPath != null) {
+      map['artworkPath'] = Variable<String>(artworkPath);
+    }
+    if (!nullToAbsent || thumbnailPath != null) {
+      map['thumbnailPath'] = Variable<String>(thumbnailPath);
+    }
+    if (!nullToAbsent || artworkWidth != null) {
+      map['artworkWidth'] = Variable<int>(artworkWidth);
+    }
+    if (!nullToAbsent || artworkHeight != null) {
+      map['artworkHeight'] = Variable<int>(artworkHeight);
+    }
+    if (!nullToAbsent || trackNumber != null) {
+      map['trackNumber'] = Variable<int>(trackNumber);
+    }
+    if (!nullToAbsent || themeColorsBlob != null) {
+      map['themeColorsBlob'] = Variable<Uint8List>(themeColorsBlob);
+    }
+    if (!nullToAbsent || waveformBlob != null) {
+      map['waveformBlob'] = Variable<Uint8List>(waveformBlob);
+    }
+    if (!nullToAbsent || coverArtId != null) {
+      map['coverArtId'] = Variable<String>(coverArtId);
+    }
+    if (!nullToAbsent || suffix != null) {
+      map['suffix'] = Variable<String>(suffix);
+    }
+    if (!nullToAbsent || bitRate != null) {
+      map['bitRate'] = Variable<int>(bitRate);
+    }
+    if (!nullToAbsent || cachedFilePath != null) {
+      map['cachedFilePath'] = Variable<String>(cachedFilePath);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['createdAt'] = Variable<int>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<int>(updatedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deletedAt'] = Variable<int>(deletedAt);
+    }
+    return map;
+  }
+
+  RemoteSongsCompanion toCompanion(bool nullToAbsent) {
+    return RemoteSongsCompanion(
+      id: Value(id),
+      serverId: Value(serverId),
+      remoteId: Value(remoteId),
+      virtualUri: Value(virtualUri),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      album: album == null && nullToAbsent
+          ? const Value.absent()
+          : Value(album),
+      artist: artist == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artist),
+      duration: duration == null && nullToAbsent
+          ? const Value.absent()
+          : Value(duration),
+      artworkPath: artworkPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artworkPath),
+      thumbnailPath: thumbnailPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailPath),
+      artworkWidth: artworkWidth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artworkWidth),
+      artworkHeight: artworkHeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artworkHeight),
+      trackNumber: trackNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackNumber),
+      themeColorsBlob: themeColorsBlob == null && nullToAbsent
+          ? const Value.absent()
+          : Value(themeColorsBlob),
+      waveformBlob: waveformBlob == null && nullToAbsent
+          ? const Value.absent()
+          : Value(waveformBlob),
+      coverArtId: coverArtId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverArtId),
+      suffix: suffix == null && nullToAbsent
+          ? const Value.absent()
+          : Value(suffix),
+      bitRate: bitRate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bitRate),
+      cachedFilePath: cachedFilePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cachedFilePath),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory RemoteSong.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RemoteSong(
+      id: serializer.fromJson<int>(json['id']),
+      serverId: serializer.fromJson<String>(json['serverId']),
+      remoteId: serializer.fromJson<String>(json['remoteId']),
+      virtualUri: serializer.fromJson<String>(json['virtualUri']),
+      title: serializer.fromJson<String?>(json['title']),
+      album: serializer.fromJson<String?>(json['album']),
+      artist: serializer.fromJson<String?>(json['artist']),
+      duration: serializer.fromJson<int?>(json['duration']),
+      artworkPath: serializer.fromJson<String?>(json['artworkPath']),
+      thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
+      artworkWidth: serializer.fromJson<int?>(json['artworkWidth']),
+      artworkHeight: serializer.fromJson<int?>(json['artworkHeight']),
+      trackNumber: serializer.fromJson<int?>(json['trackNumber']),
+      themeColorsBlob: serializer.fromJson<Uint8List?>(json['themeColorsBlob']),
+      waveformBlob: serializer.fromJson<Uint8List?>(json['waveformBlob']),
+      coverArtId: serializer.fromJson<String?>(json['coverArtId']),
+      suffix: serializer.fromJson<String?>(json['suffix']),
+      bitRate: serializer.fromJson<int?>(json['bitRate']),
+      cachedFilePath: serializer.fromJson<String?>(json['cachedFilePath']),
+      createdAt: serializer.fromJson<int?>(json['createdAt']),
+      updatedAt: serializer.fromJson<int?>(json['updatedAt']),
+      deletedAt: serializer.fromJson<int?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'serverId': serializer.toJson<String>(serverId),
+      'remoteId': serializer.toJson<String>(remoteId),
+      'virtualUri': serializer.toJson<String>(virtualUri),
+      'title': serializer.toJson<String?>(title),
+      'album': serializer.toJson<String?>(album),
+      'artist': serializer.toJson<String?>(artist),
+      'duration': serializer.toJson<int?>(duration),
+      'artworkPath': serializer.toJson<String?>(artworkPath),
+      'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
+      'artworkWidth': serializer.toJson<int?>(artworkWidth),
+      'artworkHeight': serializer.toJson<int?>(artworkHeight),
+      'trackNumber': serializer.toJson<int?>(trackNumber),
+      'themeColorsBlob': serializer.toJson<Uint8List?>(themeColorsBlob),
+      'waveformBlob': serializer.toJson<Uint8List?>(waveformBlob),
+      'coverArtId': serializer.toJson<String?>(coverArtId),
+      'suffix': serializer.toJson<String?>(suffix),
+      'bitRate': serializer.toJson<int?>(bitRate),
+      'cachedFilePath': serializer.toJson<String?>(cachedFilePath),
+      'createdAt': serializer.toJson<int?>(createdAt),
+      'updatedAt': serializer.toJson<int?>(updatedAt),
+      'deletedAt': serializer.toJson<int?>(deletedAt),
+    };
+  }
+
+  RemoteSong copyWith({
+    int? id,
+    String? serverId,
+    String? remoteId,
+    String? virtualUri,
+    Value<String?> title = const Value.absent(),
+    Value<String?> album = const Value.absent(),
+    Value<String?> artist = const Value.absent(),
+    Value<int?> duration = const Value.absent(),
+    Value<String?> artworkPath = const Value.absent(),
+    Value<String?> thumbnailPath = const Value.absent(),
+    Value<int?> artworkWidth = const Value.absent(),
+    Value<int?> artworkHeight = const Value.absent(),
+    Value<int?> trackNumber = const Value.absent(),
+    Value<Uint8List?> themeColorsBlob = const Value.absent(),
+    Value<Uint8List?> waveformBlob = const Value.absent(),
+    Value<String?> coverArtId = const Value.absent(),
+    Value<String?> suffix = const Value.absent(),
+    Value<int?> bitRate = const Value.absent(),
+    Value<String?> cachedFilePath = const Value.absent(),
+    Value<int?> createdAt = const Value.absent(),
+    Value<int?> updatedAt = const Value.absent(),
+    Value<int?> deletedAt = const Value.absent(),
+  }) => RemoteSong(
+    id: id ?? this.id,
+    serverId: serverId ?? this.serverId,
+    remoteId: remoteId ?? this.remoteId,
+    virtualUri: virtualUri ?? this.virtualUri,
+    title: title.present ? title.value : this.title,
+    album: album.present ? album.value : this.album,
+    artist: artist.present ? artist.value : this.artist,
+    duration: duration.present ? duration.value : this.duration,
+    artworkPath: artworkPath.present ? artworkPath.value : this.artworkPath,
+    thumbnailPath: thumbnailPath.present
+        ? thumbnailPath.value
+        : this.thumbnailPath,
+    artworkWidth: artworkWidth.present ? artworkWidth.value : this.artworkWidth,
+    artworkHeight: artworkHeight.present
+        ? artworkHeight.value
+        : this.artworkHeight,
+    trackNumber: trackNumber.present ? trackNumber.value : this.trackNumber,
+    themeColorsBlob: themeColorsBlob.present
+        ? themeColorsBlob.value
+        : this.themeColorsBlob,
+    waveformBlob: waveformBlob.present ? waveformBlob.value : this.waveformBlob,
+    coverArtId: coverArtId.present ? coverArtId.value : this.coverArtId,
+    suffix: suffix.present ? suffix.value : this.suffix,
+    bitRate: bitRate.present ? bitRate.value : this.bitRate,
+    cachedFilePath: cachedFilePath.present
+        ? cachedFilePath.value
+        : this.cachedFilePath,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  RemoteSong copyWithCompanion(RemoteSongsCompanion data) {
+    return RemoteSong(
+      id: data.id.present ? data.id.value : this.id,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      virtualUri: data.virtualUri.present
+          ? data.virtualUri.value
+          : this.virtualUri,
+      title: data.title.present ? data.title.value : this.title,
+      album: data.album.present ? data.album.value : this.album,
+      artist: data.artist.present ? data.artist.value : this.artist,
+      duration: data.duration.present ? data.duration.value : this.duration,
+      artworkPath: data.artworkPath.present
+          ? data.artworkPath.value
+          : this.artworkPath,
+      thumbnailPath: data.thumbnailPath.present
+          ? data.thumbnailPath.value
+          : this.thumbnailPath,
+      artworkWidth: data.artworkWidth.present
+          ? data.artworkWidth.value
+          : this.artworkWidth,
+      artworkHeight: data.artworkHeight.present
+          ? data.artworkHeight.value
+          : this.artworkHeight,
+      trackNumber: data.trackNumber.present
+          ? data.trackNumber.value
+          : this.trackNumber,
+      themeColorsBlob: data.themeColorsBlob.present
+          ? data.themeColorsBlob.value
+          : this.themeColorsBlob,
+      waveformBlob: data.waveformBlob.present
+          ? data.waveformBlob.value
+          : this.waveformBlob,
+      coverArtId: data.coverArtId.present
+          ? data.coverArtId.value
+          : this.coverArtId,
+      suffix: data.suffix.present ? data.suffix.value : this.suffix,
+      bitRate: data.bitRate.present ? data.bitRate.value : this.bitRate,
+      cachedFilePath: data.cachedFilePath.present
+          ? data.cachedFilePath.value
+          : this.cachedFilePath,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RemoteSong(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('virtualUri: $virtualUri, ')
+          ..write('title: $title, ')
+          ..write('album: $album, ')
+          ..write('artist: $artist, ')
+          ..write('duration: $duration, ')
+          ..write('artworkPath: $artworkPath, ')
+          ..write('thumbnailPath: $thumbnailPath, ')
+          ..write('artworkWidth: $artworkWidth, ')
+          ..write('artworkHeight: $artworkHeight, ')
+          ..write('trackNumber: $trackNumber, ')
+          ..write('themeColorsBlob: $themeColorsBlob, ')
+          ..write('waveformBlob: $waveformBlob, ')
+          ..write('coverArtId: $coverArtId, ')
+          ..write('suffix: $suffix, ')
+          ..write('bitRate: $bitRate, ')
+          ..write('cachedFilePath: $cachedFilePath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    id,
+    serverId,
+    remoteId,
+    virtualUri,
+    title,
+    album,
+    artist,
+    duration,
+    artworkPath,
+    thumbnailPath,
+    artworkWidth,
+    artworkHeight,
+    trackNumber,
+    $driftBlobEquality.hash(themeColorsBlob),
+    $driftBlobEquality.hash(waveformBlob),
+    coverArtId,
+    suffix,
+    bitRate,
+    cachedFilePath,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RemoteSong &&
+          other.id == this.id &&
+          other.serverId == this.serverId &&
+          other.remoteId == this.remoteId &&
+          other.virtualUri == this.virtualUri &&
+          other.title == this.title &&
+          other.album == this.album &&
+          other.artist == this.artist &&
+          other.duration == this.duration &&
+          other.artworkPath == this.artworkPath &&
+          other.thumbnailPath == this.thumbnailPath &&
+          other.artworkWidth == this.artworkWidth &&
+          other.artworkHeight == this.artworkHeight &&
+          other.trackNumber == this.trackNumber &&
+          $driftBlobEquality.equals(
+            other.themeColorsBlob,
+            this.themeColorsBlob,
+          ) &&
+          $driftBlobEquality.equals(other.waveformBlob, this.waveformBlob) &&
+          other.coverArtId == this.coverArtId &&
+          other.suffix == this.suffix &&
+          other.bitRate == this.bitRate &&
+          other.cachedFilePath == this.cachedFilePath &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
+  final Value<int> id;
+  final Value<String> serverId;
+  final Value<String> remoteId;
+  final Value<String> virtualUri;
+  final Value<String?> title;
+  final Value<String?> album;
+  final Value<String?> artist;
+  final Value<int?> duration;
+  final Value<String?> artworkPath;
+  final Value<String?> thumbnailPath;
+  final Value<int?> artworkWidth;
+  final Value<int?> artworkHeight;
+  final Value<int?> trackNumber;
+  final Value<Uint8List?> themeColorsBlob;
+  final Value<Uint8List?> waveformBlob;
+  final Value<String?> coverArtId;
+  final Value<String?> suffix;
+  final Value<int?> bitRate;
+  final Value<String?> cachedFilePath;
+  final Value<int?> createdAt;
+  final Value<int?> updatedAt;
+  final Value<int?> deletedAt;
+  const RemoteSongsCompanion({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.virtualUri = const Value.absent(),
+    this.title = const Value.absent(),
+    this.album = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.artworkPath = const Value.absent(),
+    this.thumbnailPath = const Value.absent(),
+    this.artworkWidth = const Value.absent(),
+    this.artworkHeight = const Value.absent(),
+    this.trackNumber = const Value.absent(),
+    this.themeColorsBlob = const Value.absent(),
+    this.waveformBlob = const Value.absent(),
+    this.coverArtId = const Value.absent(),
+    this.suffix = const Value.absent(),
+    this.bitRate = const Value.absent(),
+    this.cachedFilePath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  });
+  RemoteSongsCompanion.insert({
+    this.id = const Value.absent(),
+    required String serverId,
+    required String remoteId,
+    required String virtualUri,
+    this.title = const Value.absent(),
+    this.album = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.artworkPath = const Value.absent(),
+    this.thumbnailPath = const Value.absent(),
+    this.artworkWidth = const Value.absent(),
+    this.artworkHeight = const Value.absent(),
+    this.trackNumber = const Value.absent(),
+    this.themeColorsBlob = const Value.absent(),
+    this.waveformBlob = const Value.absent(),
+    this.coverArtId = const Value.absent(),
+    this.suffix = const Value.absent(),
+    this.bitRate = const Value.absent(),
+    this.cachedFilePath = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+  }) : serverId = Value(serverId),
+       remoteId = Value(remoteId),
+       virtualUri = Value(virtualUri);
+  static Insertable<RemoteSong> custom({
+    Expression<int>? id,
+    Expression<String>? serverId,
+    Expression<String>? remoteId,
+    Expression<String>? virtualUri,
+    Expression<String>? title,
+    Expression<String>? album,
+    Expression<String>? artist,
+    Expression<int>? duration,
+    Expression<String>? artworkPath,
+    Expression<String>? thumbnailPath,
+    Expression<int>? artworkWidth,
+    Expression<int>? artworkHeight,
+    Expression<int>? trackNumber,
+    Expression<Uint8List>? themeColorsBlob,
+    Expression<Uint8List>? waveformBlob,
+    Expression<String>? coverArtId,
+    Expression<String>? suffix,
+    Expression<int>? bitRate,
+    Expression<String>? cachedFilePath,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+    Expression<int>? deletedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serverId != null) 'serverId': serverId,
+      if (remoteId != null) 'remoteId': remoteId,
+      if (virtualUri != null) 'virtualUri': virtualUri,
+      if (title != null) 'title': title,
+      if (album != null) 'album': album,
+      if (artist != null) 'artist': artist,
+      if (duration != null) 'duration': duration,
+      if (artworkPath != null) 'artworkPath': artworkPath,
+      if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
+      if (artworkWidth != null) 'artworkWidth': artworkWidth,
+      if (artworkHeight != null) 'artworkHeight': artworkHeight,
+      if (trackNumber != null) 'trackNumber': trackNumber,
+      if (themeColorsBlob != null) 'themeColorsBlob': themeColorsBlob,
+      if (waveformBlob != null) 'waveformBlob': waveformBlob,
+      if (coverArtId != null) 'coverArtId': coverArtId,
+      if (suffix != null) 'suffix': suffix,
+      if (bitRate != null) 'bitRate': bitRate,
+      if (cachedFilePath != null) 'cachedFilePath': cachedFilePath,
+      if (createdAt != null) 'createdAt': createdAt,
+      if (updatedAt != null) 'updatedAt': updatedAt,
+      if (deletedAt != null) 'deletedAt': deletedAt,
+    });
+  }
+
+  RemoteSongsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? serverId,
+    Value<String>? remoteId,
+    Value<String>? virtualUri,
+    Value<String?>? title,
+    Value<String?>? album,
+    Value<String?>? artist,
+    Value<int?>? duration,
+    Value<String?>? artworkPath,
+    Value<String?>? thumbnailPath,
+    Value<int?>? artworkWidth,
+    Value<int?>? artworkHeight,
+    Value<int?>? trackNumber,
+    Value<Uint8List?>? themeColorsBlob,
+    Value<Uint8List?>? waveformBlob,
+    Value<String?>? coverArtId,
+    Value<String?>? suffix,
+    Value<int?>? bitRate,
+    Value<String?>? cachedFilePath,
+    Value<int?>? createdAt,
+    Value<int?>? updatedAt,
+    Value<int?>? deletedAt,
+  }) {
+    return RemoteSongsCompanion(
+      id: id ?? this.id,
+      serverId: serverId ?? this.serverId,
+      remoteId: remoteId ?? this.remoteId,
+      virtualUri: virtualUri ?? this.virtualUri,
+      title: title ?? this.title,
+      album: album ?? this.album,
+      artist: artist ?? this.artist,
+      duration: duration ?? this.duration,
+      artworkPath: artworkPath ?? this.artworkPath,
+      thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+      artworkWidth: artworkWidth ?? this.artworkWidth,
+      artworkHeight: artworkHeight ?? this.artworkHeight,
+      trackNumber: trackNumber ?? this.trackNumber,
+      themeColorsBlob: themeColorsBlob ?? this.themeColorsBlob,
+      waveformBlob: waveformBlob ?? this.waveformBlob,
+      coverArtId: coverArtId ?? this.coverArtId,
+      suffix: suffix ?? this.suffix,
+      bitRate: bitRate ?? this.bitRate,
+      cachedFilePath: cachedFilePath ?? this.cachedFilePath,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (serverId.present) {
+      map['serverId'] = Variable<String>(serverId.value);
+    }
+    if (remoteId.present) {
+      map['remoteId'] = Variable<String>(remoteId.value);
+    }
+    if (virtualUri.present) {
+      map['virtualUri'] = Variable<String>(virtualUri.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (album.present) {
+      map['album'] = Variable<String>(album.value);
+    }
+    if (artist.present) {
+      map['artist'] = Variable<String>(artist.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<int>(duration.value);
+    }
+    if (artworkPath.present) {
+      map['artworkPath'] = Variable<String>(artworkPath.value);
+    }
+    if (thumbnailPath.present) {
+      map['thumbnailPath'] = Variable<String>(thumbnailPath.value);
+    }
+    if (artworkWidth.present) {
+      map['artworkWidth'] = Variable<int>(artworkWidth.value);
+    }
+    if (artworkHeight.present) {
+      map['artworkHeight'] = Variable<int>(artworkHeight.value);
+    }
+    if (trackNumber.present) {
+      map['trackNumber'] = Variable<int>(trackNumber.value);
+    }
+    if (themeColorsBlob.present) {
+      map['themeColorsBlob'] = Variable<Uint8List>(themeColorsBlob.value);
+    }
+    if (waveformBlob.present) {
+      map['waveformBlob'] = Variable<Uint8List>(waveformBlob.value);
+    }
+    if (coverArtId.present) {
+      map['coverArtId'] = Variable<String>(coverArtId.value);
+    }
+    if (suffix.present) {
+      map['suffix'] = Variable<String>(suffix.value);
+    }
+    if (bitRate.present) {
+      map['bitRate'] = Variable<int>(bitRate.value);
+    }
+    if (cachedFilePath.present) {
+      map['cachedFilePath'] = Variable<String>(cachedFilePath.value);
+    }
+    if (createdAt.present) {
+      map['createdAt'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<int>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deletedAt'] = Variable<int>(deletedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RemoteSongsCompanion(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('virtualUri: $virtualUri, ')
+          ..write('title: $title, ')
+          ..write('album: $album, ')
+          ..write('artist: $artist, ')
+          ..write('duration: $duration, ')
+          ..write('artworkPath: $artworkPath, ')
+          ..write('thumbnailPath: $thumbnailPath, ')
+          ..write('artworkWidth: $artworkWidth, ')
+          ..write('artworkHeight: $artworkHeight, ')
+          ..write('trackNumber: $trackNumber, ')
+          ..write('themeColorsBlob: $themeColorsBlob, ')
+          ..write('waveformBlob: $waveformBlob, ')
+          ..write('coverArtId: $coverArtId, ')
+          ..write('suffix: $suffix, ')
+          ..write('bitRate: $bitRate, ')
+          ..write('cachedFilePath: $cachedFilePath, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$MetadataDriftDatabase extends GeneratedDatabase {
   _$MetadataDriftDatabase(QueryExecutor e) : super(e);
   $MetadataDriftDatabaseManager get managers =>
@@ -5890,6 +7131,7 @@ abstract class _$MetadataDriftDatabase extends GeneratedDatabase {
   late final $ArtistImageCachesTable artistImageCaches =
       $ArtistImageCachesTable(this);
   late final $ArtworkCachesTable artworkCaches = $ArtworkCachesTable(this);
+  late final $RemoteSongsTable remoteSongs = $RemoteSongsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5905,6 +7147,7 @@ abstract class _$MetadataDriftDatabase extends GeneratedDatabase {
     artistCaches,
     artistImageCaches,
     artworkCaches,
+    remoteSongs,
   ];
 }
 
@@ -8817,6 +10060,549 @@ typedef $$ArtworkCachesTableProcessedTableManager =
       ArtworkCache,
       PrefetchHooks Function()
     >;
+typedef $$RemoteSongsTableCreateCompanionBuilder =
+    RemoteSongsCompanion Function({
+      Value<int> id,
+      required String serverId,
+      required String remoteId,
+      required String virtualUri,
+      Value<String?> title,
+      Value<String?> album,
+      Value<String?> artist,
+      Value<int?> duration,
+      Value<String?> artworkPath,
+      Value<String?> thumbnailPath,
+      Value<int?> artworkWidth,
+      Value<int?> artworkHeight,
+      Value<int?> trackNumber,
+      Value<Uint8List?> themeColorsBlob,
+      Value<Uint8List?> waveformBlob,
+      Value<String?> coverArtId,
+      Value<String?> suffix,
+      Value<int?> bitRate,
+      Value<String?> cachedFilePath,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+      Value<int?> deletedAt,
+    });
+typedef $$RemoteSongsTableUpdateCompanionBuilder =
+    RemoteSongsCompanion Function({
+      Value<int> id,
+      Value<String> serverId,
+      Value<String> remoteId,
+      Value<String> virtualUri,
+      Value<String?> title,
+      Value<String?> album,
+      Value<String?> artist,
+      Value<int?> duration,
+      Value<String?> artworkPath,
+      Value<String?> thumbnailPath,
+      Value<int?> artworkWidth,
+      Value<int?> artworkHeight,
+      Value<int?> trackNumber,
+      Value<Uint8List?> themeColorsBlob,
+      Value<Uint8List?> waveformBlob,
+      Value<String?> coverArtId,
+      Value<String?> suffix,
+      Value<int?> bitRate,
+      Value<String?> cachedFilePath,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+      Value<int?> deletedAt,
+    });
+
+class $$RemoteSongsTableFilterComposer
+    extends Composer<_$MetadataDriftDatabase, $RemoteSongsTable> {
+  $$RemoteSongsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get virtualUri => $composableBuilder(
+    column: $table.virtualUri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get album => $composableBuilder(
+    column: $table.album,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get artist => $composableBuilder(
+    column: $table.artist,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get artworkPath => $composableBuilder(
+    column: $table.artworkPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get thumbnailPath => $composableBuilder(
+    column: $table.thumbnailPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get artworkWidth => $composableBuilder(
+    column: $table.artworkWidth,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get artworkHeight => $composableBuilder(
+    column: $table.artworkHeight,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get trackNumber => $composableBuilder(
+    column: $table.trackNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get themeColorsBlob => $composableBuilder(
+    column: $table.themeColorsBlob,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get waveformBlob => $composableBuilder(
+    column: $table.waveformBlob,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get coverArtId => $composableBuilder(
+    column: $table.coverArtId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get suffix => $composableBuilder(
+    column: $table.suffix,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bitRate => $composableBuilder(
+    column: $table.bitRate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cachedFilePath => $composableBuilder(
+    column: $table.cachedFilePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RemoteSongsTableOrderingComposer
+    extends Composer<_$MetadataDriftDatabase, $RemoteSongsTable> {
+  $$RemoteSongsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get virtualUri => $composableBuilder(
+    column: $table.virtualUri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get album => $composableBuilder(
+    column: $table.album,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get artist => $composableBuilder(
+    column: $table.artist,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get artworkPath => $composableBuilder(
+    column: $table.artworkPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get thumbnailPath => $composableBuilder(
+    column: $table.thumbnailPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get artworkWidth => $composableBuilder(
+    column: $table.artworkWidth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get artworkHeight => $composableBuilder(
+    column: $table.artworkHeight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get trackNumber => $composableBuilder(
+    column: $table.trackNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get themeColorsBlob => $composableBuilder(
+    column: $table.themeColorsBlob,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get waveformBlob => $composableBuilder(
+    column: $table.waveformBlob,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get coverArtId => $composableBuilder(
+    column: $table.coverArtId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get suffix => $composableBuilder(
+    column: $table.suffix,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bitRate => $composableBuilder(
+    column: $table.bitRate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cachedFilePath => $composableBuilder(
+    column: $table.cachedFilePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RemoteSongsTableAnnotationComposer
+    extends Composer<_$MetadataDriftDatabase, $RemoteSongsTable> {
+  $$RemoteSongsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get virtualUri => $composableBuilder(
+    column: $table.virtualUri,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get album =>
+      $composableBuilder(column: $table.album, builder: (column) => column);
+
+  GeneratedColumn<String> get artist =>
+      $composableBuilder(column: $table.artist, builder: (column) => column);
+
+  GeneratedColumn<int> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<String> get artworkPath => $composableBuilder(
+    column: $table.artworkPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get thumbnailPath => $composableBuilder(
+    column: $table.thumbnailPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get artworkWidth => $composableBuilder(
+    column: $table.artworkWidth,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get artworkHeight => $composableBuilder(
+    column: $table.artworkHeight,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get trackNumber => $composableBuilder(
+    column: $table.trackNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<Uint8List> get themeColorsBlob => $composableBuilder(
+    column: $table.themeColorsBlob,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<Uint8List> get waveformBlob => $composableBuilder(
+    column: $table.waveformBlob,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get coverArtId => $composableBuilder(
+    column: $table.coverArtId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get suffix =>
+      $composableBuilder(column: $table.suffix, builder: (column) => column);
+
+  GeneratedColumn<int> get bitRate =>
+      $composableBuilder(column: $table.bitRate, builder: (column) => column);
+
+  GeneratedColumn<String> get cachedFilePath => $composableBuilder(
+    column: $table.cachedFilePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$RemoteSongsTableTableManager
+    extends
+        RootTableManager<
+          _$MetadataDriftDatabase,
+          $RemoteSongsTable,
+          RemoteSong,
+          $$RemoteSongsTableFilterComposer,
+          $$RemoteSongsTableOrderingComposer,
+          $$RemoteSongsTableAnnotationComposer,
+          $$RemoteSongsTableCreateCompanionBuilder,
+          $$RemoteSongsTableUpdateCompanionBuilder,
+          (
+            RemoteSong,
+            BaseReferences<
+              _$MetadataDriftDatabase,
+              $RemoteSongsTable,
+              RemoteSong
+            >,
+          ),
+          RemoteSong,
+          PrefetchHooks Function()
+        > {
+  $$RemoteSongsTableTableManager(
+    _$MetadataDriftDatabase db,
+    $RemoteSongsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RemoteSongsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RemoteSongsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RemoteSongsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> serverId = const Value.absent(),
+                Value<String> remoteId = const Value.absent(),
+                Value<String> virtualUri = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> album = const Value.absent(),
+                Value<String?> artist = const Value.absent(),
+                Value<int?> duration = const Value.absent(),
+                Value<String?> artworkPath = const Value.absent(),
+                Value<String?> thumbnailPath = const Value.absent(),
+                Value<int?> artworkWidth = const Value.absent(),
+                Value<int?> artworkHeight = const Value.absent(),
+                Value<int?> trackNumber = const Value.absent(),
+                Value<Uint8List?> themeColorsBlob = const Value.absent(),
+                Value<Uint8List?> waveformBlob = const Value.absent(),
+                Value<String?> coverArtId = const Value.absent(),
+                Value<String?> suffix = const Value.absent(),
+                Value<int?> bitRate = const Value.absent(),
+                Value<String?> cachedFilePath = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+                Value<int?> deletedAt = const Value.absent(),
+              }) => RemoteSongsCompanion(
+                id: id,
+                serverId: serverId,
+                remoteId: remoteId,
+                virtualUri: virtualUri,
+                title: title,
+                album: album,
+                artist: artist,
+                duration: duration,
+                artworkPath: artworkPath,
+                thumbnailPath: thumbnailPath,
+                artworkWidth: artworkWidth,
+                artworkHeight: artworkHeight,
+                trackNumber: trackNumber,
+                themeColorsBlob: themeColorsBlob,
+                waveformBlob: waveformBlob,
+                coverArtId: coverArtId,
+                suffix: suffix,
+                bitRate: bitRate,
+                cachedFilePath: cachedFilePath,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String serverId,
+                required String remoteId,
+                required String virtualUri,
+                Value<String?> title = const Value.absent(),
+                Value<String?> album = const Value.absent(),
+                Value<String?> artist = const Value.absent(),
+                Value<int?> duration = const Value.absent(),
+                Value<String?> artworkPath = const Value.absent(),
+                Value<String?> thumbnailPath = const Value.absent(),
+                Value<int?> artworkWidth = const Value.absent(),
+                Value<int?> artworkHeight = const Value.absent(),
+                Value<int?> trackNumber = const Value.absent(),
+                Value<Uint8List?> themeColorsBlob = const Value.absent(),
+                Value<Uint8List?> waveformBlob = const Value.absent(),
+                Value<String?> coverArtId = const Value.absent(),
+                Value<String?> suffix = const Value.absent(),
+                Value<int?> bitRate = const Value.absent(),
+                Value<String?> cachedFilePath = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+                Value<int?> deletedAt = const Value.absent(),
+              }) => RemoteSongsCompanion.insert(
+                id: id,
+                serverId: serverId,
+                remoteId: remoteId,
+                virtualUri: virtualUri,
+                title: title,
+                album: album,
+                artist: artist,
+                duration: duration,
+                artworkPath: artworkPath,
+                thumbnailPath: thumbnailPath,
+                artworkWidth: artworkWidth,
+                artworkHeight: artworkHeight,
+                trackNumber: trackNumber,
+                themeColorsBlob: themeColorsBlob,
+                waveformBlob: waveformBlob,
+                coverArtId: coverArtId,
+                suffix: suffix,
+                bitRate: bitRate,
+                cachedFilePath: cachedFilePath,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RemoteSongsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MetadataDriftDatabase,
+      $RemoteSongsTable,
+      RemoteSong,
+      $$RemoteSongsTableFilterComposer,
+      $$RemoteSongsTableOrderingComposer,
+      $$RemoteSongsTableAnnotationComposer,
+      $$RemoteSongsTableCreateCompanionBuilder,
+      $$RemoteSongsTableUpdateCompanionBuilder,
+      (
+        RemoteSong,
+        BaseReferences<_$MetadataDriftDatabase, $RemoteSongsTable, RemoteSong>,
+      ),
+      RemoteSong,
+      PrefetchHooks Function()
+    >;
 
 class $MetadataDriftDatabaseManager {
   final _$MetadataDriftDatabase _db;
@@ -8844,4 +10630,6 @@ class $MetadataDriftDatabaseManager {
       $$ArtistImageCachesTableTableManager(_db, _db.artistImageCaches);
   $$ArtworkCachesTableTableManager get artworkCaches =>
       $$ArtworkCachesTableTableManager(_db, _db.artworkCaches);
+  $$RemoteSongsTableTableManager get remoteSongs =>
+      $$RemoteSongsTableTableManager(_db, _db.remoteSongs);
 }

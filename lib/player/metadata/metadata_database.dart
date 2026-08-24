@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/models/lyric_line.dart';
 import 'package:vynody/player/lyrics/lyrics_cache_models.dart';
 import 'package:vynody/player/scanner/scanner_sorting.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 export 'package:vynody/player/lyrics/lyrics_cache_models.dart';
 
 part 'metadata_database.freezed.dart';
@@ -546,6 +547,29 @@ class MetadataDatabase {
   Future<SongMetadata?> getSongMetadata(String path) =>
       _db.getSongMetadata(path);
 
+  Future<SongMetadata?> getRemoteSongMetadata(String virtualUri) =>
+      _db.getRemoteSongMetadata(virtualUri);
+
+  Future<void> insertOrUpdateRemoteSong(
+    SongMetadata song, {
+    String? coverArtId,
+    String? suffix,
+    int? bitRate,
+    String? cachedFilePath,
+  }) => _db.insertOrUpdateRemoteSong(
+    song,
+    coverArtId: coverArtId,
+    suffix: suffix,
+    bitRate: bitRate,
+    cachedFilePath: cachedFilePath,
+  );
+
+  Future<void> deleteRemoteSongsByServerId(String serverId) =>
+      _db.deleteRemoteSongsByServerId(serverId);
+
+  Future<List<SongMetadata>> getRemoteSongsByServerId(String serverId) =>
+      _db.getRemoteSongsByServerId(serverId);
+
   Future<List<SongMetadata>> getAllSongMetadata() => _db.getAllSongMetadata();
 
   Future<List<SongMetadata>> getSongsUnderPath(String rootPath) =>
@@ -827,7 +851,11 @@ class MetadataDatabase {
 
 
 String _normalizePath(String path) {
-  var normalized = p.normalize(path.trim());
+  final trimmed = path.trim();
+  if (RemoteMediaResolver.isRemoteUri(trimmed)) {
+    return trimmed;
+  }
+  var normalized = p.normalize(trimmed);
   if (Platform.isWindows) {
     normalized = normalized.replaceAll('/', r'\');
     if (normalized.length > 3 && normalized.endsWith(r'\')) {
