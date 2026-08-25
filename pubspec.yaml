@@ -49,7 +49,7 @@ dependencies:
   path: ^1.9.1
   permission_handler: ^12.0.1
   path_provider: ^2.1.5
-  device_info_plus: ^10.1.0
+  device_info_plus: ^12.4.0
   dio: ^5.7.0
   sqlite3: ^3.5.0
   shared_preferences: ^2.5.2

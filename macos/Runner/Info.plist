@@ -47,5 +47,7 @@
 	<string>This app requires access to your local network to discover and transfer music files between your devices.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>This app requires access to your media library to scan, display, and play your local audio files.</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.music</string>
 </dict>
 </plist>
