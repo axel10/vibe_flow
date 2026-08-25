@@ -121,7 +121,7 @@ SPEC CHECKSUMS:
   audio_session: eaca2512cf2b39212d724f35d11f46180ad3a33e
   bonsoir_darwin: 14bd7429acb51db6a8e51f6574ac3b1ea0037a87
   desktop_drop: 10a3e6a7fa9dbe350541f2574092fecfa345a07b
-  device_info_plus: a56e6e74dbbd2bb92f2da12c64ddd4f67a749041
+  device_info_plus: 4fb280989f669696856f8b129e4a5e3cd6c48f76
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   flutter_desktop_tray: 49e2a668a20531257bb2b56a0986c602e9a08fed
