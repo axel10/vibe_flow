@@ -708,6 +708,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get remoteCacheLimit => '远程缓存容量上限';
 
   @override
+  String get remotePrefetchCount => '远程歌曲预加载数量';
+
+  @override
+  String get remotePrefetchCountDescription => '在后台预先下载播放队列中的后续远程歌曲，实现切歌秒开';
+
+  @override
   String get clearRemoteCache => '清除远程音频缓存';
 
   @override
@@ -715,6 +721,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get unlimited => '无限制';
+
+  @override
+  String get off => '关闭';
 
   @override
   String get randomMode => '随机模式';
@@ -4588,6 +4597,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get remoteCacheLimit => '遠端快取容量上限';
 
   @override
+  String get remotePrefetchCount => '遠端歌曲預載入數量';
+
+  @override
+  String get remotePrefetchCountDescription => '在背景預先下載播放佇列中的後續遠端歌曲，實現切歌秒開';
+
+  @override
   String get clearRemoteCache => '清除遠端音訊快取';
 
   @override
@@ -4595,6 +4610,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get unlimited => '無限制';
+
+  @override
+  String get off => '關閉';
 
   @override
   String get randomMode => '隨機模式';

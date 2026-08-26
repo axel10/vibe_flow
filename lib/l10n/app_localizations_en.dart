@@ -722,6 +722,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remoteCacheLimit => 'Remote Cache Limit';
 
   @override
+  String get remotePrefetchCount => 'Remote Track Prefetch Count';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      'Pre-download upcoming remote tracks in playback queue for seamless switching';
+
+  @override
   String get clearRemoteCache => 'Clear Remote Cache';
 
   @override
@@ -729,6 +736,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlimited => 'Unlimited';
+
+  @override
+  String get off => 'Off';
 
   @override
   String get randomMode => 'Random Mode';

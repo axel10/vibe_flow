@@ -713,6 +713,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get remoteCacheLimit => '원격 캐시 용량 제한';
 
   @override
+  String get remotePrefetchCount => '원격 트랙 사전 로드 수';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      '원활한 재생 전환을 위해 재생 대기열의 다음 원격 트랙을 미리 다운로드합니다';
+
+  @override
   String get clearRemoteCache => '원격 캐시 삭제';
 
   @override
@@ -720,6 +727,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get unlimited => '무제한';
+
+  @override
+  String get off => '끄기';
 
   @override
   String get randomMode => '랜덤 모드';

@@ -212,6 +212,11 @@ class AudioService extends Notifier<AudioSnapshot> {
       player: _player,
       settingsService: settingsService,
       waveformService: _waveformService,
+      remoteMediaResolverGetter: () async {
+        final storage = await ref.read(remoteServerStorageProvider.future);
+        final proxy = ref.read(localStreamCacheProxyProvider);
+        return RemoteMediaResolver(storage: storage, proxy: proxy);
+      },
     );
     _lastWaveformChunks = settingsService.waveformChunks;
 
@@ -2258,6 +2263,17 @@ class AudioService extends Notifier<AudioSnapshot> {
     if (songs.isEmpty) return;
     final safeIndex = initialIndex.clamp(0, songs.length - 1);
 
+    // 如果当前已载入该歌单/来源，直接通过 playAtIndex 快速切换，命中预缓存并避免重置队列
+    if (_currentSource != null &&
+        source != null &&
+        _currentSource == source &&
+        _queue.length == songs.length &&
+        safeIndex < _queue.length &&
+        _queue[safeIndex].path == songs[safeIndex].path) {
+      await playAtIndex(safeIndex);
+      return;
+    }
+
     _currentSource = source;
 
     // 1. 同步设置正在切换状态与播放队列并通知 UI
@@ -2289,10 +2305,8 @@ class AudioService extends Notifier<AudioSnapshot> {
         songs: _queue,
         startIndex: safeIndex,
         clearPlayerQueue: true,
-        startBackgroundProcessing: false,
+        startBackgroundProcessing: true,
       );
-
-      _prefetchNextRemoteTracks(safeIndex);
 
       await _prepareCurrentPlaybackArtwork(current);
       unawaited(_persistPlaybackSession());
@@ -2582,6 +2596,7 @@ class AudioService extends Notifier<AudioSnapshot> {
           final song = _queue[_currentIndex];
           _logPlaybackTrace('next() sync target -> ${_debugSongLabel(song)}');
           await _syncCurrentPlaybackSong(song);
+          _startQueueBackgroundProcessing(priorityPath: song.path);
         }
       } else {
         if (_playbackMode == AppPlaybackMode.autoQueueLoop) {
@@ -2628,12 +2643,12 @@ class AudioService extends Notifier<AudioSnapshot> {
             _player.playlist.activePlaylistId ??
             _player.playlist.queuePlaylistId,
       );
-      _prefetchNextRemoteTracks(index);
       _currentIndex = index;
       _position = Duration.zero;
       _resetPlaybackTrackingForSong(song);
       notifyListeners();
       await _syncCurrentPlaybackSong(song);
+      _startQueueBackgroundProcessing(priorityPath: song.path);
     } finally {
       _isTransitioning = false;
       _logPlaybackTrace(
@@ -2784,6 +2799,7 @@ class AudioService extends Notifier<AudioSnapshot> {
             'previous() sync target -> ${_debugSongLabel(song)}',
           );
           await _syncCurrentPlaybackSong(song);
+          _startQueueBackgroundProcessing(priorityPath: song.path);
         }
       } else {
         if (_playbackMode == AppPlaybackMode.autoQueueLoop) {
@@ -2935,33 +2951,6 @@ class AudioService extends Notifier<AudioSnapshot> {
     );
   }
 
-  void _prefetchNextRemoteTracks(int currentIndex) {
-    if (_queue.isEmpty) return;
-    unawaited(() async {
-      try {
-        final storage = await ref.read(remoteServerStorageProvider.future);
-        final proxy = ref.read(localStreamCacheProxyProvider);
-        final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
-
-        for (var i = 1; i <= 2; i++) {
-          final nextIndex = (currentIndex + i) % _queue.length;
-          final nextSong = _queue[nextIndex];
-          if (RemoteMediaResolver.isRemoteUri(nextSong.path)) {
-            final source = await resolver.resolvePlayableSource(nextSong.path);
-            final cacheKey = source.cacheKey ?? source.uri;
-            await _player.streamCacheManager.ensureTrackCached(
-              cacheKey: cacheKey,
-              remoteUrl: source.uri,
-              headers: source.headers,
-            );
-            debugPrint('[AudioService] Prefetched remote track ($nextIndex): ${nextSong.title}');
-          }
-        }
-      } catch (e) {
-        debugPrint('[AudioService] Error prefetching remote tracks: $e');
-      }
-    }());
-  }
 
 
   void _startQueueBackgroundProcessing({String? priorityPath}) {

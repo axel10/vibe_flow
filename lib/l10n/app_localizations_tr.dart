@@ -727,6 +727,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get remoteCacheLimit => 'Uzak Önbellek Sınırı';
 
   @override
+  String get remotePrefetchCount => 'Önceden Yüklenecek Uzak Parça Sayısı';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      'Kusursuz parça geçişi için çalma sırasındaki sonraki parçaları önceden indir';
+
+  @override
   String get clearRemoteCache => 'Uzak Önbelleği Temizle';
 
   @override
@@ -734,6 +741,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get unlimited => 'Sınırsız';
+
+  @override
+  String get off => 'Kapalı';
 
   @override
   String get randomMode => 'Rastgele Modu';

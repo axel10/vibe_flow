@@ -731,6 +731,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get remoteCacheLimit => 'Limite du cache distant';
 
   @override
+  String get remotePrefetchCount => 'Nombre de pistes distantes préchargées';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      'Télécharger à l\'avance les pistes distantes de la file d\'attente pour une lecture fluide';
+
+  @override
   String get clearRemoteCache => 'Vider le cache distant';
 
   @override
@@ -738,6 +745,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get unlimited => 'Illimité';
+
+  @override
+  String get off => 'Désactivé';
 
   @override
   String get randomMode => 'Mode aléatoire';

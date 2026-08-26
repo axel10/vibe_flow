@@ -492,6 +492,8 @@ class SettingsService extends ChangeNotifier {
   static const String _keyFolderViewMode = 'folder_view_mode';
   static const String _keyRemoteCacheMaxSizeBytes = 'remote_cache_max_size_bytes';
   static const int defaultRemoteCacheMaxSizeBytes = 2 * 1024 * 1024 * 1024; // 2 GB (0 = unlimited)
+  static const String _keyRemotePrefetchCount = 'remote_prefetch_count';
+  static const int defaultRemotePrefetchCount = 2;
   static const String _keyUiScale = 'ui_scale';
   static const double defaultUiScale = 1.0;
   static const double minUiScale = 0.8;
@@ -569,6 +571,13 @@ class SettingsService extends ChangeNotifier {
   late final _remoteCacheMaxSizeBytesProperty = SettingProperty<int>(
     key: _keyRemoteCacheMaxSizeBytes,
     defaultValue: defaultRemoteCacheMaxSizeBytes,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _remotePrefetchCountProperty = SettingProperty<int>(
+    key: _keyRemotePrefetchCount,
+    defaultValue: defaultRemotePrefetchCount,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1549,6 +1558,10 @@ class SettingsService extends ChangeNotifier {
   int get remoteCacheMaxSizeBytes => _remoteCacheMaxSizeBytesProperty.value;
   set remoteCacheMaxSizeBytes(int value) =>
       _remoteCacheMaxSizeBytesProperty.value = value;
+
+  int get remotePrefetchCount => _remotePrefetchCountProperty.value;
+  set remotePrefetchCount(int value) =>
+      _remotePrefetchCountProperty.value = value;
 
   ThemeMode get themeMode => _themeModeProperty.value;
   set themeMode(ThemeMode value) => _themeModeProperty.value = value;

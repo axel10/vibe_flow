@@ -1461,6 +1461,18 @@ abstract class AppLocalizations {
   /// **'远程缓存容量上限'**
   String get remoteCacheLimit;
 
+  /// No description provided for @remotePrefetchCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程歌曲预加载数量'**
+  String get remotePrefetchCount;
+
+  /// No description provided for @remotePrefetchCountDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'在后台预先下载播放队列中的后续远程歌曲，实现切歌秒开'**
+  String get remotePrefetchCountDescription;
+
   /// No description provided for @clearRemoteCache.
   ///
   /// In zh, this message translates to:
@@ -1478,6 +1490,12 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'无限制'**
   String get unlimited;
+
+  /// No description provided for @off.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭'**
+  String get off;
 
   /// No description provided for @randomMode.
   ///

@@ -733,6 +733,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get remoteCacheLimit => 'Límite de caché remoto';
 
   @override
+  String get remotePrefetchCount => 'Pistas remotas a precargar';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      'Descarga con anticipación las próximas pistas remotas en la cola para una reproducción fluida';
+
+  @override
   String get clearRemoteCache => 'Borrar caché remoto';
 
   @override
@@ -740,6 +747,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unlimited => 'Ilimitado';
+
+  @override
+  String get off => 'Desactivado';
 
   @override
   String get randomMode => 'Modo aleatorio';

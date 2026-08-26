@@ -712,6 +712,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get remoteCacheLimit => 'リモートキャッシュ上限';
 
   @override
+  String get remotePrefetchCount => 'リモート曲の事前読み込み数';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      'スムーズな再生のために再生キューの後続曲を事前にダウンロードします';
+
+  @override
   String get clearRemoteCache => 'リモートキャッシュをクリア';
 
   @override
@@ -719,6 +726,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get unlimited => '無制限';
+
+  @override
+  String get off => 'オフ';
 
   @override
   String get randomMode => 'ランダムモード';

@@ -4070,6 +4070,39 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
               }
             },
           ),
+          _buildDropdownTile<int>(
+            context: context,
+            title: l10n.remotePrefetchCount,
+            subtitle: l10n.remotePrefetchCountDescription,
+            value: settings.remotePrefetchCount,
+            options: [
+              _DropdownOption(
+                value: 0,
+                label: l10n.off,
+              ),
+              const _DropdownOption(
+                value: 1,
+                label: '1',
+              ),
+              const _DropdownOption(
+                value: 2,
+                label: '2',
+              ),
+              const _DropdownOption(
+                value: 3,
+                label: '3',
+              ),
+              const _DropdownOption(
+                value: 5,
+                label: '5',
+              ),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                settings.remotePrefetchCount = value;
+              }
+            },
+          ),
           ListTile(
             title: Text(l10n.clearWaveformCache),
             subtitle: Text(l10n.clearWaveformCacheDescription),

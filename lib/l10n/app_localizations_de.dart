@@ -730,6 +730,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get remoteCacheLimit => 'Remote-Cache-Limit';
 
   @override
+  String get remotePrefetchCount => 'Vorab geladene Remote-Titel';
+
+  @override
+  String get remotePrefetchCountDescription =>
+      'Nachfolgende Remote-Titel in der Warteschlange für nahtloses Umschalten vorab herunterladen';
+
+  @override
   String get clearRemoteCache => 'Remote-Cache leeren';
 
   @override
@@ -737,6 +744,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get unlimited => 'Unbegrenzt';
+
+  @override
+  String get off => 'Aus';
 
   @override
   String get randomMode => 'Zufallsmodus';

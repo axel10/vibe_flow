@@ -352,5 +352,19 @@ void main() {
       expect(restoredSettings.equalizerPreamp, -3.0);
       expect(restoredSettings.equalizerBassBoost, 5.0);
     });
+
+    test('remotePrefetchCount defaults to 2 and persists value', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      expect(settings.remotePrefetchCount, 2);
+
+      settings.remotePrefetchCount = 5;
+      expect(settings.remotePrefetchCount, 5);
+
+      final restored = SettingsService(prefs);
+      expect(restored.remotePrefetchCount, 5);
+    });
   });
 }

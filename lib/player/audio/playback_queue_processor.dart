@@ -25,6 +25,7 @@ class PlaybackQueueProcessor {
   final AudioCoreController player;
   final SettingsService settingsService;
   final WaveformService waveformService;
+  final Future<RemoteMediaResolver?> Function()? remoteMediaResolverGetter;
 
   int _currentProcessId = 0;
   bool _isProcessing = false;
@@ -38,6 +39,7 @@ class PlaybackQueueProcessor {
     required this.player,
     required this.settingsService,
     required this.waveformService,
+    this.remoteMediaResolverGetter,
   });
 
   void pause() {
@@ -152,6 +154,42 @@ class PlaybackQueueProcessor {
           onUpdate: onUpdate,
           myId: myId,
         );
+      }
+
+      // Prefetch Phase: Pre-cache upcoming remote audio tracks according to user setting
+      final int prefetchCount = settingsService.remotePrefetchCount;
+      if (prefetchCount > 0 &&
+          currentFilePath != null &&
+          currentIndex != -1 &&
+          remoteMediaResolverGetter != null) {
+        unawaited(() async {
+          for (int i = 1; i <= prefetchCount; i++) {
+            if (_disposed || myId != _currentProcessId) return;
+            final idx = (currentIndex + i) % playlist.length;
+            final song = playlist[idx];
+            if (RemoteMediaResolver.isRemoteUri(song.path)) {
+              try {
+                final resolver = await remoteMediaResolverGetter!();
+                if (_disposed || myId != _currentProcessId || resolver == null) return;
+                final source = await resolver.resolvePlayableSource(song.path);
+                if (_disposed || myId != _currentProcessId) return;
+                final cacheKey = source.cacheKey ?? source.uri;
+                await player.streamCacheManager.ensureTrackCached(
+                  cacheKey: cacheKey,
+                  remoteUrl: source.uri,
+                  headers: source.headers,
+                );
+                debugPrint(
+                  '[PlaybackQueueProcessor] Prefetched remote track ($idx): ${song.title ?? song.name}',
+                );
+              } catch (e) {
+                debugPrint(
+                  '[PlaybackQueueProcessor] Error prefetching remote track (${song.path}): $e',
+                );
+              }
+            }
+          }
+        }());
       }
 
       // Phase 1: FAST PASS - Immediately load HD artwork for prioritized songs (prev 1, current, next 1)
