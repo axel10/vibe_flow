@@ -1642,5 +1642,19 @@
   "batchDownloadStarted": "Downloading {count} tracks in background...",
   "batchDownloadCompleted": "Downloaded {count} tracks to local library",
   "viewAlbum": "View Album",
-  "viewArtist": "View Artist"
+  "viewArtist": "View Artist",
+  "downloadManager": "Download Manager",
+  "downloadingTab": "Downloading",
+  "completedTab": "Completed",
+  "pauseAll": "Pause All",
+  "resumeAll": "Resume All",
+  "cancelAll": "Cancel All",
+  "clearCompleted": "Clear History",
+  "noActiveDownloads": "No active downloads",
+  "noCompletedDownloads": "No completed downloads",
+  "viewDownloadProgress": "View",
+  "addedToDownloadQueue": "Added to download queue",
+  "batchAddedToDownloadQueue": "Added {count} tracks to download queue",
+  "downloadFolder": "Download Location",
+  "downloadAllAudio": "Download All Audio in Folder"
 }

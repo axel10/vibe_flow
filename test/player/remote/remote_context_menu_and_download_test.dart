@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/player/remote/clients/subsonic_client.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
+import 'package:vynody/player/remote/services/remote_download_service.dart';
 import 'package:vynody/models/music_file.dart';
 
 void main() {
@@ -63,6 +64,37 @@ void main() {
       expect(song.album, 'A Night at the Opera');
       expect(song.trackNumber, 4);
       expect(song.path, 'subsonic://test_server/track_456');
+    });
+
+    test('RemoteDownloadTask progress and state calculations', () {
+      final song = MusicFile(
+        path: 'subsonic://test_server/track_456',
+        name: 'Track.mp3',
+        title: 'Track',
+      );
+
+      final task = RemoteDownloadTask(
+        id: 'task_1',
+        server: server,
+        song: song,
+        downloadUrl: 'http://example.com/download',
+        targetPath: '/path/to/Track.mp3',
+        status: RemoteDownloadStatus.downloading,
+        bytesDownloaded: 5000,
+        totalBytes: 10000,
+        speedBytesPerSec: 1024 * 1024,
+      );
+
+      expect(task.progress, 0.5);
+      expect(task.isSubsonic, isTrue);
+      expect(task.isWebDav, isFalse);
+
+      final updated = task.copyWith(
+        status: RemoteDownloadStatus.completed,
+        bytesDownloaded: 10000,
+      );
+      expect(updated.status, RemoteDownloadStatus.completed);
+      expect(updated.progress, 1.0);
     });
   });
 }

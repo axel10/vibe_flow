@@ -7190,6 +7190,90 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'查看艺术家'**
   String get viewArtist;
+
+  /// No description provided for @downloadManager.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载管理'**
+  String get downloadManager;
+
+  /// No description provided for @downloadingTab.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在下载'**
+  String get downloadingTab;
+
+  /// No description provided for @completedTab.
+  ///
+  /// In zh, this message translates to:
+  /// **'已完成'**
+  String get completedTab;
+
+  /// No description provided for @pauseAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部暂停'**
+  String get pauseAll;
+
+  /// No description provided for @resumeAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部继续'**
+  String get resumeAll;
+
+  /// No description provided for @cancelAll.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部取消'**
+  String get cancelAll;
+
+  /// No description provided for @clearCompleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空记录'**
+  String get clearCompleted;
+
+  /// No description provided for @noActiveDownloads.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有正在进行的下载任务'**
+  String get noActiveDownloads;
+
+  /// No description provided for @noCompletedDownloads.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无已完成的下载记录'**
+  String get noCompletedDownloads;
+
+  /// No description provided for @viewDownloadProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看进度'**
+  String get viewDownloadProgress;
+
+  /// No description provided for @addedToDownloadQueue.
+  ///
+  /// In zh, this message translates to:
+  /// **'已加入下载队列'**
+  String get addedToDownloadQueue;
+
+  /// No description provided for @batchAddedToDownloadQueue.
+  ///
+  /// In zh, this message translates to:
+  /// **'已将 {count} 首歌曲加入下载队列'**
+  String batchAddedToDownloadQueue(Object count);
+
+  /// No description provided for @downloadFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载保存目录'**
+  String get downloadFolder;
+
+  /// No description provided for @downloadAllAudio.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载本目录全部音频'**
+  String get downloadAllAudio;
 }
 
 class _AppLocalizationsDelegate

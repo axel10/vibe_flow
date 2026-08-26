@@ -26,7 +26,9 @@ import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'package:vynody/dialogs/add_edit_remote_server_dialog.dart';
 import 'remote/navidrome_library_page.dart';
+import 'remote/remote_download_manager_page.dart';
 import 'remote/webdav_browser_page.dart';
+import 'package:vynody/player/remote/services/remote_download_service.dart';
 
 class SharingPage extends ConsumerStatefulWidget {
   const SharingPage({super.key});
@@ -718,6 +720,22 @@ class _SharingPageState extends ConsumerState<SharingPage>
             ],
           ),
           actions: [
+            IconButton(
+              icon: Badge(
+                isLabelVisible: ref.watch(activeDownloadsCountProvider) > 0,
+                label: Text('${ref.watch(activeDownloadsCountProvider)}'),
+                child: const Icon(Icons.download_rounded),
+              ),
+              tooltip: l10n.downloadManager,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RemoteDownloadManagerPage(),
+                  ),
+                );
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.add_rounded),
               tooltip: l10n.addRemoteServer,

@@ -9,8 +9,12 @@ import '../../player/audio/audio_riverpod.dart';
 import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/clients/webdav_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
+import '../../l10n/app_localizations.dart';
+import '../../player/remote/services/remote_download_service.dart';
+import '../../utils/app_snack_bar.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
+import 'remote_download_manager_page.dart';
 
 class WebDavBrowserPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -100,6 +104,73 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     showToast('Playing ${playlist.length} songs');
   }
 
+  Future<void> _downloadAllAudio() async {
+    final l10n = AppLocalizations.of(context)!;
+    final audioItems =
+        _items.where((i) => !i.isDirectory && i.isAudio).toList();
+    if (audioItems.isEmpty) {
+      showToast(l10n.noActiveDownloads);
+      return;
+    }
+
+    final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+    await notifier.enqueueWebDavFiles(
+      server: widget.server,
+      password: widget.password,
+      files: audioItems,
+    );
+
+    if (mounted) {
+      AppSnackBar.show(
+        context,
+        ref,
+        SnackBar(
+          content: Text(l10n.batchAddedToDownloadQueue(audioItems.length)),
+          action: SnackBarAction(
+            label: l10n.viewDownloadProgress,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const RemoteDownloadManagerPage(),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _downloadSingleAudio(WebDavFile item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+    await notifier.enqueueWebDavFile(
+      server: widget.server,
+      password: widget.password,
+      file: item,
+    );
+
+    if (mounted) {
+      AppSnackBar.show(
+        context,
+        ref,
+        SnackBar(
+          content: Text(l10n.addedToDownloadQueue),
+          action: SnackBarAction(
+            label: l10n.viewDownloadProgress,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const RemoteDownloadManagerPage(),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
   void _navigateToParent() {
     if (_currentPath == '/' || _currentPath.isEmpty) return;
     final parent = p.dirname(_currentPath);
@@ -148,11 +219,32 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 tooltip: 'Shuffle',
                 onPressed: () => _playFolder(shuffle: true),
               ),
+              IconButton(
+                icon: const Icon(Icons.download_for_offline_outlined),
+                tooltip: 'Download All Audio',
+                onPressed: _downloadAllAudio,
+              ),
             ],
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
               tooltip: 'Refresh',
               onPressed: () => _loadDirectory(_currentPath),
+            ),
+            IconButton(
+              icon: Badge(
+                isLabelVisible: ref.watch(activeDownloadsCountProvider) > 0,
+                label: Text('${ref.watch(activeDownloadsCountProvider)}'),
+                child: const Icon(Icons.download_rounded),
+              ),
+              tooltip: 'Download Manager',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RemoteDownloadManagerPage(),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -260,34 +352,44 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                       ),
                                     ),
                                     trailing: isAudio
-                                        ? IconButton(
-                                            icon: Icon(
-                                              isPlaying
-                                                  ? Icons.pause_circle_rounded
-                                                  : Icons.play_circle_rounded,
-                                              size: 28,
-                                              color: theme.colorScheme.primary,
-                                            ),
-                                            onPressed: () async {
-                                              final audioService =
-                                                  ref.read(audioServiceProvider);
-                                              if (isPlaying) {
-                                                await audioService.togglePlay();
-                                                return;
-                                              }
-                                              final audioFiles = _getAudioFiles();
-                                              final target =
-                                                  RemoteMediaResolver.buildMusicFileFromWebDav(
-                                                item,
-                                                widget.server,
-                                              );
-                                              final initialIndex =
-                                                  audioFiles.indexWhere((s) => s.path == target.path);
-                                              await audioService.playPlaylist(
-                                                audioFiles.isNotEmpty ? audioFiles : [target],
-                                                initialIndex: initialIndex >= 0 ? initialIndex : 0,
-                                              );
-                                            },
+                                        ? Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  isPlaying
+                                                      ? Icons.pause_circle_rounded
+                                                      : Icons.play_circle_rounded,
+                                                  size: 28,
+                                                  color: theme.colorScheme.primary,
+                                                ),
+                                                onPressed: () async {
+                                                  final audioService =
+                                                      ref.read(audioServiceProvider);
+                                                  if (isPlaying) {
+                                                    await audioService.togglePlay();
+                                                    return;
+                                                  }
+                                                  final audioFiles = _getAudioFiles();
+                                                  final target =
+                                                      RemoteMediaResolver.buildMusicFileFromWebDav(
+                                                    item,
+                                                    widget.server,
+                                                  );
+                                                  final initialIndex =
+                                                      audioFiles.indexWhere((s) => s.path == target.path);
+                                                  await audioService.playPlaylist(
+                                                    audioFiles.isNotEmpty ? audioFiles : [target],
+                                                    initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                                                  );
+                                                },
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.download_rounded, size: 22),
+                                                tooltip: 'Download',
+                                                onPressed: () => _downloadSingleAudio(item),
+                                              ),
+                                            ],
                                           )
                                         : null,
                                     onTap: isAudio

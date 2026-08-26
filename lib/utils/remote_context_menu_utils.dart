@@ -12,7 +12,9 @@ import '../player/audio/playback_source.dart';
 import '../player/remote/clients/subsonic_client.dart';
 import '../player/remote/proxy/remote_media_resolver.dart';
 import '../player/remote/remote_server_models.dart';
+import '../pages/remote/remote_download_manager_page.dart';
 import '../player/remote/services/remote_download_service.dart';
+import 'app_snack_bar.dart';
 import 'song_context_menu_utils.dart';
 
 /// Helper to fetch tracks of an album on-demand if not already supplied
@@ -376,14 +378,33 @@ Future<void> _handleAlbumMenuSelection({
       break;
     case 'download':
       final trackList = await getOrFetchSongs();
-      if (trackList.isNotEmpty) {
-        final downloader = ref.read(remoteDownloadServiceProvider);
-        downloader.downloadTracks(
+      if (trackList.isNotEmpty && context.mounted) {
+        final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+        await notifier.enqueueSubsonicTracks(
           server: server,
           password: password,
           songs: trackList,
           collectionName: albumTitle,
         );
+        if (context.mounted) {
+          AppSnackBar.show(
+            context,
+            ref,
+            SnackBar(
+              content: Text(l10n.batchAddedToDownloadQueue(trackList.length)),
+              action: SnackBarAction(
+                label: l10n.viewDownloadProgress,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RemoteDownloadManagerPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        }
       }
       break;
     case 'view_details':
@@ -672,13 +693,32 @@ Future<void> _handleSongMenuSelection({
       showToast(ok ? l10n.starredSuccess : 'Star failed');
       break;
     case 'download':
-      final downloader = ref.read(remoteDownloadServiceProvider);
-      await downloader.downloadTrack(
+      final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+      await notifier.enqueueSubsonicTrack(
         server: server,
         password: password,
         song: song,
         trackId: trackId,
       );
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          ref,
+          SnackBar(
+            content: Text(l10n.addedToDownloadQueue),
+            action: SnackBarAction(
+              label: l10n.viewDownloadProgress,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RemoteDownloadManagerPage(),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
       break;
     case 'view_album':
       onViewAlbum?.call();
@@ -949,14 +989,33 @@ Future<void> _handleArtistMenuSelection({
       break;
     case 'download':
       final trackList = await getArtistSongs();
-      if (trackList.isNotEmpty) {
-        final downloader = ref.read(remoteDownloadServiceProvider);
-        downloader.downloadTracks(
+      if (trackList.isNotEmpty && context.mounted) {
+        final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+        await notifier.enqueueSubsonicTracks(
           server: server,
           password: password,
           songs: trackList,
           collectionName: artistName,
         );
+        if (context.mounted) {
+          AppSnackBar.show(
+            context,
+            ref,
+            SnackBar(
+              content: Text(l10n.batchAddedToDownloadQueue(trackList.length)),
+              action: SnackBarAction(
+                label: l10n.viewDownloadProgress,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RemoteDownloadManagerPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        }
       }
       break;
     case 'view_details':

@@ -14,8 +14,10 @@ import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/remote_artwork_widget.dart';
 import '../../utils/remote_context_menu_utils.dart';
+import '../../player/remote/services/remote_download_service.dart';
 import 'navidrome_album_detail_page.dart';
 import 'navidrome_artist_detail_page.dart';
+import 'remote_download_manager_page.dart';
 
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -321,6 +323,29 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             ),
           ],
         ),
+        actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final activeCount = ref.watch(activeDownloadsCountProvider);
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: activeCount > 0,
+                  label: Text('$activeCount'),
+                  child: const Icon(Icons.download_rounded),
+                ),
+                tooltip: 'Download Manager',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RemoteDownloadManagerPage(),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [

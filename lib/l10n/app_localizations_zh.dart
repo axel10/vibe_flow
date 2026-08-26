@@ -3817,6 +3817,50 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get viewArtist => '查看艺术家';
+
+  @override
+  String get downloadManager => '下载管理';
+
+  @override
+  String get downloadingTab => '正在下载';
+
+  @override
+  String get completedTab => '已完成';
+
+  @override
+  String get pauseAll => '全部暂停';
+
+  @override
+  String get resumeAll => '全部继续';
+
+  @override
+  String get cancelAll => '全部取消';
+
+  @override
+  String get clearCompleted => '清空记录';
+
+  @override
+  String get noActiveDownloads => '没有正在进行的下载任务';
+
+  @override
+  String get noCompletedDownloads => '暂无已完成的下载记录';
+
+  @override
+  String get viewDownloadProgress => '查看进度';
+
+  @override
+  String get addedToDownloadQueue => '已加入下载队列';
+
+  @override
+  String batchAddedToDownloadQueue(Object count) {
+    return '已将 $count 首歌曲加入下载队列';
+  }
+
+  @override
+  String get downloadFolder => '下载保存目录';
+
+  @override
+  String get downloadAllAudio => '下载本目录全部音频';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).

@@ -15,9 +15,12 @@ import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/playing_equalizer_icon.dart';
 import '../../dialogs/remote_playlist_dialog.dart';
+import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
+import '../../utils/app_snack_bar.dart';
 import '../../utils/remote_context_menu_utils.dart';
 import 'navidrome_artist_detail_page.dart';
+import 'remote_download_manager_page.dart';
 
 class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -170,6 +173,29 @@ class _NavidromeAlbumDetailPageState
                   overflow: TextOverflow.ellipsis,
                 ),
         ),
+        actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final activeCount = ref.watch(activeDownloadsCountProvider);
+              return IconButton(
+                icon: Badge(
+                  isLabelVisible: activeCount > 0,
+                  label: Text('$activeCount'),
+                  child: const Icon(Icons.download_rounded),
+                ),
+                tooltip: 'Download Manager',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RemoteDownloadManagerPage(),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(
@@ -569,14 +595,38 @@ class _NavidromeAlbumDetailPageState
             ),
             OutlinedButton.icon(
               onPressed: _tracks.isNotEmpty
-                  ? () {
-                      final downloader = ref.read(remoteDownloadServiceProvider);
-                      downloader.downloadTracks(
+                  ? () async {
+                      final l10n = AppLocalizations.of(context)!;
+                      final notifier =
+                          ref.read(remoteDownloadTasksProvider.notifier);
+                      await notifier.enqueueSubsonicTracks(
                         server: widget.server,
                         password: widget.password,
                         songs: _tracks,
                         collectionName: widget.albumName,
                       );
+                      if (context.mounted) {
+                        AppSnackBar.show(
+                          context,
+                          ref,
+                          SnackBar(
+                            content: Text(
+                              l10n.batchAddedToDownloadQueue(_tracks.length),
+                            ),
+                            action: SnackBarAction(
+                              label: l10n.viewDownloadProgress,
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const RemoteDownloadManagerPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      }
                     }
                   : null,
               icon: const Icon(Icons.download_rounded, size: 18),

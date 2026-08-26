@@ -4028,4 +4028,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewArtist => 'View Artist';
+
+  @override
+  String get downloadManager => 'Download Manager';
+
+  @override
+  String get downloadingTab => 'Downloading';
+
+  @override
+  String get completedTab => 'Completed';
+
+  @override
+  String get pauseAll => 'Pause All';
+
+  @override
+  String get resumeAll => 'Resume All';
+
+  @override
+  String get cancelAll => 'Cancel All';
+
+  @override
+  String get clearCompleted => 'Clear History';
+
+  @override
+  String get noActiveDownloads => 'No active downloads';
+
+  @override
+  String get noCompletedDownloads => 'No completed downloads';
+
+  @override
+  String get viewDownloadProgress => 'View';
+
+  @override
+  String get addedToDownloadQueue => 'Added to download queue';
+
+  @override
+  String batchAddedToDownloadQueue(Object count) {
+    return 'Added $count tracks to download queue';
+  }
+
+  @override
+  String get downloadFolder => 'Download Location';
+
+  @override
+  String get downloadAllAudio => 'Download All Audio in Folder';
 }
