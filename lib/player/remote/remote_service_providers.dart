@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../audio/audio_riverpod.dart';
 import 'proxy/local_stream_cache_proxy.dart';
 import 'proxy/remote_stream_cache_manager.dart';
 import 'proxy/remote_media_resolver.dart';
 import 'remote_server_riverpod.dart';
 
 final remoteStreamCacheManagerProvider = Provider<RemoteStreamCacheManager>((ref) {
-  return RemoteStreamCacheManager();
+  final settings = ref.watch(settingsServiceProvider);
+  return RemoteStreamCacheManager(
+    maxCacheSizeBytesGetter: () => settings.remoteCacheMaxSizeBytes,
+  );
 });
 
 final localStreamCacheProxyProvider = Provider<LocalStreamCacheProxy>((ref) {

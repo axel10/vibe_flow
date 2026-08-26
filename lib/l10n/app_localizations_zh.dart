@@ -696,6 +696,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get waveformCacheCleared => '已清除全曲波形缓存';
 
   @override
+  String get storageAndCache => '存储与缓存';
+
+  @override
+  String get remoteAudioCache => '远程音频缓存';
+
+  @override
+  String get remoteAudioCacheDescription => 'Navidrome 与 WebDAV 在线播放及预取的本地歌曲缓存';
+
+  @override
+  String get remoteCacheLimit => '远程缓存容量上限';
+
+  @override
+  String get clearRemoteCache => '清除远程音频缓存';
+
+  @override
+  String get remoteCacheCleared => '远程音频缓存已清除';
+
+  @override
+  String get unlimited => '无限制';
+
+  @override
   String get randomMode => '随机模式';
 
   @override
@@ -4553,6 +4574,27 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get waveformCacheCleared => '已清除全曲波形快取';
+
+  @override
+  String get storageAndCache => '儲存與快取';
+
+  @override
+  String get remoteAudioCache => '遠端音訊快取';
+
+  @override
+  String get remoteAudioCacheDescription => 'Navidrome 與 WebDAV 線上播放及預取的本機歌曲快取';
+
+  @override
+  String get remoteCacheLimit => '遠端快取容量上限';
+
+  @override
+  String get clearRemoteCache => '清除遠端音訊快取';
+
+  @override
+  String get remoteCacheCleared => '遠端音訊快取已清除';
+
+  @override
+  String get unlimited => '無限制';
 
   @override
   String get randomMode => '隨機模式';

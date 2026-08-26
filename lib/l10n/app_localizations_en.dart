@@ -709,6 +709,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waveformCacheCleared => 'Waveform cache cleared';
 
   @override
+  String get storageAndCache => 'Storage & Cache';
+
+  @override
+  String get remoteAudioCache => 'Remote Audio Cache';
+
+  @override
+  String get remoteAudioCacheDescription =>
+      'Local song cache for Navidrome and WebDAV streaming & prefetching';
+
+  @override
+  String get remoteCacheLimit => 'Remote Cache Limit';
+
+  @override
+  String get clearRemoteCache => 'Clear Remote Cache';
+
+  @override
+  String get remoteCacheCleared => 'Remote audio cache cleared';
+
+  @override
+  String get unlimited => 'Unlimited';
+
+  @override
   String get randomMode => 'Random Mode';
 
   @override

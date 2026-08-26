@@ -11,6 +11,7 @@ class RemoteStreamCacheManager {
   static const String cacheDirName = 'remote_audio_cache';
   Directory? _cacheDir;
   final Directory? customCacheDirectory;
+  final int Function()? maxCacheSizeBytesGetter;
   final Dio _dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 15),
@@ -21,7 +22,10 @@ class RemoteStreamCacheManager {
   );
   final Map<String, Future<File>> _activeDownloads = {};
 
-  RemoteStreamCacheManager({this.customCacheDirectory}) {
+  RemoteStreamCacheManager({
+    this.customCacheDirectory,
+    this.maxCacheSizeBytesGetter,
+  }) {
     if (customCacheDirectory != null) {
       _cacheDir = customCacheDirectory;
     }
@@ -112,6 +116,7 @@ class RemoteStreamCacheManager {
     );
 
     if (await cachedFile.exists() && await cachedFile.length() > 0) {
+      await touchCacheFile(cachedFile);
       return cachedFile;
     }
 
@@ -131,6 +136,61 @@ class RemoteStreamCacheManager {
       return res;
     } finally {
       _activeDownloads.remove(downloadKey);
+    }
+  }
+
+  /// Updates access timestamp of a cached file for LRU tracking.
+  Future<void> touchCacheFile(File file) async {
+    try {
+      if (await file.exists()) {
+        await file.setLastModified(DateTime.now());
+      }
+    } catch (_) {}
+  }
+
+  /// Prunes oldest cached audio files if total cache size exceeds [limitBytes] or configured limit.
+  Future<void> pruneCacheIfNeeded({int? limitBytes}) async {
+    final limit = limitBytes ?? maxCacheSizeBytesGetter?.call() ?? 0;
+    if (limit <= 0) return; // 0 means unlimited
+
+    final dir = await getCacheDirectory();
+    if (!await dir.exists()) return;
+
+    final files = <File>[];
+    int totalBytes = 0;
+
+    try {
+      await for (final entity in dir.list(recursive: true, followLinks: false)) {
+        if (entity is File && !entity.path.endsWith('.tmp')) {
+          files.add(entity);
+          totalBytes += await entity.length();
+        }
+      }
+    } catch (_) {}
+
+    if (totalBytes <= limit) return;
+
+    // Sort by last modified time ascending (oldest first)
+    final stats = <File, DateTime>{};
+    for (final f in files) {
+      try {
+        stats[f] = (await f.stat()).modified;
+      } catch (_) {
+        stats[f] = DateTime.fromMillisecondsSinceEpoch(0);
+      }
+    }
+    files.sort((a, b) => (stats[a] ?? DateTime(0)).compareTo(stats[b] ?? DateTime(0)));
+
+    // Clean down to 85% of limit to avoid frequent thrashing
+    final targetBytes = (limit * 0.85).toInt();
+    for (final f in files) {
+      if (totalBytes <= targetBytes) break;
+      try {
+        final len = await f.length();
+        await f.delete();
+        totalBytes -= len;
+        debugPrint('[RemoteStreamCache] Pruned cached file: ${f.path} ($len bytes)');
+      } catch (_) {}
     }
   }
 
@@ -159,6 +219,7 @@ class RemoteStreamCacheManager {
         }
         await tmpFile.rename(cachedFile.path);
         debugPrint('[RemoteStreamCache] Download complete, size=${await cachedFile.length()} bytes');
+        await pruneCacheIfNeeded();
         return cachedFile;
       } else {
         throw StateError('Downloaded empty file for $remoteUrl');
@@ -194,7 +255,7 @@ class RemoteStreamCacheManager {
     int total = 0;
     try {
       await for (final entity in dir.list(recursive: true, followLinks: false)) {
-        if (entity is File) {
+        if (entity is File && !entity.path.endsWith('.tmp')) {
           total += await entity.length();
         }
       }

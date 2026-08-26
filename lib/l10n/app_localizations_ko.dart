@@ -700,6 +700,28 @@ class AppLocalizationsKo extends AppLocalizations {
   String get waveformCacheCleared => '파형 캐시가 삭제되었습니다';
 
   @override
+  String get storageAndCache => '저장 공간 및 캐시';
+
+  @override
+  String get remoteAudioCache => '원격 오디오 캐시';
+
+  @override
+  String get remoteAudioCacheDescription =>
+      'Navidrome 및 WebDAV 스트리밍 및 프리페치용 로컬 캐시';
+
+  @override
+  String get remoteCacheLimit => '원격 캐시 용량 제한';
+
+  @override
+  String get clearRemoteCache => '원격 캐시 삭제';
+
+  @override
+  String get remoteCacheCleared => '원격 오디오 캐시가 삭제되었습니다';
+
+  @override
+  String get unlimited => '무제한';
+
+  @override
   String get randomMode => '랜덤 모드';
 
   @override

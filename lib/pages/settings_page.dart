@@ -24,6 +24,7 @@ import '../dialogs/playback_button_layout_dialog.dart';
 import '../l10n/app_localizations.dart';
 import 'package:vynody/player/ai/lyrics_model_catalog_service.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/remote/remote_service_providers.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import '../transcode/transcode_models.dart';
 import 'package:vynody/player/settings/windows_association_service.dart';
@@ -2272,25 +2273,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                 ),
               ),
-              ListTile(
-                title: Text(l10n.clearWaveformCache),
-                subtitle: Text(l10n.clearWaveformCacheDescription),
-                trailing: FilledButton.tonal(
-                  onPressed: () async {
-                    final audio = ref.read(audioServiceProvider);
-                    await audio.clearWaveformCache();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.waveformCacheCleared)),
-                      );
-                    }
-                  },
-                  child: Text(l10n.clear),
-                ),
-              ),
             ],
           ],
         ),
+        _StorageAndCacheCard(settings: settings),
         _buildGroupCard(
           context,
           title: l10n.systemWindowBehaviorGroup,
@@ -3898,6 +3884,224 @@ class _LyricsModelPickerDialogState
           child: Text(l10n.save),
         ),
       ],
+    );
+  }
+}
+
+class _StorageAndCacheCard extends ConsumerStatefulWidget {
+  final SettingsService settings;
+
+  const _StorageAndCacheCard({required this.settings});
+
+  @override
+  ConsumerState<_StorageAndCacheCard> createState() => _StorageAndCacheCardState();
+}
+
+class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
+  int? _remoteCacheSizeBytes;
+  bool _isLoadingCacheSize = false;
+  bool _isClearingRemoteCache = false;
+  bool _isClearingWaveformCache = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCacheSize();
+  }
+
+  Future<void> _loadCacheSize() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingCacheSize = true;
+    });
+    try {
+      final cacheManager = ref.read(remoteStreamCacheManagerProvider);
+      final size = await cacheManager.getTotalCacheSize();
+      if (mounted) {
+        setState(() {
+          _remoteCacheSizeBytes = size;
+          _isLoadingCacheSize = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoadingCacheSize = false;
+        });
+      }
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) return '0 B';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = widget.settings;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final sizeStr = _isLoadingCacheSize
+        ? '...'
+        : _formatBytes(_remoteCacheSizeBytes ?? 0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 0,
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.storage_outlined,
+                  size: 20,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.storageAndCache,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            title: Text(l10n.remoteAudioCache),
+            subtitle: Text(
+              '${l10n.remoteAudioCacheDescription}\n${l10n.remoteAudioCache}: $sizeStr',
+            ),
+            isThreeLine: true,
+            trailing: FilledButton.tonal(
+              onPressed: _isClearingRemoteCache
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isClearingRemoteCache = true;
+                      });
+                      try {
+                        final cacheManager = ref.read(remoteStreamCacheManagerProvider);
+                        await cacheManager.clearCache();
+                        await _loadCacheSize();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.remoteCacheCleared)),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isClearingRemoteCache = false;
+                          });
+                        }
+                      }
+                    },
+              child: _isClearingRemoteCache
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.clear),
+            ),
+          ),
+          _buildDropdownTile<int>(
+            context: context,
+            title: l10n.remoteCacheLimit,
+            value: settings.remoteCacheMaxSizeBytes,
+            options: [
+              _DropdownOption(
+                value: 0,
+                label: l10n.unlimited,
+              ),
+              const _DropdownOption(
+                value: 500 * 1024 * 1024,
+                label: '500 MB',
+              ),
+              const _DropdownOption(
+                value: 1024 * 1024 * 1024,
+                label: '1 GB',
+              ),
+              const _DropdownOption(
+                value: 2 * 1024 * 1024 * 1024,
+                label: '2 GB',
+              ),
+              const _DropdownOption(
+                value: 5 * 1024 * 1024 * 1024,
+                label: '5 GB',
+              ),
+              const _DropdownOption(
+                value: 10 * 1024 * 1024 * 1024,
+                label: '10 GB',
+              ),
+            ],
+            onChanged: (value) async {
+              if (value != null) {
+                settings.remoteCacheMaxSizeBytes = value;
+                final cacheManager = ref.read(remoteStreamCacheManagerProvider);
+                await cacheManager.pruneCacheIfNeeded(limitBytes: value);
+                await _loadCacheSize();
+              }
+            },
+          ),
+          ListTile(
+            title: Text(l10n.clearWaveformCache),
+            subtitle: Text(l10n.clearWaveformCacheDescription),
+            trailing: FilledButton.tonal(
+              onPressed: _isClearingWaveformCache
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isClearingWaveformCache = true;
+                      });
+                      try {
+                        final audio = ref.read(audioServiceProvider);
+                        await audio.clearWaveformCache();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.waveformCacheCleared)),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isClearingWaveformCache = false;
+                          });
+                        }
+                      }
+                    },
+              child: _isClearingWaveformCache
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.clear),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

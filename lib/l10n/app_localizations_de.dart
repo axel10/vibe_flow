@@ -717,6 +717,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get waveformCacheCleared => 'Wellenform-Cache geleert';
 
   @override
+  String get storageAndCache => 'Speicher & Cache';
+
+  @override
+  String get remoteAudioCache => 'Remote-Audio-Cache';
+
+  @override
+  String get remoteAudioCacheDescription =>
+      'Lokaler Cache für Navidrome- und WebDAV-Streaming & Vorabladen';
+
+  @override
+  String get remoteCacheLimit => 'Remote-Cache-Limit';
+
+  @override
+  String get clearRemoteCache => 'Remote-Cache leeren';
+
+  @override
+  String get remoteCacheCleared => 'Remote-Audio-Cache geleert';
+
+  @override
+  String get unlimited => 'Unbegrenzt';
+
+  @override
   String get randomMode => 'Zufallsmodus';
 
   @override

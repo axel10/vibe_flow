@@ -714,6 +714,28 @@ class AppLocalizationsTr extends AppLocalizations {
   String get waveformCacheCleared => 'Dalga formu önbelleği temizlendi';
 
   @override
+  String get storageAndCache => 'Depolama ve Önbellek';
+
+  @override
+  String get remoteAudioCache => 'Uzak Ses Önbelleği';
+
+  @override
+  String get remoteAudioCacheDescription =>
+      'Navidrome ve WebDAV akışı ve önceden yükleme için yerel önbellek';
+
+  @override
+  String get remoteCacheLimit => 'Uzak Önbellek Sınırı';
+
+  @override
+  String get clearRemoteCache => 'Uzak Önbelleği Temizle';
+
+  @override
+  String get remoteCacheCleared => 'Uzak ses önbelleği temizlendi';
+
+  @override
+  String get unlimited => 'Sınırsız';
+
+  @override
   String get randomMode => 'Rastgele Modu';
 
   @override

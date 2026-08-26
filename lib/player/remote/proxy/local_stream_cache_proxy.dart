@@ -152,6 +152,7 @@ class LocalStreamCacheProxy {
   }
 
   Future<void> _serveLocalFile(HttpRequest request, File file) async {
+    await cacheManager.touchCacheFile(file);
     final totalLength = await file.length();
     final rangeHeader = request.headers.value(HttpHeaders.rangeHeader);
 

@@ -699,6 +699,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String get waveformCacheCleared => '波形キャッシュをクリアしました';
 
   @override
+  String get storageAndCache => 'ストレージとキャッシュ';
+
+  @override
+  String get remoteAudioCache => 'リモート音声キャッシュ';
+
+  @override
+  String get remoteAudioCacheDescription =>
+      'Navidrome および WebDAV の再生とプリフェッチ用のローカルキャッシュ';
+
+  @override
+  String get remoteCacheLimit => 'リモートキャッシュ上限';
+
+  @override
+  String get clearRemoteCache => 'リモートキャッシュをクリア';
+
+  @override
+  String get remoteCacheCleared => 'リモートキャッシュをクリアしました';
+
+  @override
+  String get unlimited => '無制限';
+
+  @override
   String get randomMode => 'ランダムモード';
 
   @override

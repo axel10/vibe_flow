@@ -1437,6 +1437,48 @@ abstract class AppLocalizations {
   /// **'已清除全曲波形缓存'**
   String get waveformCacheCleared;
 
+  /// No description provided for @storageAndCache.
+  ///
+  /// In zh, this message translates to:
+  /// **'存储与缓存'**
+  String get storageAndCache;
+
+  /// No description provided for @remoteAudioCache.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程音频缓存'**
+  String get remoteAudioCache;
+
+  /// No description provided for @remoteAudioCacheDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'Navidrome 与 WebDAV 在线播放及预取的本地歌曲缓存'**
+  String get remoteAudioCacheDescription;
+
+  /// No description provided for @remoteCacheLimit.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程缓存容量上限'**
+  String get remoteCacheLimit;
+
+  /// No description provided for @clearRemoteCache.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除远程音频缓存'**
+  String get clearRemoteCache;
+
+  /// No description provided for @remoteCacheCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'远程音频缓存已清除'**
+  String get remoteCacheCleared;
+
+  /// No description provided for @unlimited.
+  ///
+  /// In zh, this message translates to:
+  /// **'无限制'**
+  String get unlimited;
+
   /// No description provided for @randomMode.
   ///
   /// In zh, this message translates to:
