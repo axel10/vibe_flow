@@ -3,6 +3,14 @@ import '../player/remote/remote_server_models.dart';
 import '../player/remote/clients/subsonic_client.dart';
 
 class RemoteArtworkWidget extends StatelessWidget {
+  /// In-memory negative cache to prevent repeated 404 / failed HTTP requests
+  static final Set<String> _failedUrls = <String>{};
+
+  /// Method to clear the failed URLs cache if needed (e.g. on manual refresh)
+  static void clearFailedCache() {
+    _failedUrls.clear();
+  }
+
   final RemoteServer? server;
   final String? password;
   final String? coverArtId;
@@ -42,6 +50,10 @@ class RemoteArtworkWidget extends StatelessWidget {
       final client = SubsonicClient(server: server!, password: password!);
       final imageUrl = client.buildCoverArtUrl(coverArtId!, size: (size * 2).toInt());
 
+      if (_failedUrls.contains(imageUrl)) {
+        return _buildFallback(context, w, h, radius);
+      }
+
       return ClipRRect(
         borderRadius: radius,
         child: Image.network(
@@ -49,11 +61,16 @@ class RemoteArtworkWidget extends StatelessWidget {
           width: w,
           height: h,
           fit: fit,
-          loadingBuilder: (ctx, child, progress) {
-            if (progress == null) return child;
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded || frame != null) {
+              return child;
+            }
             return _buildFallback(context, w, h, radius);
           },
-          errorBuilder: (_, _, _) => _buildFallback(context, w, h, radius),
+          errorBuilder: (_, _, _) {
+            _failedUrls.add(imageUrl);
+            return _buildFallback(context, w, h, radius);
+          },
         ),
       );
     }

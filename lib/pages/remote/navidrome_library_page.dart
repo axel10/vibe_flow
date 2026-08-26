@@ -677,7 +677,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               final artist = album['artist'] as String? ??
                                   'Unknown Artist';
                               final coverId =
-                                  album['coverArt'] as String? ?? albumId;
+                                  album['coverArt'] as String?;
                               final songCount = album['songCount'] as int?;
                               final year = album['year'] as int?;
 
@@ -1858,11 +1858,12 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           itemBuilder: (context, index) {
                             final album = _searchedAlbums[index];
                             final albumId = album['id'] as String? ?? '';
-                            final title =
-                                album['title'] as String? ?? 'Untitled';
+                            final title = album['name'] as String? ??
+                                album['title'] as String? ??
+                                'Untitled';
                             final artist = album['artist'] as String? ?? 'Unknown Artist';
                             final coverId =
-                                album['coverArt'] as String? ?? albumId;
+                                album['coverArt'] as String?;
 
                             return Container(
                               width: 100,
@@ -2001,8 +2002,16 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           child: ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: const Icon(Icons.music_note_rounded),
-                            title: Text(song.title ?? song.name),
-                            subtitle: Text(song.artist ?? 'Unknown Artist'),
+                            title: Text(
+                              song.title ?? song.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              _buildSongSubtitle(song),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             onTap: () async {
                               final audioService =
                                   ref.read(audioServiceProvider);
@@ -2017,4 +2026,18 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       ],
     );
   }
+
+  String _buildSongSubtitle(MusicFile song) {
+    final album = song.album?.trim();
+    final artist = song.artist?.trim();
+    final parts = [
+      if (album != null && album.isNotEmpty) album,
+      if (artist != null && artist.isNotEmpty) artist,
+    ];
+    if (parts.isNotEmpty) {
+      return parts.join(' - ');
+    }
+    return 'Unknown Artist';
+  }
 }
+

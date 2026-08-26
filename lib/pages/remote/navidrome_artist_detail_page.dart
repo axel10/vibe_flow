@@ -148,6 +148,7 @@ class _NavidromeArtistDetailContentState
   List<_NavidromeAlbumSectionData> _albumSections = [];
   List<MusicFile> _allSongs = [];
   Map<String, dynamic>? _artistInfo;
+  bool _isStarred = false;
 
   @override
   void initState() {
@@ -228,7 +229,7 @@ class _NavidromeArtistDetailContentState
               albumMeta['name'] as String? ??
               'Untitled Album';
           final artist = albumMeta['artist'] as String? ?? widget.artistName;
-          final coverArt = albumMeta['coverArt'] as String? ?? albumId;
+          final coverArt = albumMeta['coverArt'] as String?;
           final year = albumMeta['year'] as int?;
           final songCount = albumMeta['songCount'] as int?;
           final duration = albumMeta['duration'] as int?;
@@ -290,9 +291,11 @@ class _NavidromeArtistDetailContentState
         });
       }
 
+      final isStarred = artistMap['starred'] != null;
       setState(() {
         _albumSections = sections;
         _allSongs = accumulatedSongs;
+        _isStarred = isStarred;
         _isLoading = false;
       });
     } catch (e) {
@@ -327,6 +330,7 @@ class _NavidromeArtistDetailContentState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final headerColor = theme.colorScheme.tertiaryContainer.withValues(
       alpha: 0.65,
@@ -487,17 +491,38 @@ class _NavidromeArtistDetailContentState
                         icon: const Icon(Icons.download_rounded, size: 18),
                         label: const Text('Download'),
                       ),
-                      IconButton.outlined(
-                        tooltip: 'Star / Favorite',
-                        icon: const Icon(Icons.favorite_border_rounded, size: 18),
+                      OutlinedButton.icon(
                         onPressed: () async {
+                          final l10n = AppLocalizations.of(context)!;
                           final client = SubsonicClient(
                             server: widget.server,
                             password: widget.password,
                           );
-                          final ok = await client.star(artistId: widget.artistId);
-                          showToast(ok ? 'Added to favorites' : 'Star failed');
+                          if (_isStarred) {
+                            final ok = await client.unstar(artistId: widget.artistId);
+                            if (ok && mounted) {
+                              setState(() => _isStarred = false);
+                              showToast(l10n.unstarredSuccess);
+                            }
+                          } else {
+                            final ok = await client.star(artistId: widget.artistId);
+                            if (ok && mounted) {
+                              setState(() => _isStarred = true);
+                              showToast(l10n.starredSuccess);
+                            }
+                          }
                         },
+                        icon: Icon(
+                          _isStarred ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                          size: 18,
+                          color: _isStarred ? theme.colorScheme.primary : null,
+                        ),
+                        label: Text(
+                          l10n.btnFavorite,
+                          style: TextStyle(
+                            color: _isStarred ? theme.colorScheme.primary : null,
+                          ),
+                        ),
                       ),
                     ],
                   ),

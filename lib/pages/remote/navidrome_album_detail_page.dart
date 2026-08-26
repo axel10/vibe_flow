@@ -51,6 +51,7 @@ class _NavidromeAlbumDetailPageState
   String? _error;
   Map<String, dynamic>? _albumData;
   List<MusicFile> _tracks = [];
+  bool _isStarred = false;
   final ScrollController _scrollController = ScrollController();
   bool _isCoverVisible = true;
 
@@ -111,9 +112,11 @@ class _NavidromeAlbumDetailPageState
         }
       }
 
+      final isStarred = album['starred'] != null;
       setState(() {
         _albumData = album;
         _tracks = parsedTracks;
+        _isStarred = isStarred;
         _isLoading = false;
       });
     } catch (e) {
@@ -160,6 +163,12 @@ class _NavidromeAlbumDetailPageState
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
+    final albumTitle = (widget.albumName.isNotEmpty && widget.albumName != 'Untitled')
+        ? widget.albumName
+        : (_albumData?['name'] as String? ??
+            _albumData?['title'] as String? ??
+            widget.albumName);
+
     Widget content = Scaffold(
       appBar: AppBar(
         title: AnimatedSwitcher(
@@ -167,7 +176,7 @@ class _NavidromeAlbumDetailPageState
           child: _isCoverVisible
               ? const SizedBox.shrink()
               : Text(
-                  widget.albumName,
+                  albumTitle,
                   key: const ValueKey('album_title'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -263,6 +272,7 @@ class _NavidromeAlbumDetailPageState
 
                                   final info = _buildAlbumInfo(
                                     theme,
+                                    albumTitle,
                                     artist,
                                     year,
                                     genre,
@@ -524,10 +534,12 @@ class _NavidromeAlbumDetailPageState
 
   Widget _buildAlbumInfo(
     ThemeData theme,
+    String albumTitle,
     String artist,
     int? year,
     String? genre,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -541,7 +553,7 @@ class _NavidromeAlbumDetailPageState
         ),
         const SizedBox(height: 6),
         Text(
-          widget.albumName,
+          albumTitle,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w800,
           ),
@@ -632,17 +644,38 @@ class _NavidromeAlbumDetailPageState
               icon: const Icon(Icons.download_rounded, size: 18),
               label: const Text('Download'),
             ),
-            IconButton.outlined(
-              tooltip: 'Star / Favorite',
-              icon: const Icon(Icons.favorite_border_rounded, size: 18),
+            OutlinedButton.icon(
               onPressed: () async {
+                final l10n = AppLocalizations.of(context)!;
                 final client = SubsonicClient(
                   server: widget.server,
                   password: widget.password,
                 );
-                final ok = await client.star(albumId: widget.albumId);
-                showToast(ok ? 'Added to favorites' : 'Star failed');
+                if (_isStarred) {
+                  final ok = await client.unstar(albumId: widget.albumId);
+                  if (ok && mounted) {
+                    setState(() => _isStarred = false);
+                    showToast(l10n.unstarredSuccess);
+                  }
+                } else {
+                  final ok = await client.star(albumId: widget.albumId);
+                  if (ok && mounted) {
+                    setState(() => _isStarred = true);
+                    showToast(l10n.starredSuccess);
+                  }
+                }
               },
+              icon: Icon(
+                _isStarred ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                size: 18,
+                color: _isStarred ? theme.colorScheme.primary : null,
+              ),
+              label: Text(
+                l10n.btnFavorite,
+                style: TextStyle(
+                  color: _isStarred ? theme.colorScheme.primary : null,
+                ),
+              ),
             ),
           ],
         ),
