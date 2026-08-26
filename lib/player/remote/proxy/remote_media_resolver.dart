@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import '../../../models/music_file.dart';
 
+import 'package:audio_core/audio_core.dart';
 import '../remote_server_models.dart';
 import '../remote_server_storage.dart';
 import '../clients/subsonic_client.dart';
@@ -138,6 +139,44 @@ class RemoteMediaResolver {
         headers: client.authHeaders,
         serverId: server.id,
         trackId: info.trackIdOrPath,
+      );
+    }
+  }
+
+  /// Resolves a remote virtual URI into a [ResolvedAudioUri] with URL, headers, and cacheKey for [AudioCoreController].
+  Future<ResolvedAudioUri> resolvePlayableSource(String remoteUri, {int? maxBitRate}) async {
+    final info = parseUri(remoteUri);
+    if (info == null) {
+      return ResolvedAudioUri(uri: remoteUri);
+    }
+
+    final servers = storage.loadServers();
+    final server = servers.firstWhere(
+      (s) => s.id == info.serverId,
+      orElse: () => throw StateError('Server with ID ${info.serverId} not found'),
+    );
+
+    final password = await storage.getPassword(server.id) ?? '';
+
+    if (info.type == RemoteServerType.subsonic) {
+      final client = SubsonicClient(server: server, password: password);
+      final streamUrl = client.buildStreamUrl(
+        info.trackIdOrPath,
+        maxBitRate: maxBitRate ?? server.maxBitRate,
+      );
+
+      return ResolvedAudioUri(
+        uri: streamUrl,
+        cacheKey: '${server.id}:${info.trackIdOrPath}',
+      );
+    } else {
+      final client = WebDavClient(server: server, password: password);
+      final fullUrl = client.buildFullUrl(info.trackIdOrPath);
+
+      return ResolvedAudioUri(
+        uri: fullUrl,
+        headers: client.authHeaders,
+        cacheKey: '${server.id}:${info.trackIdOrPath}',
       );
     }
   }

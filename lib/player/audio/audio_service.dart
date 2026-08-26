@@ -164,6 +164,9 @@ class AudioService extends Notifier<AudioSnapshot> {
         fadeOnPauseResume: initialFadeEnabled,
         mode: FadeMode.crossfade,
       ),
+      streamCacheManager: AudioStreamCacheManager(
+        maxCacheSizeBytesGetter: () => settingsService.remoteCacheMaxSizeBytes,
+      ),
     );
 
     _player.setUriResolver((rawUri) async {
@@ -172,7 +175,7 @@ class AudioService extends Notifier<AudioSnapshot> {
           final storage = await ref.read(remoteServerStorageProvider.future);
           final proxy = ref.read(localStreamCacheProxyProvider);
           final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
-          return await resolver.resolvePlayableLocalPath(rawUri);
+          return await resolver.resolvePlayableSource(rawUri);
         } catch (e) {
           debugPrint('[AudioService] Custom URI resolver error: $e');
         }
@@ -2944,7 +2947,14 @@ class AudioService extends Notifier<AudioSnapshot> {
           final nextIndex = (currentIndex + i) % _queue.length;
           final nextSong = _queue[nextIndex];
           if (RemoteMediaResolver.isRemoteUri(nextSong.path)) {
-            await resolver.resolvePlayableLocalPath(nextSong.path);
+            final source = await resolver.resolvePlayableSource(nextSong.path);
+            final cacheKey = source.cacheKey ?? source.uri;
+            await _player.streamCacheManager.ensureTrackCached(
+              cacheKey: cacheKey,
+              remoteUrl: source.uri,
+              headers: source.headers,
+            );
+            debugPrint('[AudioService] Prefetched remote track ($nextIndex): ${nextSong.title}');
           }
         }
       } catch (e) {
