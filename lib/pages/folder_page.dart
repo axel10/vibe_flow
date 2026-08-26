@@ -53,8 +53,13 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
   String? _highlightedSongPath;
   Timer? _highlightTimer;
   late final HeroController _heroController;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   bool handleBackPressed() {
+    if (_navigatorKey.currentState?.canPop() ?? false) {
+      _navigatorKey.currentState?.maybePop();
+      return true;
+    }
     final scanner = _scanner;
     if (scanner == null) return false;
     if (scanner.navigationCurrentFolder != null) {
@@ -804,6 +809,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     }
 
     return Navigator(
+      key: _navigatorKey,
       pages: pages,
       observers: [_heroController],
       onDidRemovePage: (page) {

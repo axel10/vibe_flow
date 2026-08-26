@@ -70,8 +70,17 @@ Future<void> navigateToMainTab(
   await Future<void>.delayed(Duration.zero);
   if (!context.mounted) return;
 
+  try {
+    final container = ProviderScope.containerOf(context, listen: false);
+    container.read(mainTabIndexProvider.notifier).setIndex(index);
+    return;
+  } catch (e) {
+    debugPrint('[navigateToMainTab] ProviderScope fallback: $e');
+  }
+
   await Navigator.of(
     context,
+    rootNavigator: true,
   ).pushReplacement(buildMainLayoutRoute(args: args, initialIndex: index));
 }
 
@@ -227,13 +236,15 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     final isStressTest = widget.args.any(
       (arg) => arg == '--stress-test' || arg == '--audio-stress-test',
     );
-    if (isStressTest) {
-      _currentIndex = 0;
-    } else if (!settings.hasShownOnboarding) {
-      _currentIndex = 0;
-    } else {
-      _currentIndex = widget.initialIndex;
-    }
+    final initialIndex = isStressTest
+        ? 0
+        : (!settings.hasShownOnboarding ? 0 : widget.initialIndex);
+    _currentIndex = initialIndex;
+    Future.microtask(() {
+      if (mounted) {
+        ref.read(mainTabIndexProvider.notifier).setIndex(initialIndex);
+      }
+    });
     _lastVolume = ref.read(audioVolumeProvider);
     _audioService = ref.read(audioServiceProvider);
     _uiController = ref.read(mainLayoutUiControllerProvider.notifier);
@@ -582,7 +593,10 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     if (index == _currentIndex) {
       return;
     }
-    await navigateToMainTab(context, index: index);
+    setState(() {
+      _currentIndex = index;
+    });
+    ref.read(mainTabIndexProvider.notifier).setIndex(index);
   }
 
   Future<void> _openSettingsPage() async {
@@ -636,42 +650,37 @@ class _MainLayoutState extends ConsumerState<MainLayout>
   }
 
   Widget _buildCurrentPage(bool isDesktop, bool useSidebar) {
-    final bool isPlayback = _currentIndex == 1;
-    final double leftPadding = (useSidebar && !isPlayback) ? 80.0 : 0.0;
+    final double leftPadding = useSidebar ? 80.0 : 0.0;
 
-    switch (_currentIndex) {
-      case 0:
-        return Padding(
+    return IndexedStack(
+      index: _currentIndex,
+      children: [
+        Padding(
           padding: EdgeInsets.only(top: 0, left: leftPadding),
           child: FoldersPage(
             key: _foldersPageKey,
             onOpenPlayback: () => _onDestinationSelected(1),
           ),
-        );
-      case 1:
-        return const PlaybackPage();
-      case 2:
-        return Padding(
+        ),
+        const PlaybackPage(),
+        Padding(
           padding: EdgeInsets.only(top: isDesktop ? 32 : 0, left: leftPadding),
           child: LibraryPage(
             initialTabIndex: widget.initialLibraryTabIndex,
             initialAlbums3DView: widget.initialAlbums3DView,
             initialAlbums3DIndex: widget.initialAlbums3DIndex,
           ),
-        );
-      case 3:
-        return Padding(
+        ),
+        Padding(
           padding: EdgeInsets.only(top: isDesktop ? 32 : 0, left: leftPadding),
           child: const QueuePage(),
-        );
-      case 4:
-        return Padding(
+        ),
+        Padding(
           padding: EdgeInsets.only(top: isDesktop ? 32 : 0, left: leftPadding),
           child: const SharingPage(),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
+        ),
+      ],
+    );
   }
 
   List<NavigationDestination> _buildBottomDestinations(
@@ -912,6 +921,14 @@ class _MainLayoutState extends ConsumerState<MainLayout>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int>(mainTabIndexProvider, (previous, next) {
+      if (next != _currentIndex && mounted) {
+        setState(() {
+          _currentIndex = next;
+        });
+      }
+    });
+
     // Listen for small window mode transitions
     ref.listen<
       ({bool isSmallMode, SmallWindowBottomPanelMode bottomPanelMode})
