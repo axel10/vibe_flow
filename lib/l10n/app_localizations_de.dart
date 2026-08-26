@@ -4002,4 +4002,74 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get remoteSongCannotEditTags =>
       'Tags von Remote-Titeln können nicht geändert werden';
+
+  @override
+  String get addToServerPlaylist => '添加到服务端歌单';
+
+  @override
+  String get addToLocalPlaylist => '添加到本地歌单';
+
+  @override
+  String get serverPlaylists => '服务端歌单';
+
+  @override
+  String get localPlaylists => '本地歌单';
+
+  @override
+  String get createNewServerPlaylist => '新建服务端歌单';
+
+  @override
+  String get downloadSong => '下载歌曲';
+
+  @override
+  String get downloadAlbum => '下载整张专辑';
+
+  @override
+  String get downloadArtist => '下载艺术家全部歌曲';
+
+  @override
+  String downloadStarted(Object title) {
+    return '正在下载: $title';
+  }
+
+  @override
+  String downloadCompleted(Object title) {
+    return '已保存至本地音乐库: $title';
+  }
+
+  @override
+  String downloadFailed(Object error) {
+    return '下载失败: $error';
+  }
+
+  @override
+  String get alreadyDownloaded => '该歌曲已在本地音乐库中存在';
+
+  @override
+  String get starItem => '加入服务端收藏';
+
+  @override
+  String get unstarItem => '取消服务端收藏';
+
+  @override
+  String get starredSuccess => '已加入服务端收藏';
+
+  @override
+  String get unstarredSuccess => '已取消服务端收藏';
+
+  @override
+  String batchDownloadStarted(Object count) {
+    return '正在后台下载 $count 首歌曲...';
+  }
+
+  @override
+  String batchDownloadCompleted(Object count) {
+    return '已下载 $count 首歌曲到本地音乐库';
+  }
+
+  @override
+  String get viewAlbum => '查看专辑';
+
+  @override
+  String get viewArtist => '查看艺术家';
 }

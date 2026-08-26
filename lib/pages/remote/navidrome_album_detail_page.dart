@@ -14,6 +14,10 @@ import '../../widgets/remote_artwork_widget.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/playing_equalizer_icon.dart';
+import '../../dialogs/remote_playlist_dialog.dart';
+import '../../player/remote/services/remote_download_service.dart';
+import '../../utils/remote_context_menu_utils.dart';
+import 'navidrome_artist_detail_page.dart';
 
 class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -282,93 +286,185 @@ class _NavidromeAlbumDetailPageState
                             ? _formatDuration(song.durationMillis!)
                             : null;
 
-                        return Material(
-                          color: isPlaying
-                              ? theme.colorScheme.primaryContainer
-                                  .withValues(alpha: 0.35)
-                              : Colors.transparent,
-                          child: InkWell(
-                            onTap: () async {
-                              final audioService =
-                                  ref.read(audioServiceProvider);
-                              await audioService.playPlaylist(
-                                _tracks,
-                                initialIndex: index,
-                                source: PlaybackSource(
-                                  type: PlaybackSourceType.album,
-                                  id: 'remote-${widget.server.id}-${widget.albumId}',
-                                  name: widget.albumName,
-                                ),
-                              );
-                            },
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: ConstrainedBox(
-                                constraints:
-                                    const BoxConstraints(maxWidth: 1080),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 6,
+                        return GestureDetector(
+                          onSecondaryTapDown: (details) {
+                            showRemoteSongContextMenu(
+                              context: context,
+                              globalPosition: details.globalPosition,
+                              ref: ref,
+                              server: widget.server,
+                              password: widget.password,
+                              song: song,
+                              playlist: _tracks,
+                              onViewArtist: () {
+                                if (song.artist != null && song.artist!.isNotEmpty) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => NavidromeArtistDetailPage(
+                                        server: widget.server,
+                                        password: widget.password,
+                                        artistId: '',
+                                        artistName: song.artist!,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                          onLongPress: () {
+                            final renderBox = context.findRenderObject() as RenderBox?;
+                            final offset = renderBox != null
+                                ? renderBox.localToGlobal(Offset.zero)
+                                : Offset.zero;
+                            showRemoteSongContextMenu(
+                              context: context,
+                              globalPosition: offset,
+                              ref: ref,
+                              server: widget.server,
+                              password: widget.password,
+                              song: song,
+                              playlist: _tracks,
+                              onViewArtist: () {
+                                if (song.artist != null && song.artist!.isNotEmpty) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => NavidromeArtistDetailPage(
+                                        server: widget.server,
+                                        password: widget.password,
+                                        artistId: '',
+                                        artistName: song.artist!,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                          child: Material(
+                            color: isPlaying
+                                ? theme.colorScheme.primaryContainer
+                                    .withValues(alpha: 0.35)
+                                : Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                final audioService =
+                                    ref.read(audioServiceProvider);
+                                await audioService.playPlaylist(
+                                  _tracks,
+                                  initialIndex: index,
+                                  source: PlaybackSource(
+                                    type: PlaybackSourceType.album,
+                                    id: 'remote-${widget.server.id}-${widget.albumId}',
+                                    name: widget.albumName,
                                   ),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: _tracks.length >= 100 ? 40 : 32,
-                                        child: Center(
-                                          child: isPlaying
-                                              ? PlayingEqualizerIcon(
-                                                  color:
-                                                      theme.colorScheme.primary,
-                                                  size: 16,
-                                                  isPlaying: isAudioPlaying,
-                                                )
-                                              : FittedBox(
-                                                  fit: BoxFit.scaleDown,
-                                                  child: Text(
-                                                    trackLabel,
-                                                    textAlign: TextAlign.center,
-                                                    style: theme
-                                                        .textTheme.bodyMedium
-                                                        ?.copyWith(
-                                                      color: theme.colorScheme
-                                                          .onSurfaceVariant,
-                                                      fontWeight:
-                                                          FontWeight.w600,
+                                );
+                              },
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 1080),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 6,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          width: _tracks.length >= 100 ? 40 : 32,
+                                          child: Center(
+                                            child: isPlaying
+                                                ? PlayingEqualizerIcon(
+                                                    color:
+                                                        theme.colorScheme.primary,
+                                                    size: 16,
+                                                    isPlaying: isAudioPlaying,
+                                                  )
+                                                : FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    child: Text(
+                                                      trackLabel,
+                                                      textAlign: TextAlign.center,
+                                                      style: theme
+                                                          .textTheme.bodyMedium
+                                                          ?.copyWith(
+                                                        color: theme.colorScheme
+                                                            .onSurfaceVariant,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Text(
-                                          song.displayName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: theme.textTheme.bodyLarge
-                                              ?.copyWith(
-                                            color: isPlaying
-                                                ? theme.colorScheme.primary
-                                                : null,
-                                            fontWeight: isPlaying
-                                                ? FontWeight.w700
-                                                : null,
                                           ),
                                         ),
-                                      ),
-                                      if (durationLabel != null) ...[
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          durationLabel,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                            color: theme
-                                                .colorScheme.onSurfaceVariant,
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Text(
+                                            song.displayName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.bodyLarge
+                                                ?.copyWith(
+                                              color: isPlaying
+                                                  ? theme.colorScheme.primary
+                                                  : null,
+                                              fontWeight: isPlaying
+                                                  ? FontWeight.w700
+                                                  : null,
+                                            ),
                                           ),
+                                        ),
+                                        if (durationLabel != null) ...[
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            durationLabel,
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                              color: theme
+                                                  .colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(width: 4),
+                                        IconButton(
+                                          icon: const Icon(Icons.more_vert_rounded, size: 18),
+                                          visualDensity: VisualDensity.compact,
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                          onPressed: () {
+                                            final renderBox = context.findRenderObject() as RenderBox?;
+                                            final offset = renderBox != null
+                                                ? renderBox.localToGlobal(Offset.zero)
+                                                : Offset.zero;
+                                            showRemoteSongContextMenu(
+                                              context: context,
+                                              globalPosition: offset,
+                                              ref: ref,
+                                              server: widget.server,
+                                              password: widget.password,
+                                              song: song,
+                                              playlist: _tracks,
+                                              onViewArtist: () {
+                                                if (song.artist != null && song.artist!.isNotEmpty) {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => NavidromeArtistDetailPage(
+                                                        server: widget.server,
+                                                        password: widget.password,
+                                                        artistId: '',
+                                                        artistName: song.artist!,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                            );
+                                          },
                                         ),
                                       ],
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -457,6 +553,46 @@ class _NavidromeAlbumDetailPageState
               onPressed: _tracks.isNotEmpty ? () => _playAll(shuffle: true) : null,
               icon: const Icon(Icons.shuffle_rounded, size: 18),
               label: const Text('Shuffle'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _tracks.isNotEmpty
+                  ? () => RemoteAddToPlaylistDialog.show(
+                        context,
+                        ref: ref,
+                        server: widget.server,
+                        password: widget.password,
+                        songs: _tracks,
+                      )
+                  : null,
+              icon: const Icon(Icons.playlist_add_rounded, size: 18),
+              label: const Text('Playlist'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _tracks.isNotEmpty
+                  ? () {
+                      final downloader = ref.read(remoteDownloadServiceProvider);
+                      downloader.downloadTracks(
+                        server: widget.server,
+                        password: widget.password,
+                        songs: _tracks,
+                        collectionName: widget.albumName,
+                      );
+                    }
+                  : null,
+              icon: const Icon(Icons.download_rounded, size: 18),
+              label: const Text('Download'),
+            ),
+            IconButton.outlined(
+              tooltip: 'Star / Favorite',
+              icon: const Icon(Icons.favorite_border_rounded, size: 18),
+              onPressed: () async {
+                final client = SubsonicClient(
+                  server: widget.server,
+                  password: widget.password,
+                );
+                final ok = await client.star(albumId: widget.albumId);
+                showToast(ok ? 'Added to favorites' : 'Star failed');
+              },
             ),
           ],
         ),

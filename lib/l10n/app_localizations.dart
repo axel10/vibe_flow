@@ -7070,6 +7070,126 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'远程歌曲不可修改标签'**
   String get remoteSongCannotEditTags;
+
+  /// No description provided for @addToServerPlaylist.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加到服务端歌单'**
+  String get addToServerPlaylist;
+
+  /// No description provided for @addToLocalPlaylist.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加到本地歌单'**
+  String get addToLocalPlaylist;
+
+  /// No description provided for @serverPlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务端歌单'**
+  String get serverPlaylists;
+
+  /// No description provided for @localPlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'本地歌单'**
+  String get localPlaylists;
+
+  /// No description provided for @createNewServerPlaylist.
+  ///
+  /// In zh, this message translates to:
+  /// **'新建服务端歌单'**
+  String get createNewServerPlaylist;
+
+  /// No description provided for @downloadSong.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载歌曲'**
+  String get downloadSong;
+
+  /// No description provided for @downloadAlbum.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载整张专辑'**
+  String get downloadAlbum;
+
+  /// No description provided for @downloadArtist.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载艺术家全部歌曲'**
+  String get downloadArtist;
+
+  /// No description provided for @downloadStarted.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在下载: {title}'**
+  String downloadStarted(Object title);
+
+  /// No description provided for @downloadCompleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已保存至本地音乐库: {title}'**
+  String downloadCompleted(Object title);
+
+  /// No description provided for @downloadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载失败: {error}'**
+  String downloadFailed(Object error);
+
+  /// No description provided for @alreadyDownloaded.
+  ///
+  /// In zh, this message translates to:
+  /// **'该歌曲已在本地音乐库中存在'**
+  String get alreadyDownloaded;
+
+  /// No description provided for @starItem.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入服务端收藏'**
+  String get starItem;
+
+  /// No description provided for @unstarItem.
+  ///
+  /// In zh, this message translates to:
+  /// **'取消服务端收藏'**
+  String get unstarItem;
+
+  /// No description provided for @starredSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已加入服务端收藏'**
+  String get starredSuccess;
+
+  /// No description provided for @unstarredSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消服务端收藏'**
+  String get unstarredSuccess;
+
+  /// No description provided for @batchDownloadStarted.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在后台下载 {count} 首歌曲...'**
+  String batchDownloadStarted(Object count);
+
+  /// No description provided for @batchDownloadCompleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已下载 {count} 首歌曲到本地音乐库'**
+  String batchDownloadCompleted(Object count);
+
+  /// No description provided for @viewAlbum.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看专辑'**
+  String get viewAlbum;
+
+  /// No description provided for @viewArtist.
+  ///
+  /// In zh, this message translates to:
+  /// **'查看艺术家'**
+  String get viewArtist;
 }
 
 class _AppLocalizationsDelegate

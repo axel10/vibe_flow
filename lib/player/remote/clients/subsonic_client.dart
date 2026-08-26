@@ -80,10 +80,23 @@ class SubsonicClient {
     if (query != null) {
       params.addAll(query);
     }
-    final queryString = params.entries
-        .map((e) =>
-            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value.toString())}')
-        .join('&');
+    final queryParts = <String>[];
+    for (final entry in params.entries) {
+      final key = entry.key;
+      final val = entry.value;
+      if (val is Iterable) {
+        for (final item in val) {
+          queryParts.add(
+            '${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(item.toString())}',
+          );
+        }
+      } else if (val != null) {
+        queryParts.add(
+          '${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(val.toString())}',
+        );
+      }
+    }
+    final queryString = queryParts.join('&');
     return '$baseUrl/rest/$endpoint?$queryString';
   }
 
@@ -366,6 +379,98 @@ class SubsonicClient {
       }
     } catch (_) {}
     return null;
+  }
+
+  /// Creates a new playlist on the Subsonic server.
+  Future<Map<String, dynamic>?> createPlaylist({
+    required String name,
+    List<String>? songIds,
+  }) async {
+    final params = <String, dynamic>{'name': name};
+    if (songIds != null && songIds.isNotEmpty) {
+      params['songId'] = songIds;
+    }
+    final url = buildUrl('createPlaylist.view', params);
+    final response = await _dio.get<Map<String, dynamic>>(url);
+    final playlist = response.data?['subsonic-response']?['playlist'];
+    if (playlist is Map<String, dynamic>) {
+      return playlist;
+    }
+    return null;
+  }
+
+  /// Updates an existing playlist on the Subsonic server (adding/removing songs).
+  Future<bool> updatePlaylist({
+    required String playlistId,
+    List<String>? songIdsToAdd,
+    List<int>? songIndexesToRemove,
+    String? name,
+    String? comment,
+    bool? isPublic,
+  }) async {
+    final params = <String, dynamic>{'playlistId': playlistId};
+    if (name != null) params['name'] = name;
+    if (comment != null) params['comment'] = comment;
+    if (isPublic != null) params['public'] = isPublic;
+    if (songIdsToAdd != null && songIdsToAdd.isNotEmpty) {
+      params['songIdToAdd'] = songIdsToAdd;
+    }
+    if (songIndexesToRemove != null && songIndexesToRemove.isNotEmpty) {
+      params['songIndexToRemove'] = songIndexesToRemove;
+    }
+    final url = buildUrl('updatePlaylist.view', params);
+    final response = await _dio.get<Map<String, dynamic>>(url);
+    final status = response.data?['subsonic-response']?['status'];
+    return status == 'ok';
+  }
+
+  /// Stars (favorites) a song, album, or artist on the Subsonic server.
+  Future<bool> star({
+    String? id,
+    String? albumId,
+    String? artistId,
+  }) async {
+    final params = <String, dynamic>{};
+    if (id != null) params['id'] = id;
+    if (albumId != null) params['albumId'] = albumId;
+    if (artistId != null) params['artistId'] = artistId;
+    if (params.isEmpty) return false;
+
+    try {
+      final url = buildUrl('star.view', params);
+      final response = await _dio.get<Map<String, dynamic>>(url);
+      final status = response.data?['subsonic-response']?['status'];
+      return status == 'ok';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Unstars (removes from favorites) a song, album, or artist on the Subsonic server.
+  Future<bool> unstar({
+    String? id,
+    String? albumId,
+    String? artistId,
+  }) async {
+    final params = <String, dynamic>{};
+    if (id != null) params['id'] = id;
+    if (albumId != null) params['albumId'] = albumId;
+    if (artistId != null) params['artistId'] = artistId;
+    if (params.isEmpty) return false;
+
+    try {
+      final url = buildUrl('unstar.view', params);
+      final response = await _dio.get<Map<String, dynamic>>(url);
+      final status = response.data?['subsonic-response']?['status'];
+      return status == 'ok';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Constructs the direct download URL for a track.
+  String buildDownloadUrl(String trackId) {
+    return buildUrl('download.view', {'id': trackId});
   }
 }
 

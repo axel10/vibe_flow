@@ -3958,4 +3958,74 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remoteSongCannotEditTags =>
       'Remote songs cannot have tags modified';
+
+  @override
+  String get addToServerPlaylist => 'Add to Server Playlist';
+
+  @override
+  String get addToLocalPlaylist => 'Add to Local Playlist';
+
+  @override
+  String get serverPlaylists => 'Server Playlists';
+
+  @override
+  String get localPlaylists => 'Local Playlists';
+
+  @override
+  String get createNewServerPlaylist => 'Create Server Playlist';
+
+  @override
+  String get downloadSong => 'Download Song';
+
+  @override
+  String get downloadAlbum => 'Download Album';
+
+  @override
+  String get downloadArtist => 'Download Artist Tracks';
+
+  @override
+  String downloadStarted(Object title) {
+    return 'Downloading: $title';
+  }
+
+  @override
+  String downloadCompleted(Object title) {
+    return 'Saved to local library: $title';
+  }
+
+  @override
+  String downloadFailed(Object error) {
+    return 'Download failed: $error';
+  }
+
+  @override
+  String get alreadyDownloaded => 'Already exists in local library';
+
+  @override
+  String get starItem => 'Star / Favorite';
+
+  @override
+  String get unstarItem => 'Unstar / Remove Favorite';
+
+  @override
+  String get starredSuccess => 'Added to favorites on server';
+
+  @override
+  String get unstarredSuccess => 'Removed from favorites on server';
+
+  @override
+  String batchDownloadStarted(Object count) {
+    return 'Downloading $count tracks in background...';
+  }
+
+  @override
+  String batchDownloadCompleted(Object count) {
+    return 'Downloaded $count tracks to local library';
+  }
+
+  @override
+  String get viewAlbum => 'View Album';
+
+  @override
+  String get viewArtist => 'View Artist';
 }
