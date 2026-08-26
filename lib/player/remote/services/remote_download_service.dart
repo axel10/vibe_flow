@@ -166,10 +166,12 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     final client = SubsonicClient(server: server, password: password);
     final baseFolder = await getDownloadFolderPath();
 
-    String actualTrackId = trackId ?? song.id.toString();
-    if (trackId == null && song.path.contains('/track_')) {
-      actualTrackId = song.path.split('/track_').last;
-    }
+    final resolvedTrackId =
+        trackId ?? RemoteMediaResolver.extractSubsonicTrackId(song);
+    final actualTrackId = resolvedTrackId ??
+        (song.id != null && song.id! > 0
+            ? song.id.toString()
+            : 'unknown_${song.path.hashCode}');
 
     final targetPath = await buildLocalTrackPath(
       song: song,

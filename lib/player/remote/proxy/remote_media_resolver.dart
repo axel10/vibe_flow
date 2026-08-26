@@ -72,6 +72,29 @@ class RemoteMediaResolver {
     return 'subsonic://$serverId/$trackId';
   }
 
+  /// Extracts Subsonic track ID from a [MusicFile] or URI path.
+  static String? extractSubsonicTrackId(MusicFile song) {
+    final info = parseUri(song.path);
+    if (info != null &&
+        info.type == RemoteServerType.subsonic &&
+        info.trackIdOrPath.isNotEmpty) {
+      return info.trackIdOrPath;
+    }
+    if (song.path.startsWith('subsonic://')) {
+      final uri = Uri.tryParse(song.path);
+      if (uri != null && uri.pathSegments.isNotEmpty) {
+        return uri.pathSegments.join('/');
+      }
+    }
+    if (song.path.contains('/track_')) {
+      return song.path.split('/track_').last;
+    }
+    if (song.id != null && song.id! > 0) {
+      return song.id.toString();
+    }
+    return null;
+  }
+
   /// Builds a WebDAV virtual URI.
   static String buildWebDavUri(String serverId, String relativePath) {
     var clean = relativePath.trim();

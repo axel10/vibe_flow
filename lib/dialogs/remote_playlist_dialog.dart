@@ -6,6 +6,7 @@ import '../models/music_file.dart';
 import '../player/audio/audio_riverpod.dart';
 import '../player/library/playlist_service.dart';
 import '../player/remote/clients/subsonic_client.dart';
+import '../player/remote/proxy/remote_media_resolver.dart';
 import '../player/remote/remote_server_models.dart';
 import '../utils/song_context_menu_utils.dart';
 
@@ -25,11 +26,15 @@ class RemoteAddToPlaylistDialog {
     // Extract Subsonic track IDs
     final List<String> songIds = [];
     for (final song in songs) {
-      String trackId = song.id.toString();
-      if (song.path.contains('/track_')) {
-        trackId = song.path.split('/track_').last;
+      final trackId = RemoteMediaResolver.extractSubsonicTrackId(song);
+      if (trackId != null && trackId.isNotEmpty && trackId != 'null') {
+        songIds.add(trackId);
       }
-      songIds.add(trackId);
+    }
+
+    if (songIds.isEmpty) {
+      showToast(l10n.emptyList);
+      return;
     }
 
     await showDialog<void>(

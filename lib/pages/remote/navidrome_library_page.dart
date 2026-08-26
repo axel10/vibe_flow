@@ -17,6 +17,7 @@ import '../../utils/remote_context_menu_utils.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import 'navidrome_album_detail_page.dart';
 import 'navidrome_artist_detail_page.dart';
+import 'navidrome_playlist_detail_page.dart';
 import 'remote_download_manager_page.dart';
 
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
@@ -61,6 +62,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   bool _isLoadingPlaylists = false;
   List<Map<String, dynamic>> _playlists = [];
   String? _playlistsError;
+  String? _selectedPlaylistId;
+  final TextEditingController _playlistSearchController =
+      TextEditingController();
+  String _playlistSearchQuery = '';
 
   // Search tab state
   final TextEditingController _searchController = TextEditingController();
@@ -88,6 +93,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     _tabController.dispose();
     _albumSearchController.dispose();
     _artistSearchController.dispose();
+    _playlistSearchController.dispose();
     _searchController.dispose();
     _searchDebounce?.cancel();
     super.dispose();
@@ -144,6 +150,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _playlists = list;
         _isLoadingPlaylists = false;
+        if ((_selectedPlaylistId == null ||
+                !list.any((p) => p['id'] == _selectedPlaylistId)) &&
+            list.isNotEmpty) {
+          _selectedPlaylistId = list.first['id'] as String?;
+        }
       });
     } catch (e) {
       setState(() {
@@ -151,6 +162,86 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         _isLoadingPlaylists = false;
       });
     }
+  }
+
+  Future<void> _playPlaylistDirectly(
+    String playlistId,
+    String playlistName,
+  ) async {
+    try {
+      showToast('Loading playlist tracks...');
+      final pl = await _client.getPlaylist(playlistId);
+      final songList = pl?['entry'] as List?;
+      if (songList != null && songList.isNotEmpty) {
+        final List<MusicFile> tracks = [];
+        for (final s in songList) {
+          if (s is Map<String, dynamic>) {
+            tracks.add(
+              RemoteMediaResolver.buildMusicFileFromSubsonic(s, widget.server),
+            );
+          }
+        }
+        if (tracks.isNotEmpty && mounted) {
+          final audio = ref.read(audioServiceProvider);
+          await audio.playPlaylist(
+            tracks,
+            source: PlaybackSource(
+              type: PlaybackSourceType.playlist,
+              id: 'remote-${widget.server.id}-$playlistId',
+              name: playlistName,
+            ),
+          );
+        }
+      } else {
+        showToast('Playlist has no tracks');
+      }
+    } catch (e) {
+      showToast('Error: $e');
+    }
+  }
+
+  void _showCreatePlaylistDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Create Playlist'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Playlist Name',
+            hintText: 'Enter playlist name',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                Navigator.pop(ctx);
+                final created = await _client.createPlaylist(name: name);
+                if (created != null && mounted) {
+                  showToast('Created playlist: $name');
+                  await _loadPlaylists();
+                  final createdId = created['id'] as String?;
+                  if (createdId != null) {
+                    setState(() {
+                      _selectedPlaylistId = createdId;
+                    });
+                  }
+                }
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _playAlbumDirectly(String albumId, String albumTitle) async {
@@ -1238,51 +1329,378 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         ),
       );
     }
-    if (_playlists.isEmpty) {
-      return const Center(child: Text('No server playlists available'));
+
+    final query = _playlistSearchQuery.toLowerCase().trim();
+    final filteredPlaylists = _playlists.where((pl) {
+      final name = (pl['name'] as String? ?? '').toLowerCase();
+      final comment = (pl['comment'] as String? ?? '').toLowerCase();
+      return name.contains(query) || comment.contains(query);
+    }).toList();
+
+    Widget buildPlaylistToolbar() {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _playlistSearchController,
+                onChanged: (val) {
+                  setState(() {
+                    _playlistSearchQuery = val;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search playlists...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: _playlistSearchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 18),
+                          onPressed: () {
+                            _playlistSearchController.clear();
+                            setState(() {
+                              _playlistSearchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              tooltip: 'Create Playlist',
+              icon: const Icon(Icons.add_rounded),
+              onPressed: _showCreatePlaylistDialog,
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              tooltip: 'Refresh',
+              icon: const Icon(Icons.refresh_rounded),
+              onPressed: _loadPlaylists,
+            ),
+          ],
+        ),
+      );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadPlaylists,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: _playlists.length,
-        itemBuilder: (context, index) {
-          final pl = _playlists[index];
-          final name = pl['name'] as String? ?? 'Playlist';
-          final songCount = pl['songCount'] as int? ?? 0;
-          final durationSec = pl['duration'] as int? ?? 0;
-          final durationMin = durationSec ~/ 60;
+    if (_playlists.isEmpty) {
+      return Column(
+        children: [
+          buildPlaylistToolbar(),
+          const Expanded(
+            child: Center(child: Text('No server playlists available')),
+          ),
+        ],
+      );
+    }
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            child: ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isLandscape =
+            MediaQuery.of(context).orientation == Orientation.landscape;
+
+        // Ensure a selected playlist exists for landscape split view
+        final selectedPlaylist = filteredPlaylists.firstWhere(
+          (p) => p['id'] == _selectedPlaylistId,
+          orElse: () =>
+              filteredPlaylists.isNotEmpty ? filteredPlaylists.first : const {},
+        );
+
+        if (isLandscape && filteredPlaylists.isNotEmpty) {
+          // Landscape Split View
+          return Row(
+            children: [
+              // Left: Playlist List Pane
+              SizedBox(
+                width: constraints.maxWidth >= 1100 ? 380 : 320,
+                child: Column(
+                  children: [
+                    buildPlaylistToolbar(),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(16, 0, 8, 16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerLowest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.45),
+                          ),
+                        ),
+                        child: RefreshIndicator(
+                          onRefresh: _loadPlaylists,
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: filteredPlaylists.length,
+                            itemBuilder: (context, index) {
+                              final pl = filteredPlaylists[index];
+                              final isSelected =
+                                  pl['id'] == selectedPlaylist['id'];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: _buildPlaylistItem(
+                                  theme: theme,
+                                  playlist: pl,
+                                  isSelected: isSelected,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedPlaylistId =
+                                          pl['id'] as String?;
+                                    });
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child:
-                    const Icon(Icons.queue_music_rounded, color: Colors.orange),
               ),
-              title:
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text('$songCount songs • $durationMin mins'),
-              trailing: const Icon(Icons.play_circle_fill_rounded, size: 28),
-              onTap: () {
-                showToast('Playlist: $name');
-              },
-            ),
+
+              // Right: Playlist Detail Pane
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(8, 16, 16, 16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant
+                          .withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: selectedPlaylist.isNotEmpty
+                        ? NavidromePlaylistDetailContent(
+                            key: ValueKey(selectedPlaylist['id']),
+                            server: widget.server,
+                            password: widget.password,
+                            playlistId:
+                                selectedPlaylist['id'] as String? ?? '',
+                            playlistName:
+                                selectedPlaylist['name'] as String? ??
+                                    'Playlist',
+                            coverArtId:
+                                selectedPlaylist['coverArt'] as String?,
+                            songCount: selectedPlaylist['songCount'] as int?,
+                            duration: selectedPlaylist['duration'] as int?,
+                            onPlaylistModified: _loadPlaylists,
+                            onDeleted: () {
+                              _loadPlaylists();
+                            },
+                          )
+                        : const Center(child: Text('No playlist selected')),
+                  ),
+                ),
+              ),
+            ],
           );
-        },
+        }
+
+        // Portrait: Vertical List of Playlist Cards
+        return Column(
+          children: [
+            buildPlaylistToolbar(),
+            Expanded(
+              child: filteredPlaylists.isEmpty
+                  ? Center(
+                      child: Text(
+                        _playlistSearchQuery.isEmpty
+                            ? 'No playlists found'
+                            : 'No matching playlists',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadPlaylists,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                        itemCount: filteredPlaylists.length,
+                        itemBuilder: (context, index) {
+                          final pl = filteredPlaylists[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: _buildPlaylistItem(
+                              theme: theme,
+                              playlist: pl,
+                              isSelected: false,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        NavidromePlaylistDetailPage(
+                                      server: widget.server,
+                                      password: widget.password,
+                                      playlistId:
+                                          pl['id'] as String? ?? '',
+                                      playlistName:
+                                          pl['name'] as String? ??
+                                              'Playlist',
+                                      coverArtId:
+                                          pl['coverArt'] as String?,
+                                      songCount: pl['songCount'] as int?,
+                                      duration: pl['duration'] as int?,
+                                      onPlaylistModified: _loadPlaylists,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPlaylistItem({
+    required ThemeData theme,
+    required Map<String, dynamic> playlist,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final name = playlist['name'] as String? ?? 'Playlist';
+    final songCount = playlist['songCount'] as int? ?? 0;
+    final durationSec = playlist['duration'] as int? ?? 0;
+    final durationMin = durationSec ~/ 60;
+    final coverArt = playlist['coverArt'] as String?;
+    final playlistId = playlist['id'] as String? ?? '';
+
+    final backgroundColor = isSelected
+        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
+
+    return GestureDetector(
+      onSecondaryTapDown: (details) {
+        showRemotePlaylistContextMenu(
+          context: context,
+          globalPosition: details.globalPosition,
+          ref: ref,
+          server: widget.server,
+          password: widget.password,
+          playlistId: playlistId,
+          playlistName: name,
+          onViewDetails: onTap,
+          onRename: () => _loadPlaylists(),
+          onDelete: () => _loadPlaylists(),
+        );
+      },
+      onLongPress: () {
+        final renderBox = context.findRenderObject() as RenderBox?;
+        final offset = renderBox != null
+            ? renderBox.localToGlobal(Offset.zero)
+            : Offset.zero;
+        showRemotePlaylistContextMenu(
+          context: context,
+          globalPosition: offset,
+          ref: ref,
+          server: widget.server,
+          password: widget.password,
+          playlistId: playlistId,
+          playlistName: name,
+          onViewDetails: onTap,
+          onRename: () => _loadPlaylists(),
+          onDelete: () => _loadPlaylists(),
+        );
+      },
+      child: Material(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 46,
+                    height: 46,
+                    child: coverArt != null && coverArt.isNotEmpty
+                        ? RemoteArtworkWidget(
+                            server: widget.server,
+                            password: widget.password,
+                            coverArtId: coverArt,
+                            size: 46,
+                            borderRadius: BorderRadius.circular(12),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.deepPurple.shade400,
+                                  Colors.indigo.shade600,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.playlist_play_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '$songCount songs • $durationMin mins',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Play Playlist',
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  onPressed: () => _playPlaylistDirectly(playlistId, name),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

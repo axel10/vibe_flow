@@ -312,6 +312,17 @@ class SubsonicClient {
     return const [];
   }
 
+  /// Fetches details for a playlist including its songs.
+  Future<Map<String, dynamic>?> getPlaylist(String playlistId) async {
+    final url = buildUrl('getPlaylist.view', {'id': playlistId});
+    final response = await _dio.get<Map<String, dynamic>>(url);
+    final playlist = response.data?['subsonic-response']?['playlist'];
+    if (playlist is Map<String, dynamic>) {
+      return playlist;
+    }
+    return null;
+  }
+
   /// Searches across songs, albums, and artists.
   Future<Map<String, dynamic>> search(String query, {int artistCount = 20, int albumCount = 20, int songCount = 50}) async {
     final url = buildUrl('search3.view', {
@@ -419,6 +430,14 @@ class SubsonicClient {
       params['songIndexToRemove'] = songIndexesToRemove;
     }
     final url = buildUrl('updatePlaylist.view', params);
+    final response = await _dio.get<Map<String, dynamic>>(url);
+    final status = response.data?['subsonic-response']?['status'];
+    return status == 'ok';
+  }
+
+  /// Deletes a playlist on the Subsonic server.
+  Future<bool> deletePlaylist(String playlistId) async {
+    final url = buildUrl('deletePlaylist.view', {'id': playlistId});
     final response = await _dio.get<Map<String, dynamic>>(url);
     final status = response.data?['subsonic-response']?['status'];
     return status == 'ok';

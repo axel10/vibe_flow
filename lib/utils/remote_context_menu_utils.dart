@@ -430,6 +430,7 @@ Future<void> showRemoteSongContextMenu({
   List<MusicFile>? playlist,
   VoidCallback? onViewAlbum,
   VoidCallback? onViewArtist,
+  VoidCallback? onRemoveFromPlaylist,
 }) async {
   final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
   if (overlay == null) return;
@@ -438,10 +439,8 @@ Future<void> showRemoteSongContextMenu({
   final isMobile = Platform.isAndroid || Platform.isIOS;
 
   // Extract subsonic trackId
-  String trackId = song.id.toString();
-  if (song.path.contains('/track_')) {
-    trackId = song.path.split('/track_').last;
-  }
+  final trackId = RemoteMediaResolver.extractSubsonicTrackId(song) ??
+      (song.id != null && song.id! > 0 ? song.id.toString() : '');
 
   if (isMobile) {
     final selected = await showModalBottomSheet<String>(
@@ -505,6 +504,12 @@ Future<void> showRemoteSongContextMenu({
                     title: Text(l10n.downloadSong),
                     onTap: () => Navigator.pop(ctx, 'download'),
                   ),
+                  if (onRemoveFromPlaylist != null)
+                    ListTile(
+                      leading: const Icon(Icons.remove_circle_outline_rounded, color: Colors.redAccent),
+                      title: Text(l10n.removeFromPlaylist, style: const TextStyle(color: Colors.redAccent)),
+                      onTap: () => Navigator.pop(ctx, 'remove_from_playlist'),
+                    ),
                   if (onViewAlbum != null)
                     ListTile(
                       leading: const Icon(Icons.album_rounded),
@@ -542,6 +547,7 @@ Future<void> showRemoteSongContextMenu({
       trackId: trackId,
       onViewAlbum: onViewAlbum,
       onViewArtist: onViewArtist,
+      onRemoveFromPlaylist: onRemoveFromPlaylist,
     );
     return;
   }
@@ -586,6 +592,15 @@ Future<void> showRemoteSongContextMenu({
       icon: Icons.download_rounded,
       context: context,
     ),
+    if (onRemoveFromPlaylist != null) ...[
+      const PopupMenuDivider(),
+      buildContextMenuItem<String>(
+        value: 'remove_from_playlist',
+        label: l10n.removeFromPlaylist,
+        icon: Icons.remove_circle_outline_rounded,
+        context: context,
+      ),
+    ],
     const PopupMenuDivider(),
     if (onViewAlbum != null)
       buildContextMenuItem<String>(
@@ -644,6 +659,7 @@ Future<void> showRemoteSongContextMenu({
     trackId: trackId,
     onViewAlbum: onViewAlbum,
     onViewArtist: onViewArtist,
+    onRemoveFromPlaylist: onRemoveFromPlaylist,
   );
 }
 
@@ -658,6 +674,7 @@ Future<void> _handleSongMenuSelection({
   required String trackId,
   VoidCallback? onViewAlbum,
   VoidCallback? onViewArtist,
+  VoidCallback? onRemoveFromPlaylist,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final audio = ref.read(audioServiceProvider);
@@ -719,6 +736,9 @@ Future<void> _handleSongMenuSelection({
           ),
         );
       }
+      break;
+    case 'remove_from_playlist':
+      onRemoveFromPlaylist?.call();
       break;
     case 'view_album':
       onViewAlbum?.call();
@@ -1023,6 +1043,335 @@ Future<void> _handleArtistMenuSelection({
       break;
     case 'copy_name':
       await Clipboard.setData(ClipboardData(text: artistName));
+      break;
+  }
+}
+
+/// Helper to fetch tracks of a playlist on-demand if not already supplied
+Future<List<MusicFile>> _fetchPlaylistTracks(
+  SubsonicClient client,
+  RemoteServer server,
+  String playlistId,
+) async {
+  try {
+    final playlist = await client.getPlaylist(playlistId);
+    final songList = playlist?['entry'] as List?;
+    if (songList != null && songList.isNotEmpty) {
+      final List<MusicFile> parsed = [];
+      for (final item in songList) {
+        if (item is Map<String, dynamic>) {
+          parsed.add(
+            RemoteMediaResolver.buildMusicFileFromSubsonic(item, server),
+          );
+        }
+      }
+      return parsed;
+    }
+  } catch (_) {}
+  return [];
+}
+
+/// Shows context menu for a remote Navidrome playlist.
+Future<void> showRemotePlaylistContextMenu({
+  required BuildContext context,
+  required Offset globalPosition,
+  required WidgetRef ref,
+  required RemoteServer server,
+  required String password,
+  required String playlistId,
+  required String playlistName,
+  List<MusicFile>? songs,
+  VoidCallback? onViewDetails,
+  VoidCallback? onRename,
+  VoidCallback? onDelete,
+}) async {
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+  if (overlay == null) return;
+  final l10n = AppLocalizations.of(context)!;
+  final client = SubsonicClient(server: server, password: password);
+  final isMobile = Platform.isAndroid || Platform.isIOS;
+
+  if (isMobile) {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Material(
+            color: Theme.of(ctx).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.playlist_play_rounded, size: 28),
+                    title: Text(
+                      playlistName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      songs != null
+                          ? l10n.songCount(songs.length)
+                          : l10n.playlist,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.play_arrow_rounded),
+                    title: Text(l10n.playAll),
+                    onTap: () => Navigator.pop(ctx, 'play_all'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.queue_play_next_rounded),
+                    title: Text(l10n.playNext),
+                    onTap: () => Navigator.pop(ctx, 'play_next'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.queue_music_rounded),
+                    title: Text(l10n.addToQueue),
+                    onTap: () => Navigator.pop(ctx, 'add_to_queue'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.download_rounded),
+                    title: Text(l10n.downloadAlbum),
+                    onTap: () => Navigator.pop(ctx, 'download'),
+                  ),
+                  if (onRename != null)
+                    ListTile(
+                      leading: const Icon(Icons.edit_rounded),
+                      title: Text(l10n.renamePlaylist),
+                      onTap: () => Navigator.pop(ctx, 'rename'),
+                    ),
+                  if (onDelete != null)
+                    ListTile(
+                      leading: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                      title: Text(l10n.deletePlaylist, style: const TextStyle(color: Colors.redAccent)),
+                      onTap: () => Navigator.pop(ctx, 'delete'),
+                    ),
+                  if (onViewDetails != null)
+                    ListTile(
+                      leading: const Icon(Icons.info_outline_rounded),
+                      title: Text(l10n.viewAlbumDetails),
+                      onTap: () => Navigator.pop(ctx, 'view_details'),
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.copy_rounded),
+                    title: Text(l10n.copyTitle),
+                    onTap: () => Navigator.pop(ctx, 'copy_name'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (!context.mounted || selected == null) return;
+    await _handlePlaylistMenuSelection(
+      selected: selected,
+      context: context,
+      ref: ref,
+      client: client,
+      server: server,
+      password: password,
+      playlistId: playlistId,
+      playlistName: playlistName,
+      songs: songs,
+      onViewDetails: onViewDetails,
+      onRename: onRename,
+      onDelete: onDelete,
+    );
+    return;
+  }
+
+  // Desktop PopupMenu
+  final items = <PopupMenuEntry<String>>[
+    buildContextMenuItem<String>(
+      value: 'play_all',
+      label: l10n.playAll,
+      icon: Icons.play_arrow_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'play_next',
+      label: l10n.playNext,
+      icon: Icons.queue_play_next_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'add_to_queue',
+      label: l10n.addToQueue,
+      icon: Icons.queue_music_rounded,
+      context: context,
+    ),
+    const PopupMenuDivider(),
+    buildContextMenuItem<String>(
+      value: 'download',
+      label: l10n.downloadAlbum,
+      icon: Icons.download_rounded,
+      context: context,
+    ),
+    if (onRename != null) ...[
+      const PopupMenuDivider(),
+      buildContextMenuItem<String>(
+        value: 'rename',
+        label: l10n.renamePlaylist,
+        icon: Icons.edit_rounded,
+        context: context,
+      ),
+    ],
+    if (onDelete != null)
+      buildContextMenuItem<String>(
+        value: 'delete',
+        label: l10n.deletePlaylist,
+        icon: Icons.delete_outline_rounded,
+        context: context,
+      ),
+    const PopupMenuDivider(),
+    if (onViewDetails != null)
+      buildContextMenuItem<String>(
+        value: 'view_details',
+        label: l10n.viewAlbumDetails,
+        icon: Icons.info_outline_rounded,
+        context: context,
+      ),
+    buildContextMenuItem<String>(
+      value: 'copy_name',
+      label: l10n.copyTitle,
+      icon: Icons.title_rounded,
+      context: context,
+    ),
+  ];
+
+  final selected = await showMenu<String>(
+    context: context,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(globalPosition, globalPosition),
+      Offset.zero & overlay.size,
+    ),
+    items: items,
+  );
+
+  if (!context.mounted || selected == null) return;
+  await _handlePlaylistMenuSelection(
+    selected: selected,
+    context: context,
+    ref: ref,
+    client: client,
+    server: server,
+    password: password,
+    playlistId: playlistId,
+    playlistName: playlistName,
+    songs: songs,
+    onViewDetails: onViewDetails,
+    onRename: onRename,
+    onDelete: onDelete,
+  );
+}
+
+Future<void> _handlePlaylistMenuSelection({
+  required String selected,
+  required BuildContext context,
+  required WidgetRef ref,
+  required SubsonicClient client,
+  required RemoteServer server,
+  required String password,
+  required String playlistId,
+  required String playlistName,
+  List<MusicFile>? songs,
+  VoidCallback? onViewDetails,
+  VoidCallback? onRename,
+  VoidCallback? onDelete,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final audio = ref.read(audioServiceProvider);
+
+  Future<List<MusicFile>> getPlaylistSongs() async {
+    if (songs != null && songs.isNotEmpty) return songs;
+    return await _fetchPlaylistTracks(client, server, playlistId);
+  }
+
+  switch (selected) {
+    case 'play_all':
+      final trackList = await getPlaylistSongs();
+      if (trackList.isNotEmpty) {
+        await audio.playPlaylist(
+          trackList,
+          source: PlaybackSource(
+            type: PlaybackSourceType.playlist,
+            id: 'remote-${server.id}-$playlistId',
+            name: playlistName,
+          ),
+        );
+      }
+      break;
+    case 'play_next':
+      final trackList = await getPlaylistSongs();
+      if (trackList.isNotEmpty) {
+        await audio.enqueueNext(trackList);
+        showToast(l10n.addedToQueue);
+      }
+      break;
+    case 'add_to_queue':
+      final trackList = await getPlaylistSongs();
+      if (trackList.isNotEmpty) {
+        await audio.appendToQueue(trackList);
+        showToast(l10n.addedToQueue);
+      }
+      break;
+    case 'download':
+      final trackList = await getPlaylistSongs();
+      if (trackList.isNotEmpty && context.mounted) {
+        final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+        await notifier.enqueueSubsonicTracks(
+          server: server,
+          password: password,
+          songs: trackList,
+          collectionName: playlistName,
+        );
+        if (context.mounted) {
+          AppSnackBar.show(
+            context,
+            ref,
+            SnackBar(
+              content: Text(l10n.batchAddedToDownloadQueue(trackList.length)),
+              action: SnackBarAction(
+                label: l10n.viewDownloadProgress,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RemoteDownloadManagerPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        }
+      }
+      break;
+    case 'rename':
+      onRename?.call();
+      break;
+    case 'delete':
+      onDelete?.call();
+      break;
+    case 'view_details':
+      onViewDetails?.call();
+      break;
+    case 'copy_name':
+      await Clipboard.setData(ClipboardData(text: playlistName));
       break;
   }
 }

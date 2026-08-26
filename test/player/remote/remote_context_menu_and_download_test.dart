@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/player/remote/clients/subsonic_client.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/services/remote_download_service.dart';
 import 'package:vynody/models/music_file.dart';
@@ -95,6 +96,37 @@ void main() {
       );
       expect(updated.status, RemoteDownloadStatus.completed);
       expect(updated.progress, 1.0);
+    });
+
+    test('RemoteMediaResolver.extractSubsonicTrackId correctly extracts track IDs', () {
+      final song1 = MusicFile(
+        path: 'subsonic://test_server/708892189382',
+        name: 'Track.mp3',
+        title: 'Track',
+      );
+      expect(RemoteMediaResolver.extractSubsonicTrackId(song1), '708892189382');
+
+      final song2 = MusicFile(
+        path: 'subsonic://test_server/al-1/tr-2',
+        name: 'Track.mp3',
+        title: 'Track',
+      );
+      expect(RemoteMediaResolver.extractSubsonicTrackId(song2), 'al-1/tr-2');
+
+      final song3 = MusicFile(
+        path: '/var/cache/track_998877',
+        name: 'Track.mp3',
+        title: 'Track',
+      );
+      expect(RemoteMediaResolver.extractSubsonicTrackId(song3), '998877');
+
+      final song4 = MusicFile(
+        id: 1234,
+        path: '/local/path.mp3',
+        name: 'Track.mp3',
+        title: 'Track',
+      );
+      expect(RemoteMediaResolver.extractSubsonicTrackId(song4), '1234');
     });
   });
 }
