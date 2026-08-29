@@ -13,6 +13,7 @@ abstract class AudioSnapshot with _$AudioSnapshot {
 
   const factory AudioSnapshot({
     required bool isPlaying,
+    @Default(false) bool isBuffering,
     required bool isTransitioning,
     required bool? isLastActionNext,
     required MusicFile? currentMusic,

@@ -39,6 +39,7 @@ class MiniPlayerCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final isPlaying = ref.watch(audioIsPlayingProvider);
+    final isBuffering = ref.watch(audioIsBufferingProvider);
     final progress = ref.watch(audioProgressProvider);
     final playlistService = ref.watch(playlistServiceProvider);
     final isFavorite =
@@ -59,6 +60,7 @@ class MiniPlayerCard extends ConsumerWidget {
         const SizedBox(width: 4),
         AnimatedPlayPauseButton(
           isPlaying: isPlaying,
+          isLoading: isBuffering,
           onPressed: onPlayPause,
           color: Theme.of(context).brightness == Brightness.dark
               ? Colors.white

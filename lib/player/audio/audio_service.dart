@@ -69,6 +69,7 @@ class AudioService extends Notifier<AudioSnapshot> {
   Duration _lastNotifiedPosition = Duration.zero;
   Duration _lastNotifiedDuration = Duration.zero;
   bool? _lastNotifiedIsPlaying;
+  bool? _lastNotifiedIsBuffering;
   int _lastNotifiedIndex = -1;
   String? _lastNotifiedFilePath;
   late final SettingsService settingsService;
@@ -1283,8 +1284,10 @@ class AudioService extends Notifier<AudioSnapshot> {
 
   void _notifyIfNeeded({bool force = false}) {
     final now = DateTime.now();
+    final isBufferingNow = isBuffering;
     final playbackChanged =
         _isPlaying != _lastNotifiedIsPlaying ||
+        isBufferingNow != _lastNotifiedIsBuffering ||
         _duration != _lastNotifiedDuration ||
         _currentIndex != _lastNotifiedIndex ||
         currentMusic?.path != _lastNotifiedFilePath;
@@ -1305,6 +1308,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     _lastNotifiedPosition = _position;
     _lastNotifiedDuration = _duration;
     _lastNotifiedIsPlaying = _isPlaying;
+    _lastNotifiedIsBuffering = isBufferingNow;
     _lastNotifiedIndex = _currentIndex;
     _lastNotifiedFilePath = currentMusic?.path;
     notifyListeners();
@@ -1573,11 +1577,17 @@ class AudioService extends Notifier<AudioSnapshot> {
 
   List<MusicFile> get playbackQueue => List.unmodifiable(_queue);
 
+  bool get isBuffering =>
+      _isTransitioning ||
+      _player.isTransitioning ||
+      _player.player.currentState == PlayerState.buffering;
+
   int get currentIndex => _currentIndex;
 
   bool get isRandomMode => _player.playlist.randomPolicy != null;
   AudioSnapshot get snapshot => AudioSnapshot(
     isPlaying: _isPlaying,
+    isBuffering: isBuffering,
     isTransitioning: _isTransitioning,
     isLastActionNext: _lastActionNext,
     currentMusic: currentMusic,

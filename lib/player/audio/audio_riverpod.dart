@@ -249,6 +249,12 @@ final audioIsTransitioningProvider = Provider<bool>((ref) {
   );
 });
 
+final audioIsBufferingProvider = Provider<bool>((ref) {
+  return ref.watch(
+    audioSnapshotProvider.select((snapshot) => snapshot.isBuffering),
+  );
+});
+
 final audioLastActionNextProvider = Provider<bool?>((ref) {
   return ref.watch(
     audioSnapshotProvider.select((snapshot) => snapshot.isLastActionNext),

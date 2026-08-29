@@ -93,6 +93,7 @@ class PlaybackControls extends ConsumerWidget {
     final currentThemeColorsMap = ref.watch(audioCurrentThemeColorsMapProvider);
     final sleepTimerRemaining = ref.watch(audioSleepTimerRemainingProvider);
     final isPlaying = ref.watch(audioIsPlayingProvider);
+    final isBuffering = ref.watch(audioIsBufferingProvider);
     final l10n = AppLocalizations.of(context)!;
 
     final isWaveformEnabled = ref.watch(isEffectiveWaveformEnabledProvider);
@@ -697,6 +698,7 @@ class PlaybackControls extends ConsumerWidget {
                 ),
                 child: AnimatedPlayPauseButton(
                   isPlaying: isPlaying,
+                  isLoading: isBuffering,
                   onPressed: onPlayPause,
                   color: controlIconColor,
                   size: 42 * controlsScale,
@@ -709,6 +711,7 @@ class PlaybackControls extends ConsumerWidget {
                 height: 60 * controlsScale,
                 child: AnimatedPlayPauseButton(
                   isPlaying: isPlaying,
+                  isLoading: isBuffering,
                   onPressed: onPlayPause,
                   color: Colors.white,
                   size: 52 * controlsScale,
