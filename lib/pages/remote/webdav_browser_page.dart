@@ -69,8 +69,14 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       });
 
+      var effectivePath = path;
+      if (path == '/' && list.isNotEmpty && list.first.path.startsWith('/dav')) {
+        effectivePath = '/dav';
+      }
+
       setState(() {
         _items = list;
+        _currentPath = effectivePath;
         _isLoading = false;
       });
     } catch (e) {

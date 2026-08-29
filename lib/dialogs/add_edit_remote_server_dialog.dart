@@ -136,6 +136,12 @@ class _AddEditRemoteServerDialogState
         );
 
     if (mounted) {
+      if (result.isSuccess &&
+          result.detectedCustomPath != null &&
+          _serverType == RemoteServerType.webdav &&
+          _customPathController.text.trim().isEmpty) {
+        _customPathController.text = result.detectedCustomPath!;
+      }
       setState(() {
         _isTesting = false;
         _testResult = result;
@@ -388,6 +394,15 @@ class _AddEditRemoteServerDialogState
                                       ),
                                       if (_testResult!.songCount != null)
                                         Text('Songs found: ${_testResult!.songCount}'),
+                                      if (_testResult!.isSuccess && _testResult!.detectedCustomPath != null)
+                                        Text(
+                                          'Auto-detected path: ${_testResult!.detectedCustomPath}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.green.shade800,
+                                          ),
+                                        ),
                                       if (!_testResult!.isSuccess)
                                         Text(
                                           _testResult!.message,

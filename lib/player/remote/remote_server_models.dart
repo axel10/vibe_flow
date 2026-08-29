@@ -130,6 +130,7 @@ class ConnectionTestResult {
   final String? serverVersion;
   final int? songCount;
   final int? albumCount;
+  final String? detectedCustomPath;
 
   const ConnectionTestResult({
     required this.isSuccess,
@@ -137,6 +138,7 @@ class ConnectionTestResult {
     this.serverVersion,
     this.songCount,
     this.albumCount,
+    this.detectedCustomPath,
   });
 
   const ConnectionTestResult.success({
@@ -144,11 +146,13 @@ class ConnectionTestResult {
     this.serverVersion,
     this.songCount,
     this.albumCount,
+    this.detectedCustomPath,
   }) : isSuccess = true;
 
   const ConnectionTestResult.failure(this.message)
       : isSuccess = false,
         serverVersion = null,
         songCount = null,
-        albumCount = null;
+        albumCount = null,
+        detectedCustomPath = null;
 }

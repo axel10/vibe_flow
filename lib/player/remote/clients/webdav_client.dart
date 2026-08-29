@@ -109,16 +109,52 @@ class WebDavClient {
     if (!path.startsWith('/')) {
       path = '/$path';
     }
+    final parsedBase = Uri.tryParse(baseUrl);
+    if (parsedBase != null &&
+        parsedBase.path.isNotEmpty &&
+        parsedBase.path != '/') {
+      final basePath = parsedBase.path.replaceAll(RegExp(r'/+$'), '');
+      if (path == basePath || path.startsWith('$basePath/')) {
+        final origin =
+            '${parsedBase.scheme}://${parsedBase.host}${parsedBase.hasPort ? ':${parsedBase.port}' : ''}';
+        return '$origin$path';
+      }
+    }
     return '$baseUrl$path';
   }
 
-  /// Tests WebDAV connection with a Depth: 0 PROPFIND request.
-  Future<ConnectionTestResult> testConnection() async {
+  /// Attempts a PROPFIND Depth: 0 request against a specific path.
+  Future<int?> _probePath(String path) async {
     try {
-      final targetPath = server.customPath?.trim().isNotEmpty == true
-          ? server.customPath!
-          : '/';
-      final url = buildFullUrl(targetPath);
+      final url = buildFullUrl(path);
+      final response = await _dio.request<String>(
+        url,
+        options: Options(
+          method: 'PROPFIND',
+          headers: {
+            ...authHeaders,
+            'Depth': '0',
+            'Content-Type': 'application/xml; charset=utf-8',
+          },
+          responseType: ResponseType.plain,
+          validateStatus: (status) => status != null,
+        ),
+      );
+      return response.statusCode;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Tests WebDAV connection with a Depth: 0 PROPFIND request and auto-detection fallback.
+  Future<ConnectionTestResult> testConnection() async {
+    final customPath = server.customPath?.trim();
+    final hasExplicitCustomPath =
+        customPath != null && customPath.isNotEmpty && customPath != '/';
+    final initialPath = hasExplicitCustomPath ? customPath : '/';
+
+    try {
+      final url = buildFullUrl(initialPath);
 
       final response = await _dio.request<String>(
         url,
@@ -135,22 +171,43 @@ class WebDavClient {
 
       final statusCode = response.statusCode ?? 0;
       if (statusCode == 200 || statusCode == 207) {
-        return const ConnectionTestResult.success(
+        return ConnectionTestResult.success(
           message: 'WebDAV connected successfully',
           serverVersion: 'WebDAV (HTTP 207 Multi-Status)',
-        );
-      } else {
-        return ConnectionTestResult.failure(
-          'HTTP $statusCode: ${response.statusMessage ?? "Unexpected response"}',
+          detectedCustomPath: hasExplicitCustomPath ? customPath : null,
         );
       }
     } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 401) {
         return const ConnectionTestResult.failure(
           '401 Unauthorized: Invalid WebDAV username or password',
         );
       }
-      if (e.response?.statusCode == 404) {
+
+      // If root path or 404/405 error, probe fallback paths (e.g. AList /dav, NAS /webdav)
+      if (!hasExplicitCustomPath || statusCode == 404 || statusCode == 405) {
+        const candidatePaths = ['/dav', '/webdav', '/remote.php/webdav'];
+        for (final candidate in candidatePaths) {
+          if (candidate == initialPath) continue;
+          final probeStatus = await _probePath(candidate);
+          if (probeStatus == 200 || probeStatus == 207) {
+            return ConnectionTestResult.success(
+              message:
+                  'WebDAV connected successfully (Auto-detected: $candidate)',
+              serverVersion: 'WebDAV (Auto-detected: $candidate)',
+              detectedCustomPath: candidate,
+            );
+          }
+        }
+      }
+
+      if (statusCode == 405) {
+        return const ConnectionTestResult.failure(
+          '405 Method Not Allowed: The root path does not support WebDAV. If using AList, try setting path to /dav.',
+        );
+      }
+      if (statusCode == 404) {
         return const ConnectionTestResult.failure(
           '404 Not Found: Specified WebDAV path does not exist',
         );
@@ -161,28 +218,57 @@ class WebDavClient {
     } catch (e) {
       return ConnectionTestResult.failure('Error: $e');
     }
+
+    return const ConnectionTestResult.failure(
+      'Unable to connect to WebDAV server',
+    );
   }
 
   /// Lists files and directories inside the given path using PROPFIND (Depth: 1).
   Future<List<WebDavFile>> listFiles(String path) async {
-    final url = buildFullUrl(path);
-    final response = await _dio.request<String>(
-      url,
-      options: Options(
-        method: 'PROPFIND',
-        headers: {
-          ...authHeaders,
-          'Depth': '1',
-          'Content-Type': 'application/xml; charset=utf-8',
-        },
-        responseType: ResponseType.plain,
-      ),
-    );
+    try {
+      final url = buildFullUrl(path);
+      final response = await _dio.request<String>(
+        url,
+        options: Options(
+          method: 'PROPFIND',
+          headers: {
+            ...authHeaders,
+            'Depth': '1',
+            'Content-Type': 'application/xml; charset=utf-8',
+          },
+          responseType: ResponseType.plain,
+        ),
+      );
 
-    final rawXml = response.data;
-    if (rawXml == null || rawXml.isEmpty) return const [];
+      final rawXml = response.data;
+      if (rawXml == null || rawXml.isEmpty) return const [];
 
-    return parsePropfindXml(rawXml, requestPath: path);
+      return parsePropfindXml(rawXml, requestPath: path);
+    } on DioException catch (e) {
+      // If root path was requested and returned 405/404, try /dav fallback
+      if (path == '/' &&
+          (e.response?.statusCode == 405 || e.response?.statusCode == 404)) {
+        final fallbackUrl = buildFullUrl('/dav');
+        final response = await _dio.request<String>(
+          fallbackUrl,
+          options: Options(
+            method: 'PROPFIND',
+            headers: {
+              ...authHeaders,
+              'Depth': '1',
+              'Content-Type': 'application/xml; charset=utf-8',
+            },
+            responseType: ResponseType.plain,
+          ),
+        );
+        final rawXml = response.data;
+        if (rawXml != null && rawXml.isNotEmpty) {
+          return parsePropfindXml(rawXml, requestPath: '/dav');
+        }
+      }
+      rethrow;
+    }
   }
 
   /// Parses PROPFIND Multi-Status XML response into a list of [WebDavFile].
