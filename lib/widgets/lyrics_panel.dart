@@ -1417,9 +1417,10 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       final isGenerating = _taskStateForSongPath(currentSong?.path).isGenerationBusy;
       if (lyricsStyle == LyricsStyle.apple && _isFocusMode && !isGenerating) {
         final delta = target - currentOffset;
-        final bool isBigJump = delta.abs() > 300.0 || index == 0 || isInitialScroll;
-        _scrollController.jumpTo(target);
         final isEntering = _enteringFocusModeTriggered;
+        final maxDelta = isEntering ? math.max(1200.0, viewportHeight * 1.5) : 300.0;
+        final bool isBigJump = delta.abs() > maxDelta || index == 0 || isInitialScroll;
+        _scrollController.jumpTo(target);
         _enteringFocusModeTriggered = false;
         final firstVisible = _findClosestLineIndex(target, itemCenters);
         if (mounted) {

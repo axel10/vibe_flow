@@ -697,11 +697,12 @@ class _StaggeredAppleLyricsScrollWrapperState
       curve: Curves.easeOutCubic,
     );
 
+    final double maxDelta = widget.isEnteringFocusMode ? 1200.0 : 300.0;
     final timePassed = DateTime.now().millisecondsSinceEpoch - widget.scrollTriggerTime;
     if (widget.scrollTriggerTime > 0 &&
         !widget.isTransitioning &&
         timePassed < 700 &&
-        widget.scrollDelta.abs() <= 300.0) {
+        widget.scrollDelta.abs() <= maxDelta) {
       _startOffset = widget.scrollDelta;
       _currentOffset = widget.scrollDelta;
 
@@ -734,9 +735,10 @@ class _StaggeredAppleLyricsScrollWrapperState
   void didUpdateWidget(StaggeredAppleLyricsScrollWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    final double maxDelta = widget.isEnteringFocusMode ? 1200.0 : 300.0;
     if (widget.isTransitioning ||
         widget.scrollTriggerTime <= 0 ||
-        widget.scrollDelta.abs() > 300.0) {
+        widget.scrollDelta.abs() > maxDelta) {
       _delayTimer?.cancel();
       _controller.stop();
       _currentOffset = 0.0;
@@ -754,7 +756,8 @@ class _StaggeredAppleLyricsScrollWrapperState
     _delayTimer?.cancel();
     _controller.stop();
 
-    if (widget.scrollDelta.abs() > 300.0 || widget.scrollTriggerTime <= 0) {
+    final double maxDelta = widget.isEnteringFocusMode ? 1200.0 : 300.0;
+    if (widget.scrollDelta.abs() > maxDelta || widget.scrollTriggerTime <= 0) {
       _currentOffset = 0.0;
       _startOffset = 0.0;
       return;
