@@ -65,8 +65,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
             ),
             tooltip: 'Download Manager',
             onPressed: () {
-              Navigator.push(
-                context,
+              Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (_) => const RemoteDownloadManagerPage(),
                 ),
@@ -311,7 +310,7 @@ class _NavidromePlaylistDetailContentState
           action: SnackBarAction(
             label: l10n.viewDownloadProgress,
             onPressed: () {
-              Navigator.of(context).push(
+              Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (_) => const RemoteDownloadManagerPage(),
                 ),

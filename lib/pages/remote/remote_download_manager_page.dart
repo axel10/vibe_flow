@@ -15,7 +15,12 @@ import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 
 class RemoteDownloadManagerPage extends ConsumerStatefulWidget {
-  const RemoteDownloadManagerPage({super.key});
+  final bool wrapWithMiniPlayer;
+
+  const RemoteDownloadManagerPage({
+    super.key,
+    this.wrapWithMiniPlayer = false,
+  });
 
   @override
   ConsumerState<RemoteDownloadManagerPage> createState() =>
@@ -26,11 +31,14 @@ class _RemoteDownloadManagerPageState
     extends ConsumerState<RemoteDownloadManagerPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  late Future<String> _downloadPathFuture;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _downloadPathFuture =
+        ref.read(remoteDownloadTasksProvider.notifier).getDownloadFolderPath();
   }
 
   @override
@@ -66,7 +74,9 @@ class _RemoteDownloadManagerPageState
     if (dirPath != null && mounted) {
       await sharingService.updateSharingFolderPath(dirPath);
       showToast(l10n.receiveDirectoryUpdated(dirPath));
-      setState(() {});
+      setState(() {
+        _downloadPathFuture = Future.value(dirPath);
+      });
     }
   }
 
@@ -214,14 +224,15 @@ class _RemoteDownloadManagerPageState
       );
     }
 
-    return MiniPlayerWrapper(child: content);
+    if (widget.wrapWithMiniPlayer) {
+      return MiniPlayerWrapper(child: content);
+    }
+    return content;
   }
 
   Widget _buildDownloadLocationBanner(ThemeData theme, AppLocalizations l10n) {
     return FutureBuilder<String>(
-      future: ref
-          .read(remoteDownloadTasksProvider.notifier)
-          .getDownloadFolderPath(),
+      future: _downloadPathFuture,
       builder: (context, snapshot) {
         final folder = snapshot.data ?? '...';
         return Container(

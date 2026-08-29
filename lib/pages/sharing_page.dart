@@ -1558,8 +1558,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
                       ),
                       OutlinedButton.icon(
                         onPressed: () {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
                               builder: (_) => const RemoteDownloadManagerPage(),
                             ),
@@ -1613,8 +1612,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
                           ),
                           tooltip: l10n.downloadManager,
                           onPressed: () {
-                            Navigator.push(
-                              context,
+                            Navigator.of(context, rootNavigator: true).push(
                               MaterialPageRoute(
                                 builder: (_) =>
                                     const RemoteDownloadManagerPage(),

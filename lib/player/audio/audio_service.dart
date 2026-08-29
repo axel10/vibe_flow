@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audio_core/audio_core.dart';
 import 'package:path_provider/path_provider.dart';
@@ -325,8 +326,18 @@ class AudioService extends Notifier<AudioSnapshot> {
 
   void notifyListeners() {
     if (_disposed) return;
-    state = snapshot;
-    _desktopTrayIntegration?.updateMenu();
+    void update() {
+      if (_disposed) return;
+      state = snapshot;
+      _desktopTrayIntegration?.updateMenu();
+    }
+
+    if (WidgetsBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => update());
+    } else {
+      update();
+    }
   }
 
   Future<void> _restorePlaybackSession() async {

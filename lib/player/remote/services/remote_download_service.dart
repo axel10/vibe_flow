@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import '../../../models/music_file.dart';
@@ -409,6 +410,11 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
             _lastTimeMap[task.id] = now;
           }
 
+          // Throttle UI task updates to avoid overwhelming Riverpod/Flutter pipeline
+          if (diffMs < 100 && received < total) {
+            return;
+          }
+
           _updateTask(task.id, (t) {
             return t.copyWith(
               bytesDownloaded: received,
@@ -610,10 +616,19 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
   }
 
   void _updateTask(String id, RemoteDownloadTask Function(RemoteDownloadTask) updater) {
-    state = [
-      for (final task in state)
-        if (task.id == id) updater(task) else task,
-    ];
+    void apply() {
+      state = [
+        for (final task in state)
+          if (task.id == id) updater(task) else task,
+      ];
+    }
+
+    if (WidgetsBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => apply());
+    } else {
+      apply();
+    }
   }
 }
 

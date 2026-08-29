@@ -395,7 +395,7 @@ Future<void> _handleAlbumMenuSelection({
               action: SnackBarAction(
                 label: l10n.viewDownloadProgress,
                 onPressed: () {
-                  Navigator.of(context).push(
+                  Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
                       builder: (_) => const RemoteDownloadManagerPage(),
                     ),
@@ -726,7 +726,7 @@ Future<void> _handleSongMenuSelection({
             action: SnackBarAction(
               label: l10n.viewDownloadProgress,
               onPressed: () {
-                Navigator.of(context).push(
+                Navigator.of(context, rootNavigator: true).push(
                   MaterialPageRoute(
                     builder: (_) => const RemoteDownloadManagerPage(),
                   ),
@@ -1026,7 +1026,7 @@ Future<void> _handleArtistMenuSelection({
               action: SnackBarAction(
                 label: l10n.viewDownloadProgress,
                 onPressed: () {
-                  Navigator.of(context).push(
+                  Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
                       builder: (_) => const RemoteDownloadManagerPage(),
                     ),
@@ -1349,7 +1349,7 @@ Future<void> _handlePlaylistMenuSelection({
               action: SnackBarAction(
                 label: l10n.viewDownloadProgress,
                 onPressed: () {
-                  Navigator.of(context).push(
+                  Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
                       builder: (_) => const RemoteDownloadManagerPage(),
                     ),

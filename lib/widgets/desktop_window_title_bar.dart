@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'app_tooltip.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
@@ -56,7 +57,16 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
     setState(() {
       _isMaximized = isMax;
     });
-    ref.read(isWindowFullScreenProvider.notifier).state = isFull;
+    if (WidgetsBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(isWindowFullScreenProvider.notifier).state = isFull;
+        }
+      });
+    } else {
+      ref.read(isWindowFullScreenProvider.notifier).state = isFull;
+    }
   }
 
   @override

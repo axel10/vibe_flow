@@ -194,8 +194,7 @@ class _NavidromeAlbumDetailPageState
                 ),
                 tooltip: 'Download Manager',
                 onPressed: () {
-                  Navigator.push(
-                    context,
+                  Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
                       builder: (_) => const RemoteDownloadManagerPage(),
                     ),
@@ -627,7 +626,7 @@ class _NavidromeAlbumDetailPageState
                             action: SnackBarAction(
                               label: l10n.viewDownloadProgress,
                               onPressed: () {
-                                Navigator.of(context).push(
+                                Navigator.of(context, rootNavigator: true).push(
                                   MaterialPageRoute(
                                     builder: (_) =>
                                         const RemoteDownloadManagerPage(),
