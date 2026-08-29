@@ -168,6 +168,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
 
           return SliverPadding(
             padding: EdgeInsets.only(
+              top: 8,
               bottom: paddingBottom,
               left: 16,
               right: 16,

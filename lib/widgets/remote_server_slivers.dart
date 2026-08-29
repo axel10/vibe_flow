@@ -251,6 +251,7 @@ class RemoteServersSliver extends ConsumerWidget {
 
           return SliverPadding(
             padding: EdgeInsets.only(
+              top: 8,
               bottom: bottomPadding,
               left: 16,
               right: 16,

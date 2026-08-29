@@ -256,7 +256,7 @@ class _FolderLandscapeHeaderBanner extends StatelessWidget {
         if (isWideScreen) {
           return Container(
             padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.5),
@@ -344,7 +344,7 @@ class _FolderLandscapeHeaderBanner extends StatelessWidget {
 
         return Container(
           padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: theme.colorScheme.surfaceContainer.withValues(alpha: 0.5),
