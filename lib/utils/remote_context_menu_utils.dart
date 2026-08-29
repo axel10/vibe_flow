@@ -10,6 +10,7 @@ import '../models/music_file.dart';
 import '../player/audio/audio_riverpod.dart';
 import '../player/audio/playback_source.dart';
 import '../player/remote/clients/subsonic_client.dart';
+import '../player/remote/clients/webdav_client.dart';
 import '../player/remote/proxy/remote_media_resolver.dart';
 import '../player/remote/remote_server_models.dart';
 import '../pages/remote/remote_download_manager_page.dart';
@@ -1375,3 +1376,632 @@ Future<void> _handlePlaylistMenuSelection({
       break;
   }
 }
+
+String _formatWebDavFileSize(int bytes) {
+  if (bytes <= 0) return '0 B';
+  const suffixes = ['B', 'KB', 'MB', 'GB'];
+  var i = 0;
+  double size = bytes.toDouble();
+  while (size >= 1024 && i < suffixes.length - 1) {
+    size /= 1024;
+    i++;
+  }
+  return '${size.toStringAsFixed(1)} ${suffixes[i]}';
+}
+
+/// Helper to fetch tracks of a WebDAV folder on-demand
+Future<List<MusicFile>> _fetchWebDavFolderAudioFiles(
+  WebDavClient client,
+  RemoteServer server,
+  String folderPath,
+) async {
+  try {
+    final list = await client.listFiles(folderPath);
+    return list
+        .where((item) => item.isAudio)
+        .map((item) => RemoteMediaResolver.buildMusicFileFromWebDav(item, server))
+        .toList();
+  } catch (_) {
+    return [];
+  }
+}
+
+/// Shows context menu for a remote WebDAV file (audio or generic file).
+Future<void> showWebDavFileContextMenu({
+  required BuildContext context,
+  required Offset globalPosition,
+  required WidgetRef ref,
+  required RemoteServer server,
+  required String password,
+  required WebDavFile file,
+  List<MusicFile>? currentAudioFiles,
+  VoidCallback? onPlay,
+}) async {
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+  if (overlay == null) return;
+  final l10n = AppLocalizations.of(context)!;
+  final isMobile = Platform.isAndroid || Platform.isIOS;
+  final isAudio = file.isAudio;
+  final song = isAudio ? RemoteMediaResolver.buildMusicFileFromWebDav(file, server) : null;
+
+  if (isMobile) {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Material(
+            color: Theme.of(ctx).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      isAudio ? Icons.music_note_rounded : Icons.insert_drive_file_outlined,
+                      color: isAudio ? Theme.of(ctx).colorScheme.primary : null,
+                      size: 28,
+                    ),
+                    title: Text(
+                      file.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      _formatWebDavFileSize(file.contentLength),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  if (isAudio) ...[
+                    ListTile(
+                      leading: const Icon(Icons.play_arrow_rounded),
+                      title: Text(l10n.play),
+                      onTap: () => Navigator.pop(ctx, 'play'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.queue_play_next_rounded),
+                      title: Text(l10n.playNext),
+                      onTap: () => Navigator.pop(ctx, 'play_next'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.queue_music_rounded),
+                      title: Text(l10n.addToQueue),
+                      onTap: () => Navigator.pop(ctx, 'add_to_queue'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.library_add_outlined),
+                      title: Text(l10n.addToLocalPlaylist),
+                      onTap: () => Navigator.pop(ctx, 'add_to_local_playlist'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.download_rounded),
+                      title: Text(l10n.downloadSong),
+                      onTap: () => Navigator.pop(ctx, 'download'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline_rounded),
+                      title: Text(l10n.songProperties),
+                      onTap: () => Navigator.pop(ctx, 'details'),
+                    ),
+                  ],
+                  ListTile(
+                    leading: const Icon(Icons.title_rounded),
+                    title: Text(l10n.copyTitle),
+                    onTap: () => Navigator.pop(ctx, 'copy_title'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.link_rounded),
+                    title: Text(l10n.copyAlbumTitle.contains('复制') ? '复制文件路径' : 'Copy File Path'),
+                    onTap: () => Navigator.pop(ctx, 'copy_path'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (!context.mounted || selected == null) return;
+    await _handleWebDavFileMenuSelection(
+      selected: selected,
+      context: context,
+      ref: ref,
+      server: server,
+      password: password,
+      file: file,
+      song: song,
+      currentAudioFiles: currentAudioFiles,
+      onPlay: onPlay,
+    );
+    return;
+  }
+
+  // Desktop PopupMenu
+  final items = <PopupMenuEntry<String>>[
+    if (isAudio) ...[
+      buildContextMenuItem<String>(
+        value: 'play',
+        label: l10n.play,
+        icon: Icons.play_arrow_rounded,
+        context: context,
+      ),
+      buildContextMenuItem<String>(
+        value: 'play_next',
+        label: l10n.playNext,
+        icon: Icons.queue_play_next_rounded,
+        context: context,
+      ),
+      buildContextMenuItem<String>(
+        value: 'add_to_queue',
+        label: l10n.addToQueue,
+        icon: Icons.queue_music_rounded,
+        context: context,
+      ),
+      const PopupMenuDivider(),
+      buildContextMenuItem<String>(
+        value: 'add_to_local_playlist',
+        label: l10n.addToLocalPlaylist,
+        icon: Icons.library_add_outlined,
+        context: context,
+      ),
+      buildContextMenuItem<String>(
+        value: 'download',
+        label: l10n.downloadSong,
+        icon: Icons.download_rounded,
+        context: context,
+      ),
+      const PopupMenuDivider(),
+      buildContextMenuItem<String>(
+        value: 'details',
+        label: l10n.songProperties,
+        icon: Icons.info_outline_rounded,
+        context: context,
+      ),
+      const PopupMenuDivider(),
+    ],
+    buildContextMenuItem<String>(
+      value: 'copy_title',
+      label: l10n.copyTitle,
+      icon: Icons.title_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'copy_path',
+      label: l10n.copyAlbumTitle.contains('复制') ? '复制文件路径' : 'Copy File Path',
+      icon: Icons.link_rounded,
+      context: context,
+    ),
+  ];
+
+  final selected = await showMenu<String>(
+    context: context,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(globalPosition, globalPosition),
+      Offset.zero & overlay.size,
+    ),
+    items: items,
+  );
+
+  if (!context.mounted || selected == null) return;
+  await _handleWebDavFileMenuSelection(
+    selected: selected,
+    context: context,
+    ref: ref,
+    server: server,
+    password: password,
+    file: file,
+    song: song,
+    currentAudioFiles: currentAudioFiles,
+    onPlay: onPlay,
+  );
+}
+
+Future<void> _handleWebDavFileMenuSelection({
+  required String selected,
+  required BuildContext context,
+  required WidgetRef ref,
+  required RemoteServer server,
+  required String password,
+  required WebDavFile file,
+  required MusicFile? song,
+  List<MusicFile>? currentAudioFiles,
+  VoidCallback? onPlay,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final audio = ref.read(audioServiceProvider);
+
+  switch (selected) {
+    case 'play':
+      if (onPlay != null) {
+        onPlay();
+      } else if (song != null) {
+        final list = currentAudioFiles ?? [song];
+        final initialIndex = list.indexWhere((s) => s.path == song.path);
+        await audio.playPlaylist(
+          list,
+          initialIndex: initialIndex >= 0 ? initialIndex : 0,
+        );
+      }
+      break;
+    case 'play_next':
+      if (song != null) {
+        await audio.enqueueNext([song]);
+        showToast(l10n.addedToQueue);
+      }
+      break;
+    case 'add_to_queue':
+      if (song != null) {
+        await audio.appendToQueue([song]);
+        showToast(l10n.addedToQueue);
+      }
+      break;
+    case 'add_to_local_playlist':
+      if (song != null && context.mounted) {
+        final playlistService = ref.read(playlistServiceProvider);
+        await showAddSongsToPlaylistDialog(context, playlistService, [song]);
+      }
+      break;
+    case 'download':
+      final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+      await notifier.enqueueWebDavFile(
+        server: server,
+        password: password,
+        file: file,
+      );
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          ref,
+          SnackBar(
+            content: Text(l10n.addedToDownloadQueue),
+            action: SnackBarAction(
+              label: l10n.viewDownloadProgress,
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RemoteDownloadManagerPage(),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      break;
+    case 'details':
+      if (song != null && context.mounted) {
+        await showSongDetailsDialog(context, song);
+      }
+      break;
+    case 'copy_title':
+      await Clipboard.setData(ClipboardData(text: file.name));
+      break;
+    case 'copy_path':
+      await Clipboard.setData(ClipboardData(text: file.path));
+      break;
+  }
+}
+
+/// Shows context menu for a remote WebDAV folder.
+Future<void> showWebDavFolderContextMenu({
+  required BuildContext context,
+  required Offset globalPosition,
+  required WidgetRef ref,
+  required RemoteServer server,
+  required String password,
+  required WebDavFile folder,
+  VoidCallback? onOpen,
+}) async {
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+  if (overlay == null) return;
+  final l10n = AppLocalizations.of(context)!;
+  final isMobile = Platform.isAndroid || Platform.isIOS;
+  final client = WebDavClient(server: server, password: password);
+
+  if (isMobile) {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Material(
+            color: Theme.of(ctx).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: const Icon(
+                      Icons.folder_rounded,
+                      color: Colors.amber,
+                      size: 28,
+                    ),
+                    title: Text(
+                      folder.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      folder.path,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.play_arrow_rounded),
+                    title: Text(l10n.playAll),
+                    onTap: () => Navigator.pop(ctx, 'play_all'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.shuffle_rounded),
+                    title: Text(l10n.shufflePlay),
+                    onTap: () => Navigator.pop(ctx, 'shuffle'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.queue_play_next_rounded),
+                    title: Text(l10n.playNext),
+                    onTap: () => Navigator.pop(ctx, 'play_next'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.queue_music_rounded),
+                    title: Text(l10n.addToQueue),
+                    onTap: () => Navigator.pop(ctx, 'add_to_queue'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.download_for_offline_rounded),
+                    title: Text(l10n.downloadAllAudio),
+                    onTap: () => Navigator.pop(ctx, 'download_folder'),
+                  ),
+                  if (onOpen != null)
+                    ListTile(
+                      leading: const Icon(Icons.folder_open_rounded),
+                      title: Text(l10n.openFolderLocation.contains('打开') ? '打开文件夹' : 'Open Folder'),
+                      onTap: () => Navigator.pop(ctx, 'open'),
+                    ),
+                  ListTile(
+                    leading: const Icon(Icons.copy_rounded),
+                    title: Text(l10n.copyTitle),
+                    onTap: () => Navigator.pop(ctx, 'copy_name'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.link_rounded),
+                    title: Text(l10n.copyAlbumTitle.contains('复制') ? '复制文件夹路径' : 'Copy Folder Path'),
+                    onTap: () => Navigator.pop(ctx, 'copy_path'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (!context.mounted || selected == null) return;
+    await _handleWebDavFolderMenuSelection(
+      selected: selected,
+      context: context,
+      ref: ref,
+      client: client,
+      server: server,
+      password: password,
+      folder: folder,
+      onOpen: onOpen,
+    );
+    return;
+  }
+
+  // Desktop PopupMenu
+  final items = <PopupMenuEntry<String>>[
+    buildContextMenuItem<String>(
+      value: 'play_all',
+      label: l10n.playAll,
+      icon: Icons.play_arrow_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'shuffle',
+      label: l10n.shufflePlay,
+      icon: Icons.shuffle_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'play_next',
+      label: l10n.playNext,
+      icon: Icons.queue_play_next_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'add_to_queue',
+      label: l10n.addToQueue,
+      icon: Icons.queue_music_rounded,
+      context: context,
+    ),
+    const PopupMenuDivider(),
+    buildContextMenuItem<String>(
+      value: 'download_folder',
+      label: l10n.downloadAllAudio,
+      icon: Icons.download_for_offline_rounded,
+      context: context,
+    ),
+    if (onOpen != null) ...[
+      const PopupMenuDivider(),
+      buildContextMenuItem<String>(
+        value: 'open',
+        label: l10n.openFolderLocation.contains('打开') ? '打开文件夹' : 'Open Folder',
+        icon: Icons.folder_open_rounded,
+        context: context,
+      ),
+    ],
+    const PopupMenuDivider(),
+    buildContextMenuItem<String>(
+      value: 'copy_name',
+      label: l10n.copyTitle,
+      icon: Icons.copy_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'copy_path',
+      label: l10n.copyAlbumTitle.contains('复制') ? '复制文件夹路径' : 'Copy Folder Path',
+      icon: Icons.link_rounded,
+      context: context,
+    ),
+  ];
+
+  final selected = await showMenu<String>(
+    context: context,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(globalPosition, globalPosition),
+      Offset.zero & overlay.size,
+    ),
+    items: items,
+  );
+
+  if (!context.mounted || selected == null) return;
+  await _handleWebDavFolderMenuSelection(
+    selected: selected,
+    context: context,
+    ref: ref,
+    client: client,
+    server: server,
+    password: password,
+    folder: folder,
+    onOpen: onOpen,
+  );
+}
+
+Future<void> _handleWebDavFolderMenuSelection({
+  required String selected,
+  required BuildContext context,
+  required WidgetRef ref,
+  required WebDavClient client,
+  required RemoteServer server,
+  required String password,
+  required WebDavFile folder,
+  VoidCallback? onOpen,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final audio = ref.read(audioServiceProvider);
+
+  Future<List<MusicFile>> getAudioFiles() async {
+    showToast('Loading folder audio...');
+    return await _fetchWebDavFolderAudioFiles(client, server, folder.path);
+  }
+
+  switch (selected) {
+    case 'play_all':
+      final trackList = await getAudioFiles();
+      if (trackList.isNotEmpty) {
+        await audio.playPlaylist(
+          trackList,
+          source: PlaybackSource(
+            type: PlaybackSourceType.folder,
+            id: 'webdav-${server.id}-${folder.path}',
+            name: folder.name,
+          ),
+        );
+      } else {
+        showToast('No audio files in this folder');
+      }
+      break;
+    case 'shuffle':
+      final trackList = await getAudioFiles();
+      if (trackList.isNotEmpty) {
+        await audio.playPlaylist(
+          List.of(trackList)..shuffle(),
+          source: PlaybackSource(
+            type: PlaybackSourceType.folder,
+            id: 'webdav-${server.id}-${folder.path}',
+            name: folder.name,
+          ),
+        );
+      } else {
+        showToast('No audio files in this folder');
+      }
+      break;
+    case 'play_next':
+      final trackList = await getAudioFiles();
+      if (trackList.isNotEmpty) {
+        await audio.enqueueNext(trackList);
+        showToast(l10n.addedToQueue);
+      } else {
+        showToast('No audio files in this folder');
+      }
+      break;
+    case 'add_to_queue':
+      final trackList = await getAudioFiles();
+      if (trackList.isNotEmpty) {
+        await audio.appendToQueue(trackList);
+        showToast(l10n.addedToQueue);
+      } else {
+        showToast('No audio files in this folder');
+      }
+      break;
+    case 'download_folder':
+      try {
+        final list = await client.listFiles(folder.path);
+        final audioItems = list.where((i) => !i.isDirectory && i.isAudio).toList();
+        if (audioItems.isEmpty) {
+          showToast(l10n.noActiveDownloads);
+          return;
+        }
+        if (context.mounted) {
+          final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+          await notifier.enqueueWebDavFiles(
+            server: server,
+            password: password,
+            files: audioItems,
+          );
+          if (context.mounted) {
+            AppSnackBar.show(
+              context,
+              ref,
+              SnackBar(
+                content: Text(l10n.batchAddedToDownloadQueue(audioItems.length)),
+                action: SnackBarAction(
+                  label: l10n.viewDownloadProgress,
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RemoteDownloadManagerPage(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        showToast('Failed to load folder: $e');
+      }
+      break;
+    case 'open':
+      onOpen?.call();
+      break;
+    case 'copy_name':
+      await Clipboard.setData(ClipboardData(text: folder.name));
+      break;
+    case 'copy_path':
+      await Clipboard.setData(ClipboardData(text: folder.path));
+      break;
+  }
+}
+

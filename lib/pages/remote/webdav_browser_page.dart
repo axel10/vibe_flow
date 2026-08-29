@@ -13,6 +13,7 @@ import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import '../../utils/app_snack_bar.dart';
+import '../../utils/remote_context_menu_utils.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import 'remote_download_manager_page.dart';
@@ -348,20 +349,73 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                 itemBuilder: (context, index) {
                                   final item = _items[index];
                                   if (item.isDirectory) {
-                                    return ListTile(
-                                      leading: const Icon(
-                                        Icons.folder_rounded,
-                                        color: Colors.amber,
-                                        size: 28,
-                                      ),
-                                      title: Text(
-                                        item.name,
-                                        style: const TextStyle(fontWeight: FontWeight.w600),
-                                      ),
-                                      trailing: const Icon(Icons.chevron_right_rounded),
-                                      onTap: () {
-                                        _loadDirectory(item.path);
+                                    return GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onSecondaryTapDown: (details) {
+                                        showWebDavFolderContextMenu(
+                                          context: context,
+                                          globalPosition: details.globalPosition,
+                                          ref: ref,
+                                          server: widget.server,
+                                          password: widget.password,
+                                          folder: item,
+                                          onOpen: () => _loadDirectory(item.path),
+                                        );
                                       },
+                                      onLongPressStart: (details) {
+                                        showWebDavFolderContextMenu(
+                                          context: context,
+                                          globalPosition: details.globalPosition,
+                                          ref: ref,
+                                          server: widget.server,
+                                          password: widget.password,
+                                          folder: item,
+                                          onOpen: () => _loadDirectory(item.path),
+                                        );
+                                      },
+                                      child: ListTile(
+                                        leading: const Icon(
+                                          Icons.folder_rounded,
+                                          color: Colors.amber,
+                                          size: 28,
+                                        ),
+                                        title: Text(
+                                          item.name,
+                                          style: const TextStyle(fontWeight: FontWeight.w600),
+                                        ),
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Builder(
+                                              builder: (btnContext) {
+                                                return IconButton(
+                                                  icon: const Icon(Icons.more_vert_rounded, size: 20),
+                                                  tooltip: 'More',
+                                                  onPressed: () {
+                                                    final box = btnContext.findRenderObject() as RenderBox?;
+                                                    final pos = box != null
+                                                        ? box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2))
+                                                        : Offset.zero;
+                                                    showWebDavFolderContextMenu(
+                                                      context: context,
+                                                      globalPosition: pos,
+                                                      ref: ref,
+                                                      server: widget.server,
+                                                      password: widget.password,
+                                                      folder: item,
+                                                      onOpen: () => _loadDirectory(item.path),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                            const Icon(Icons.chevron_right_rounded),
+                                          ],
+                                        ),
+                                        onTap: () {
+                                          _loadDirectory(item.path);
+                                        },
+                                      ),
                                     );
                                   }
 
@@ -373,100 +427,150 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                   );
                                   final isPlaying = currentMusic?.path == remoteUri;
 
-                                  return ListTile(
-                                    leading: Icon(
-                                      isAudio
-                                          ? (isPlaying
-                                              ? Icons.volume_up_rounded
-                                              : Icons.music_note_rounded)
-                                          : Icons.insert_drive_file_outlined,
-                                      color: isAudio
-                                          ? (isPlaying
+                                  void showFileMenu(Offset pos) {
+                                    final audioFiles = _getAudioFiles();
+                                    showWebDavFileContextMenu(
+                                      context: context,
+                                      globalPosition: pos,
+                                      ref: ref,
+                                      server: widget.server,
+                                      password: widget.password,
+                                      file: item,
+                                      currentAudioFiles: audioFiles,
+                                      onPlay: isAudio
+                                          ? () async {
+                                              final target =
+                                                  RemoteMediaResolver.buildMusicFileFromWebDav(
+                                                item,
+                                                widget.server,
+                                              );
+                                              final initialIndex = audioFiles
+                                                  .indexWhere((s) => s.path == target.path);
+                                              final audioService =
+                                                  ref.read(audioServiceProvider);
+                                              await audioService.playPlaylist(
+                                                audioFiles.isNotEmpty ? audioFiles : [target],
+                                                initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                                              );
+                                            }
+                                          : null,
+                                    );
+                                  }
+
+                                  return GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onSecondaryTapDown: (details) => showFileMenu(details.globalPosition),
+                                    onLongPressStart: (details) => showFileMenu(details.globalPosition),
+                                    child: ListTile(
+                                      leading: Icon(
+                                        isAudio
+                                            ? (isPlaying
+                                                ? Icons.volume_up_rounded
+                                                : Icons.music_note_rounded)
+                                            : Icons.insert_drive_file_outlined,
+                                        color: isAudio
+                                            ? (isPlaying
+                                                ? theme.colorScheme.primary
+                                                : Colors.blue)
+                                            : theme.colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.5),
+                                      ),
+                                      title: Text(
+                                        item.name,
+                                        style: TextStyle(
+                                          color: isPlaying
                                               ? theme.colorScheme.primary
-                                              : Colors.blue)
-                                          : theme.colorScheme.onSurfaceVariant
-                                              .withValues(alpha: 0.5),
-                                    ),
-                                    title: Text(
-                                      item.name,
-                                      style: TextStyle(
-                                        color: isPlaying
-                                            ? theme.colorScheme.primary
-                                            : (isAudio
-                                                ? null
-                                                : theme.colorScheme.onSurfaceVariant
-                                                    .withValues(alpha: 0.6)),
-                                        fontWeight: isPlaying
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
+                                              : (isAudio
+                                                  ? null
+                                                  : theme.colorScheme.onSurfaceVariant
+                                                      .withValues(alpha: 0.6)),
+                                          fontWeight: isPlaying
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
                                       ),
-                                    ),
-                                    subtitle: Text(
-                                      _formatFileSize(item.contentLength),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: theme.colorScheme.onSurfaceVariant,
+                                      subtitle: Text(
+                                        _formatFileSize(item.contentLength),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
-                                    ),
-                                    trailing: isAudio
-                                        ? Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                icon: Icon(
-                                                  isPlaying
-                                                      ? Icons.pause_circle_rounded
-                                                      : Icons.play_circle_rounded,
-                                                  size: 28,
-                                                  color: theme.colorScheme.primary,
-                                                ),
-                                                onPressed: () async {
-                                                  final audioService =
-                                                      ref.read(audioServiceProvider);
-                                                  if (isPlaying) {
-                                                    await audioService.togglePlay();
-                                                    return;
-                                                  }
-                                                  final audioFiles = _getAudioFiles();
-                                                  final target =
-                                                      RemoteMediaResolver.buildMusicFileFromWebDav(
-                                                    item,
-                                                    widget.server,
-                                                  );
-                                                  final initialIndex =
-                                                      audioFiles.indexWhere((s) => s.path == target.path);
-                                                  await audioService.playPlaylist(
-                                                    audioFiles.isNotEmpty ? audioFiles : [target],
-                                                    initialIndex: initialIndex >= 0 ? initialIndex : 0,
-                                                  );
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (isAudio) ...[
+                                            IconButton(
+                                              icon: Icon(
+                                                isPlaying
+                                                    ? Icons.pause_circle_rounded
+                                                    : Icons.play_circle_rounded,
+                                                size: 28,
+                                                color: theme.colorScheme.primary,
+                                              ),
+                                              onPressed: () async {
+                                                final audioService =
+                                                    ref.read(audioServiceProvider);
+                                                if (isPlaying) {
+                                                  await audioService.togglePlay();
+                                                  return;
+                                                }
+                                                final audioFiles = _getAudioFiles();
+                                                final target =
+                                                    RemoteMediaResolver.buildMusicFileFromWebDav(
+                                                  item,
+                                                  widget.server,
+                                                );
+                                                final initialIndex =
+                                                    audioFiles.indexWhere((s) => s.path == target.path);
+                                                await audioService.playPlaylist(
+                                                  audioFiles.isNotEmpty ? audioFiles : [target],
+                                                  initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                                                );
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.download_rounded, size: 22),
+                                              tooltip: 'Download',
+                                              onPressed: () => _downloadSingleAudio(item),
+                                            ),
+                                          ],
+                                          Builder(
+                                            builder: (btnContext) {
+                                              return IconButton(
+                                                icon: const Icon(Icons.more_vert_rounded, size: 20),
+                                                tooltip: 'More',
+                                                onPressed: () {
+                                                  final box = btnContext.findRenderObject() as RenderBox?;
+                                                  final pos = box != null
+                                                      ? box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2))
+                                                      : Offset.zero;
+                                                  showFileMenu(pos);
                                                 },
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(Icons.download_rounded, size: 22),
-                                                tooltip: 'Download',
-                                                onPressed: () => _downloadSingleAudio(item),
-                                              ),
-                                            ],
-                                          )
-                                        : null,
-                                    onTap: isAudio
-                                        ? () async {
-                                            final audioFiles = _getAudioFiles();
-                                            final target =
-                                                RemoteMediaResolver.buildMusicFileFromWebDav(
-                                              item,
-                                              widget.server,
-                                            );
-                                            final initialIndex =
-                                                audioFiles.indexWhere((s) => s.path == target.path);
-                                            final audioService =
-                                                ref.read(audioServiceProvider);
-                                            await audioService.playPlaylist(
-                                              audioFiles.isNotEmpty ? audioFiles : [target],
-                                              initialIndex: initialIndex >= 0 ? initialIndex : 0,
-                                            );
-                                          }
-                                        : null,
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      onTap: isAudio
+                                          ? () async {
+                                              final audioFiles = _getAudioFiles();
+                                              final target =
+                                                  RemoteMediaResolver.buildMusicFileFromWebDav(
+                                                item,
+                                                widget.server,
+                                              );
+                                              final initialIndex =
+                                                  audioFiles.indexWhere((s) => s.path == target.path);
+                                              final audioService =
+                                                  ref.read(audioServiceProvider);
+                                              await audioService.playPlaylist(
+                                                audioFiles.isNotEmpty ? audioFiles : [target],
+                                                initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                                              );
+                                            }
+                                          : null,
+                                    ),
                                   );
                                 },
                               ),
