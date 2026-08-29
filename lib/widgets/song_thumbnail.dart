@@ -9,11 +9,14 @@ import 'package:audio_core/audio_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/utils/memory_trace.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/remote/remote_service_providers.dart';
 
 class SongThumbnail extends ConsumerStatefulWidget {
   final String path;
   final int? id;
   final String? thumbnailPath;
+  final String? artworkPath;
   final Uint8List? bytes;
   final double size;
   final double? width;
@@ -26,6 +29,7 @@ class SongThumbnail extends ConsumerStatefulWidget {
     required this.path,
     this.id,
     this.thumbnailPath,
+    this.artworkPath,
     this.bytes,
     this.size = 40.0,
     this.width,
@@ -44,7 +48,12 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
   String? _artworkFilePath;
   bool _artworkQueried = false;
 
+  // Remote artwork URL state
+  String? _remoteArtworkUrl;
+
   static final LinkedHashMap<String, String> _artworkCache = LinkedHashMap<String, String>();
+  static final LinkedHashMap<String, String> _remoteUrlCache = LinkedHashMap<String, String>();
+  static final Set<String> _failedRemoteUrls = <String>{};
 
   @override
   void initState() {
@@ -53,6 +62,21 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
   }
 
   void _checkOrQueryArtwork() {
+    if (RemoteMediaResolver.isRemoteUri(widget.path)) {
+      final existingPath = widget.thumbnailPath ??
+          ref.read(scannerServiceProvider).metadataMap[widget.path]?.thumbnailPath;
+      if (existingPath != null && existingPath.isNotEmpty && File(existingPath).existsSync()) {
+        return;
+      }
+      final cacheKey = '${widget.path}_${widget.artworkPath ?? ''}';
+      if (_remoteUrlCache.containsKey(cacheKey)) {
+        _remoteArtworkUrl = _remoteUrlCache[cacheKey];
+      } else {
+        _queryRemoteArtwork(cacheKey);
+      }
+      return;
+    }
+
     if (Platform.isAndroid || Platform.isIOS) {
       final scanner = ref.read(scannerServiceProvider);
       final existingPath = scanner.metadataMap[widget.path]?.thumbnailPath;
@@ -77,6 +101,28 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
         _triggerLoad();
       }
     }
+  }
+
+  Future<void> _queryRemoteArtwork(String cacheKey) async {
+    try {
+      final resolver = await ref.read(remoteMediaResolverProvider.future);
+      final url = await resolver.getArtworkUrlFromUri(
+        widget.path,
+        coverArtId: widget.artworkPath,
+        size: (_bucketedSize * 2).toInt(),
+      );
+      if (url != null && url.isNotEmpty) {
+        _remoteUrlCache[cacheKey] = url;
+        if (_remoteUrlCache.length > 500) {
+          _remoteUrlCache.remove(_remoteUrlCache.keys.first);
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _remoteArtworkUrl = url;
+        });
+      }
+    } catch (_) {}
   }
 
   double get _bucketedSize {
@@ -203,11 +249,15 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
   @override
   void didUpdateWidget(SongThumbnail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset so we retry if the path/id changes (e.g. list recycling).
-    if (oldWidget.path != widget.path || oldWidget.id != widget.id) {
+    // Reset so we retry if the path/id/artworkPath changes (e.g. list recycling).
+    if (oldWidget.path != widget.path ||
+        oldWidget.id != widget.id ||
+        oldWidget.artworkPath != widget.artworkPath ||
+        oldWidget.thumbnailPath != widget.thumbnailPath) {
       _loadTriggered = false;
       _artworkFilePath = null;
       _artworkQueried = false;
+      _remoteArtworkUrl = null;
       _checkOrQueryArtwork();
     }
   }
@@ -279,6 +329,38 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
           errorBuilder: (_, _, _) => _fallbackIcon(layoutWidth, layoutHeight, radius),
         ),
       );
+    }
+
+    if (RemoteMediaResolver.isRemoteUri(widget.path)) {
+      if (_remoteArtworkUrl != null &&
+          _remoteArtworkUrl!.isNotEmpty &&
+          !_failedRemoteUrls.contains(_remoteArtworkUrl!)) {
+        return ClipRRect(
+          borderRadius: radius,
+          child: Image.network(
+            _remoteArtworkUrl!,
+            width: layoutWidth,
+            height: layoutHeight,
+            fit: BoxFit.cover,
+            cacheWidth: targetCacheWidth,
+            cacheHeight: targetCacheHeight,
+            filterQuality: FilterQuality.low,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) {
+                return child;
+              }
+              return _fallbackIcon(layoutWidth, layoutHeight, radius);
+            },
+            errorBuilder: (_, _, _) {
+              if (_remoteArtworkUrl != null) {
+                _failedRemoteUrls.add(_remoteArtworkUrl!);
+              }
+              return _fallbackIcon(layoutWidth, layoutHeight, radius);
+            },
+          ),
+        );
+      }
+      return _fallbackIcon(layoutWidth, layoutHeight, radius);
     }
 
     if (Platform.isAndroid || Platform.isIOS) {

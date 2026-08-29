@@ -243,7 +243,12 @@ class RemoteMediaResolver {
 
   /// Returns the artwork image URL if available for the given remote song.
   Future<String?> getArtworkUrl(MusicFile song, {int size = 400}) async {
-    final info = parseUri(song.path);
+    return getArtworkUrlFromUri(song.path, coverArtId: song.artworkPath, size: size);
+  }
+
+  /// Returns the artwork image URL if available for the given remote URI or cover art ID.
+  Future<String?> getArtworkUrlFromUri(String remotePath, {String? coverArtId, int size = 400}) async {
+    final info = parseUri(remotePath);
     if (info == null) return null;
 
     final servers = storage.loadServers();
@@ -252,7 +257,9 @@ class RemoteMediaResolver {
     final password = await storage.getPassword(server.id) ?? '';
 
     if (info.type == RemoteServerType.subsonic) {
-      var coverId = song.artworkPath?.replaceFirst('subsonic-cover://', '') ?? info.trackIdOrPath;
+      var coverId = (coverArtId != null && coverArtId.isNotEmpty)
+          ? coverArtId.replaceFirst('subsonic-cover://', '')
+          : info.trackIdOrPath;
       if (coverId.startsWith('${server.id}/')) {
         coverId = coverId.substring('${server.id}/'.length);
       }
