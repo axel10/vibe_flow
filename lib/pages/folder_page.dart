@@ -649,7 +649,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
         case RootPathAddStatus.added:
         case RootPathAddStatus.alreadyAdded:
           if (Platform.isAndroid && !scanner.hasPermission) {
-            message = '${AppLocalizations.of(context)!.directoryAddedSuccess}（未授予媒体库权限，已启用存储访问框架进行兼容扫描，速度可能较慢）';
+            message = '${AppLocalizations.of(context)!.directoryAddedSuccess}${AppLocalizations.of(context)!.safFallbackScanningNotice}';
           } else {
             message = AppLocalizations.of(context)!.directoryAddedSuccess;
           }

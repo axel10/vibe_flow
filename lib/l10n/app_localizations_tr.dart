@@ -3942,190 +3942,240 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get tabLanSharing => '局域网互传 & 遥控';
+  String get tabLanSharing => 'LAN Paylaşımı ve Uzaktan Kontrol';
 
   @override
-  String get tabCloudServers => '云端媒体库';
+  String get tabCloudServers => 'Bulut Medya Sunucuları';
 
   @override
-  String get addRemoteServer => '添加媒体服务器';
+  String get addRemoteServer => 'Medya Sunucusu Ekle';
 
   @override
-  String get editRemoteServer => '编辑媒体服务器';
+  String get editRemoteServer => 'Medya Sunucusunu Düzenle';
 
   @override
-  String get serverName => '服务器名称';
+  String get serverName => 'Sunucu Adı';
 
   @override
-  String get serverNameAlreadyExists => '服务器名称已存在，请使用其他名称';
+  String get serverNameAlreadyExists =>
+      'Sunucu adı zaten var. Lütfen başka bir ad seçin.';
 
   @override
-  String get serverType => '服务类型';
+  String get serverType => 'Sunucu Türü';
 
   @override
-  String get serverUrl => '服务器地址 (URL)';
+  String get serverUrl => 'Sunucu URL\'si';
 
   @override
-  String get serverUsername => '用户名';
+  String get serverUsername => 'Kullanıcı Adı';
 
   @override
-  String get serverPassword => '密码 / Token';
+  String get serverPassword => 'Şifre / Token';
 
   @override
-  String get customPath => '指定路径 (可选)';
+  String get customPath => 'Özel Yol (İsteğe Bağlı)';
 
   @override
-  String get maxBitRate => '转码码率限制 (kbps)';
+  String get maxBitRate => 'Maksimum Kod Dönüştürme Bit Hızı (kbps)';
 
   @override
-  String get ignoreSsl => '忽略 SSL 证书校验';
+  String get ignoreSsl => 'SSL Sertifika Hatalarını Yoksay';
 
   @override
-  String get connectionSuccess => '连接成功';
+  String get connectionSuccess => 'Başarıyla bağlandı';
 
   @override
-  String get connectionFailed => '连接失败';
+  String get connectionFailed => 'Bağlantı başarısız';
 
   @override
-  String get noRemoteServers => '暂无连接的媒体服务器';
+  String get noRemoteServers => 'Eklenmiş medya sunucusu yok';
 
   @override
   String get noRemoteServersDesc =>
-      '添加 Navidrome (Subsonic) 或 WebDAV 服务器，畅享自建私有云音乐';
+      'Kendi müziklerinizi dinlemek için Navidrome (Subsonic) veya WebDAV sunucusu ekleyin';
 
   @override
-  String get browseServer => '浏览';
+  String get browseServer => 'Göz At';
 
   @override
-  String get manageServer => '管理';
+  String get manageServer => 'Yönet';
 
   @override
-  String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+  String get deleteServerConfirm =>
+      'Bu medya sunucusu bağlantısını kaldırmak istediğinizden emin misiniz?';
 
   @override
   String get remoteSongCannotEditTags =>
       'Uzak şarkıların etiketleri değiştirilemez';
 
   @override
-  String get addToServerPlaylist => '添加到服务端歌单';
+  String get addToServerPlaylist => 'Sunucu Çalma Listesine Ekle';
 
   @override
-  String get addToLocalPlaylist => '添加到本地歌单';
+  String get addToLocalPlaylist => 'Yerel Çalma Listesine Ekle';
 
   @override
-  String get serverPlaylists => '服务端歌单';
+  String get serverPlaylists => 'Sunucu Çalma Listeleri';
 
   @override
-  String get localPlaylists => '本地歌单';
+  String get localPlaylists => 'Yerel Çalma Listeleri';
 
   @override
-  String get createNewServerPlaylist => '新建服务端歌单';
+  String get createNewServerPlaylist => 'Sunucu Çalma Listesi Oluştur';
 
   @override
-  String get downloadSong => '下载歌曲';
+  String get downloadSong => 'Şarkıyı İndir';
 
   @override
-  String get downloadAlbum => '下载整张专辑';
+  String get downloadAlbum => 'Tüm Albümü İndir';
 
   @override
-  String get downloadArtist => '下载艺术家全部歌曲';
+  String get downloadArtist => 'Sanatçının Tüm Şarkılarını İndir';
 
   @override
   String downloadStarted(Object title) {
-    return '正在下载: $title';
+    return 'İndiriliyor: $title';
   }
 
   @override
   String downloadCompleted(Object title) {
-    return '已保存至本地音乐库: $title';
+    return 'Yerel kitaplığa kaydedildi: $title';
   }
 
   @override
   String downloadFailed(Object error) {
-    return '下载失败: $error';
+    return 'İndirme başarısız: $error';
   }
 
   @override
-  String get alreadyDownloaded => '该歌曲已在本地音乐库中存在';
+  String get alreadyDownloaded => 'Bu şarkı zaten yerel kitaplıkta mevcut';
 
   @override
-  String get starItem => '加入服务端收藏';
+  String get starItem => 'Sunucu Favorilerine Ekle';
 
   @override
-  String get unstarItem => '取消服务端收藏';
+  String get unstarItem => 'Sunucu Favorilerinden Çıkar';
 
   @override
-  String get starredSuccess => '已加入服务端收藏';
+  String get starredSuccess => 'Sunucuda favorilere eklendi';
 
   @override
-  String get unstarredSuccess => '已取消服务端收藏';
+  String get unstarredSuccess => 'Sunucuda favorilerden çıkarıldı';
 
   @override
   String batchDownloadStarted(Object count) {
-    return '正在后台下载 $count 首歌曲...';
+    return '$count şarkı arka planda indiriliyor...';
   }
 
   @override
   String batchDownloadCompleted(Object count) {
-    return '已下载 $count 首歌曲到本地音乐库';
+    return '$count şarkı yerel kitaplığa indirildi';
   }
 
   @override
-  String get viewAlbum => '查看专辑';
+  String get viewAlbum => 'Albümü Görüntüle';
 
   @override
-  String get viewArtist => '查看艺术家';
+  String get viewArtist => 'Sanatçıyı Görüntüle';
 
   @override
-  String get downloadManager => '下载管理';
+  String get downloadManager => 'İndirme Yöneticisi';
 
   @override
-  String get downloadingTab => '正在下载';
+  String get downloadingTab => 'İndirilenler';
 
   @override
-  String get completedTab => '已完成';
+  String get completedTab => 'Tamamlananlar';
 
   @override
-  String get pauseAll => '全部暂停';
+  String get pauseAll => 'Tümünü Duraklat';
 
   @override
-  String get resumeAll => '全部继续';
+  String get resumeAll => 'Tümünü Devam Ettir';
 
   @override
-  String get cancelAll => '全部取消';
+  String get cancelAll => 'Tümünü İptal Et';
 
   @override
-  String get clearCompleted => '清空记录';
+  String get clearCompleted => 'Geçmişi Temizle';
 
   @override
-  String get noActiveDownloads => '没有正在进行的下载任务';
+  String get noActiveDownloads => 'Devam eden indirme yok';
 
   @override
-  String get noCompletedDownloads => '暂无已完成的下载记录';
+  String get noCompletedDownloads => 'Tamamlanmış indirme yok';
 
   @override
-  String get viewDownloadProgress => '查看进度';
+  String get viewDownloadProgress => 'İlerlemeyi Gör';
 
   @override
-  String get addedToDownloadQueue => '已加入下载队列';
+  String get addedToDownloadQueue => 'İndirme kuyruğuna eklendi';
 
   @override
   String batchAddedToDownloadQueue(Object count) {
-    return '已将 $count 首歌曲加入下载队列';
+    return '$count şarkı indirme kuyruğuna eklendi';
   }
 
   @override
-  String get downloadFolder => '下载保存位置';
+  String get downloadFolder => 'İndirme Konumu';
 
   @override
-  String get downloadAllAudio => '下载文件夹内所有音频';
+  String get downloadAllAudio => 'Klasördeki Tüm Sesleri İndir';
 
   @override
-  String get starredSongs => '我喜欢的音乐';
+  String get starredSongs => 'Beğenilen Şarkılar';
 
   @override
-  String get starredSongsDesc => 'Navidrome 服务端已收藏歌曲';
+  String get starredSongsDesc => 'Navidrome sunucusundaki yıldızlı şarkılar';
 
   @override
-  String get starredArtists => '已收藏歌手';
+  String get starredArtists => 'Yıldızlı Sanatçılar';
+
+  @override
+  String get shuffleAlbumOrder => 'Albüm Sırasını Karıştır';
+
+  @override
+  String get threeDView => '3D Görünüm';
+
+  @override
+  String receiveFailed(Object fileName) {
+    return '«$fileName» alınamadı';
+  }
+
+  @override
+  String get quickPresets => 'Hızlı Önayarlar';
+
+  @override
+  String get presetStandard => '%100 Standart';
+
+  @override
+  String get presetModerate => '%125 Orta';
+
+  @override
+  String get presetCarRecommended => '%135 Araç İçi Önerilen';
+
+  @override
+  String get presetLarge => '%150 Büyük';
+
+  @override
+  String get safFallbackScanningNotice =>
+      '(Medya izni verilmedi, SAF uyumluluk taraması etkinleştirildi, tarama daha yavaş olabilir)';
+
+  @override
+  String get justNow => 'Az önce';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '$minutes dk. önce';
+  }
+
+  @override
+  String todayTime(Object time) {
+    return 'Bugün $time';
+  }
+
+  @override
+  String yesterdayTime(Object time) {
+    return 'Dün $time';
+  }
 }

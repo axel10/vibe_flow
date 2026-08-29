@@ -3784,189 +3784,237 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get tabLanSharing => '局域网互传 & 遥控';
+  String get tabLanSharing => 'LAN 공유 & 리모컨';
 
   @override
-  String get tabCloudServers => '云端媒体库';
+  String get tabCloudServers => '클라우드 미디어 서버';
 
   @override
-  String get addRemoteServer => '添加媒体服务器';
+  String get addRemoteServer => '미디어 서버 추가';
 
   @override
-  String get editRemoteServer => '编辑媒体服务器';
+  String get editRemoteServer => '미디어 서버 수정';
 
   @override
-  String get serverName => '服务器名称';
+  String get serverName => '서버 이름';
 
   @override
-  String get serverNameAlreadyExists => '服务器名称已存在，请使用其他名称';
+  String get serverNameAlreadyExists => '이미 존재하는 서버 이름입니다. 다른 이름을 사용해주세요.';
 
   @override
-  String get serverType => '服务类型';
+  String get serverType => '서버 유형';
 
   @override
-  String get serverUrl => '服务器地址 (URL)';
+  String get serverUrl => '서버 URL';
 
   @override
-  String get serverUsername => '用户名';
+  String get serverUsername => '사용자 이름';
 
   @override
-  String get serverPassword => '密码 / Token';
+  String get serverPassword => '비밀번호 / 토큰';
 
   @override
-  String get customPath => '指定路径 (可选)';
+  String get customPath => '사용자 지정 경로 (선택 사항)';
 
   @override
-  String get maxBitRate => '转码码率限制 (kbps)';
+  String get maxBitRate => '트랜스코딩 비트레이트 제한 (kbps)';
 
   @override
-  String get ignoreSsl => '忽略 SSL 证书校验';
+  String get ignoreSsl => 'SSL 인증서 오류 무시';
 
   @override
-  String get connectionSuccess => '连接成功';
+  String get connectionSuccess => '연결 성공';
 
   @override
-  String get connectionFailed => '连接失败';
+  String get connectionFailed => '연결 실패';
 
   @override
-  String get noRemoteServers => '暂无连接的媒体服务器';
+  String get noRemoteServers => '추가된 미디어 서버 없음';
 
   @override
   String get noRemoteServersDesc =>
-      '添加 Navidrome (Subsonic) 或 WebDAV 服务器，畅享自建私有云音乐';
+      'Navidrome (Subsonic) 또는 WebDAV 서버를 추가하여 개인 클라우드 음악을 즐겨보세요';
 
   @override
-  String get browseServer => '浏览';
+  String get browseServer => '탐색';
 
   @override
-  String get manageServer => '管理';
+  String get manageServer => '관리';
 
   @override
-  String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+  String get deleteServerConfirm => '이 미디어 서버 연결을 삭제하시겠습니까?';
 
   @override
   String get remoteSongCannotEditTags => '원격 곡의 태그는 수정할 수 없습니다';
 
   @override
-  String get addToServerPlaylist => '添加到服务端歌单';
+  String get addToServerPlaylist => '서버 재생목록에 추가';
 
   @override
-  String get addToLocalPlaylist => '添加到本地歌单';
+  String get addToLocalPlaylist => '로컬 재생목록에 추가';
 
   @override
-  String get serverPlaylists => '服务端歌单';
+  String get serverPlaylists => '서버 재생목록';
 
   @override
-  String get localPlaylists => '本地歌单';
+  String get localPlaylists => '로컬 재생목록';
 
   @override
-  String get createNewServerPlaylist => '新建服务端歌单';
+  String get createNewServerPlaylist => '서버 재생목록 생성';
 
   @override
-  String get downloadSong => '下载歌曲';
+  String get downloadSong => '곡 다운로드';
 
   @override
-  String get downloadAlbum => '下载整张专辑';
+  String get downloadAlbum => '앨범 전체 다운로드';
 
   @override
-  String get downloadArtist => '下载艺术家全部歌曲';
+  String get downloadArtist => '아티스트 전곡 다운로드';
 
   @override
   String downloadStarted(Object title) {
-    return '正在下载: $title';
+    return '다운로드 중: $title';
   }
 
   @override
   String downloadCompleted(Object title) {
-    return '已保存至本地音乐库: $title';
+    return '로컬 라이브러리에 저장됨: $title';
   }
 
   @override
   String downloadFailed(Object error) {
-    return '下载失败: $error';
+    return '다운로드 실패: $error';
   }
 
   @override
-  String get alreadyDownloaded => '该歌曲已在本地音乐库中存在';
+  String get alreadyDownloaded => '이미 로컬 라이브러리에 존재하는 곡입니다';
 
   @override
-  String get starItem => '加入服务端收藏';
+  String get starItem => '서버 즐겨찾기에 추가';
 
   @override
-  String get unstarItem => '取消服务端收藏';
+  String get unstarItem => '서버 즐겨찾기에서 제거';
 
   @override
-  String get starredSuccess => '已加入服务端收藏';
+  String get starredSuccess => '서버 즐겨찾기에 추가되었습니다';
 
   @override
-  String get unstarredSuccess => '已取消服务端收藏';
+  String get unstarredSuccess => '서버 즐겨찾기에서 제거되었습니다';
 
   @override
   String batchDownloadStarted(Object count) {
-    return '正在后台下载 $count 首歌曲...';
+    return '백그라운드에서 $count곡 다운로드 중...';
   }
 
   @override
   String batchDownloadCompleted(Object count) {
-    return '已下载 $count 首歌曲到本地音乐库';
+    return '$count곡을 로컬 라이브러리에 다운로드했습니다';
   }
 
   @override
-  String get viewAlbum => '查看专辑';
+  String get viewAlbum => '앨범 보기';
 
   @override
-  String get viewArtist => '查看艺术家';
+  String get viewArtist => '아티스트 보기';
 
   @override
-  String get downloadManager => '下载管理';
+  String get downloadManager => '다운로드 관리';
 
   @override
-  String get downloadingTab => '正在下载';
+  String get downloadingTab => '다운로드 중';
 
   @override
-  String get completedTab => '已完成';
+  String get completedTab => '완료됨';
 
   @override
-  String get pauseAll => '全部暂停';
+  String get pauseAll => '모두 일시중지';
 
   @override
-  String get resumeAll => '全部继续';
+  String get resumeAll => '모두 계속';
 
   @override
-  String get cancelAll => '全部取消';
+  String get cancelAll => '모두 취소';
 
   @override
-  String get clearCompleted => '清空记录';
+  String get clearCompleted => '기록 삭제';
 
   @override
-  String get noActiveDownloads => '没有正在进行的下载任务';
+  String get noActiveDownloads => '진행 중인 다운로드 작업 없음';
 
   @override
-  String get noCompletedDownloads => '暂无已完成的下载记录';
+  String get noCompletedDownloads => '완료된 다운로드 기록 없음';
 
   @override
-  String get viewDownloadProgress => '查看进度';
+  String get viewDownloadProgress => '진행 상황 보기';
 
   @override
-  String get addedToDownloadQueue => '已加入下载队列';
+  String get addedToDownloadQueue => '다운로드 큐에 추가됨';
 
   @override
   String batchAddedToDownloadQueue(Object count) {
-    return '已将 $count 首歌曲加入下载队列';
+    return '$count곡을 다운로드 큐에 추가했습니다';
   }
 
   @override
-  String get downloadFolder => '下载保存位置';
+  String get downloadFolder => '다운로드 저장 위치';
 
   @override
-  String get downloadAllAudio => '下载文件夹内所有音频';
+  String get downloadAllAudio => '폴더 내 모든 오디오 다운로드';
 
   @override
-  String get starredSongs => '我喜欢的音乐';
+  String get starredSongs => '좋아요 표시한 음악';
 
   @override
-  String get starredSongsDesc => 'Navidrome 服务端已收藏歌曲';
+  String get starredSongsDesc => 'Navidrome 서버의 즐겨찾기 곡';
 
   @override
-  String get starredArtists => '已收藏歌手';
+  String get starredArtists => '즐겨찾는 아티스트';
+
+  @override
+  String get shuffleAlbumOrder => '앨범 순서 셔플';
+
+  @override
+  String get threeDView => '3D 뷰';
+
+  @override
+  String receiveFailed(Object fileName) {
+    return '\"$fileName\" 수신 실패';
+  }
+
+  @override
+  String get quickPresets => '빠른 사전 설정';
+
+  @override
+  String get presetStandard => '100% 기본';
+
+  @override
+  String get presetModerate => '125% 중간';
+
+  @override
+  String get presetCarRecommended => '135% 차량용 추천';
+
+  @override
+  String get presetLarge => '150% 크게';
+
+  @override
+  String get safFallbackScanningNotice =>
+      '(미디어 권한이 부여되지 않아 SAF 호환 스캔을 사용 중입니다. 속도가 느릴 수 있습니다)';
+
+  @override
+  String get justNow => '방금 전';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '$minutes분 전';
+  }
+
+  @override
+  String todayTime(Object time) {
+    return '오늘 $time';
+  }
+
+  @override
+  String yesterdayTime(Object time) {
+    return '어제 $time';
+  }
 }

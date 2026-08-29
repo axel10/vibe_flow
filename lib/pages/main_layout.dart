@@ -910,6 +910,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     // Listen for small window mode transitions
     ref.listen<
       ({bool isSmallMode, SmallWindowBottomPanelMode bottomPanelMode})
@@ -1087,7 +1088,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
           SnackBar(
             content: Text(next),
             action: SnackBarAction(
-              label: '去设置',
+              label: l10n.goToSettings,
               onPressed: () {
                 _onDestinationSelected(4);
               },
@@ -1131,8 +1132,8 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         if (isFinished) {
           final isSuccess = session.status == TransferStatus.success;
           final text = isSuccess
-              ? '成功接收了 ${session.completedFilesCount ?? session.filesCount ?? 1} 首歌曲'
-              : '接收 "${session.fileName}" 失败';
+              ? l10n.receiveCompleted(session.completedFilesCount ?? session.filesCount ?? 1)
+              : l10n.receiveFailed(session.fileName);
 
           AppSnackBar.show(context, ref, SnackBar(content: Text(text)));
         }

@@ -1483,7 +1483,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tagCompletionDescription => '根据 AcoustID 和 MusicBrainz 结果匹配标签';
 
   @override
-  String get goToSettings => '去设置页';
+  String get goToSettings => '去设置';
 
   @override
   String get searchReleaseTitles => '搜索 release 标题';
@@ -3903,6 +3903,53 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get starredArtists => '已收藏歌手';
+
+  @override
+  String get shuffleAlbumOrder => '随机打乱专辑顺序';
+
+  @override
+  String get threeDView => '3D 视图';
+
+  @override
+  String receiveFailed(Object fileName) {
+    return '接收 \"$fileName\" 失败';
+  }
+
+  @override
+  String get quickPresets => '快捷预设';
+
+  @override
+  String get presetStandard => '100% 标准';
+
+  @override
+  String get presetModerate => '125% 适中';
+
+  @override
+  String get presetCarRecommended => '135% 车机推荐';
+
+  @override
+  String get presetLarge => '150% 大号';
+
+  @override
+  String get safFallbackScanningNotice => '（未授予媒体库权限，已启用存储访问框架进行兼容扫描，速度可能较慢）';
+
+  @override
+  String get justNow => '刚刚';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '$minutes分钟前';
+  }
+
+  @override
+  String todayTime(Object time) {
+    return '今天 $time';
+  }
+
+  @override
+  String yesterdayTime(Object time) {
+    return '昨天 $time';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -5384,7 +5431,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get tagCompletionDescription => '根據 AcoustID 和 MusicBrainz 結果比對標籤';
 
   @override
-  String get goToSettings => '前往設定頁';
+  String get goToSettings => '前往設定';
 
   @override
   String get searchReleaseTitles => '搜尋 release 標題';
@@ -7619,5 +7666,236 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
+  String get tabLanSharing => '區域網路互傳 & 遙控';
+
+  @override
+  String get tabCloudServers => '雲端媒體庫';
+
+  @override
+  String get addRemoteServer => '新增媒體伺服器';
+
+  @override
+  String get editRemoteServer => '編輯媒體伺服器';
+
+  @override
+  String get serverName => '伺服器名稱';
+
+  @override
+  String get serverNameAlreadyExists => '伺服器名稱已存在，請使用其他名稱';
+
+  @override
+  String get serverType => '服務類型';
+
+  @override
+  String get serverUrl => '伺服器位址 (URL)';
+
+  @override
+  String get serverUsername => '使用者名稱';
+
+  @override
+  String get serverPassword => '密碼 / Token';
+
+  @override
+  String get customPath => '自訂路徑 (選填)';
+
+  @override
+  String get maxBitRate => '轉碼位元速率限制 (kbps)';
+
+  @override
+  String get ignoreSsl => '忽略 SSL 憑證檢查';
+
+  @override
+  String get connectionSuccess => '連線成功';
+
+  @override
+  String get connectionFailed => '連線失敗';
+
+  @override
+  String get noRemoteServers => '尚未新增媒體伺服器';
+
+  @override
+  String get noRemoteServersDesc =>
+      '新增 Navidrome (Subsonic) 或 WebDAV 伺服器，暢享自建私有雲音樂';
+
+  @override
+  String get browseServer => '瀏覽';
+
+  @override
+  String get manageServer => '管理';
+
+  @override
+  String get deleteServerConfirm => '確定要刪除此媒體伺服器連線嗎？';
+
+  @override
   String get remoteSongCannotEditTags => '遠端歌曲無法修改標籤';
+
+  @override
+  String get addToServerPlaylist => '新增至伺服器播放清單';
+
+  @override
+  String get addToLocalPlaylist => '新增至本地播放清單';
+
+  @override
+  String get serverPlaylists => '伺服器播放清單';
+
+  @override
+  String get localPlaylists => '本地播放清單';
+
+  @override
+  String get createNewServerPlaylist => '建立伺服器播放清單';
+
+  @override
+  String get downloadSong => '下載歌曲';
+
+  @override
+  String get downloadAlbum => '下載整張專輯';
+
+  @override
+  String get downloadArtist => '下載演出者全部歌曲';
+
+  @override
+  String downloadStarted(Object title) {
+    return '正在下載: $title';
+  }
+
+  @override
+  String downloadCompleted(Object title) {
+    return '已儲存至本地音樂庫: $title';
+  }
+
+  @override
+  String downloadFailed(Object error) {
+    return '下載失敗: $error';
+  }
+
+  @override
+  String get alreadyDownloaded => '此歌曲已存在於本地音樂庫';
+
+  @override
+  String get starItem => '加入伺服器最愛';
+
+  @override
+  String get unstarItem => '取消伺服器最愛';
+
+  @override
+  String get starredSuccess => '已加入伺服器最愛';
+
+  @override
+  String get unstarredSuccess => '已取消伺服器最愛';
+
+  @override
+  String batchDownloadStarted(Object count) {
+    return '正在背景下載 $count 首歌曲...';
+  }
+
+  @override
+  String batchDownloadCompleted(Object count) {
+    return '已下載 $count 首歌曲至本地音樂庫';
+  }
+
+  @override
+  String get viewAlbum => '查看專輯';
+
+  @override
+  String get viewArtist => '查看演出者';
+
+  @override
+  String get downloadManager => '下載管理';
+
+  @override
+  String get downloadingTab => '正在下載';
+
+  @override
+  String get completedTab => '已完成';
+
+  @override
+  String get pauseAll => '全部暫停';
+
+  @override
+  String get resumeAll => '全部繼續';
+
+  @override
+  String get cancelAll => '全部取消';
+
+  @override
+  String get clearCompleted => '清除記錄';
+
+  @override
+  String get noActiveDownloads => '目前沒有正在進行的下載任務';
+
+  @override
+  String get noCompletedDownloads => '尚無已完成的下載記錄';
+
+  @override
+  String get viewDownloadProgress => '查看進度';
+
+  @override
+  String get addedToDownloadQueue => '已加入下載佇列';
+
+  @override
+  String batchAddedToDownloadQueue(Object count) {
+    return '已將 $count 首歌曲加入下載佇列';
+  }
+
+  @override
+  String get downloadFolder => '下載儲存位置';
+
+  @override
+  String get downloadAllAudio => '下載資料夾內所有音訊';
+
+  @override
+  String get starredSongs => '我喜愛的音樂';
+
+  @override
+  String get starredSongsDesc => 'Navidrome 伺服器已收藏歌曲';
+
+  @override
+  String get starredArtists => '已收藏歌手';
+
+  @override
+  String get shuffleAlbumOrder => '隨機打亂專輯順序';
+
+  @override
+  String get threeDView => '3D 檢視';
+
+  @override
+  String receiveFailed(Object fileName) {
+    return '接收「$fileName」失敗';
+  }
+
+  @override
+  String get quickPresets => '快速預設';
+
+  @override
+  String get presetStandard => '100% 標準';
+
+  @override
+  String get presetModerate => '125% 適中';
+
+  @override
+  String get presetCarRecommended => '135% 車載推薦';
+
+  @override
+  String get presetLarge => '150% 特大';
+
+  @override
+  String get safFallbackScanningNotice => '（未授予媒體庫權限，已啟用儲存存取架構進行相容掃描，速度可能較慢）';
+
+  @override
+  String get justNow => '剛剛';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '$minutes分鐘前';
+  }
+
+  @override
+  String todayTime(Object time) {
+    return '今天 $time';
+  }
+
+  @override
+  String yesterdayTime(Object time) {
+    return '昨天 $time';
+  }
 }

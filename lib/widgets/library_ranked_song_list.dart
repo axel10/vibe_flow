@@ -768,18 +768,18 @@ String formatRelativeInsightDate(BuildContext context, int? millis) {
   final date = DateTime.fromMillisecondsSinceEpoch(millis);
   final now = DateTime.now();
   final difference = now.difference(date);
+  final l10n = AppLocalizations.of(context);
 
-  final isZh = Localizations.localeOf(context).languageCode == 'zh';
   if (difference.inSeconds < 60 && difference.inSeconds >= 0) {
-    return isZh ? '刚刚' : 'Just now';
+    return l10n?.justNow ?? 'Just now';
   } else if (difference.inMinutes < 60 && difference.inMinutes >= 1) {
-    return isZh ? '${difference.inMinutes}分钟前' : '${difference.inMinutes}m ago';
+    return l10n?.minutesAgo(difference.inMinutes) ?? '${difference.inMinutes}m ago';
   } else if (difference.inHours < 24 && difference.inHours >= 1 && now.day == date.day) {
     final timeStr = DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(date);
-    return isZh ? '今天 $timeStr' : 'Today $timeStr';
+    return l10n?.todayTime(timeStr) ?? 'Today $timeStr';
   } else if (now.year == date.year && now.subtract(const Duration(days: 1)).day == date.day && now.subtract(const Duration(days: 1)).month == date.month) {
     final timeStr = DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(date);
-    return isZh ? '昨天 $timeStr' : 'Yesterday $timeStr';
+    return l10n?.yesterdayTime(timeStr) ?? 'Yesterday $timeStr';
   } else if (now.year == date.year) {
     return DateFormat.MMMd(Localizations.localeOf(context).toLanguageTag()).format(date);
   } else {

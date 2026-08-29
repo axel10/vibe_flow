@@ -1191,7 +1191,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      '快捷预设 / Presets',
+                      l10n.quickPresets,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
                           ),
@@ -1202,7 +1202,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       runSpacing: 6,
                       children: [
                         ChoiceChip(
-                          label: const Text('100% 标准'),
+                          label: Text(l10n.presetStandard),
                           selected: (tempScale - 1.0).abs() < 0.01,
                           onSelected: (selected) {
                             if (selected) {
@@ -1212,7 +1212,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text('125% 适中'),
+                          label: Text(l10n.presetModerate),
                           selected: (tempScale - 1.25).abs() < 0.01,
                           onSelected: (selected) {
                             if (selected) {
@@ -1222,7 +1222,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text('135% 车机推荐'),
+                          label: Text(l10n.presetCarRecommended),
                           selected: (tempScale - 1.35).abs() < 0.01,
                           onSelected: (selected) {
                             if (selected) {
@@ -1232,7 +1232,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           },
                         ),
                         ChoiceChip(
-                          label: const Text('150% 大号'),
+                          label: Text(l10n.presetLarge),
                           selected: (tempScale - 1.50).abs() < 0.01,
                           onSelected: (selected) {
                             if (selected) {

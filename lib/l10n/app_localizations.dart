@@ -2946,7 +2946,7 @@ abstract class AppLocalizations {
   /// No description provided for @goToSettings.
   ///
   /// In zh, this message translates to:
-  /// **'去设置页'**
+  /// **'去设置'**
   String get goToSettings;
 
   /// No description provided for @searchReleaseTitles.
@@ -7358,6 +7358,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'已收藏歌手'**
   String get starredArtists;
+
+  /// No description provided for @shuffleAlbumOrder.
+  ///
+  /// In zh, this message translates to:
+  /// **'随机打乱专辑顺序'**
+  String get shuffleAlbumOrder;
+
+  /// No description provided for @threeDView.
+  ///
+  /// In zh, this message translates to:
+  /// **'3D 视图'**
+  String get threeDView;
+
+  /// No description provided for @receiveFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'接收 \"{fileName}\" 失败'**
+  String receiveFailed(Object fileName);
+
+  /// No description provided for @quickPresets.
+  ///
+  /// In zh, this message translates to:
+  /// **'快捷预设'**
+  String get quickPresets;
+
+  /// No description provided for @presetStandard.
+  ///
+  /// In zh, this message translates to:
+  /// **'100% 标准'**
+  String get presetStandard;
+
+  /// No description provided for @presetModerate.
+  ///
+  /// In zh, this message translates to:
+  /// **'125% 适中'**
+  String get presetModerate;
+
+  /// No description provided for @presetCarRecommended.
+  ///
+  /// In zh, this message translates to:
+  /// **'135% 车机推荐'**
+  String get presetCarRecommended;
+
+  /// No description provided for @presetLarge.
+  ///
+  /// In zh, this message translates to:
+  /// **'150% 大号'**
+  String get presetLarge;
+
+  /// No description provided for @safFallbackScanningNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'（未授予媒体库权限，已启用存储访问框架进行兼容扫描，速度可能较慢）'**
+  String get safFallbackScanningNotice;
+
+  /// No description provided for @justNow.
+  ///
+  /// In zh, this message translates to:
+  /// **'刚刚'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In zh, this message translates to:
+  /// **'{minutes}分钟前'**
+  String minutesAgo(Object minutes);
+
+  /// No description provided for @todayTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天 {time}'**
+  String todayTime(Object time);
+
+  /// No description provided for @yesterdayTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'昨天 {time}'**
+  String yesterdayTime(Object time);
 }
 
 class _AppLocalizationsDelegate

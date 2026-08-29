@@ -4117,4 +4117,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get starredArtists => 'Starred Artists';
+
+  @override
+  String get shuffleAlbumOrder => 'Shuffle Album Order';
+
+  @override
+  String get threeDView => '3D View';
+
+  @override
+  String receiveFailed(Object fileName) {
+    return 'Failed to receive \"$fileName\"';
+  }
+
+  @override
+  String get quickPresets => 'Quick Presets';
+
+  @override
+  String get presetStandard => '100% Standard';
+
+  @override
+  String get presetModerate => '125% Moderate';
+
+  @override
+  String get presetCarRecommended => '135% In-Car Recommended';
+
+  @override
+  String get presetLarge => '150% Large';
+
+  @override
+  String get safFallbackScanningNotice =>
+      '(Media permission not granted, SAF fallback scanner enabled, scanning might be slower)';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String todayTime(Object time) {
+    return 'Today $time';
+  }
+
+  @override
+  String yesterdayTime(Object time) {
+    return 'Yesterday $time';
+  }
 }

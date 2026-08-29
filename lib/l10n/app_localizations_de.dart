@@ -3974,190 +3974,242 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get tabLanSharing => '局域网互传 & 遥控';
+  String get tabLanSharing => 'LAN-Freigabe & Fernbedienung';
 
   @override
-  String get tabCloudServers => '云端媒体库';
+  String get tabCloudServers => 'Cloud-Mediaserver';
 
   @override
-  String get addRemoteServer => '添加媒体服务器';
+  String get addRemoteServer => 'Mediaserver hinzufügen';
 
   @override
-  String get editRemoteServer => '编辑媒体服务器';
+  String get editRemoteServer => 'Mediaserver bearbeiten';
 
   @override
-  String get serverName => '服务器名称';
+  String get serverName => 'Servername';
 
   @override
-  String get serverNameAlreadyExists => '服务器名称已存在，请使用其他名称';
+  String get serverNameAlreadyExists =>
+      'Servername existiert bereits. Bitte wählen Sie einen anderen Namen.';
 
   @override
-  String get serverType => '服务类型';
+  String get serverType => 'Servertyp';
 
   @override
-  String get serverUrl => '服务器地址 (URL)';
+  String get serverUrl => 'Server-URL';
 
   @override
-  String get serverUsername => '用户名';
+  String get serverUsername => 'Benutzername';
 
   @override
-  String get serverPassword => '密码 / Token';
+  String get serverPassword => 'Passwort / Token';
 
   @override
-  String get customPath => '指定路径 (可选)';
+  String get customPath => 'Benutzerdefinierter Pfad (optional)';
 
   @override
-  String get maxBitRate => '转码码率限制 (kbps)';
+  String get maxBitRate => 'Max. Transkodierungsbitrate (kbps)';
 
   @override
-  String get ignoreSsl => '忽略 SSL 证书校验';
+  String get ignoreSsl => 'SSL-Zertifikatsfehler ignorieren';
 
   @override
-  String get connectionSuccess => '连接成功';
+  String get connectionSuccess => 'Erfolgreich verbunden';
 
   @override
-  String get connectionFailed => '连接失败';
+  String get connectionFailed => 'Verbindung fehlgeschlagen';
 
   @override
-  String get noRemoteServers => '暂无连接的媒体服务器';
+  String get noRemoteServers => 'Keine Mediaserver hinzugefügt';
 
   @override
   String get noRemoteServersDesc =>
-      '添加 Navidrome (Subsonic) 或 WebDAV 服务器，畅享自建私有云音乐';
+      'Fügen Sie Navidrome (Subsonic) oder WebDAV-Server hinzu, um Ihre private Cloud-Musik zu streamen';
 
   @override
-  String get browseServer => '浏览';
+  String get browseServer => 'Durchsuchen';
 
   @override
-  String get manageServer => '管理';
+  String get manageServer => 'Verwalten';
 
   @override
-  String get deleteServerConfirm => '确定要删除此媒体服务器连接吗？';
+  String get deleteServerConfirm =>
+      'Möchten Sie diese Mediaserver-Verbindung wirklich entfernen?';
 
   @override
   String get remoteSongCannotEditTags =>
       'Tags von Remote-Titeln können nicht geändert werden';
 
   @override
-  String get addToServerPlaylist => '添加到服务端歌单';
+  String get addToServerPlaylist => 'Zur Server-Wiedergabeliste hinzufügen';
 
   @override
-  String get addToLocalPlaylist => '添加到本地歌单';
+  String get addToLocalPlaylist => 'Zur lokalen Wiedergabeliste hinzufügen';
 
   @override
-  String get serverPlaylists => '服务端歌单';
+  String get serverPlaylists => 'Server-Wiedergabelisten';
 
   @override
-  String get localPlaylists => '本地歌单';
+  String get localPlaylists => 'Lokale Wiedergabelisten';
 
   @override
-  String get createNewServerPlaylist => '新建服务端歌单';
+  String get createNewServerPlaylist => 'Server-Wiedergabeliste erstellen';
 
   @override
-  String get downloadSong => '下载歌曲';
+  String get downloadSong => 'Titel herunterladen';
 
   @override
-  String get downloadAlbum => '下载整张专辑';
+  String get downloadAlbum => 'Ganzes Album herunterladen';
 
   @override
-  String get downloadArtist => '下载艺术家全部歌曲';
+  String get downloadArtist => 'Alle Titel des Interpreten herunterladen';
 
   @override
   String downloadStarted(Object title) {
-    return '正在下载: $title';
+    return 'Wird heruntergeladen: $title';
   }
 
   @override
   String downloadCompleted(Object title) {
-    return '已保存至本地音乐库: $title';
+    return 'In lokaler Bibliothek gespeichert: $title';
   }
 
   @override
   String downloadFailed(Object error) {
-    return '下载失败: $error';
+    return 'Download fehlgeschlagen: $error';
   }
 
   @override
-  String get alreadyDownloaded => '该歌曲已在本地音乐库中存在';
+  String get alreadyDownloaded =>
+      'Dieser Titel existiert bereits in der lokalen Bibliothek';
 
   @override
-  String get starItem => '加入服务端收藏';
+  String get starItem => 'Auf Server als Favorit markieren';
 
   @override
-  String get unstarItem => '取消服务端收藏';
+  String get unstarItem => 'Vom Server-Favoriten entfernen';
 
   @override
-  String get starredSuccess => '已加入服务端收藏';
+  String get starredSuccess => 'Zu Server-Favoriten hinzugefügt';
 
   @override
-  String get unstarredSuccess => '已取消服务端收藏';
+  String get unstarredSuccess => 'Aus Server-Favoriten entfernt';
 
   @override
   String batchDownloadStarted(Object count) {
-    return '正在后台下载 $count 首歌曲...';
+    return '$count Titel werden im Hintergrund heruntergeladen...';
   }
 
   @override
   String batchDownloadCompleted(Object count) {
-    return '已下载 $count 首歌曲到本地音乐库';
+    return '$count Titel in die lokale Bibliothek heruntergeladen';
   }
 
   @override
-  String get viewAlbum => '查看专辑';
+  String get viewAlbum => 'Album anzeigen';
 
   @override
-  String get viewArtist => '查看艺术家';
+  String get viewArtist => 'Interpret anzeigen';
 
   @override
-  String get downloadManager => '下载管理';
+  String get downloadManager => 'Download-Manager';
 
   @override
-  String get downloadingTab => '正在下载';
+  String get downloadingTab => 'Wird heruntergeladen';
 
   @override
-  String get completedTab => '已完成';
+  String get completedTab => 'Abgeschlossen';
 
   @override
-  String get pauseAll => '全部暂停';
+  String get pauseAll => 'Alle pausieren';
 
   @override
-  String get resumeAll => '全部继续';
+  String get resumeAll => 'Alle fortsetzen';
 
   @override
-  String get cancelAll => '全部取消';
+  String get cancelAll => 'Alle abbrechen';
 
   @override
-  String get clearCompleted => '清空记录';
+  String get clearCompleted => 'Verlauf löschen';
 
   @override
-  String get noActiveDownloads => '没有正在进行的下载任务';
+  String get noActiveDownloads => 'Keine aktiven Downloads';
 
   @override
-  String get noCompletedDownloads => '暂无已完成的下载记录';
+  String get noCompletedDownloads =>
+      'Keine abgeschlossenen Downloads vorhanden';
 
   @override
-  String get viewDownloadProgress => '查看进度';
+  String get viewDownloadProgress => 'Fortschritt anzeigen';
 
   @override
-  String get addedToDownloadQueue => '已加入下载队列';
+  String get addedToDownloadQueue => 'Zur Download-Warteschlange hinzugefügt';
 
   @override
   String batchAddedToDownloadQueue(Object count) {
-    return '已将 $count 首歌曲加入下载队列';
+    return '$count Titel zur Download-Warteschlange hinzugefügt';
   }
 
   @override
-  String get downloadFolder => '下载保存位置';
+  String get downloadFolder => 'Download-Speicherort';
 
   @override
-  String get downloadAllAudio => '下载文件夹内所有音频';
+  String get downloadAllAudio => 'Alle Audiodateien im Ordner herunterladen';
 
   @override
-  String get starredSongs => '我喜欢的音乐';
+  String get starredSongs => 'Lieblingslieder';
 
   @override
-  String get starredSongsDesc => 'Navidrome 服务端已收藏歌曲';
+  String get starredSongsDesc => 'Favorisierte Titel auf dem Navidrome-Server';
 
   @override
-  String get starredArtists => '已收藏歌手';
+  String get starredArtists => 'Favorisierte Interpreten';
+
+  @override
+  String get shuffleAlbumOrder => 'Album-Reihenfolge mischen';
+
+  @override
+  String get threeDView => '3D-Ansicht';
+
+  @override
+  String receiveFailed(Object fileName) {
+    return 'Empfangen von \"$fileName\" fehlgeschlagen';
+  }
+
+  @override
+  String get quickPresets => 'Schnellvoreinstellungen';
+
+  @override
+  String get presetStandard => '100% Standard';
+
+  @override
+  String get presetModerate => '125% Moderat';
+
+  @override
+  String get presetCarRecommended => '135% Für Fahrzeuge empfohlen';
+
+  @override
+  String get presetLarge => '150% Groß';
+
+  @override
+  String get safFallbackScanningNotice =>
+      '(Medienberechtigung nicht erteilt, SAF-Kompatibilitätsscan aktiviert, Scan kann langsamer sein)';
+
+  @override
+  String get justNow => 'Gerade eben';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return 'Vor $minutes Min.';
+  }
+
+  @override
+  String todayTime(Object time) {
+    return 'Heute $time';
+  }
+
+  @override
+  String yesterdayTime(Object time) {
+    return 'Gestern $time';
+  }
 }

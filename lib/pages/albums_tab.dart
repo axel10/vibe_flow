@@ -987,7 +987,6 @@ class _AlbumsToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isZh = Localizations.localeOf(context).languageCode == 'zh';
 
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1052,14 +1051,12 @@ class _AlbumsToolbar extends StatelessWidget {
       children: [
         if (is3DView)
           IconButton(
-            tooltip: isZh ? '随机打乱专辑顺序' : 'Shuffle Album Order',
+            tooltip: l10n.shuffleAlbumOrder,
             onPressed: onShufflePressed,
             icon: const Icon(Icons.shuffle_rounded),
           ),
         IconButton(
-          tooltip: is3DView
-              ? (isZh ? '网格视图' : 'Grid View')
-              : (isZh ? '3D 视图' : '3D View'),
+          tooltip: is3DView ? l10n.gridView : l10n.threeDView,
           onPressed: onViewModeToggled,
           icon: Icon(
             is3DView ? Icons.grid_view_rounded : Icons.view_carousel_rounded,
@@ -1640,11 +1637,7 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                         );
                                       },
                                       icon: const Icon(Icons.album_rounded),
-                                      label: Text(
-                                        Localizations.localeOf(context).languageCode == 'zh'
-                                            ? '查看详情'
-                                            : 'Details',
-                                      ),
+                                      label: Text(l10n.viewAlbumDetails),
                                     ),
                                   ],
                                 ],
