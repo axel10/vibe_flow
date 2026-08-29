@@ -323,6 +323,7 @@ class _NavidromeAlbumDetailPageState
                             : null;
 
                         return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onSecondaryTapDown: (details) {
                             showRemoteSongContextMenu(
                               context: context,
@@ -348,14 +349,10 @@ class _NavidromeAlbumDetailPageState
                               },
                             );
                           },
-                          onLongPress: () {
-                            final renderBox = context.findRenderObject() as RenderBox?;
-                            final offset = renderBox != null
-                                ? renderBox.localToGlobal(Offset.zero)
-                                : Offset.zero;
+                          onLongPressStart: (details) {
                             showRemoteSongContextMenu(
                               context: context,
-                              globalPosition: offset,
+                              globalPosition: details.globalPosition,
                               ref: ref,
                               server: widget.server,
                               password: widget.password,
@@ -464,40 +461,42 @@ class _NavidromeAlbumDetailPageState
                                           ),
                                         ],
                                         const SizedBox(width: 4),
-                                        IconButton(
-                                          icon: const Icon(Icons.more_vert_rounded, size: 18),
-                                          visualDensity: VisualDensity.compact,
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                          onPressed: () {
-                                            final renderBox = context.findRenderObject() as RenderBox?;
-                                            final offset = renderBox != null
-                                                ? renderBox.localToGlobal(Offset.zero)
-                                                : Offset.zero;
-                                            showRemoteSongContextMenu(
-                                              context: context,
-                                              globalPosition: offset,
-                                              ref: ref,
-                                              server: widget.server,
-                                              password: widget.password,
-                                              song: song,
-                                              playlist: _tracks,
-                                              onViewArtist: () {
-                                                if (song.artist != null && song.artist!.isNotEmpty) {
-                                                  Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                      builder: (_) => NavidromeArtistDetailPage(
-                                                        server: widget.server,
-                                                        password: widget.password,
-                                                        artistId: '',
-                                                        artistName: song.artist!,
+                                        Builder(
+                                          builder: (btnContext) => IconButton(
+                                            icon: const Icon(Icons.more_vert_rounded, size: 18),
+                                            visualDensity: VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                            onPressed: () {
+                                              final renderBox = btnContext.findRenderObject() as RenderBox?;
+                                              final offset = renderBox != null
+                                                  ? renderBox.localToGlobal(Offset.zero)
+                                                  : Offset.zero;
+                                              showRemoteSongContextMenu(
+                                                context: context,
+                                                globalPosition: offset,
+                                                ref: ref,
+                                                server: widget.server,
+                                                password: widget.password,
+                                                song: song,
+                                                playlist: _tracks,
+                                                onViewArtist: () {
+                                                  if (song.artist != null && song.artist!.isNotEmpty) {
+                                                    Navigator.of(context).push(
+                                                      MaterialPageRoute(
+                                                        builder: (_) => NavidromeArtistDetailPage(
+                                                          server: widget.server,
+                                                          password: widget.password,
+                                                          artistId: '',
+                                                          artistName: song.artist!,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                            );
-                                          },
+                                                    );
+                                                  }
+                                                },
+                                              );
+                                            },
+                                          ),
                                         ),
                                       ],
                                     ),

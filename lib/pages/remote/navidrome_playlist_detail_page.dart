@@ -969,43 +969,45 @@ class _NavidromePlaylistDetailContentState
                                 ),
 
                                 // More options
-                                IconButton(
-                                  iconSize: 18,
-                                  visualDensity: VisualDensity.compact,
-                                  icon: const Icon(Icons.more_vert_rounded),
-                                  onPressed: () {
-                                    final renderBox =
-                                        context.findRenderObject() as RenderBox?;
-                                    final offset = renderBox?.localToGlobal(
-                                          Offset.zero,
-                                        ) ??
-                                        Offset.zero;
-                                    showRemoteSongContextMenu(
-                                      context: context,
-                                      globalPosition: offset,
-                                      ref: ref,
-                                      server: widget.server,
-                                      password: widget.password,
-                                      song: song,
-                                      playlist: _tracks,
-                                      onRemoveFromPlaylist: () => _removeTrackAt(index),
-                                      onViewArtist: () {
-                                        if (song.artist != null && song.artist!.isNotEmpty) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => NavidromeArtistDetailPage(
-                                                server: widget.server,
-                                                password: widget.password,
-                                                artistId: '',
-                                                artistName: song.artist!,
+                                Builder(
+                                  builder: (btnContext) => IconButton(
+                                    iconSize: 18,
+                                    visualDensity: VisualDensity.compact,
+                                    icon: const Icon(Icons.more_vert_rounded),
+                                    onPressed: () {
+                                      final renderBox =
+                                          btnContext.findRenderObject() as RenderBox?;
+                                      final offset = renderBox?.localToGlobal(
+                                            Offset.zero,
+                                          ) ??
+                                          Offset.zero;
+                                      showRemoteSongContextMenu(
+                                        context: context,
+                                        globalPosition: offset,
+                                        ref: ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        song: song,
+                                        playlist: _tracks,
+                                        onRemoveFromPlaylist: () => _removeTrackAt(index),
+                                        onViewArtist: () {
+                                          if (song.artist != null && song.artist!.isNotEmpty) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => NavidromeArtistDetailPage(
+                                                  server: widget.server,
+                                                  password: widget.password,
+                                                  artistId: '',
+                                                  artistName: song.artist!,
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    );
-                                  },
+                                            );
+                                          }
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ],
                             ),

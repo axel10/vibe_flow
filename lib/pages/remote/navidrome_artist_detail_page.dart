@@ -577,6 +577,7 @@ class _NavidromeArtistDetailContentState
             children: [
               // Section Header
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onSecondaryTapDown: (details) {
                   showRemoteAlbumContextMenu(
                     context: context,
@@ -605,14 +606,10 @@ class _NavidromeArtistDetailContentState
                     },
                   );
                 },
-                onLongPress: () {
-                  final renderBox = context.findRenderObject() as RenderBox?;
-                  final offset = renderBox != null
-                      ? renderBox.localToGlobal(Offset.zero)
-                      : Offset.zero;
+                onLongPressStart: (details) {
                   showRemoteAlbumContextMenu(
                     context: context,
-                    globalPosition: offset,
+                    globalPosition: details.globalPosition,
                     ref: ref,
                     server: widget.server,
                     password: widget.password,
@@ -813,14 +810,9 @@ class _NavidromeArtistDetailContentState
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) => openContextMenu(details.globalPosition),
-      onLongPress: () {
-        final renderBox = context.findRenderObject() as RenderBox?;
-        final offset = renderBox != null
-            ? renderBox.localToGlobal(Offset.zero)
-            : Offset.zero;
-        openContextMenu(offset);
-      },
+      onLongPressStart: (details) => openContextMenu(details.globalPosition),
       child: Material(
         color: isPlaying
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
@@ -884,18 +876,20 @@ class _NavidromeArtistDetailContentState
                   ),
                 ],
                 const SizedBox(width: 4),
-                IconButton(
-                  icon: const Icon(Icons.more_vert_rounded, size: 18),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                  onPressed: () {
-                    final renderBox = context.findRenderObject() as RenderBox?;
-                    final offset = renderBox != null
-                        ? renderBox.localToGlobal(Offset.zero)
-                        : Offset.zero;
-                    openContextMenu(offset);
-                  },
+                Builder(
+                  builder: (btnContext) => IconButton(
+                    icon: const Icon(Icons.more_vert_rounded, size: 18),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    onPressed: () {
+                      final renderBox = btnContext.findRenderObject() as RenderBox?;
+                      final offset = renderBox != null
+                          ? renderBox.localToGlobal(Offset.zero)
+                          : Offset.zero;
+                      openContextMenu(offset);
+                    },
+                  ),
                 ),
               ],
             ),

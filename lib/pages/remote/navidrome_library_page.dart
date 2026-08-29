@@ -728,6 +728,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               final year = album['year'] as int?;
 
                               return GestureDetector(
+                                behavior: HitTestBehavior.opaque,
                                 onSecondaryTapDown: (details) {
                                   showRemoteAlbumContextMenu(
                                     context: context,
@@ -755,14 +756,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                     },
                                   );
                                 },
-                                onLongPress: () {
-                                  final renderBox = context.findRenderObject() as RenderBox?;
-                                  final offset = renderBox != null
-                                      ? renderBox.localToGlobal(Offset.zero)
-                                      : Offset.zero;
+                                onLongPressStart: (details) {
                                   showRemoteAlbumContextMenu(
                                     context: context,
-                                    globalPosition: offset,
+                                    globalPosition: details.globalPosition,
                                     ref: ref,
                                     server: widget.server,
                                     password: widget.password,
@@ -1261,6 +1258,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) {
         showRemoteArtistContextMenu(
           context: context,
@@ -1273,14 +1271,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           onViewDetails: onTap,
         );
       },
-      onLongPress: () {
-        final renderBox = context.findRenderObject() as RenderBox?;
-        final offset = renderBox != null
-            ? renderBox.localToGlobal(Offset.zero)
-            : Offset.zero;
+      onLongPressStart: (details) {
         showRemoteArtistContextMenu(
           context: context,
-          globalPosition: offset,
+          globalPosition: details.globalPosition,
           ref: ref,
           server: widget.server,
           password: widget.password,
@@ -1635,6 +1629,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) {
         showRemotePlaylistContextMenu(
           context: context,
@@ -1649,14 +1644,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           onDelete: () => _loadPlaylists(),
         );
       },
-      onLongPress: () {
-        final renderBox = context.findRenderObject() as RenderBox?;
-        final offset = renderBox != null
-            ? renderBox.localToGlobal(Offset.zero)
-            : Offset.zero;
+      onLongPressStart: (details) {
         showRemotePlaylistContextMenu(
           context: context,
-          globalPosition: offset,
+          globalPosition: details.globalPosition,
           ref: ref,
           server: widget.server,
           password: widget.password,
@@ -1806,6 +1797,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                       for (final artist in _searchedArtists)
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onSecondaryTapDown: (details) {
                             showRemoteArtistContextMenu(
                               context: context,
@@ -1831,14 +1823,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               },
                             );
                           },
-                          onLongPress: () {
-                            final renderBox = context.findRenderObject() as RenderBox?;
-                            final offset = renderBox != null
-                                ? renderBox.localToGlobal(Offset.zero)
-                                : Offset.zero;
+                          onLongPressStart: (details) {
                             showRemoteArtistContextMenu(
                               context: context,
-                              globalPosition: offset,
+                              globalPosition: details.globalPosition,
                               ref: ref,
                               server: widget.server,
                               password: widget.password,
@@ -1915,6 +1903,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               width: 100,
                               margin: const EdgeInsets.only(right: 12),
                               child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
                                 onSecondaryTapDown: (details) {
                                   showRemoteAlbumContextMenu(
                                     context: context,
@@ -1941,14 +1930,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                     },
                                   );
                                 },
-                                onLongPress: () {
-                                  final renderBox = context.findRenderObject() as RenderBox?;
-                                  final offset = renderBox != null
-                                      ? renderBox.localToGlobal(Offset.zero)
-                                      : Offset.zero;
+                                onLongPressStart: (details) {
                                   showRemoteAlbumContextMenu(
                                     context: context,
-                                    globalPosition: offset,
+                                    globalPosition: details.globalPosition,
                                     ref: ref,
                                     server: widget.server,
                                     password: widget.password,
@@ -2021,6 +2006,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                       for (final song in _searchedSongs)
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onSecondaryTapDown: (details) {
                             showRemoteSongContextMenu(
                               context: context,
@@ -2031,14 +2017,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               song: song,
                             );
                           },
-                          onLongPress: () {
-                            final renderBox = context.findRenderObject() as RenderBox?;
-                            final offset = renderBox != null
-                                ? renderBox.localToGlobal(Offset.zero)
-                                : Offset.zero;
+                          onLongPressStart: (details) {
                             showRemoteSongContextMenu(
                               context: context,
-                              globalPosition: offset,
+                              globalPosition: details.globalPosition,
                               ref: ref,
                               server: widget.server,
                               password: widget.password,
