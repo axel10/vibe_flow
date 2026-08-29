@@ -615,7 +615,27 @@ class SharingService {
     }
   }
 
+  Future<bool>? _startFuture;
+
   Future<bool> start() async {
+    if (_httpServer != null) {
+      return true;
+    }
+    if (_startFuture != null) {
+      return _startFuture!;
+    }
+    final future = _startInternal();
+    _startFuture = future;
+    try {
+      return await future;
+    } finally {
+      if (_startFuture == future) {
+        _startFuture = null;
+      }
+    }
+  }
+
+  Future<bool> _startInternal() async {
     await init();
     await _cleanObsoleteIosPaths();
 

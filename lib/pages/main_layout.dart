@@ -1186,6 +1186,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     });
 
     ref.listen<bool>(isProUnlockedProvider, (previous, isUnlocked) {
+      if (previous == isUnlocked) return;
       final serverState = ref.read(sharingServerStateProvider);
       final lanEnabled = ref.read(settingsServiceProvider).lanSharingEnabled;
       if (!isUnlocked) {

@@ -41,29 +41,36 @@ class SharingServerState {
 }
 
 class SharingServerStateNotifier extends Notifier<SharingServerState> {
+  bool _isStarting = false;
+
   @override
   SharingServerState build() {
     return SharingServerState(isRunning: false);
   }
 
   Future<void> start() async {
-    if (state.isRunning) return;
+    if (state.isRunning || _isStarting) return;
     final isProUnlocked = ref.read(isProUnlockedProvider);
     if (!isProUnlocked) return;
-    final service = ref.read(sharingServiceProvider);
-    final started = await service.start();
-    if (!started) {
-      return;
+    _isStarting = true;
+    try {
+      final service = ref.read(sharingServiceProvider);
+      final started = await service.start();
+      if (!started) {
+        return;
+      }
+      state = SharingServerState(
+        isRunning: true,
+        localIp: service.localIp,
+        httpPort: service.httpPort,
+      );
+    } finally {
+      _isStarting = false;
     }
-    state = SharingServerState(
-      isRunning: true,
-      localIp: service.localIp,
-      httpPort: service.httpPort,
-    );
   }
 
   Future<void> stop() async {
-    if (!state.isRunning) return;
+    if (!state.isRunning && !_isStarting) return;
     final service = ref.read(sharingServiceProvider);
     await service.stop();
     state = SharingServerState(isRunning: false);
