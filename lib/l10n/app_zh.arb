@@ -2374,6 +2374,9 @@
   "viewDownloadProgress": "查看进度",
   "addedToDownloadQueue": "已加入下载队列",
   "batchAddedToDownloadQueue": "已将 {count} 首歌曲加入下载队列",
-  "downloadFolder": "下载保存目录",
-  "downloadAllAudio": "下载本目录全部音频"
+  "downloadFolder": "下载保存位置",
+  "downloadAllAudio": "下载文件夹内所有音频",
+  "starredSongs": "我喜欢的音乐",
+  "starredSongsDesc": "Navidrome 服务端已收藏歌曲",
+  "starredArtists": "已收藏歌手"
 }

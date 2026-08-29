@@ -3956,8 +3956,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get downloadFolder => '下载保存目录';
+  String get downloadFolder => '下载保存位置';
 
   @override
-  String get downloadAllAudio => '下载本目录全部音频';
+  String get downloadAllAudio => '下载文件夹内所有音频';
+
+  @override
+  String get starredSongs => '我喜欢的音乐';
+
+  @override
+  String get starredSongsDesc => 'Navidrome 服务端已收藏歌曲';
+
+  @override
+  String get starredArtists => '已收藏歌手';
 }

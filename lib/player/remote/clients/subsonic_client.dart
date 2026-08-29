@@ -323,6 +323,56 @@ class SubsonicClient {
     return null;
   }
 
+  /// Fetches starred items (artists, albums, songs) using Subsonic getStarred2.view.
+  Future<Map<String, dynamic>> getStarred2({String? musicFolderId}) async {
+    final params = <String, dynamic>{};
+    if (musicFolderId != null) params['musicFolderId'] = musicFolderId;
+    try {
+      final url = buildUrl('getStarred2.view', params);
+      final response = await _dio.get<Map<String, dynamic>>(url);
+      final subsonic = response.data?['subsonic-response'];
+      final root = subsonic?['starred2'] ?? subsonic?['starred'];
+      if (root is Map<String, dynamic>) {
+        return root;
+      }
+    } catch (_) {
+      try {
+        final fallbackUrl = buildUrl('getStarred.view', params);
+        final response = await _dio.get<Map<String, dynamic>>(fallbackUrl);
+        final subsonic = response.data?['subsonic-response'];
+        final root = subsonic?['starred'] ?? subsonic?['starred2'];
+        if (root is Map<String, dynamic>) {
+          return root;
+        }
+      } catch (_) {}
+    }
+    return const {};
+  }
+
+  /// Fetches starred songs as a list of map entries.
+  Future<List<Map<String, dynamic>>> getStarredSongs() async {
+    final starred = await getStarred2();
+    final songs = starred['song'];
+    if (songs is List) {
+      return songs.whereType<Map<String, dynamic>>().toList();
+    } else if (songs is Map<String, dynamic>) {
+      return [songs];
+    }
+    return const [];
+  }
+
+  /// Fetches starred artists as a list of map entries.
+  Future<List<Map<String, dynamic>>> getStarredArtists() async {
+    final starred = await getStarred2();
+    final artists = starred['artist'];
+    if (artists is List) {
+      return artists.whereType<Map<String, dynamic>>().toList();
+    } else if (artists is Map<String, dynamic>) {
+      return [artists];
+    }
+    return const [];
+  }
+
   /// Searches across songs, albums, and artists.
   Future<Map<String, dynamic>> search(String query, {int artistCount = 20, int albumCount = 20, int songCount = 50}) async {
     final url = buildUrl('search3.view', {

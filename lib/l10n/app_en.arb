@@ -1667,5 +1667,8 @@
   "addedToDownloadQueue": "Added to download queue",
   "batchAddedToDownloadQueue": "Added {count} tracks to download queue",
   "downloadFolder": "Download Location",
-  "downloadAllAudio": "Download All Audio in Folder"
+  "downloadAllAudio": "Download All Audio in Folder",
+  "starredSongs": "Favorite Songs",
+  "starredSongsDesc": "Navidrome server starred tracks",
+  "starredArtists": "Starred Artists"
 }

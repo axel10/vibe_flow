@@ -7332,14 +7332,32 @@ abstract class AppLocalizations {
   /// No description provided for @downloadFolder.
   ///
   /// In zh, this message translates to:
-  /// **'下载保存目录'**
+  /// **'下载保存位置'**
   String get downloadFolder;
 
   /// No description provided for @downloadAllAudio.
   ///
   /// In zh, this message translates to:
-  /// **'下载本目录全部音频'**
+  /// **'下载文件夹内所有音频'**
   String get downloadAllAudio;
+
+  /// No description provided for @starredSongs.
+  ///
+  /// In zh, this message translates to:
+  /// **'我喜欢的音乐'**
+  String get starredSongs;
+
+  /// No description provided for @starredSongsDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'Navidrome 服务端已收藏歌曲'**
+  String get starredSongsDesc;
+
+  /// No description provided for @starredArtists.
+  ///
+  /// In zh, this message translates to:
+  /// **'已收藏歌手'**
+  String get starredArtists;
 }
 
 class _AppLocalizationsDelegate

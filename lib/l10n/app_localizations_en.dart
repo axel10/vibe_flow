@@ -4108,4 +4108,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get downloadAllAudio => 'Download All Audio in Folder';
+
+  @override
+  String get starredSongs => 'Favorite Songs';
+
+  @override
+  String get starredSongsDesc => 'Navidrome server starred tracks';
+
+  @override
+  String get starredArtists => 'Starred Artists';
 }

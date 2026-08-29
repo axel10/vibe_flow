@@ -14,6 +14,7 @@ import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/remote_artwork_widget.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/remote_context_menu_utils.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import 'navidrome_album_detail_page.dart';
@@ -62,12 +63,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   String _artistSearchQuery = '';
   bool _artistSortAsc = true;
   String _artistSortField = 'name'; // 'name' or 'albumCount'
+  bool _artistStarredOnly = false;
+  final Set<String> _starredArtistIds = {};
 
   // Playlists state
+  static const String _starredPlaylistId = '__navidrome_starred_songs__';
   bool _isLoadingPlaylists = false;
   List<Map<String, dynamic>> _playlists = [];
   String? _playlistsError;
-  String? _selectedPlaylistId;
+  String? _selectedPlaylistId = _starredPlaylistId;
   final TextEditingController _playlistSearchController =
       TextEditingController();
   String _playlistSearchQuery = '';
@@ -159,12 +163,30 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           _selectedArtistId = list.first['id'] as String?;
         }
       });
+      _fetchStarredArtists();
     } catch (e) {
       setState(() {
         _artistsError = e.toString();
         _isLoadingArtists = false;
       });
     }
+  }
+
+  Future<void> _fetchStarredArtists() async {
+    try {
+      final starredList = await _client.getStarredArtists();
+      final ids = starredList
+          .map((e) => e['id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      if (mounted) {
+        setState(() {
+          _starredArtistIds
+            ..clear()
+            ..addAll(ids);
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadPlaylists() async {
@@ -177,11 +199,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _playlists = list;
         _isLoadingPlaylists = false;
-        if ((_selectedPlaylistId == null ||
-                !list.any((p) => p['id'] == _selectedPlaylistId)) &&
-            list.isNotEmpty) {
-          _selectedPlaylistId = list.first['id'] as String?;
-        }
+        _selectedPlaylistId ??= _starredPlaylistId;
       });
     } catch (e) {
       setState(() {
@@ -197,33 +215,45 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   ) async {
     try {
       showToast('Loading playlist tracks...');
-      final pl = await _client.getPlaylist(playlistId);
-      final songList = pl?['entry'] as List?;
-      if (songList != null && songList.isNotEmpty) {
-        final List<MusicFile> tracks = [];
+      final List<MusicFile> tracks = [];
+      if (playlistId == _starredPlaylistId) {
+        final songList = await _client.getStarredSongs();
         for (final s in songList) {
-          if (s is Map<String, dynamic>) {
-            tracks.add(
-              RemoteMediaResolver.buildMusicFileFromSubsonic(s, widget.server),
-            );
-          }
-        }
-        if (tracks.isNotEmpty && mounted) {
-          final audio = ref.read(audioServiceProvider);
-          await audio.playPlaylist(
-            tracks,
-            source: PlaybackSource(
-              type: PlaybackSourceType.playlist,
-              id: 'remote-${widget.server.id}-$playlistId',
-              name: playlistName,
-            ),
+          tracks.add(
+            RemoteMediaResolver.buildMusicFileFromSubsonic(s, widget.server),
           );
         }
       } else {
-        showToast('Playlist has no tracks');
+        final pl = await _client.getPlaylist(playlistId);
+        final songList = pl?['entry'] as List?;
+        if (songList != null && songList.isNotEmpty) {
+          for (final s in songList) {
+            if (s is Map<String, dynamic>) {
+              tracks.add(
+                RemoteMediaResolver.buildMusicFileFromSubsonic(s, widget.server),
+              );
+            }
+          }
+        }
+      }
+      if (tracks.isNotEmpty && mounted) {
+        final audio = ref.read(audioServiceProvider);
+        await audio.playPlaylist(
+          tracks,
+          source: PlaybackSource(
+            type: PlaybackSourceType.playlist,
+            id: 'remote-${widget.server.id}-$playlistId',
+            name: playlistName,
+          ),
+        );
+        showToast('Playing ${tracks.length} tracks');
+      } else if (mounted) {
+        showToast('Playlist is empty');
       }
     } catch (e) {
-      showToast('Error: $e');
+      if (mounted) {
+        showToast('Failed to play playlist: $e');
+      }
     }
   }
 
@@ -988,8 +1018,16 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       return const Center(child: Text('No artists found'));
     }
 
+    final l10n = AppLocalizations.of(context)!;
+
     // Filter & sort
     final filteredArtists = _artists.where((a) {
+      if (_artistStarredOnly) {
+        final id = a['id']?.toString() ?? '';
+        final isStarred =
+            a['starred'] != null || _starredArtistIds.contains(id);
+        if (!isStarred) return false;
+      }
       if (_artistSearchQuery.isEmpty) return true;
       final q = _artistSearchQuery.toLowerCase();
       final name = (a['name'] as String? ?? '').toLowerCase();
@@ -1050,7 +1088,38 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
+            FilterChip(
+              avatar: Icon(
+                _artistStarredOnly
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                size: 14,
+                color: _artistStarredOnly ? Colors.redAccent : null,
+              ),
+              label: Text(
+                l10n.starredArtists,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _artistStarredOnly ? Colors.redAccent : null,
+                ),
+              ),
+              selected: _artistStarredOnly,
+              onSelected: (selected) {
+                setState(() {
+                  _artistStarredOnly = selected;
+                  if (selected &&
+                      filteredArtists.isNotEmpty &&
+                      !filteredArtists.any((a) => a['id'] == _selectedArtistId)) {
+                    _selectedArtistId = filteredArtists.first['id'] as String?;
+                  }
+                });
+                if (selected && _starredArtistIds.isEmpty) {
+                  _fetchStarredArtists();
+                }
+              },
+            ),
+            const SizedBox(width: 8),
             ActionChip(
               avatar: Icon(
                 _artistSortAsc
@@ -1370,11 +1439,24 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       );
     }
 
-    final query = _playlistSearchQuery.toLowerCase().trim();
-    final filteredPlaylists = _playlists.where((pl) {
+    final l10n = AppLocalizations.of(context)!;
+    final starredPlaylist = {
+      'id': _starredPlaylistId,
+      'name': l10n.starredSongs,
+      'isStarred': true,
+      'comment': l10n.starredSongsDesc,
+    };
+
+    final List<Map<String, dynamic>> allPlaylists = [
+      starredPlaylist,
+      ..._playlists,
+    ];
+
+    final filteredPlaylists = allPlaylists.where((pl) {
+      if (_playlistSearchQuery.isEmpty) return true;
+      final q = _playlistSearchQuery.toLowerCase();
       final name = (pl['name'] as String? ?? '').toLowerCase();
-      final comment = (pl['comment'] as String? ?? '').toLowerCase();
-      return name.contains(query) || comment.contains(query);
+      return name.contains(q);
     }).toList();
 
     Widget buildPlaylistToolbar() {
@@ -1432,12 +1514,12 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       );
     }
 
-    if (_playlists.isEmpty) {
+    if (filteredPlaylists.isEmpty) {
       return Column(
         children: [
           buildPlaylistToolbar(),
           const Expanded(
-            child: Center(child: Text('No server playlists available')),
+            child: Center(child: Text('No playlists found')),
           ),
         ],
       );
@@ -1536,6 +1618,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                 selectedPlaylist['coverArt'] as String?,
                             songCount: selectedPlaylist['songCount'] as int?,
                             duration: selectedPlaylist['duration'] as int?,
+                            isStarred: selectedPlaylist['isStarred'] == true ||
+                                selectedPlaylist['id'] == _starredPlaylistId,
                             onPlaylistModified: _loadPlaylists,
                             onDeleted: () {
                               _loadPlaylists();
@@ -1594,6 +1678,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                           pl['coverArt'] as String?,
                                       songCount: pl['songCount'] as int?,
                                       duration: pl['duration'] as int?,
+                                      isStarred: pl['isStarred'] == true ||
+                                          pl['id'] == _starredPlaylistId,
                                       onPlaylistModified: _loadPlaylists,
                                     ),
                                   ),
@@ -1617,12 +1703,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     final name = playlist['name'] as String? ?? 'Playlist';
     final songCount = playlist['songCount'] as int? ?? 0;
     final durationSec = playlist['duration'] as int? ?? 0;
     final durationMin = durationSec ~/ 60;
     final coverArt = playlist['coverArt'] as String?;
     final playlistId = playlist['id'] as String? ?? '';
+    final isStarredItem =
+        playlist['isStarred'] == true || playlistId == _starredPlaylistId;
 
     final backgroundColor = isSelected
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
@@ -1630,34 +1719,38 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: (details) {
-        showRemotePlaylistContextMenu(
-          context: context,
-          globalPosition: details.globalPosition,
-          ref: ref,
-          server: widget.server,
-          password: widget.password,
-          playlistId: playlistId,
-          playlistName: name,
-          onViewDetails: onTap,
-          onRename: () => _loadPlaylists(),
-          onDelete: () => _loadPlaylists(),
-        );
-      },
-      onLongPressStart: (details) {
-        showRemotePlaylistContextMenu(
-          context: context,
-          globalPosition: details.globalPosition,
-          ref: ref,
-          server: widget.server,
-          password: widget.password,
-          playlistId: playlistId,
-          playlistName: name,
-          onViewDetails: onTap,
-          onRename: () => _loadPlaylists(),
-          onDelete: () => _loadPlaylists(),
-        );
-      },
+      onSecondaryTapDown: isStarredItem
+          ? null
+          : (details) {
+              showRemotePlaylistContextMenu(
+                context: context,
+                globalPosition: details.globalPosition,
+                ref: ref,
+                server: widget.server,
+                password: widget.password,
+                playlistId: playlistId,
+                playlistName: name,
+                onViewDetails: onTap,
+                onRename: () => _loadPlaylists(),
+                onDelete: () => _loadPlaylists(),
+              );
+            },
+      onLongPressStart: isStarredItem
+          ? null
+          : (details) {
+              showRemotePlaylistContextMenu(
+                context: context,
+                globalPosition: details.globalPosition,
+                ref: ref,
+                server: widget.server,
+                password: widget.password,
+                playlistId: playlistId,
+                playlistName: name,
+                onViewDetails: onTap,
+                onRename: () => _loadPlaylists(),
+                onDelete: () => _loadPlaylists(),
+              );
+            },
       child: Material(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
@@ -1673,34 +1766,54 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   child: SizedBox(
                     width: 46,
                     height: 46,
-                    child: coverArt != null && coverArt.isNotEmpty
-                        ? RemoteArtworkWidget(
-                            server: widget.server,
-                            password: widget.password,
-                            coverArtId: coverArt,
-                            size: 46,
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                        : Container(
-                            decoration: BoxDecoration(
+                    child: isStarredItem
+                        ? Container(
+                            decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.deepPurple.shade400,
-                                  Colors.indigo.shade600,
+                                  Color(0xFFE53935),
+                                  Color(0xFFE91E63),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
-                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Center(
                               child: Icon(
-                                Icons.playlist_play_rounded,
+                                Icons.favorite_rounded,
                                 color: Colors.white,
                                 size: 24,
                               ),
                             ),
-                          ),
+                          )
+                        : coverArt != null && coverArt.isNotEmpty
+                            ? RemoteArtworkWidget(
+                                server: widget.server,
+                                password: widget.password,
+                                coverArtId: coverArt,
+                                size: 46,
+                                borderRadius: BorderRadius.circular(12),
+                              )
+                            : Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.deepPurple.shade400,
+                                      Colors.indigo.shade600,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.playlist_play_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -1720,7 +1833,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '$songCount songs • $durationMin mins',
+                        isStarredItem
+                            ? l10n.starredSongsDesc
+                            : '$songCount songs • $durationMin mins',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 12,

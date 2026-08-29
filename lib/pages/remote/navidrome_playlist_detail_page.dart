@@ -30,6 +30,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
   final String? coverArtId;
   final int? songCount;
   final int? duration;
+  final bool isStarred;
   final VoidCallback? onPlaylistModified;
 
   const NavidromePlaylistDetailPage({
@@ -41,6 +42,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
     this.coverArtId,
     this.songCount,
     this.duration,
+    this.isStarred = false,
     this.onPlaylistModified,
   });
 
@@ -81,6 +83,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
         coverArtId: coverArtId,
         songCount: songCount,
         duration: duration,
+        isStarred: isStarred,
         onPlaylistModified: onPlaylistModified,
         onDeleted: () {
           Navigator.of(context).pop();
@@ -116,6 +119,7 @@ class NavidromePlaylistDetailContent extends ConsumerStatefulWidget {
   final String? coverArtId;
   final int? songCount;
   final int? duration;
+  final bool isStarred;
   final VoidCallback? onPlaylistModified;
   final VoidCallback? onDeleted;
 
@@ -128,6 +132,7 @@ class NavidromePlaylistDetailContent extends ConsumerStatefulWidget {
     this.coverArtId,
     this.songCount,
     this.duration,
+    this.isStarred = false,
     this.onPlaylistModified,
     this.onDeleted,
   });
@@ -147,6 +152,9 @@ class _NavidromePlaylistDetailContentState
   final ScrollController _scrollController = ScrollController();
   final Set<String> _starredSongIds = {};
 
+  bool get _isStarredView =>
+      widget.isStarred || widget.playlistId == 'starred_songs';
+
   @override
   void initState() {
     super.initState();
@@ -158,6 +166,7 @@ class _NavidromePlaylistDetailContentState
   void didUpdateWidget(NavidromePlaylistDetailContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.playlistId != widget.playlistId ||
+        oldWidget.isStarred != widget.isStarred ||
         oldWidget.server.id != widget.server.id) {
       _currentName = widget.playlistName;
       _loadPlaylistDetails();
@@ -181,6 +190,42 @@ class _NavidromePlaylistDetailContentState
         server: widget.server,
         password: widget.password,
       );
+
+      if (_isStarredView) {
+        final songList = await client.getStarredSongs();
+        final List<MusicFile> parsedTracks = [];
+        final Set<String> starred = {};
+        int totalDur = 0;
+
+        for (final item in songList) {
+          final song = RemoteMediaResolver.buildMusicFileFromSubsonic(
+            item,
+            widget.server,
+          );
+          parsedTracks.add(song);
+          final trackId = item['id']?.toString() ?? song.id.toString();
+          starred.add(trackId);
+          if (item['duration'] is int) {
+            totalDur += item['duration'] as int;
+          }
+        }
+
+        setState(() {
+          _playlistData = {
+            'name': widget.playlistName,
+            'songCount': parsedTracks.length,
+            'duration': totalDur,
+          };
+          _currentName = widget.playlistName;
+          _tracks = parsedTracks;
+          _starredSongIds
+            ..clear()
+            ..addAll(starred);
+          _isLoading = false;
+        });
+        return;
+      }
+
       final pl = await client.getPlaylist(widget.playlistId);
       if (pl == null) {
         setState(() {
@@ -497,20 +542,13 @@ class _NavidromePlaylistDetailContentState
                                 ),
                               ],
                             ),
-                            child: coverId != null && coverId.isNotEmpty
-                                ? RemoteArtworkWidget(
-                                    server: widget.server,
-                                    password: widget.password,
-                                    coverArtId: coverId,
-                                    size: imageSize,
-                                    borderRadius: BorderRadius.circular(16),
-                                  )
-                                : Container(
-                                    decoration: BoxDecoration(
+                            child: _isStarredView
+                                ? Container(
+                                    decoration: const BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          Colors.deepPurple.shade400,
-                                          Colors.indigo.shade600,
+                                          Color(0xFFE53935),
+                                          Color(0xFFE91E63),
                                         ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
@@ -518,12 +556,39 @@ class _NavidromePlaylistDetailContentState
                                     ),
                                     child: const Center(
                                       child: Icon(
-                                        Icons.playlist_play_rounded,
+                                        Icons.favorite_rounded,
                                         size: 64,
                                         color: Colors.white,
                                       ),
                                     ),
-                                  ),
+                                  )
+                                : coverId != null && coverId.isNotEmpty
+                                    ? RemoteArtworkWidget(
+                                        server: widget.server,
+                                        password: widget.password,
+                                        coverArtId: coverId,
+                                        size: imageSize,
+                                        borderRadius: BorderRadius.circular(16),
+                                      )
+                                    : Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.deepPurple.shade400,
+                                              Colors.indigo.shade600,
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                        ),
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.playlist_play_rounded,
+                                            size: 64,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
                           ),
                         ),
                       );
@@ -538,13 +603,17 @@ class _NavidromePlaylistDetailContentState
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer,
+                              color: _isStarredView
+                                  ? Colors.redAccent.withValues(alpha: 0.15)
+                                  : theme.colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              'PLAYLIST',
+                              _isStarredView ? 'FAVORITES' : 'PLAYLIST',
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onPrimaryContainer,
+                                color: _isStarredView
+                                    ? Colors.redAccent
+                                    : theme.colorScheme.onPrimaryContainer,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.8,
                               ),
@@ -587,7 +656,7 @@ class _NavidromePlaylistDetailContentState
                                   ),
                                 ),
                               ],
-                              if (owner != null && owner.isNotEmpty) ...[
+                              if (owner != null && owner.isNotEmpty && !_isStarredView) ...[
                                 Text(
                                   '•',
                                   style: TextStyle(
@@ -694,16 +763,17 @@ class _NavidromePlaylistDetailContentState
                         }
                       },
                       itemBuilder: (ctx) => [
-                        PopupMenuItem(
-                          value: 'rename',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.edit_rounded, size: 18),
-                              const SizedBox(width: 12),
-                              Text(l10n.renamePlaylist),
-                            ],
+                        if (!_isStarredView)
+                          PopupMenuItem(
+                            value: 'rename',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit_rounded, size: 18),
+                                const SizedBox(width: 12),
+                                Text(l10n.renamePlaylist),
+                              ],
+                            ),
                           ),
-                        ),
                         const PopupMenuItem(
                           value: 'refresh',
                           child: Row(
@@ -714,24 +784,26 @@ class _NavidromePlaylistDetailContentState
                             ],
                           ),
                         ),
-                        const PopupMenuDivider(),
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.delete_outline_rounded,
-                                size: 18,
-                                color: Colors.redAccent,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                l10n.deletePlaylist,
-                                style: const TextStyle(color: Colors.redAccent),
-                              ),
-                            ],
+                        if (!_isStarredView) ...[
+                          const PopupMenuDivider(),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.delete_outline_rounded,
+                                  size: 18,
+                                  color: Colors.redAccent,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  l10n.deletePlaylist,
+                                  style: const TextStyle(color: Colors.redAccent),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],
