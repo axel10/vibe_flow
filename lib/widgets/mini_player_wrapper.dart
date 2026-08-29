@@ -57,6 +57,7 @@ class _MiniPlayerWrapperState extends ConsumerState<MiniPlayerWrapper> {
                         ),
                         child: PlaybackHeroCard(
                           isMini: true,
+                          enableHero: false,
                           isLandscape: isLandscape,
                           showMiniVolumeSlider: _showMiniVolumeSlider,
                           onMiniTap: () => navigateToMainTab(context, index: 1),

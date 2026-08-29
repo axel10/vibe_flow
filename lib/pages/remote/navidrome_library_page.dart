@@ -8,6 +8,7 @@ import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
+import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../widgets/desktop_window_title_bar.dart';
@@ -23,11 +24,15 @@ import 'remote_download_manager_page.dart';
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
   final RemoteServer server;
   final String password;
+  final bool wrapWithMiniPlayer;
+  final int? initialTabIndex;
 
   const NavidromeLibraryPage({
     super.key,
     required this.server,
     required this.password,
+    this.wrapWithMiniPlayer = false,
+    this.initialTabIndex,
   });
 
   @override
@@ -78,7 +83,17 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    final initialIndex = (widget.initialTabIndex != null &&
+            widget.initialTabIndex! >= 0 &&
+            widget.initialTabIndex! < 4)
+        ? widget.initialTabIndex!
+        : 0;
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
+    _tabController.addListener(_handleTabChanged);
     _client = SubsonicClient(
       server: widget.server,
       password: widget.password,
@@ -88,8 +103,20 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     _loadPlaylists();
   }
 
+  void _handleTabChanged() {
+    final activeSession = ref.read(activeRemoteSessionProvider);
+    if (activeSession != null &&
+        activeSession.server.id == widget.server.id &&
+        activeSession.initialTabIndex != _tabController.index) {
+      ref
+          .read(activeRemoteSessionProvider.notifier)
+          .updateInitialTabIndex(_tabController.index);
+    }
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     _albumSearchController.dispose();
     _artistSearchController.dispose();
@@ -399,12 +426,27 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
-    Widget content = Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.server.name),
+    Widget content = PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          ref.read(activeRemoteSessionProvider.notifier).clear();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: 'Exit',
+            onPressed: () {
+              ref.read(activeRemoteSessionProvider.notifier).clear();
+              Navigator.of(context).maybePop();
+            },
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.server.name),
             Text(
               'Navidrome / Subsonic',
               style: TextStyle(
@@ -456,6 +498,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           _buildSearchTab(theme),
         ],
       ),
+    ),
     );
 
     if (showCustomTitleBar || isMacOS) {
@@ -473,7 +516,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       );
     }
 
-    return MiniPlayerWrapper(child: content);
+    if (widget.wrapWithMiniPlayer) {
+      return MiniPlayerWrapper(child: content);
+    }
+    return content;
   }
 
   // ================= ALBUMS TAB =================

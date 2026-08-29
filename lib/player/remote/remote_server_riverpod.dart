@@ -68,3 +68,61 @@ final remoteServersProvider =
     AsyncNotifierProvider<RemoteServersNotifier, List<RemoteServer>>(() {
   return RemoteServersNotifier();
 });
+
+class ActiveRemoteSession {
+  final RemoteServer server;
+  final String password;
+  final String? initialPath;
+  final int? initialTabIndex;
+
+  const ActiveRemoteSession({
+    required this.server,
+    required this.password,
+    this.initialPath,
+    this.initialTabIndex,
+  });
+
+  ActiveRemoteSession copyWith({
+    RemoteServer? server,
+    String? password,
+    String? initialPath,
+    int? initialTabIndex,
+  }) {
+    return ActiveRemoteSession(
+      server: server ?? this.server,
+      password: password ?? this.password,
+      initialPath: initialPath ?? this.initialPath,
+      initialTabIndex: initialTabIndex ?? this.initialTabIndex,
+    );
+  }
+}
+
+class ActiveRemoteSessionNotifier extends Notifier<ActiveRemoteSession?> {
+  @override
+  ActiveRemoteSession? build() => null;
+
+  void setSession(ActiveRemoteSession? session) {
+    state = session;
+  }
+
+  void updateInitialPath(String? path) {
+    if (state != null) {
+      state = state!.copyWith(initialPath: path);
+    }
+  }
+
+  void updateInitialTabIndex(int? index) {
+    if (state != null) {
+      state = state!.copyWith(initialTabIndex: index);
+    }
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+final activeRemoteSessionProvider =
+    NotifierProvider<ActiveRemoteSessionNotifier, ActiveRemoteSession?>(
+      ActiveRemoteSessionNotifier.new,
+    );

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../dialogs/add_edit_remote_server_dialog.dart';
 import '../l10n/app_localizations.dart';
-import '../pages/remote/navidrome_library_page.dart';
-import '../pages/remote/webdav_browser_page.dart';
 import '../player/remote/remote_server_models.dart';
 import '../player/remote/remote_server_riverpod.dart';
 import '../player/settings/settings_service.dart';
@@ -85,25 +83,12 @@ Future<void> showRemoteServerContextMenu({
         .getPassword(server.id);
     if (!context.mounted) return;
 
-    if (isSubsonic) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => NavidromeLibraryPage(
-            server: server,
-            password: pwd ?? '',
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => WebDavBrowserPage(
-            server: server,
-            password: pwd ?? '',
-          ),
-        ),
-      );
-    }
+    ref.read(activeRemoteSessionProvider.notifier).setSession(
+      ActiveRemoteSession(
+        server: server,
+        password: pwd ?? '',
+      ),
+    );
   } else if (selected == 'edit') {
     AddEditRemoteServerDialog.show(context, server: server);
   } else if (selected == 'delete') {

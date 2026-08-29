@@ -21,8 +21,6 @@ import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_content_slivers.dart';
 import '../widgets/remote_server_slivers.dart';
 import '../dialogs/add_edit_remote_server_dialog.dart';
-import 'remote/navidrome_library_page.dart';
-import 'remote/webdav_browser_page.dart';
 
 class FolderRootView extends ConsumerStatefulWidget {
   const FolderRootView({
@@ -183,25 +181,12 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
         .getPassword(server.id);
     if (!context.mounted) return;
 
-    if (server.type == RemoteServerType.subsonic) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => NavidromeLibraryPage(
-            server: server,
-            password: pwd ?? '',
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => WebDavBrowserPage(
-            server: server,
-            password: pwd ?? '',
-          ),
-        ),
-      );
-    }
+    ref.read(activeRemoteSessionProvider.notifier).setSession(
+      ActiveRemoteSession(
+        server: server,
+        password: pwd ?? '',
+      ),
+    );
   }
 
   @override
@@ -377,7 +362,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
       final double headerHeight = 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0));
 
       rootList = CustomScrollView(
-        key: const ValueKey('root_folders_scroll_view'),
+        key: const PageStorageKey<String>('root_folders_scroll_view'),
         controller: _localScrollController,
         cacheExtent: 1000.0,
         slivers: [

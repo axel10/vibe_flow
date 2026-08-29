@@ -98,12 +98,14 @@ class PlaybackHeroCard extends ConsumerWidget {
     this.lyricsBottomTabBarHeight = 0.0,
     this.coverKey,
     this.lyricsKey,
+    this.enableHero = true,
   });
 
   final bool isMini;
   final bool isLyricsMode;
   final bool isLandscape;
   final bool isNext;
+  final bool enableHero;
   final bool showMiniVolumeSlider;
   final List<double>? overrideWaveform;
   final double? overrideProgress;
@@ -202,26 +204,32 @@ class PlaybackHeroCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final card = Material(
+      type: MaterialType.transparency,
+      child: isMini
+          ? MiniPlayerCard(
+              showMiniVolumeSlider: showMiniVolumeSlider,
+              onMiniTap: onMiniTap,
+              onPrevious: onPrevious,
+              onPlayPause: onPlayPause,
+              onNext: onNext,
+              onScrubbing: onScrubbing,
+              onSeek: onSeek,
+              onVolumeTap: onVolumeTap,
+              onVolumeChanged: onVolumeChanged,
+              onVolumeScroll: onVolumeScroll,
+              onMiniMouseExit: onMiniMouseExit,
+            )
+          : _buildFullCard(context, ref),
+    );
+
+    if (!enableHero) {
+      return card;
+    }
+
     return Hero(
       tag: playbackHeroTag,
-      child: Material(
-        type: MaterialType.transparency,
-        child: isMini
-            ? MiniPlayerCard(
-                showMiniVolumeSlider: showMiniVolumeSlider,
-                onMiniTap: onMiniTap,
-                onPrevious: onPrevious,
-                onPlayPause: onPlayPause,
-                onNext: onNext,
-                onScrubbing: onScrubbing,
-                onSeek: onSeek,
-                onVolumeTap: onVolumeTap,
-                onVolumeChanged: onVolumeChanged,
-                onVolumeScroll: onVolumeScroll,
-                onMiniMouseExit: onMiniMouseExit,
-              )
-            : _buildFullCard(context, ref),
-      ),
+      child: card,
     );
   }
 

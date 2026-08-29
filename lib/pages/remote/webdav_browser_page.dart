@@ -7,6 +7,7 @@ import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/remote/remote_server_models.dart';
+import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/webdav_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../l10n/app_localizations.dart';
@@ -20,12 +21,14 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
   final RemoteServer server;
   final String password;
   final String? initialPath;
+  final bool wrapWithMiniPlayer;
 
   const WebDavBrowserPage({
     super.key,
     required this.server,
     required this.password,
     this.initialPath,
+    this.wrapWithMiniPlayer = false,
   });
 
   @override
@@ -98,6 +101,13 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           _currentPath = effectivePath;
           _isLoading = false;
         });
+        final activeSession = ref.read(activeRemoteSessionProvider);
+        if (activeSession != null &&
+            activeSession.server.id == widget.server.id) {
+          ref
+              .read(activeRemoteSessionProvider.notifier)
+              .updateInitialPath(effectivePath);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -220,7 +230,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     Widget content = PopScope(
       canPop: _isAtRoot,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
+        if (didPop) {
+          ref.read(activeRemoteSessionProvider.notifier).clear();
+          return;
+        }
         if (!_isAtRoot) {
           _navigateToParent();
         }
@@ -230,7 +243,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             tooltip: 'Exit',
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              ref.read(activeRemoteSessionProvider.notifier).clear();
+              Navigator.of(context).maybePop();
+            },
           ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +489,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       );
     }
 
-    return MiniPlayerWrapper(child: content);
+    if (widget.wrapWithMiniPlayer) {
+      return MiniPlayerWrapper(child: content);
+    }
+    return content;
   }
 
   Widget _buildBreadcrumbs(ThemeData theme) {

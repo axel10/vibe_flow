@@ -344,7 +344,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     final double headerHeight = 64.0 + (MediaQuery.of(context).padding.top > 0 ? MediaQuery.of(context).padding.top : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux) ? 24.0 : 0.0));
 
     final Widget scrollBody = CustomScrollView(
-      key: ValueKey(folder.path),
+      key: PageStorageKey<String>('folder-detail-${folder.path}'),
       controller: _localScrollController,
       cacheExtent: 1000.0,
       slivers: [

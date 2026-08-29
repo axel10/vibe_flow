@@ -1811,6 +1811,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
                               builder: (_) => NavidromeLibraryPage(
                                 server: server,
                                 password: pwd ?? '',
+                                wrapWithMiniPlayer: true,
                               ),
                             ),
                           );
@@ -1820,6 +1821,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
                               builder: (_) => WebDavBrowserPage(
                                 server: server,
                                 password: pwd ?? '',
+                                wrapWithMiniPlayer: true,
                               ),
                             ),
                           );

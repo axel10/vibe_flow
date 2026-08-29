@@ -23,6 +23,10 @@ import '../widgets/folder_bottom_sheet.dart';
 import 'folder_root_view.dart';
 import 'folder_detail_view.dart';
 import 'package:linux_directory_access/linux_directory_access.dart';
+import 'package:vynody/player/remote/remote_server_models.dart';
+import 'package:vynody/player/remote/remote_server_riverpod.dart';
+import 'remote/navidrome_library_page.dart';
+import 'remote/webdav_browser_page.dart';
 
 class FoldersPage extends ConsumerStatefulWidget {
   final Future<void> Function()? onOpenPlayback;
@@ -58,6 +62,10 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
   bool handleBackPressed() {
     if (_navigatorKey.currentState?.canPop() ?? false) {
       _navigatorKey.currentState?.maybePop();
+      return true;
+    }
+    if (ref.read(activeRemoteSessionProvider) != null) {
+      ref.read(activeRemoteSessionProvider.notifier).clear();
       return true;
     }
     final scanner = _scanner;
@@ -808,12 +816,38 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       );
     }
 
+    final activeRemoteSession = ref.watch(activeRemoteSessionProvider);
+    if (activeRemoteSession != null) {
+      pages.add(
+        _buildPage(
+          key: ValueKey('remote-page-${activeRemoteSession.server.id}'),
+          child: activeRemoteSession.server.type == RemoteServerType.subsonic
+              ? NavidromeLibraryPage(
+                  server: activeRemoteSession.server,
+                  password: activeRemoteSession.password,
+                  initialTabIndex: activeRemoteSession.initialTabIndex,
+                )
+              : WebDavBrowserPage(
+                  server: activeRemoteSession.server,
+                  password: activeRemoteSession.password,
+                  initialPath: activeRemoteSession.initialPath,
+                ),
+        ),
+      );
+    }
+
     return Navigator(
       key: _navigatorKey,
       pages: pages,
       observers: [_heroController],
       onDidRemovePage: (page) {
-        _goBack(scanner);
+        if (activeRemoteSession != null &&
+            page.key ==
+                ValueKey('remote-page-${activeRemoteSession.server.id}')) {
+          ref.read(activeRemoteSessionProvider.notifier).clear();
+        } else {
+          _goBack(scanner);
+        }
       },
     );
   }
