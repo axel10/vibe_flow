@@ -11,7 +11,6 @@ import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/widgets/queue_file_drop_target.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
-import '../dialogs/song_details_dialog.dart';
 
 // 队列页面
 class QueuePage extends ConsumerStatefulWidget {
@@ -257,6 +256,9 @@ class _QueuePageState extends ConsumerState<QueuePage> {
         : _viewIndex == 2
         ? randomQueue
         : queue;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+    final headerHorizontalPadding = isPortrait ? 20.0 : 32.0;
 
     if (queue.isEmpty) {
       return Scaffold(
@@ -264,15 +266,40 @@ class _QueuePageState extends ConsumerState<QueuePage> {
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           notificationPredicate: (_) => false,
-          title: Text(AppLocalizations.of(context)!.queue),
+          titleSpacing: 0,
           centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              onPressed: null,
-              tooltip: AppLocalizations.of(context)!.queueEmpty,
+          title: Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1080),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: headerHorizontalPadding,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.queue,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.delete_sweep),
+                        onPressed: null,
+                        tooltip: AppLocalizations.of(context)!.queueEmpty,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
+          ),
         ),
         body: QueueFileDropTarget(
           enabled: true,
@@ -281,20 +308,23 @@ class _QueuePageState extends ConsumerState<QueuePage> {
           itemKeyBuilder: (index, song) => _songTileKeyFor(song),
           showPreview: showPreview,
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.queue_music,
-                  size: 64,
-                  color: Colors.grey.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context)!.queueEmpty,
-                  style: const TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-              ],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1080),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.queue_music,
+                    size: 64,
+                    color: Colors.grey.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.queueEmpty,
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -306,27 +336,59 @@ class _QueuePageState extends ConsumerState<QueuePage> {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         notificationPredicate: (_) => false,
-        title: isRandomMode
-            ? _buildViewSelector(context, theme, isDark, isShuffleRandomMode)
-            : Text(
-                AppLocalizations.of(context)!.queue,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        titleSpacing: 0,
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location),
-            onPressed: _scrollToCurrentPlay,
-            tooltip: AppLocalizations.of(context)!.locateCurrentSong,
+        title: Align(
+          alignment: Alignment.center,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: headerHorizontalPadding,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Center(
+                    child: isRandomMode
+                        ? _buildViewSelector(
+                            context,
+                            theme,
+                            isDark,
+                            isShuffleRandomMode,
+                          )
+                        : Text(
+                            AppLocalizations.of(context)!.queue,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.my_location),
+                          onPressed: _scrollToCurrentPlay,
+                          tooltip: AppLocalizations.of(
+                            context,
+                          )!.locateCurrentSong,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_sweep),
+                          onPressed: () => _showClearQueueDialog(context),
+                          tooltip: AppLocalizations.of(context)!.clearQueue,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete_sweep),
-            onPressed: () => _showClearQueueDialog(context),
-            tooltip: AppLocalizations.of(context)!.clearQueue,
-          ),
-        ],
+        ),
       ),
       body: QueueFileDropTarget(
         enabled: true,
@@ -426,87 +488,93 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                               );
                             }
 
-                            return Padding(
+                            return Align(
                               key: _songTileKeyFor(song),
-                              padding: EdgeInsets.symmetric(
-                                horizontal:
-                                    MediaQuery.of(context).orientation ==
-                                        Orientation.portrait
-                                    ? 8
-                                    : 16,
-                                vertical: 4,
-                              ),
-                              child: SongTile(
-                                song: song,
-                                isCurrent: isCurrent,
-                                isSelected: isSelected,
-                                isSelectionMode: isSelectionMode,
-                                isHighlighted: _highlightedIndex == index,
-                                dragHandle: ReorderableDragStartListener(
-                                  index: index,
-                                  child: const Icon(Icons.drag_handle),
-                                ),
-                                onTap: isSelectionMode
-                                    ? () {
-                                        if (isMissing) {
-                                          showDeletedSongSnack(
-                                            context,
-                                            ref,
-                                            skipped: false,
-                                          );
-                                          return;
-                                        }
+                              alignment: Alignment.center,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 1080),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal:
+                                        MediaQuery.of(context).orientation ==
+                                            Orientation.portrait
+                                        ? 8
+                                        : 16,
+                                    vertical: 4,
+                                  ),
+                                  child: SongTile(
+                                    song: song,
+                                    isCurrent: isCurrent,
+                                    isSelected: isSelected,
+                                    isSelectionMode: isSelectionMode,
+                                    isHighlighted: _highlightedIndex == index,
+                                    dragHandle: ReorderableDragStartListener(
+                                      index: index,
+                                      child: const Icon(Icons.drag_handle),
+                                    ),
+                                    onTap: isSelectionMode
+                                        ? () {
+                                            if (isMissing) {
+                                              showDeletedSongSnack(
+                                                context,
+                                                ref,
+                                                skipped: false,
+                                              );
+                                              return;
+                                            }
+                                            _toggleSelection(index);
+                                          }
+                                        : () {
+                                            if (isMissing) {
+                                              showDeletedSongSnack(
+                                                context,
+                                                ref,
+                                                skipped: false,
+                                              );
+                                              return;
+                                            }
+                                            if (_viewIndex == 1 ||
+                                                _viewIndex == 2) {
+                                              final actualIndex = queue.indexWhere(
+                                                (s) => s.path == song.path,
+                                              );
+                                              if (actualIndex >= 0) {
+                                                ref
+                                                    .read(audioServiceProvider)
+                                                    .playAtIndex(actualIndex);
+                                              }
+                                            } else {
+                                              ref
+                                                  .read(audioServiceProvider)
+                                                  .playAtIndex(index);
+                                            }
+                                          },
+                                    onLongPress: () {
+                                      if (!isSelectionMode) {
+                                        _toggleSelectionMode();
                                         _toggleSelection(index);
                                       }
-                                    : () {
-                                        if (isMissing) {
-                                          showDeletedSongSnack(
-                                            context,
-                                            ref,
-                                            skipped: false,
-                                          );
-                                          return;
-                                        }
-                                        if (_viewIndex == 1 ||
-                                            _viewIndex == 2) {
-                                          final actualIndex = queue.indexWhere(
-                                            (s) => s.path == song.path,
-                                          );
-                                          if (actualIndex >= 0) {
-                                            ref
-                                                .read(audioServiceProvider)
-                                                .playAtIndex(actualIndex);
-                                          }
-                                        } else {
-                                          ref
-                                              .read(audioServiceProvider)
-                                              .playAtIndex(index);
-                                        }
-                                      },
-                                onLongPress: () {
-                                  if (!isSelectionMode) {
-                                    _toggleSelectionMode();
-                                    _toggleSelection(index);
-                                  }
-                                },
-                                onSecondaryTapDown: (details) {
-                                  handleShowMenu(
-                                    context,
-                                    details.globalPosition,
-                                  );
-                                },
-                                onMorePressed: (buttonContext) {
-                                  final renderObject = buttonContext
-                                      .findRenderObject();
-                                  final renderBox = renderObject is RenderBox
-                                      ? renderObject
-                                      : null;
-                                  if (renderBox == null) return;
-                                  final Offset offset = renderBox.localToGlobal(
-                                    Offset.zero,
-                                  );
-                                  handleShowMenu(buttonContext, offset);
-                                },
+                                    },
+                                    onSecondaryTapDown: (details) {
+                                      handleShowMenu(
+                                        context,
+                                        details.globalPosition,
+                                      );
+                                    },
+                                    onMorePressed: (buttonContext) {
+                                      final renderObject = buttonContext
+                                          .findRenderObject();
+                                      final renderBox = renderObject is RenderBox
+                                          ? renderObject
+                                          : null;
+                                      if (renderBox == null) return;
+                                      final Offset offset = renderBox.localToGlobal(
+                                        Offset.zero,
+                                      );
+                                      handleShowMenu(buttonContext, offset);
+                                    },
+                                  ),
+                                ),
                               ),
                             );
                           },
