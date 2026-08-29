@@ -816,8 +816,13 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       );
     }
 
-    final activeRemoteSession = ref.watch(activeRemoteSessionProvider);
-    if (activeRemoteSession != null) {
+    final activeRemoteSessionId = ref.watch(
+      activeRemoteSessionProvider.select(
+        (s) => s != null ? '${s.server.id}_${s.server.type}' : null,
+      ),
+    );
+    final activeRemoteSession = ref.read(activeRemoteSessionProvider);
+    if (activeRemoteSessionId != null && activeRemoteSession != null) {
       pages.add(
         _buildPage(
           key: ValueKey('remote-page-${activeRemoteSession.server.id}'),

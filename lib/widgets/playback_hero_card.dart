@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/settings/settings_service.dart';
-import 'package:vynody/utils/app_log.dart';
 import 'package:vynody/widgets/lyrics_panel.dart';
 import 'package:vynody/widgets/playback_ui_tuning.dart';
 
@@ -252,33 +251,6 @@ class PlaybackHeroCard extends ConsumerWidget {
     final bool effectiveIsLandscape = isLandscape && !isSmallWindow;
     final bool effectiveIsLyricsMode = isLyricsMode && !isSmallWindow;
 
-    ref.listen<bool>(audioIsPlayingProvider, (previous, next) {
-      if (previous == true && !next) {
-        if (effectiveIsLandscape && effectiveIsLyricsMode) {
-          final renderBox = context.findRenderObject() as RenderBox?;
-          final double actualWidth = renderBox?.hasSize == true ? renderBox!.size.width : size.width;
-          final double actualHeight = renderBox?.hasSize == true ? renderBox!.size.height : size.height;
-          final layout = _buildPlaybackCardLayout(
-            context,
-            width: actualWidth,
-            height: actualHeight,
-            tLyrics: 1.0,
-            tLand: 1.0,
-            isWaveformEnabled: isEffectiveWaveform,
-            isSmallWindow: isSmallWindow,
-            lyricsStyle: settings.lyricsStyle,
-            collapseButtonsInLandscapeLyrics:
-                settings.collapseButtonsInLandscapeLyrics,
-            uiScale: settings.uiScale,
-          );
-          final leftAreaHeight = layout.leftAreaTotalHeight;
-          AppLog.log(
-            '[Playback] 横屏歌词模式暂停 -> 左侧控件区总高度: ${leftAreaHeight.toStringAsFixed(2)}, 卡片实际高度: ${actualHeight.toStringAsFixed(2)}, 窗口总高度: ${size.height.toStringAsFixed(2)}',
-            mirrorToConsole: true,
-          );
-        }
-      }
-    });
 
     final isTransitioningNotifier = ValueNotifier<bool>(false);
     final lyricsPanelWidget = _LyricsPanelTransitionWrapper(

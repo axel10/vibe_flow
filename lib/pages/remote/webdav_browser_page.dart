@@ -101,13 +101,17 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           _currentPath = effectivePath;
           _isLoading = false;
         });
-        final activeSession = ref.read(activeRemoteSessionProvider);
-        if (activeSession != null &&
-            activeSession.server.id == widget.server.id) {
-          ref
-              .read(activeRemoteSessionProvider.notifier)
-              .updateInitialPath(effectivePath);
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final activeSession = ref.read(activeRemoteSessionProvider);
+          if (activeSession != null &&
+              activeSession.server.id == widget.server.id &&
+              activeSession.initialPath != effectivePath) {
+            ref
+                .read(activeRemoteSessionProvider.notifier)
+                .updateInitialPath(effectivePath);
+          }
+        });
       }
     } catch (e) {
       if (mounted) {

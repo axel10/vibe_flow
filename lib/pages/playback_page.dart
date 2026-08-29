@@ -816,15 +816,15 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     final audio = ref.read(audioServiceProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final isEffectiveWaveform = ref.watch(isEffectiveWaveformEnabledProvider);
+    final size = MediaQuery.sizeOf(context);
+    final settings = ref.watch(settingsServiceProvider);
+    final bool isSmallWin = PlaybackPageUiTuning.isSmallWindow(
+      size,
+      isWaveformEnabled: isEffectiveWaveform,
+      isSmallWindowMode: settings.isSmallWindowMode,
+    );
     ref.listen<MusicFile?>(audioCurrentMusicProvider, (previous, next) {
       if (!mounted) return;
-      final size = MediaQuery.of(context).size;
-      final settings = ref.read(settingsServiceProvider);
-      final bool isSmallWin = PlaybackPageUiTuning.isSmallWindow(
-        size,
-        isWaveformEnabled: isEffectiveWaveform,
-        isSmallWindowMode: settings.isSmallWindowMode,
-      );
       if (isSmallWin) {
         if (next?.path == _pendingArtworkPath &&
             next?.artworkBytes?.length == _pendingArtworkBytes?.length) {

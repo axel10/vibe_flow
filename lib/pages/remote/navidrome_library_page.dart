@@ -108,14 +108,19 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   void _handleTabChanged() {
-    final activeSession = ref.read(activeRemoteSessionProvider);
-    if (activeSession != null &&
-        activeSession.server.id == widget.server.id &&
-        activeSession.initialTabIndex != _tabController.index) {
-      ref
-          .read(activeRemoteSessionProvider.notifier)
-          .updateInitialTabIndex(_tabController.index);
-    }
+    if (_tabController.indexIsChanging) return;
+    final newIndex = _tabController.index;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final activeSession = ref.read(activeRemoteSessionProvider);
+      if (activeSession != null &&
+          activeSession.server.id == widget.server.id &&
+          activeSession.initialTabIndex != newIndex) {
+        ref
+            .read(activeRemoteSessionProvider.notifier)
+            .updateInitialTabIndex(newIndex);
+      }
+    });
   }
 
   @override
