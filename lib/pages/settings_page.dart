@@ -47,6 +47,7 @@ enum _SettingsSection {
   transcode,
   lyrics,
   acoustid,
+  storage,
   shortcuts,
   windows,
   about,
@@ -470,6 +471,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       _SettingsSection.transcode => l10n.transcodeSectionTitle,
       _SettingsSection.lyrics => l10n.lyricsSectionTitle,
       _SettingsSection.acoustid => l10n.acoustidSectionTitle,
+      _SettingsSection.storage => l10n.storageAndCache,
       _SettingsSection.shortcuts => l10n.shortcutSettingsTitle,
       _SettingsSection.windows => l10n.windowsSettingsTitle,
       _SettingsSection.about => l10n.about,
@@ -484,6 +486,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         _SettingsSection.transcode,
         _SettingsSection.lyrics,
         _SettingsSection.acoustid,
+        _SettingsSection.storage,
         _SettingsSection.shortcuts,
         if (Platform.isWindows) _SettingsSection.windows,
         _SettingsSection.about,
@@ -499,6 +502,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       _SettingsSection.transcode => Icons.swap_horiz_rounded,
       _SettingsSection.lyrics => Icons.auto_awesome_rounded,
       _SettingsSection.acoustid => Icons.radar_rounded,
+      _SettingsSection.storage => Icons.storage_rounded,
       _SettingsSection.shortcuts => Icons.keyboard_rounded,
       _SettingsSection.windows => Icons.open_in_new_rounded,
       _SettingsSection.about => Icons.info_outline_rounded,
@@ -512,8 +516,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final settings = ref.watch(settingsServiceProvider);
     final isPackaged = Platform.resolvedExecutable.contains(r'\WindowsApps\');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return _buildGroupCard(
+      context,
+      title: l10n.fileAssociationTitle,
+      icon: Icons.open_in_new_rounded,
       children: [
         ListTile(
           leading: const Icon(Icons.open_in_new_rounded),
@@ -571,7 +577,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ),
         if (!isPackaged) ...[
-          const Divider(),
           SwitchListTile(
             secondary: const Icon(Icons.settings_suggest_rounded),
             title: Text(l10n.windowsAutoRepairShortcut),
@@ -1271,83 +1276,96 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Column(
       children: [
-        SwitchListTile(
-          title: Text(l10n.skipShortAudioDuringScan),
-          subtitle: Text(l10n.skipShortAudioDuringScanDescription),
-          value: enabled,
-          onChanged: (value) {
-            settings.skipShortAudioScanEnabled = value;
-          },
-        ),
-        ListTile(
-          enabled: enabled,
-          title: Text(l10n.shortAudioScanThreshold),
-          subtitle: Text(l10n.shortAudioScanThresholdDescription),
-          trailing: SizedBox(
-            width: 156,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove),
-                  onPressed: enabled && currentSeconds > minSeconds
-                      ? () {
-                          settings.skipShortAudioScanMinimumDurationSeconds =
-                              currentSeconds - stepSeconds;
-                        }
-                      : null,
-                ),
-                Text(l10n.shortAudioScanThresholdValue(currentSeconds)),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: enabled && currentSeconds < maxSeconds
-                      ? () {
-                          settings.skipShortAudioScanMinimumDurationSeconds =
-                              currentSeconds + stepSeconds;
-                        }
-                      : null,
-                ),
-              ],
+        _buildGroupCard(
+          context,
+          title: l10n.scanSectionTitle,
+          icon: Icons.filter_list_rounded,
+          children: [
+            SwitchListTile(
+              title: Text(l10n.skipShortAudioDuringScan),
+              subtitle: Text(l10n.skipShortAudioDuringScanDescription),
+              value: enabled,
+              onChanged: (value) {
+                settings.skipShortAudioScanEnabled = value;
+              },
             ),
-          ),
-        ),
-        const Divider(height: 1),
-        ListTile(
-          leading: const Icon(Icons.restart_alt),
-          title: Text(l10n.rebuildIndex),
-          subtitle: Text(l10n.rebuildIndexDescription),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final content = l10n.rebuildIndexConfirmation;
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (dialogContext) => AlertDialog(
-                  title: Text(l10n.rebuildIndex),
-                  content: Text(content),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext, false),
-                      child: Text(l10n.cancel),
+            ListTile(
+              enabled: enabled,
+              title: Text(l10n.shortAudioScanThreshold),
+              subtitle: Text(l10n.shortAudioScanThresholdDescription),
+              trailing: SizedBox(
+                width: 156,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: enabled && currentSeconds > minSeconds
+                          ? () {
+                              settings.skipShortAudioScanMinimumDurationSeconds =
+                                  currentSeconds - stepSeconds;
+                            }
+                          : null,
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext, true),
-                      child: Text(l10n.confirm),
+                    Text(l10n.shortAudioScanThresholdValue(currentSeconds)),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: enabled && currentSeconds < maxSeconds
+                          ? () {
+                              settings.skipShortAudioScanMinimumDurationSeconds =
+                                  currentSeconds + stepSeconds;
+                            }
+                          : null,
                     ),
                   ],
                 ),
-              );
-              if (confirm == true && context.mounted) {
-                final scanner = ref.read(scannerServiceProvider);
-                unawaited(scanner.rebuildIndex());
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.rebuildIndexStarted)),
+              ),
+            ),
+          ],
+        ),
+        _buildGroupCard(
+          context,
+          title: l10n.rebuildIndex,
+          icon: Icons.build_circle_outlined,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.restart_alt),
+              title: Text(l10n.rebuildIndex),
+              subtitle: Text(l10n.rebuildIndexDescription),
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final content = l10n.rebuildIndexConfirmation;
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (dialogContext) => AlertDialog(
+                      title: Text(l10n.rebuildIndex),
+                      content: Text(content),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, true),
+                          child: Text(l10n.confirm),
+                        ),
+                      ],
+                    ),
                   );
-                }
-              }
-            },
-            child: Text(l10n.rebuild),
-          ),
+                  if (confirm == true && context.mounted) {
+                    final scanner = ref.read(scannerServiceProvider);
+                    unawaited(scanner.rebuildIndex());
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.rebuildIndexStarted)),
+                      );
+                    }
+                  }
+                },
+                child: Text(l10n.rebuild),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -1358,50 +1376,47 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     SettingsService settings,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildModelGroupCard(
-            context,
-            title: l10n.lyricsGenerationModel,
-            description: l10n.lyricsGenerationModelDescription,
-            primarySelection: settings.generationPrimaryModel,
-            fallbackSelection: settings.generationFallbackModel,
-            enabled: settings.hasAnyLyricsModelProvider,
-            onPrimaryTap: () => _selectLyricsModel(
-              settings: settings,
-              purpose: LyricsAiModelPurpose.generation,
-              slot: LyricsAiModelSlot.primary,
-            ),
-            onFallbackTap: () => _selectLyricsModel(
-              settings: settings,
-              purpose: LyricsAiModelPurpose.generation,
-              slot: LyricsAiModelSlot.fallback,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildModelGroupCard(
+          context,
+          title: l10n.lyricsGenerationModel,
+          description: l10n.lyricsGenerationModelDescription,
+          primarySelection: settings.generationPrimaryModel,
+          fallbackSelection: settings.generationFallbackModel,
+          enabled: settings.hasAnyLyricsModelProvider,
+          onPrimaryTap: () => _selectLyricsModel(
+            settings: settings,
+            purpose: LyricsAiModelPurpose.generation,
+            slot: LyricsAiModelSlot.primary,
           ),
-          const SizedBox(height: 16),
-          _buildModelGroupCard(
-            context,
-            title: l10n.lyricsTranslationModel,
-            description: l10n.lyricsTranslationModelDescription,
-            primarySelection: settings.translationPrimaryModel,
-            fallbackSelection: settings.translationFallbackModel,
-            enabled: settings.hasAnyLyricsModelProvider,
-            onPrimaryTap: () => _selectLyricsModel(
-              settings: settings,
-              purpose: LyricsAiModelPurpose.translation,
-              slot: LyricsAiModelSlot.primary,
-            ),
-            onFallbackTap: () => _selectLyricsModel(
-              settings: settings,
-              purpose: LyricsAiModelPurpose.translation,
-              slot: LyricsAiModelSlot.fallback,
-            ),
+          onFallbackTap: () => _selectLyricsModel(
+            settings: settings,
+            purpose: LyricsAiModelPurpose.generation,
+            slot: LyricsAiModelSlot.fallback,
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        _buildModelGroupCard(
+          context,
+          title: l10n.lyricsTranslationModel,
+          description: l10n.lyricsTranslationModelDescription,
+          primarySelection: settings.translationPrimaryModel,
+          fallbackSelection: settings.translationFallbackModel,
+          enabled: settings.hasAnyLyricsModelProvider,
+          onPrimaryTap: () => _selectLyricsModel(
+            settings: settings,
+            purpose: LyricsAiModelPurpose.translation,
+            slot: LyricsAiModelSlot.primary,
+          ),
+          onFallbackTap: () => _selectLyricsModel(
+            settings: settings,
+            purpose: LyricsAiModelPurpose.translation,
+            slot: LyricsAiModelSlot.fallback,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1423,7 +1438,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: theme.textTheme.titleMedium),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(description, style: theme.textTheme.bodySmall),
             const SizedBox(height: 16),
@@ -1447,7 +1467,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: theme.dividerColor),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
         borderRadius: BorderRadius.circular(16),
       ),
       child: content,
@@ -1505,23 +1528,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return LanguageCodeUtils.languageDisplayName(normalized);
   }
 
-  List<DropdownMenuItem<String>> _translationLanguageItems(
-    BuildContext context,
-  ) {
-    final l10n = AppLocalizations.of(context)!;
-    return [
-      DropdownMenuItem<String>(
-        value: '',
-        child: Text(l10n.followSystemLanguage),
-      ),
-      ...LanguageCodeUtils.supportedTranslationLanguageCodes.map(
-        (languageCode) => DropdownMenuItem<String>(
-          value: languageCode,
-          child: Text(_translationLanguageLabel(context, languageCode)),
-        ),
-      ),
-    ];
-  }
 
   Widget _buildLyricsTranslationLanguageSection(
     BuildContext context,
@@ -2009,7 +2015,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     SettingsService settings,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    return Column(
+    return _buildGroupCard(
+      context,
+      title: l10n.transcodeSectionTitle,
+      icon: Icons.swap_horiz_rounded,
       children: [
         _buildDropdownTile<AudioFormat>(
           context: context,
@@ -2110,9 +2119,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
         _buildHomeSectionTile(
           context,
-          icon: Icons.graphic_eq_rounded,
+          icon: Icons.radar_rounded,
           title: l10n.acoustidSectionTitle,
           onTap: () => _openSection(_SettingsSection.acoustid),
+        ),
+        _buildHomeSectionTile(
+          context,
+          icon: Icons.storage_rounded,
+          title: l10n.storageAndCache,
+          onTap: () => _openSection(_SettingsSection.storage),
         ),
         _buildHomeSectionTile(
           context,
@@ -2276,7 +2291,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ],
           ],
         ),
-        _StorageAndCacheCard(settings: settings),
         _buildGroupCard(
           context,
           title: l10n.systemWindowBehaviorGroup,
@@ -2407,22 +2421,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ),
           ),
-          ListTile(
-            title: Text(l10n.clearWaveformCache),
-            subtitle: Text(l10n.clearWaveformCacheDescription),
-            trailing: FilledButton.tonal(
-              onPressed: () async {
-                final audio = ref.read(audioServiceProvider);
-                await audio.clearWaveformCache();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.waveformCacheCleared)),
-                  );
-                }
-              },
-              child: Text(l10n.clear),
-            ),
-          ),
         ],
       ],
     );
@@ -2448,13 +2446,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.tags,
           l10n.tagsSectionDescription,
         ),
-        SwitchListTile(
-          title: Text(l10n.autoSaveToSourceFile),
-          subtitle: Text(l10n.autoSaveToSourceFileDescription),
-          value: settings.tagCompletionSaveToSourceFile,
-          onChanged: (value) {
-            settings.tagCompletionSaveToSourceFile = value;
-          },
+        _buildGroupCard(
+          context,
+          title: l10n.tags,
+          icon: Icons.label_outline_rounded,
+          children: [
+            SwitchListTile(
+              title: Text(l10n.autoSaveToSourceFile),
+              subtitle: Text(l10n.autoSaveToSourceFileDescription),
+              value: settings.tagCompletionSaveToSourceFile,
+              onChanged: (value) {
+                settings.tagCompletionSaveToSourceFile = value;
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -2485,206 +2490,232 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.lyricsSectionTitle,
           l10n.lyricsSectionDescription,
         ),
-        _buildLyricsTranslationLanguageSection(context, settings),
-        const SizedBox(height: 16),
-        _buildLyricsSaveMethodSection(context, settings),
-        const SizedBox(height: 16),
-        _buildLyricsStyleSection(context, settings),
-        const SizedBox(height: 16),
-        _buildSectionHeader(l10n.lyricsImportExportHeader),
-        _buildLyricsImportExportSection(context, settings),
-        _buildSectionHeader(l10n.platformApiKeysSectionTitle),
-        ListTile(
-          leading: _buildProviderIcon(LyricsAiProvider.googleAiStudio),
-          title: Text(l10n.googleAiStudioApiKey),
-          subtitle: Text(
-            settings.geminiApiKey.trim().isEmpty
-                ? l10n.apiKeyMissingStatus
-                : l10n.apiKeySavedStatus,
-          ),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final enteredApiKey = await showGoogleAiStudioApiKeyDialog(
-                context,
-                ref: ref,
-                initialApiKey: settings.geminiApiKey,
-              );
-              if (enteredApiKey == null) {
-                return;
-              }
-              settings.geminiApiKey = enteredApiKey;
+        _buildGroupCard(
+          context,
+          title: l10n.lyricsSectionTitle,
+          icon: Icons.tune_rounded,
+          children: [
+            _buildLyricsTranslationLanguageSection(context, settings),
+            _buildLyricsSaveMethodSection(context, settings),
+            _buildLyricsStyleSection(context, settings),
+          ],
+        ),
+        _buildGroupCard(
+          context,
+          title: l10n.lyricsImportExportHeader,
+          icon: Icons.import_export_rounded,
+          children: [
+            _buildLyricsImportExportSection(context, settings),
+          ],
+        ),
+        _buildGroupCard(
+          context,
+          title: l10n.platformApiKeysSectionTitle,
+          icon: Icons.key_rounded,
+          children: [
+            ListTile(
+              leading: _buildProviderIcon(LyricsAiProvider.googleAiStudio),
+              title: Text(l10n.googleAiStudioApiKey),
+              subtitle: Text(
+                settings.geminiApiKey.trim().isEmpty
+                    ? l10n.apiKeyMissingStatus
+                    : l10n.apiKeySavedStatus,
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final enteredApiKey = await showGoogleAiStudioApiKeyDialog(
+                    context,
+                    ref: ref,
+                    initialApiKey: settings.geminiApiKey,
+                  );
+                  if (enteredApiKey == null) {
+                    return;
+                  }
+                  settings.geminiApiKey = enteredApiKey;
 
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    enteredApiKey.trim().isEmpty
-                        ? l10n.clearedGoogleAiStudioApiKey
-                        : l10n.apiKeySaved('Google AI Studio'),
-                  ),
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        enteredApiKey.trim().isEmpty
+                            ? l10n.clearedGoogleAiStudioApiKey
+                            : l10n.apiKeySaved('Google AI Studio'),
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  settings.geminiApiKey.trim().isEmpty ? l10n.fill : l10n.modify,
                 ),
-              );
-            },
-            child: Text(
-              settings.geminiApiKey.trim().isEmpty ? l10n.fill : l10n.modify,
+              ),
             ),
-          ),
-        ),
-        ListTile(
-          leading: _buildProviderIcon(LyricsAiProvider.openRouter),
-          title: Text(l10n.openRouterApiKey),
-          subtitle: Text(
-            settings.openRouterApiKey.trim().isEmpty
-                ? l10n.apiKeyMissingStatus
-                : l10n.apiKeySavedStatus,
-          ),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final enteredApiKey = await showOpenRouterApiKeyDialog(
-                context,
-                ref: ref,
-                initialApiKey: settings.openRouterApiKey,
-              );
-              if (enteredApiKey == null) {
-                return;
-              }
-              settings.openRouterApiKey = enteredApiKey;
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    enteredApiKey.trim().isEmpty
-                        ? l10n.clearedOpenRouterApiKey
-                        : l10n.apiKeySaved('OpenRouter'),
-                  ),
+            ListTile(
+              leading: _buildProviderIcon(LyricsAiProvider.openRouter),
+              title: Text(l10n.openRouterApiKey),
+              subtitle: Text(
+                settings.openRouterApiKey.trim().isEmpty
+                    ? l10n.apiKeyMissingStatus
+                    : l10n.apiKeySavedStatus,
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final enteredApiKey = await showOpenRouterApiKeyDialog(
+                    context,
+                    ref: ref,
+                    initialApiKey: settings.openRouterApiKey,
+                  );
+                  if (enteredApiKey == null) {
+                    return;
+                  }
+                  settings.openRouterApiKey = enteredApiKey;
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        enteredApiKey.trim().isEmpty
+                            ? l10n.clearedOpenRouterApiKey
+                            : l10n.apiKeySaved('OpenRouter'),
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  settings.openRouterApiKey.trim().isEmpty
+                      ? l10n.fill
+                      : l10n.modify,
                 ),
-              );
-            },
-            child: Text(
-              settings.openRouterApiKey.trim().isEmpty
-                  ? l10n.fill
-                  : l10n.modify,
+              ),
             ),
-          ),
-        ),
-        ListTile(
-          leading: _buildProviderIcon(LyricsAiProvider.doubao),
-          title: Text(l10n.doubaoApiKey),
-          subtitle: Text(
-            settings.doubaoApiKey.trim().isEmpty
-                ? l10n.apiKeyMissingStatus
-                : l10n.apiKeySavedStatus,
-          ),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final enteredApiKey = await showDoubaoApiKeyDialog(
-                context,
-                ref: ref,
-                initialApiKey: settings.doubaoApiKey,
-              );
-              if (enteredApiKey == null) {
-                return;
-              }
-              settings.doubaoApiKey = enteredApiKey;
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    enteredApiKey.trim().isEmpty
-                        ? l10n.clearedDoubaoApiKey
-                        : l10n.savedDoubaoApiKey,
-                  ),
+            ListTile(
+              leading: _buildProviderIcon(LyricsAiProvider.doubao),
+              title: Text(l10n.doubaoApiKey),
+              subtitle: Text(
+                settings.doubaoApiKey.trim().isEmpty
+                    ? l10n.apiKeyMissingStatus
+                    : l10n.apiKeySavedStatus,
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final enteredApiKey = await showDoubaoApiKeyDialog(
+                    context,
+                    ref: ref,
+                    initialApiKey: settings.doubaoApiKey,
+                  );
+                  if (enteredApiKey == null) {
+                    return;
+                  }
+                  settings.doubaoApiKey = enteredApiKey;
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        enteredApiKey.trim().isEmpty
+                            ? l10n.clearedDoubaoApiKey
+                            : l10n.savedDoubaoApiKey,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  settings.doubaoApiKey.trim().isEmpty ? l10n.fill : l10n.modify,
                 ),
-              );
-            },
-            child: Text(
-              settings.doubaoApiKey.trim().isEmpty ? l10n.fill : l10n.modify,
+              ),
             ),
-          ),
-        ),
-        ListTile(
-          leading: _buildProviderIcon(LyricsAiProvider.deepseek),
-          title: Text(l10n.deepseekApiKey),
-          subtitle: Text(
-            '${settings.deepseekApiKey.trim().isEmpty ? l10n.apiKeyMissingStatus : l10n.apiKeySavedStatus}  ·  ${l10n.onlyForLyricTranslation}',
-          ),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final enteredApiKey = await showDeepSeekApiKeyDialog(
-                context,
-                ref: ref,
-                initialApiKey: settings.deepseekApiKey,
-              );
-              if (enteredApiKey == null) {
-                return;
-              }
-              settings.deepseekApiKey = enteredApiKey;
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    enteredApiKey.trim().isEmpty
-                        ? l10n.clearedDeepseekApiKey
-                        : l10n.savedDeepseekApiKey,
-                  ),
+            ListTile(
+              leading: _buildProviderIcon(LyricsAiProvider.deepseek),
+              title: Text(l10n.deepseekApiKey),
+              subtitle: Text(
+                '${settings.deepseekApiKey.trim().isEmpty ? l10n.apiKeyMissingStatus : l10n.apiKeySavedStatus}  ·  ${l10n.onlyForLyricTranslation}',
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final enteredApiKey = await showDeepSeekApiKeyDialog(
+                    context,
+                    ref: ref,
+                    initialApiKey: settings.deepseekApiKey,
+                  );
+                  if (enteredApiKey == null) {
+                    return;
+                  }
+                  settings.deepseekApiKey = enteredApiKey;
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        enteredApiKey.trim().isEmpty
+                            ? l10n.clearedDeepseekApiKey
+                            : l10n.savedDeepseekApiKey,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  settings.deepseekApiKey.trim().isEmpty ? l10n.fill : l10n.modify,
                 ),
-              );
-            },
-            child: Text(
-              settings.deepseekApiKey.trim().isEmpty ? l10n.fill : l10n.modify,
+              ),
             ),
-          ),
-        ),
-        ListTile(
-          leading: _buildProviderIcon(LyricsAiProvider.custom),
-          title: Text(settings.customProviderName.trim().isEmpty
-              ? l10n.customApiProvider
-              : settings.customProviderName.trim()),
-          subtitle: Text(
-            '${settings.customProviderApiKey.trim().isEmpty ? l10n.apiKeyMissingStatus : l10n.apiKeySavedStatus}  ·  ${l10n.onlyForLyricTranslation}',
-          ),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final result = await showCustomProviderDialog(
-                context,
-                initialBaseUrl: settings.customProviderBaseUrl,
-                initialApiKey: settings.customProviderApiKey,
-                initialName: settings.customProviderName,
-              );
-              if (result == null) {
-                return;
-              }
-              settings.customProviderBaseUrl = result.baseUrl;
-              settings.customProviderApiKey = result.apiKey;
-              settings.customProviderName = result.name;
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    result.apiKey.trim().isEmpty
-                        ? l10n.clearedCustomProviderConfig
-                        : l10n.savedCustomProviderConfig,
-                  ),
+            ListTile(
+              leading: _buildProviderIcon(LyricsAiProvider.custom),
+              title: Text(settings.customProviderName.trim().isEmpty
+                  ? l10n.customApiProvider
+                  : settings.customProviderName.trim()),
+              subtitle: Text(
+                '${settings.customProviderApiKey.trim().isEmpty ? l10n.apiKeyMissingStatus : l10n.apiKeySavedStatus}  ·  ${l10n.onlyForLyricTranslation}',
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final result = await showCustomProviderDialog(
+                    context,
+                    initialBaseUrl: settings.customProviderBaseUrl,
+                    initialApiKey: settings.customProviderApiKey,
+                    initialName: settings.customProviderName,
+                  );
+                  if (result == null) {
+                    return;
+                  }
+                  settings.customProviderBaseUrl = result.baseUrl;
+                  settings.customProviderApiKey = result.apiKey;
+                  settings.customProviderName = result.name;
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result.apiKey.trim().isEmpty
+                            ? l10n.clearedCustomProviderConfig
+                            : l10n.savedCustomProviderConfig,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  settings.customProviderApiKey.trim().isEmpty
+                      ? l10n.fill
+                      : l10n.modify,
                 ),
-              );
-            },
-            child: Text(
-              settings.customProviderApiKey.trim().isEmpty
-                  ? l10n.fill
-                  : l10n.modify,
+              ),
             ),
-          ),
+          ],
         ),
-        _buildSectionHeader(l10n.geminiModelsSectionTitle),
-        if (!hasAnyProvider)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Text(
-              l10n.fillApiKeyFirstEnablesModels,
-              style: TextStyle(color: Theme.of(context).hintColor),
-            ),
-          ),
-        _buildLyricsModelSection(context, settings),
+        _buildGroupCard(
+          context,
+          title: l10n.geminiModelsSectionTitle,
+          icon: Icons.psychology_outlined,
+          children: [
+            if (!hasAnyProvider)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Text(
+                  l10n.fillApiKeyFirstEnablesModels,
+                  style: TextStyle(color: Theme.of(context).hintColor),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: _buildLyricsModelSection(context, settings),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -2696,56 +2727,63 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       padding: const EdgeInsets.only(bottom: 100),
       children: [
         _buildSectionHeader(l10n.acoustidSectionTitle, l10n.acoustidApiKeyHelp),
-        ListTile(
-          isThreeLine: true,
-          leading: const Icon(Icons.graphic_eq_rounded),
-          title: Text(l10n.acoustidApiKeyTitle),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                settings.hasCustomAcoustidApiKey
-                    ? l10n.acoustidApiKeySaved
-                    : l10n.acoustidApiKeyDefault,
+        _buildGroupCard(
+          context,
+          title: l10n.acoustidSectionTitle,
+          icon: Icons.radar_rounded,
+          children: [
+            ListTile(
+              isThreeLine: true,
+              leading: const Icon(Icons.graphic_eq_rounded),
+              title: Text(l10n.acoustidApiKeyTitle),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    settings.hasCustomAcoustidApiKey
+                        ? l10n.acoustidApiKeySaved
+                        : l10n.acoustidApiKeyDefault,
+                  ),
+                  const SizedBox(height: 4),
+                  InkWell(
+                    onTap: () async {
+                      final uri = Uri.parse('https://acoustid.org/new-application');
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    },
+                    child: Text(
+                      l10n.applyForApiKey,
+                      style: const TextStyle(
+                        color: Colors.lightBlueAccent,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              InkWell(
-                onTap: () async {
-                  final uri = Uri.parse('https://acoustid.org/new-application');
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+              trailing: FilledButton.tonal(
+                onPressed: () async {
+                  final enteredApiKey = await showAcoustidApiKeyDialog(
+                    context,
+                    initialApiKey: settings.hasCustomAcoustidApiKey
+                        ? settings.acoustidApiKey
+                        : '',
+                  );
+                  if (enteredApiKey == null) {
+                    return;
+                  }
+
+                  settings.acoustidApiKey = enteredApiKey;
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(l10n.acoustidApiKeySaved)));
                 },
                 child: Text(
-                  l10n.applyForApiKey,
-                  style: TextStyle(
-                    color: Colors.lightBlueAccent,
-                    decoration: TextDecoration.underline,
-                  ),
+                  settings.hasCustomAcoustidApiKey ? l10n.modify : l10n.fill,
                 ),
               ),
-            ],
-          ),
-          trailing: FilledButton.tonal(
-            onPressed: () async {
-              final enteredApiKey = await showAcoustidApiKeyDialog(
-                context,
-                initialApiKey: settings.hasCustomAcoustidApiKey
-                    ? settings.acoustidApiKey
-                    : '',
-              );
-              if (enteredApiKey == null) {
-                return;
-              }
-
-              settings.acoustidApiKey = enteredApiKey;
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(l10n.acoustidApiKeySaved)));
-            },
-            child: Text(
-              settings.hasCustomAcoustidApiKey ? l10n.modify : l10n.fill,
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -2760,16 +2798,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.shortcutSettingsTitle,
           l10n.shortcutSettingsDescription,
         ),
-        ListTile(
-          leading: const Icon(Icons.keyboard),
-          title: Text(l10n.shortcutSettingsTitle),
-          subtitle: Text(l10n.shortcutSettingsDescription),
-          trailing: FilledButton.tonal(
-            onPressed: () {
-              showShortcutSettingsDialog(context);
-            },
-            child: Text(l10n.edit),
-          ),
+        _buildGroupCard(
+          context,
+          title: l10n.shortcutSettingsTitle,
+          icon: Icons.keyboard_rounded,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.keyboard),
+              title: Text(l10n.shortcutSettingsTitle),
+              subtitle: Text(l10n.shortcutSettingsDescription),
+              trailing: FilledButton.tonal(
+                onPressed: () {
+                  showShortcutSettingsDialog(context);
+                },
+                child: Text(l10n.edit),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -2798,155 +2843,160 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.about,
           l10n.aboutSectionDescription,
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Vynody ${_appVersion.isEmpty ? "" : "v$_appVersion"}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    if (!AppChannel.isGitHubRelease) ...[
-                      const SizedBox(width: 8),
-                      const ProBadge(),
+        _buildGroupCard(
+          context,
+          title: l10n.about,
+          icon: Icons.info_outline_rounded,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Vynody ${_appVersion.isEmpty ? "" : "v$_appVersion"}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      if (!AppChannel.isGitHubRelease) ...[
+                        const SizedBox(width: 8),
+                        const ProBadge(),
+                      ],
                     ],
-                  ],
-                ),
-                if (!AppChannel.isGitHubRelease) ...[
-                  const SizedBox(height: 12),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final license = ref.watch(licenseStateProvider);
-                      final isDark = Theme.of(context).brightness == Brightness.dark;
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
-                                : Colors.black.withValues(alpha: 0.06),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.workspace_premium_rounded,
-                              size: 22,
-                              color: const Color(0xFFFFB300),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    license.isInTrial
-                                        ? l10n.proStatusTrialTitle(license.trialTotalDays)
-                                        : (license.isTrialExpired
-                                            ? l10n.proStatusTrialExpiredTitle
-                                            : l10n.proStatusActivatedTitle),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    license.isInTrial
-                                        ? l10n.proSettingsTrialRemaining(license.trialDaysRemaining)
-                                        : (license.isTrialExpired
-                                            ? l10n.proSettingsUpgradePrompt
-                                            : l10n.proSettingsLifetimeNotice),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark ? Colors.white60 : Colors.black54,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: () => showUpgradeToProDialog(context),
-                              icon: const Icon(Icons.info_outline, size: 16),
-                              label: Text(
-                                license.isTrialExpired ? l10n.proSettingsUpgrade : l10n.proSettingsView,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
                   ),
-                ],
-                if (AppChannel.isGitHubRelease) ...[
-                  const SizedBox(height: 12),
-                  InkWell(
-                    onTap: () async {
-                      final uri = Uri.parse('https://github.com/axel10/vynody');
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    },
-                    borderRadius: BorderRadius.circular(4),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        'https://github.com/axel10/vynody',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.8),
-                          decoration: TextDecoration.underline,
+                  if (!AppChannel.isGitHubRelease) ...[
+                    const SizedBox(height: 12),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final license = ref.watch(licenseStateProvider);
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.black.withValues(alpha: 0.06),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.workspace_premium_rounded,
+                                size: 22,
+                                color: const Color(0xFFFFB300),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      license.isInTrial
+                                          ? l10n.proStatusTrialTitle(license.trialTotalDays)
+                                          : (license.isTrialExpired
+                                              ? l10n.proStatusTrialExpiredTitle
+                                              : l10n.proStatusActivatedTitle),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      license.isInTrial
+                                          ? l10n.proSettingsTrialRemaining(license.trialDaysRemaining)
+                                          : (license.isTrialExpired
+                                              ? l10n.proSettingsUpgradePrompt
+                                              : l10n.proSettingsLifetimeNotice),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark ? Colors.white60 : Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => showUpgradeToProDialog(context),
+                                icon: const Icon(Icons.info_outline, size: 16),
+                                label: Text(
+                                  license.isTrialExpired ? l10n.proSettingsUpgrade : l10n.proSettingsView,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  if (AppChannel.isGitHubRelease) ...[
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final uri = Uri.parse('https://github.com/axel10/vynody');
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          'https://github.com/axel10/vynody',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.8),
+                            decoration: TextDecoration.underline,
+                          ),
                         ),
                       ),
                     ),
+                  ],
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: _isCheckingUpdates ? null : _checkForUpdates,
+                        icon: _isCheckingUpdates
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.system_update_alt_rounded),
+                        label: Text(l10n.checkForUpdates),
+                      ),
+                      TextButton.icon(
+                        onPressed: _isExportingLogs ? null : _exportLogs,
+                        icon: _isExportingLogs
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.description_outlined, size: 18),
+                        label: Text(l10n.exportLogs),
+                      ),
+                    ],
                   ),
                 ],
-                const SizedBox(height: 16),
-                FilledButton.tonalIcon(
-                  onPressed: _isCheckingUpdates ? null : _checkForUpdates,
-                  icon: _isCheckingUpdates
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.system_update_alt_rounded),
-                  label: Text(l10n.checkForUpdates),
-                ),
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: _isExportingLogs ? null : _exportLogs,
-                  icon: _isExportingLogs
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.description_outlined, size: 18),
-                  label: Text(l10n.exportLogs),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ],
     );
@@ -2962,54 +3012,60 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.audioSettings,
           l10n.audioSettingsDescription,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.equalizerBandCount,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
+        _buildGroupCard(
+          context,
+          title: l10n.equalizerBandCount,
+          icon: Icons.equalizer_rounded,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.equalizerBandCountDescription,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<int>(
+                      segments: [
+                        ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
+                        ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
+                        ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
+                        ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
+                      ],
+                      selected: {settings.equalizerBandCount},
+                      onSelectionChanged: (Set<int> selected) {
+                        if (selected.isNotEmpty) {
+                          settings.equalizerBandCount = selected.first;
+                        }
+                      },
+                      showSelectedIcon: false,
                     ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                l10n.equalizerBandCountDescription,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: SegmentedButton<int>(
-                  segments: [
-                    ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
-                    ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
-                    ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
-                    ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
-                  ],
-                  selected: {settings.equalizerBandCount},
-                  onSelectionChanged: (Set<int> selected) {
-                    if (selected.isNotEmpty) {
-                      settings.equalizerBandCount = selected.first;
-                    }
-                  },
-                  showSelectedIcon: false,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const Divider(height: 32),
-        SwitchListTile(
-          title: Text(l10n.enableFadeEffect),
-          subtitle: Text(l10n.enableFadeEffectDescription),
-          value: settings.enableFadeEffect,
-          onChanged: (value) {
-            settings.enableFadeEffect = value;
-          },
+        _buildGroupCard(
+          context,
+          title: l10n.playbackBehaviorGroup,
+          icon: Icons.graphic_eq_rounded,
+          children: [
+            SwitchListTile(
+              title: Text(l10n.enableFadeEffect),
+              subtitle: Text(l10n.enableFadeEffectDescription),
+              value: settings.enableFadeEffect,
+              onChanged: (value) {
+                settings.enableFadeEffect = value;
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -3045,6 +3101,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       _SettingsSection.transcode => _buildTranscodePage(context, settings),
       _SettingsSection.lyrics => _buildLyricsPage(context, settings),
       _SettingsSection.acoustid => _buildAcoustidPage(context, settings),
+      _SettingsSection.storage => _StorageAndCachePage(settings: settings),
       _SettingsSection.shortcuts => _buildShortcutsPage(context),
       _SettingsSection.windows => _buildWindowsPage(context),
       _SettingsSection.about => _buildAboutPage(context),
@@ -3888,16 +3945,17 @@ class _LyricsModelPickerDialogState
   }
 }
 
-class _StorageAndCacheCard extends ConsumerStatefulWidget {
+class _StorageAndCachePage extends ConsumerStatefulWidget {
   final SettingsService settings;
 
-  const _StorageAndCacheCard({required this.settings});
+  const _StorageAndCachePage({required this.settings});
 
   @override
-  ConsumerState<_StorageAndCacheCard> createState() => _StorageAndCacheCardState();
+  ConsumerState<_StorageAndCachePage> createState() =>
+      _StorageAndCachePageState();
 }
 
-class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
+class _StorageAndCachePageState extends ConsumerState<_StorageAndCachePage> {
   int? _remoteCacheSizeBytes;
   bool _isLoadingCacheSize = false;
   bool _isClearingRemoteCache = false;
@@ -3942,16 +4000,14 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final settings = widget.settings;
+  Widget _buildGroupCard(
+    BuildContext context, {
+    required String title,
+    IconData? icon,
+    required List<Widget> children,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    final sizeStr = _isLoadingCacheSize
-        ? '...'
-        : _formatBytes(_remoteCacheSizeBytes ?? 0);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -3971,14 +4027,12 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               children: [
-                Icon(
-                  Icons.storage_outlined,
-                  size: 20,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
+                if (icon != null) ...[
+                  Icon(icon, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 8),
+                ],
                 Text(
-                  l10n.storageAndCache,
+                  title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -3987,154 +4041,202 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
               ],
             ),
           ),
-          ListTile(
-            title: Text(l10n.remoteAudioCache),
-            subtitle: Text(
-              '${l10n.remoteAudioCacheDescription}\n${l10n.remoteAudioCache}: $sizeStr',
-            ),
-            isThreeLine: true,
-            trailing: FilledButton.tonal(
-              onPressed: _isClearingRemoteCache
-                  ? null
-                  : () async {
-                      setState(() {
-                        _isClearingRemoteCache = true;
-                      });
-                      try {
-                        final streamManager = ref.read(audioStreamCacheManagerProvider);
-                        await streamManager.clearCache();
-                        await _loadCacheSize();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.remoteCacheCleared)),
-                          );
-                        }
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            _isClearingRemoteCache = false;
-                          });
-                        }
-                      }
-                    },
-              child: _isClearingRemoteCache
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.clear),
-            ),
-          ),
-          _buildDropdownTile<int>(
-            context: context,
-            title: l10n.remoteCacheLimit,
-            value: settings.remoteCacheMaxSizeBytes,
-            options: [
-              _DropdownOption(
-                value: 0,
-                label: l10n.unlimited,
-              ),
-              const _DropdownOption(
-                value: 500 * 1024 * 1024,
-                label: '500 MB',
-              ),
-              const _DropdownOption(
-                value: 1024 * 1024 * 1024,
-                label: '1 GB',
-              ),
-              const _DropdownOption(
-                value: 2 * 1024 * 1024 * 1024,
-                label: '2 GB',
-              ),
-              const _DropdownOption(
-                value: 5 * 1024 * 1024 * 1024,
-                label: '5 GB',
-              ),
-              const _DropdownOption(
-                value: 10 * 1024 * 1024 * 1024,
-                label: '10 GB',
-              ),
-            ],
-            onChanged: (value) async {
-              if (value != null) {
-                settings.remoteCacheMaxSizeBytes = value;
-                final cacheManager = ref.read(audioStreamCacheManagerProvider);
-                await cacheManager.pruneCacheIfNeeded(limitBytes: value);
-                await _loadCacheSize();
-              }
-            },
-          ),
-          _buildDropdownTile<int>(
-            context: context,
-            title: l10n.remotePrefetchCount,
-            subtitle: l10n.remotePrefetchCountDescription,
-            value: settings.remotePrefetchCount,
-            options: [
-              _DropdownOption(
-                value: 0,
-                label: l10n.off,
-              ),
-              const _DropdownOption(
-                value: 1,
-                label: '1',
-              ),
-              const _DropdownOption(
-                value: 2,
-                label: '2',
-              ),
-              const _DropdownOption(
-                value: 3,
-                label: '3',
-              ),
-              const _DropdownOption(
-                value: 5,
-                label: '5',
-              ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                settings.remotePrefetchCount = value;
-              }
-            },
-          ),
-          ListTile(
-            title: Text(l10n.clearWaveformCache),
-            subtitle: Text(l10n.clearWaveformCacheDescription),
-            trailing: FilledButton.tonal(
-              onPressed: _isClearingWaveformCache
-                  ? null
-                  : () async {
-                      setState(() {
-                        _isClearingWaveformCache = true;
-                      });
-                      try {
-                        final audio = ref.read(audioServiceProvider);
-                        await audio.clearWaveformCache();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(l10n.waveformCacheCleared)),
-                          );
-                        }
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            _isClearingWaveformCache = false;
-                          });
-                        }
-                      }
-                    },
-              child: _isClearingWaveformCache
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.clear),
-            ),
-          ),
+          const Divider(height: 1),
+          ...children,
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final settings = widget.settings;
+
+    final sizeStr = _isLoadingCacheSize
+        ? '...'
+        : _formatBytes(_remoteCacheSizeBytes ?? 0);
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 100),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.storageAndCache,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        _buildGroupCard(
+          context,
+          title: l10n.remoteAudioCache,
+          icon: Icons.cloud_download_outlined,
+          children: [
+            ListTile(
+              title: Text(l10n.remoteAudioCache),
+              subtitle: Text(
+                '${l10n.remoteAudioCacheDescription}\n${l10n.remoteAudioCache}: $sizeStr',
+              ),
+              isThreeLine: true,
+              trailing: FilledButton.tonal(
+                onPressed: _isClearingRemoteCache
+                    ? null
+                    : () async {
+                        setState(() {
+                          _isClearingRemoteCache = true;
+                        });
+                        try {
+                          final streamManager =
+                              ref.read(audioStreamCacheManagerProvider);
+                          await streamManager.clearCache();
+                          await _loadCacheSize();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(l10n.remoteCacheCleared)),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isClearingRemoteCache = false;
+                            });
+                          }
+                        }
+                      },
+                child: _isClearingRemoteCache
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.clear),
+              ),
+            ),
+            _buildDropdownTile<int>(
+              context: context,
+              title: l10n.remoteCacheLimit,
+              value: settings.remoteCacheMaxSizeBytes,
+              options: [
+                _DropdownOption(
+                  value: 0,
+                  label: l10n.unlimited,
+                ),
+                const _DropdownOption(
+                  value: 500 * 1024 * 1024,
+                  label: '500 MB',
+                ),
+                const _DropdownOption(
+                  value: 1024 * 1024 * 1024,
+                  label: '1 GB',
+                ),
+                const _DropdownOption(
+                  value: 2 * 1024 * 1024 * 1024,
+                  label: '2 GB',
+                ),
+                const _DropdownOption(
+                  value: 5 * 1024 * 1024 * 1024,
+                  label: '5 GB',
+                ),
+                const _DropdownOption(
+                  value: 10 * 1024 * 1024 * 1024,
+                  label: '10 GB',
+                ),
+              ],
+              onChanged: (value) async {
+                if (value != null) {
+                  settings.remoteCacheMaxSizeBytes = value;
+                  final cacheManager =
+                      ref.read(audioStreamCacheManagerProvider);
+                  await cacheManager.pruneCacheIfNeeded(limitBytes: value);
+                  await _loadCacheSize();
+                }
+              },
+            ),
+            _buildDropdownTile<int>(
+              context: context,
+              title: l10n.remotePrefetchCount,
+              subtitle: l10n.remotePrefetchCountDescription,
+              value: settings.remotePrefetchCount,
+              options: [
+                _DropdownOption(
+                  value: 0,
+                  label: l10n.off,
+                ),
+                const _DropdownOption(
+                  value: 1,
+                  label: '1',
+                ),
+                const _DropdownOption(
+                  value: 2,
+                  label: '2',
+                ),
+                const _DropdownOption(
+                  value: 3,
+                  label: '3',
+                ),
+                const _DropdownOption(
+                  value: 5,
+                  label: '5',
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  settings.remotePrefetchCount = value;
+                }
+              },
+            ),
+          ],
+        ),
+        _buildGroupCard(
+          context,
+          title: l10n.clearWaveformCache,
+          icon: Icons.graphic_eq_rounded,
+          children: [
+            ListTile(
+              title: Text(l10n.clearWaveformCache),
+              subtitle: Text(l10n.clearWaveformCacheDescription),
+              trailing: FilledButton.tonal(
+                onPressed: _isClearingWaveformCache
+                    ? null
+                    : () async {
+                        setState(() {
+                          _isClearingWaveformCache = true;
+                        });
+                        try {
+                          final audio = ref.read(audioServiceProvider);
+                          await audio.clearWaveformCache();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(l10n.waveformCacheCleared)),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isClearingWaveformCache = false;
+                            });
+                          }
+                        }
+                      },
+                child: _isClearingWaveformCache
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.clear),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
