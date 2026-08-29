@@ -1,17 +1,8 @@
 import 'package:audio_core/audio_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../audio/audio_riverpod.dart';
-import 'proxy/local_stream_cache_proxy.dart';
 import 'proxy/remote_media_resolver.dart';
-import 'proxy/remote_stream_cache_manager.dart';
 import 'remote_server_riverpod.dart';
-
-final remoteStreamCacheManagerProvider = Provider<RemoteStreamCacheManager>((ref) {
-  final settings = ref.watch(settingsServiceProvider);
-  return RemoteStreamCacheManager(
-    maxCacheSizeBytesGetter: () => settings.remoteCacheMaxSizeBytes,
-  );
-});
 
 final audioStreamCacheManagerProvider = Provider<AudioStreamCacheManager>((ref) {
   final settings = ref.watch(settingsServiceProvider);
@@ -20,25 +11,8 @@ final audioStreamCacheManagerProvider = Provider<AudioStreamCacheManager>((ref) 
   );
 });
 
-final localStreamCacheProxyProvider = Provider<LocalStreamCacheProxy>((ref) {
-  final cacheManager = ref.watch(remoteStreamCacheManagerProvider);
-  final proxy = LocalStreamCacheProxy(cacheManager: cacheManager);
-  
-  // Eagerly start proxy
-  proxy.start();
-  
-  ref.onDispose(() {
-    proxy.stop();
-  });
-  
-  return proxy;
-});
-
 final remoteMediaResolverProvider = FutureProvider<RemoteMediaResolver>((ref) async {
   final storage = await ref.watch(remoteServerStorageProvider.future);
-  final proxy = ref.watch(localStreamCacheProxyProvider);
-  if (!proxy.isRunning) {
-    await proxy.start();
-  }
-  return RemoteMediaResolver(storage: storage, proxy: proxy);
+  final cacheManager = ref.watch(audioStreamCacheManagerProvider);
+  return RemoteMediaResolver(storage: storage, cacheManager: cacheManager);
 });

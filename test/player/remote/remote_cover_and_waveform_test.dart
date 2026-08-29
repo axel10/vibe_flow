@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
-import 'package:vynody/player/remote/proxy/local_stream_cache_proxy.dart';
 import 'package:vynody/player/remote/remote_server_storage.dart';
 import 'package:vynody/player/audio/waveform_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,14 +11,12 @@ void main() {
   group('Remote Cover & URI resolution tests', () {
     late RemoteServer subsonicServer;
     late RemoteServerStorage storage;
-    late LocalStreamCacheProxy proxy;
     late RemoteMediaResolver resolver;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       storage = RemoteServerStorage(prefs: prefs);
-      proxy = LocalStreamCacheProxy();
 
       subsonicServer = RemoteServer(
         id: 'navidrome_server',
@@ -32,7 +29,7 @@ void main() {
 
       await storage.saveServers([subsonicServer]);
       await storage.savePassword('navidrome_server', 'secret123');
-      resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+      resolver = RemoteMediaResolver(storage: storage);
     });
 
     test('buildMusicFileFromSubsonic formats artworkPath with serverId', () {

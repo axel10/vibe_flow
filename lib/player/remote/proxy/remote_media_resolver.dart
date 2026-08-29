@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -10,7 +11,6 @@ import '../remote_server_models.dart';
 import '../remote_server_storage.dart';
 import '../clients/subsonic_client.dart';
 import '../clients/webdav_client.dart';
-import 'local_stream_cache_proxy.dart';
 
 class RemoteUriInfo {
   final RemoteServerType type;
@@ -28,12 +28,12 @@ class RemoteUriInfo {
 
 class RemoteMediaResolver {
   final RemoteServerStorage storage;
-  final LocalStreamCacheProxy proxy;
+  final AudioStreamCacheManager cacheManager;
 
   RemoteMediaResolver({
     required this.storage,
-    required this.proxy,
-  });
+    AudioStreamCacheManager? cacheManager,
+  }) : cacheManager = cacheManager ?? AudioStreamCacheManager();
 
   /// Checks if a file path is a remote virtual URI.
   static bool isRemoteUri(String path) {
@@ -103,46 +103,6 @@ class RemoteMediaResolver {
     return 'webdav://$serverId$clean';
   }
 
-  /// Resolves a remote virtual URI synchronously if server and password are cached.
-  String resolvePlayableUrlSync(String remoteUri, {int? maxBitRate}) {
-    final info = parseUri(remoteUri);
-    if (info == null) {
-      return remoteUri;
-    }
-
-    final servers = storage.loadServers();
-    final server = servers.firstWhere(
-      (s) => s.id == info.serverId,
-      orElse: () => throw StateError('Server with ID ${info.serverId} not found'),
-    );
-
-    final password = storage.getPasswordSync(server.id) ?? '';
-
-    if (info.type == RemoteServerType.subsonic) {
-      final client = SubsonicClient(server: server, password: password);
-      final streamUrl = client.buildStreamUrl(
-        info.trackIdOrPath,
-        maxBitRate: maxBitRate ?? server.maxBitRate,
-      );
-
-      return proxy.buildProxyUrl(
-        remoteUrl: streamUrl,
-        serverId: server.id,
-        trackId: info.trackIdOrPath,
-      );
-    } else {
-      final client = WebDavClient(server: server, password: password);
-      final fullUrl = client.buildFullUrl(info.trackIdOrPath);
-
-      return proxy.buildProxyUrl(
-        remoteUrl: fullUrl,
-        headers: client.authHeaders,
-        serverId: server.id,
-        trackId: info.trackIdOrPath,
-      );
-    }
-  }
-
   /// Resolves a remote virtual URI into a [ResolvedAudioUri] with URL, headers, and cacheKey for [AudioCoreController].
   Future<ResolvedAudioUri> resolvePlayableSource(String remoteUri, {int? maxBitRate}) async {
     final info = parseUri(remoteUri);
@@ -181,46 +141,6 @@ class RemoteMediaResolver {
     }
   }
 
-  /// Resolves a remote virtual URI into a playable local proxy stream URL.
-  Future<String> resolvePlayableUrl(String remoteUri, {int? maxBitRate}) async {
-    final info = parseUri(remoteUri);
-    if (info == null) {
-      return remoteUri;
-    }
-
-    final servers = storage.loadServers();
-    final server = servers.firstWhere(
-      (s) => s.id == info.serverId,
-      orElse: () => throw StateError('Server with ID ${info.serverId} not found'),
-    );
-
-    final password = await storage.getPassword(server.id) ?? '';
-
-    if (info.type == RemoteServerType.subsonic) {
-      final client = SubsonicClient(server: server, password: password);
-      final streamUrl = client.buildStreamUrl(
-        info.trackIdOrPath,
-        maxBitRate: maxBitRate ?? server.maxBitRate,
-      );
-
-      return proxy.buildProxyUrl(
-        remoteUrl: streamUrl,
-        serverId: server.id,
-        trackId: info.trackIdOrPath,
-      );
-    } else {
-      final client = WebDavClient(server: server, password: password);
-      final fullUrl = client.buildFullUrl(info.trackIdOrPath);
-
-      return proxy.buildProxyUrl(
-        remoteUrl: fullUrl,
-        headers: client.authHeaders,
-        serverId: server.id,
-        trackId: info.trackIdOrPath,
-      );
-    }
-  }
-
   /// Resolves a remote virtual URI into a local cached audio file path (downloading if necessary).
   Future<String> resolvePlayableLocalPath(String remoteUri, {int? maxBitRate}) async {
     final info = parseUri(remoteUri);
@@ -228,39 +148,15 @@ class RemoteMediaResolver {
       return remoteUri;
     }
 
-    final servers = storage.loadServers();
-    final server = servers.firstWhere(
-      (s) => s.id == info.serverId,
-      orElse: () => throw StateError('Server with ID ${info.serverId} not found'),
+    final resolved = await resolvePlayableSource(remoteUri, maxBitRate: maxBitRate);
+    final cacheKey = resolved.cacheKey ?? remoteUri;
+
+    final cached = await cacheManager.ensureTrackCached(
+      cacheKey: cacheKey,
+      remoteUrl: resolved.uri,
+      headers: resolved.headers,
     );
-
-    final password = await storage.getPassword(server.id) ?? '';
-
-    if (info.type == RemoteServerType.subsonic) {
-      final client = SubsonicClient(server: server, password: password);
-      final streamUrl = client.buildStreamUrl(
-        info.trackIdOrPath,
-        maxBitRate: maxBitRate ?? server.maxBitRate,
-      );
-
-      final cached = await proxy.cacheManager.ensureTrackCached(
-        serverId: server.id,
-        trackIdOrPath: info.trackIdOrPath,
-        remoteUrl: streamUrl,
-      );
-      return cached.path;
-    } else {
-      final client = WebDavClient(server: server, password: password);
-      final fullUrl = client.buildFullUrl(info.trackIdOrPath);
-
-      final cached = await proxy.cacheManager.ensureTrackCached(
-        serverId: server.id,
-        trackIdOrPath: info.trackIdOrPath,
-        remoteUrl: fullUrl,
-        headers: client.authHeaders,
-      );
-      return cached.path;
-    }
+    return cached.path;
   }
 
   /// Synchronously returns the deterministic local cache file path for a remote URI.
@@ -268,12 +164,10 @@ class RemoteMediaResolver {
     final info = parseUri(remoteUri);
     if (info == null) return remoteUri;
 
-    final dir = proxy.cacheManager.cacheDirectorySync;
-    final serverDir = p.join(dir.path, info.serverId);
-    final hash = md5.convert(utf8.encode(info.trackIdOrPath)).toString();
-    return p.join(serverDir, '$hash.cache');
+    final dir = cacheManager.cacheDirectorySync;
+    final hash = md5.convert(utf8.encode('${info.serverId}:${info.trackIdOrPath}')).toString();
+    return p.join(dir.path, '$hash.cache');
   }
-
 
   /// Constructs a [MusicFile] model from a Subsonic track JSON object.
   static MusicFile buildMusicFileFromSubsonic(

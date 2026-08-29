@@ -43,7 +43,6 @@ import 'package:vynody/player/library/library_insights_service.dart';
 import 'package:vynody/player/lyrics/lyrics_riverpod.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
-import 'package:vynody/player/remote/remote_service_providers.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
 class AudioService extends Notifier<AudioSnapshot> {
@@ -174,8 +173,7 @@ class AudioService extends Notifier<AudioSnapshot> {
       if (RemoteMediaResolver.isRemoteUri(rawUri)) {
         try {
           final storage = await ref.read(remoteServerStorageProvider.future);
-          final proxy = ref.read(localStreamCacheProxyProvider);
-          final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+          final resolver = RemoteMediaResolver(storage: storage);
           return await resolver.resolvePlayableSource(rawUri);
         } catch (e) {
           debugPrint('[AudioService] Custom URI resolver error: $e');
@@ -215,8 +213,7 @@ class AudioService extends Notifier<AudioSnapshot> {
       waveformService: _waveformService,
       remoteMediaResolverGetter: () async {
         final storage = await ref.read(remoteServerStorageProvider.future);
-        final proxy = ref.read(localStreamCacheProxyProvider);
-        return RemoteMediaResolver(storage: storage, proxy: proxy);
+        return RemoteMediaResolver(storage: storage);
       },
     );
     _lastWaveformChunks = settingsService.waveformChunks;

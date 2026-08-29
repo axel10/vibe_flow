@@ -3916,10 +3916,7 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
     });
     try {
       final streamManager = ref.read(audioStreamCacheManagerProvider);
-      final remoteManager = ref.read(remoteStreamCacheManagerProvider);
-      final int streamSize = await streamManager.getTotalCacheSize();
-      final int remoteSize = await remoteManager.getTotalCacheSize();
-      final int size = streamSize + remoteSize;
+      final int size = await streamManager.getTotalCacheSize();
       if (mounted) {
         setState(() {
           _remoteCacheSizeBytes = size;
@@ -4005,9 +4002,7 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
                       });
                       try {
                         final streamManager = ref.read(audioStreamCacheManagerProvider);
-                        final remoteManager = ref.read(remoteStreamCacheManagerProvider);
                         await streamManager.clearCache();
-                        await remoteManager.clearCache();
                         await _loadCacheSize();
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -4064,7 +4059,7 @@ class _StorageAndCacheCardState extends ConsumerState<_StorageAndCacheCard> {
             onChanged: (value) async {
               if (value != null) {
                 settings.remoteCacheMaxSizeBytes = value;
-                final cacheManager = ref.read(remoteStreamCacheManagerProvider);
+                final cacheManager = ref.read(audioStreamCacheManagerProvider);
                 await cacheManager.pruneCacheIfNeeded(limitBytes: value);
                 await _loadCacheSize();
               }

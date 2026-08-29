@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_storage.dart';
-import 'package:vynody/player/remote/proxy/local_stream_cache_proxy.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/player/remote/clients/webdav_client.dart';
 
@@ -14,7 +13,6 @@ void main() {
 
   late SharedPreferences prefs;
   late RemoteServerStorage storage;
-  late LocalStreamCacheProxy proxy;
   late RemoteMediaResolver resolver;
 
   final subsonicServer = RemoteServer(
@@ -45,15 +43,7 @@ void main() {
     await storage.savePassword(subsonicServer.id, 'alice_pwd');
     await storage.savePassword(webdavServer.id, 'bob_pwd');
 
-    proxy = LocalStreamCacheProxy();
-    await proxy.start();
-
-    resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
-  });
-
-
-  tearDown(() async {
-    await proxy.stop();
+    resolver = RemoteMediaResolver(storage: storage);
   });
 
   test('RemoteMediaResolver parses virtual URIs correctly', () {
@@ -102,17 +92,16 @@ void main() {
     expect(davSong.title, 'TestTrack');
   });
 
-  test('RemoteMediaResolver resolves playable proxy URLs', () async {
-    final subPlayableUrl = await resolver.resolvePlayableUrl('subsonic://subsonic_test/track_123');
-    final decodedSub = Uri.decodeFull(subPlayableUrl);
-    expect(subPlayableUrl, startsWith('http://127.0.0.1:${proxy.port}/stream?url='));
-    expect(decodedSub, contains('u=alice'));
-    expect(decodedSub, contains('id=track_123'));
+  test('RemoteMediaResolver resolves playable sources with URL, headers and cacheKey', () async {
+    final subSource = await resolver.resolvePlayableSource('subsonic://subsonic_test/track_123');
+    expect(subSource.uri, contains('example.com:4533/rest/stream'));
+    expect(subSource.uri, contains('u=alice'));
+    expect(subSource.uri, contains('id=track_123'));
+    expect(subSource.cacheKey, 'subsonic_test:track_123');
 
-    final davPlayableUrl = await resolver.resolvePlayableUrl('webdav://webdav_test/Music/Song.flac');
-    final decodedDav = Uri.decodeFull(davPlayableUrl);
-    expect(davPlayableUrl, startsWith('http://127.0.0.1:${proxy.port}/stream?url='));
-    expect(decodedDav, contains('example.com/dav/Music/Song.flac'));
+    final davSource = await resolver.resolvePlayableSource('webdav://webdav_test/Music/Song.flac');
+    expect(davSource.uri, 'http://example.com/dav/Music/Song.flac');
+    expect(davSource.headers?['Authorization'], isNotNull);
+    expect(davSource.cacheKey, 'webdav_test:/Music/Song.flac');
   });
-
 }

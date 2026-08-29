@@ -9,7 +9,6 @@ import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/metadata/artwork_constants.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
-import 'package:vynody/player/remote/proxy/local_stream_cache_proxy.dart';
 import 'package:vynody/player/remote/remote_server_storage.dart';
 
 class TrackArtworkThemeResult {
@@ -221,8 +220,7 @@ class TrackArtworkThemeService {
         try {
           final prefs = await SharedPreferences.getInstance();
           final storage = RemoteServerStorage(prefs: prefs);
-          final proxy = LocalStreamCacheProxy();
-          final resolver = RemoteMediaResolver(storage: storage, proxy: proxy);
+          final resolver = RemoteMediaResolver(storage: storage);
           final coverId = baseMetadata.artworkPath ?? cached?.artworkPath;
           artworkBytes = await resolver.getArtworkBytes(path, coverArtId: coverId);
         } catch (e) {
