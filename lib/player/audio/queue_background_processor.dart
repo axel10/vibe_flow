@@ -164,11 +164,17 @@ class QueueBackgroundProcessor {
             }
           }
 
+          bool queueChanged = false;
           for (int i = 0; i < queue.length; i++) {
             if (queue[i].path == path) {
               final bool inWaveformMemoryRange =
                   waveformMemPaths.contains(path);
               queue[i] = queue[i].copyWith(
+                title: updates['title'] as String? ?? queue[i].title,
+                artist: updates['artist'] as String? ?? queue[i].artist,
+                album: updates['album'] as String? ?? queue[i].album,
+                trackNumber: updates['trackNumber'] as int? ?? queue[i].trackNumber,
+                durationMillis: updates['durationMillis'] as int? ?? queue[i].durationMillis,
                 themeColorsBlob: updates['themeColorsBlob'] as Uint8List? ??
                     queue[i].themeColorsBlob,
                 waveformBlob: inWaveformMemoryRange
@@ -188,13 +194,14 @@ class QueueBackgroundProcessor {
                     updates['artworkHeight'] as int? ??
                         queue[i].artworkHeight,
               );
+              queueChanged = true;
             }
           }
 
-          if (path == currentMusic()?.path) {
-            if (updates.containsKey('themeColors')) {
-              onThemeChanged(updates['themeColors'] as Map<String, Color>);
-            }
+          if (path == currentMusic()?.path && updates.containsKey('themeColors')) {
+            onThemeChanged(updates['themeColors'] as Map<String, Color>);
+          }
+          if (queueChanged) {
             onChanged();
           }
         },

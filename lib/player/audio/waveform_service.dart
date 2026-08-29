@@ -79,18 +79,22 @@ class WaveformService {
     final isValid = isWaveformValid(waveform);
     final blob = isValid ? waveformToBlob(waveform) : null;
     if (isValid) {
-      final fallbackMetadata =
-          baseMetadata ??
-          SongMetadata(
-            path: path,
-            title: p.basenameWithoutExtension(path),
-            album: 'Unknown Album',
-            artist: 'Unknown Artist',
-          );
-      final updated = (songMetadata ?? fallbackMetadata).copyWith(
-        waveformBlob: blob,
-      );
-      await db.insertOrUpdateSong(updated);
+      final isWebDavUnparsed = path.startsWith('webdav://') &&
+          (songMetadata == null || songMetadata.artist == 'Unknown Artist' || songMetadata.artist.isEmpty);
+      if (!isWebDavUnparsed) {
+        final fallbackMetadata =
+            baseMetadata ??
+            SongMetadata(
+              path: path,
+              title: p.basenameWithoutExtension(path),
+              album: 'Unknown Album',
+              artist: 'Unknown Artist',
+            );
+        final updated = (songMetadata ?? fallbackMetadata).copyWith(
+          waveformBlob: blob,
+        );
+        await db.insertOrUpdateSong(updated);
+      }
     }
 
     return (waveform: waveform, waveformBlob: blob);
@@ -140,18 +144,22 @@ class WaveformService {
 
     if (lastWaveform.isNotEmpty && isWaveformValid(lastWaveform)) {
       final blob = waveformToBlob(lastWaveform);
-      final fallbackMetadata =
-          baseMetadata ??
-          SongMetadata(
-            path: path,
-            title: p.basenameWithoutExtension(path),
-            album: 'Unknown Album',
-            artist: 'Unknown Artist',
-          );
-      final updated = (songMetadata ?? fallbackMetadata).copyWith(
-        waveformBlob: blob,
-      );
-      await db.insertOrUpdateSong(updated);
+      final isWebDavUnparsed = path.startsWith('webdav://') &&
+          (songMetadata == null || songMetadata.artist == 'Unknown Artist' || songMetadata.artist.isEmpty);
+      if (!isWebDavUnparsed) {
+        final fallbackMetadata =
+            baseMetadata ??
+            SongMetadata(
+              path: path,
+              title: p.basenameWithoutExtension(path),
+              album: 'Unknown Album',
+              artist: 'Unknown Artist',
+            );
+        final updated = (songMetadata ?? fallbackMetadata).copyWith(
+          waveformBlob: blob,
+        );
+        await db.insertOrUpdateSong(updated);
+      }
     }
   }
 

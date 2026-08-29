@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
@@ -103,6 +104,19 @@ class RemoteMediaResolver {
     return 'webdav://$serverId$clean';
   }
 
+  /// Converts a cacheKey (e.g. `serverId:path`) back to its virtual URI (`webdav://...` or `subsonic://...`).
+  static String? uriFromCacheKey(String cacheKey) {
+    final idx = cacheKey.indexOf(':');
+    if (idx <= 0) return null;
+    final serverId = cacheKey.substring(0, idx);
+    final trackIdOrPath = cacheKey.substring(idx + 1);
+    if (trackIdOrPath.startsWith('/')) {
+      return buildWebDavUri(serverId, trackIdOrPath);
+    } else {
+      return buildSubsonicUri(serverId, trackIdOrPath);
+    }
+  }
+
   /// Resolves a remote virtual URI into a [ResolvedAudioUri] with URL, headers, and cacheKey for [AudioCoreController].
   Future<ResolvedAudioUri> resolvePlayableSource(String remoteUri, {int? maxBitRate}) async {
     final info = parseUri(remoteUri);
@@ -166,7 +180,21 @@ class RemoteMediaResolver {
 
     final dir = cacheManager.cacheDirectorySync;
     final hash = md5.convert(utf8.encode('${info.serverId}:${info.trackIdOrPath}')).toString();
-    return p.join(dir.path, '$hash.cache');
+    var ext = p.extension(info.trackIdOrPath);
+    if (ext.contains('?')) {
+      ext = ext.split('?').first;
+    }
+    if (ext.isEmpty || ext.length > 6 || !ext.startsWith('.')) {
+      ext = '.cache';
+    }
+    final primaryPath = p.join(dir.path, '$hash$ext');
+    if (ext != '.cache' && !File(primaryPath).existsSync()) {
+      final legacyPath = p.join(dir.path, '$hash.cache');
+      if (File(legacyPath).existsSync()) {
+        return legacyPath;
+      }
+    }
+    return primaryPath;
   }
 
   /// Constructs a [MusicFile] model from a Subsonic track JSON object.

@@ -226,6 +226,19 @@ class TrackArtworkThemeService {
         } catch (e) {
           debugPrint('[TrackArtworkThemeService] Failed to fetch remote artwork for $path: $e');
         }
+
+        if (artworkBytes == null || artworkBytes.isEmpty) {
+          try {
+            final info = RemoteMediaResolver.parseUri(path);
+            if (info != null) {
+              final cacheKey = '${info.serverId}:${info.trackIdOrPath}';
+              final cacheFile = await controller.streamCacheManager.getCacheFile(cacheKey);
+              if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
+                artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(cacheFile.path);
+              }
+            }
+          } catch (_) {}
+        }
       } else {
         artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(path);
         if (artworkBytes == null || artworkBytes.isEmpty) {
@@ -253,6 +266,10 @@ class TrackArtworkThemeService {
         ),
       );
 
+      final isWebDavUnparsed = path.startsWith('webdav://') &&
+          (baseMetadata.artist == 'Unknown Artist' || baseMetadata.artist.isEmpty);
+      final shouldSaveToDb = saveToDatabase && !isWebDavUnparsed;
+
       if (!artwork.artworkFound &&
           !(artwork.thumbnailPath?.trim().isNotEmpty ?? false) &&
           (artwork.themeColorsBlob == null ||
@@ -260,7 +277,7 @@ class TrackArtworkThemeService {
         final resolvedMetadata = baseMetadata.copyWith(
           metadataImgScanned: lastModified,
         );
-        if (saveToDatabase) {
+        if (shouldSaveToDb) {
           await _db.insertOrUpdateSong(resolvedMetadata);
         }
         return TrackArtworkThemeResult.fromMetadata(path, resolvedMetadata);
@@ -276,7 +293,7 @@ class TrackArtworkThemeService {
         metadataImgScanned: lastModified,
       );
 
-      if (saveToDatabase) {
+      if (shouldSaveToDb) {
         await _db.insertOrUpdateSong(resolvedMetadata);
       }
 

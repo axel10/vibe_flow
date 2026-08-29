@@ -288,6 +288,21 @@ class PlaybackQueueProcessor {
       // Sync existing database values to memory if missing on the in-memory song object
       if (existing != null) {
         final Map<String, dynamic> updates = {};
+        if (existing.title.isNotEmpty && song.title != existing.title) {
+          updates['title'] = existing.title;
+        }
+        if (existing.artist.isNotEmpty && existing.artist != 'Unknown Artist' && song.artist != existing.artist) {
+          updates['artist'] = existing.artist;
+        }
+        if (existing.album.isNotEmpty && existing.album != 'Unknown Album' && song.album != existing.album) {
+          updates['album'] = existing.album;
+        }
+        if (existing.trackNumber != null && song.trackNumber != existing.trackNumber) {
+          updates['trackNumber'] = existing.trackNumber;
+        }
+        if (existing.duration != null && song.durationMillis != existing.duration) {
+          updates['durationMillis'] = existing.duration;
+        }
         if (song.waveformBlob == null && existing.waveformBlob != null) {
           updates['waveformBlob'] = existing.waveformBlob;
           updates['waveform'] = waveformService.waveformFromBlob(existing.waveformBlob);
@@ -342,7 +357,7 @@ class PlaybackQueueProcessor {
 
         // We need a metadata object (either from DB or a quick scan) to get the artwork path
         SongMetadata? m = existing;
-        if (m == null) {
+        if (m == null || (isRemote && (m.artist == 'Unknown Artist' || m.thumbnailPath == null))) {
           if (!isRemote) {
             final result = await MetadataHelper.processMetadata(
               song.path,
@@ -351,13 +366,50 @@ class PlaybackQueueProcessor {
             if (_disposed || myId != _currentProcessId) return;
             m = result?.$1;
           } else {
-            m = SongMetadata(
+            // Check if track is cached in streamCacheManager
+            final info = RemoteMediaResolver.parseUri(song.path);
+            if (info != null) {
+              try {
+                final cacheKey = '${info.serverId}:${info.trackIdOrPath}';
+                final cacheFile = await player.streamCacheManager.getCacheFile(cacheKey);
+                if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
+                  final cachedResult = await MetadataHelper.processRemoteCachedMetadata(
+                    song.path,
+                    cacheFile.path,
+                    generateThumbnail: true,
+                  );
+                  if (cachedResult != null) {
+                    m = cachedResult.$1;
+                    final updates = <String, dynamic>{
+                      'title': m.title,
+                      'artist': m.artist,
+                      'album': m.album,
+                      'trackNumber': m.trackNumber,
+                      'durationMillis': m.duration,
+                      'thumbnailPath': m.thumbnailPath,
+                      'artworkPath': m.artworkPath,
+                      'artworkWidth': m.artworkWidth,
+                      'artworkHeight': m.artworkHeight,
+                    };
+                    if (m.themeColorsBlob != null) {
+                      updates['themeColorsBlob'] = m.themeColorsBlob;
+                      updates['themeColors'] = ThemeColorHelper.blobToColors(m.themeColorsBlob!);
+                    }
+                    onUpdate(song.path, updates);
+                  }
+                }
+              } catch (e) {
+                debugPrint('Error processing remote cache for ${song.path}: $e');
+              }
+            }
+
+            m ??= existing ?? SongMetadata(
               path: song.path,
               title: song.title ?? song.name,
               artist: song.artist ?? 'Unknown Artist',
               album: song.album ?? 'Unknown Album',
               trackNumber: song.trackNumber,
-              duration: song.durationMillis != null ? song.durationMillis! ~/ 1000 : null,
+              duration: song.durationMillis,
               artworkPath: song.artworkPath,
             );
           }
@@ -382,7 +434,11 @@ class PlaybackQueueProcessor {
               (artworkTheme.hasArtworkPath || artworkTheme.hasThemeColors)) {
             meta = artworkTheme.toSongMetadata(base: meta);
             meta = meta.copyWith(metadataImgScanned: lastModified);
-            await db.insertOrUpdateSong(meta);
+            final isWebDavUnparsed = song.path.startsWith('webdav://') &&
+                (meta.artist == 'Unknown Artist' || meta.artist.isEmpty);
+            if (!isWebDavUnparsed) {
+              await db.insertOrUpdateSong(meta);
+            }
             MemoryTrace.snapshot(
               'queueProcessor:artworkTheme',
               details: <String, Object?>{
@@ -396,54 +452,58 @@ class PlaybackQueueProcessor {
               'thumbnailPath': artworkTheme.thumbnailPath ?? meta.thumbnailPath,
               'artworkPath': artworkTheme.artworkPath ?? meta.artworkPath,
               'artworkWidth': meta.artworkWidth,
-                'artworkHeight': meta.artworkHeight,
-              };
-              if (meta.themeColorsBlob != null) {
-                updates['themeColorsBlob'] = meta.themeColorsBlob;
-                updates['themeColors'] = ThemeColorHelper.blobToColors(
-                  meta.themeColorsBlob!,
-                );
-              }
-
-              onUpdate(song.path, updates);
-            }
-          }
-
-          // Extract waveform if missing or invalid AND enabled in settings
-          final needsWaveform = showWaveform &&
-              (meta.waveformBlob == null ||
-                  !WaveformService.isWaveformValid(
-                    waveformService.waveformFromBlob(meta.waveformBlob),
-                  ));
-          if (needsWaveform) {
-            try {
-              final waveformResult = await waveformService.getWaveformData(
-                path: song.path,
-                expectedChunks: settingsService.waveformChunks,
-                sampleStride: settingsService.sampleStride,
-                baseMetadata: meta,
+              'artworkHeight': meta.artworkHeight,
+            };
+            if (meta.themeColorsBlob != null) {
+              updates['themeColorsBlob'] = meta.themeColorsBlob;
+              updates['themeColors'] = ThemeColorHelper.blobToColors(
+                meta.themeColorsBlob!,
               );
-              if (_disposed || myId != _currentProcessId) return;
-
-              if (waveformResult.waveform.isNotEmpty &&
-                  waveformResult.waveformBlob != null) {
-                meta = meta.copyWith(waveformBlob: waveformResult.waveformBlob);
-                onUpdate(song.path, {
-                  'waveform': waveformResult.waveform,
-                  'waveformBlob': waveformResult.waveformBlob,
-                });
-              }
-            } catch (e) {
-              debugPrint('Waveform extraction error for ${song.path}: $e');
             }
-          }
 
-          // If we attempted image scan but didn't save metadataImgScanned above (e.g. because no artwork was found at all),
-          // write it to DB now to prevent future repeated scans.
-          if (didScanImg && meta.metadataImgScanned != lastModified) {
-            meta = meta.copyWith(metadataImgScanned: lastModified);
+            onUpdate(song.path, updates);
+          }
+        }
+
+        // Extract waveform if missing or invalid AND enabled in settings
+        final needsWaveform = showWaveform &&
+            (meta.waveformBlob == null ||
+                !WaveformService.isWaveformValid(
+                  waveformService.waveformFromBlob(meta.waveformBlob),
+                ));
+        if (needsWaveform) {
+          try {
+            final waveformResult = await waveformService.getWaveformData(
+              path: song.path,
+              expectedChunks: settingsService.waveformChunks,
+              sampleStride: settingsService.sampleStride,
+              baseMetadata: meta,
+            );
+            if (_disposed || myId != _currentProcessId) return;
+
+            if (waveformResult.waveform.isNotEmpty &&
+                waveformResult.waveformBlob != null) {
+              meta = meta.copyWith(waveformBlob: waveformResult.waveformBlob);
+              onUpdate(song.path, {
+                'waveform': waveformResult.waveform,
+                'waveformBlob': waveformResult.waveformBlob,
+              });
+            }
+          } catch (e) {
+            debugPrint('Waveform extraction error for ${song.path}: $e');
+          }
+        }
+
+        // If we attempted image scan but didn't save metadataImgScanned above (e.g. because no artwork was found at all),
+        // write it to DB now to prevent future repeated scans (skip unparsed WebDAV songs).
+        if (didScanImg && meta.metadataImgScanned != lastModified) {
+          meta = meta.copyWith(metadataImgScanned: lastModified);
+          final isWebDavUnparsed = song.path.startsWith('webdav://') &&
+              (meta.artist == 'Unknown Artist' || meta.artist.isEmpty);
+          if (!isWebDavUnparsed) {
             await db.insertOrUpdateSong(meta);
           }
+        }
         }
 
         // Small delay between songs to keep main thread snappy

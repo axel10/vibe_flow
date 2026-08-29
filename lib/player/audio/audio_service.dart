@@ -158,15 +158,20 @@ class AudioService extends Notifier<AudioSnapshot> {
     _isMuted = settingsService.prefs.getBool(_isMutedStorageKey) ?? false;
 
     final initialFadeEnabled = settingsService.enableFadeEffect;
+    final streamCacheManager = AudioStreamCacheManager(
+      maxCacheSizeBytesGetter: () => settingsService.remoteCacheMaxSizeBytes,
+      onTrackCached: (cacheKey, file) {
+        _handleRemoteTrackCacheReady(cacheKey, file);
+      },
+    );
+
     _player = AudioCoreController(
       fadeSettings: FadeSettings(
         fadeOnSwitch: initialFadeEnabled,
         fadeOnPauseResume: initialFadeEnabled,
         mode: FadeMode.crossfade,
       ),
-      streamCacheManager: AudioStreamCacheManager(
-        maxCacheSizeBytesGetter: () => settingsService.remoteCacheMaxSizeBytes,
-      ),
+      streamCacheManager: streamCacheManager,
     );
 
     _player.setUriResolver((rawUri) async {
@@ -751,10 +756,34 @@ class AudioService extends Notifier<AudioSnapshot> {
   }
 
   Future<MusicFile> _resolveMetadataForPlayback(MusicFile song) async {
-    if (song.isMissing ||
-        song.path.isEmpty ||
-        RemoteMediaResolver.isRemoteUri(song.path) ||
-        !File(song.path).existsSync()) {
+    if (song.isMissing || song.path.isEmpty) {
+      return song;
+    }
+
+    final isRemote = RemoteMediaResolver.isRemoteUri(song.path);
+    if (isRemote) {
+      final dbMeta = await _db.getSongMetadata(song.path);
+      if (dbMeta != null) {
+        final updatedSong = song.copyWith(
+          title: (dbMeta.title.trim().isNotEmpty) ? dbMeta.title : song.title,
+          artist: (dbMeta.artist.trim().isNotEmpty && dbMeta.artist != 'Unknown Artist') ? dbMeta.artist : song.artist,
+          album: (dbMeta.album.trim().isNotEmpty && dbMeta.album != 'Unknown Album') ? dbMeta.album : song.album,
+          trackNumber: dbMeta.trackNumber ?? song.trackNumber,
+          durationMillis: dbMeta.duration ?? song.durationMillis,
+          artworkPath: dbMeta.artworkPath ?? song.artworkPath,
+          thumbnailPath: dbMeta.thumbnailPath ?? song.thumbnailPath,
+          artworkWidth: dbMeta.artworkWidth ?? song.artworkWidth,
+          artworkHeight: dbMeta.artworkHeight ?? song.artworkHeight,
+          themeColorsBlob: dbMeta.themeColorsBlob ?? song.themeColorsBlob,
+          waveformBlob: dbMeta.waveformBlob ?? song.waveformBlob,
+        );
+        _replaceQueueSongsByPath(song.path, updatedSong);
+        return updatedSong;
+      }
+      return song;
+    }
+
+    if (!File(song.path).existsSync()) {
       return song;
     }
 
@@ -1060,6 +1089,47 @@ class AudioService extends Notifier<AudioSnapshot> {
   void _handlePlayerChanges() {
     _isPlaying = _player.player.isPlaying;
     _duration = _player.player.duration;
+
+    if (_duration > Duration.zero &&
+        _currentIndex >= 0 &&
+        _currentIndex < _queue.length) {
+      final currentSong = _queue[_currentIndex];
+      final durMs = _duration.inMilliseconds;
+      if (currentSong.durationMillis != durMs) {
+        _queue[_currentIndex] = currentSong.copyWith(durationMillis: durMs);
+        if (RemoteMediaResolver.isRemoteUri(currentSong.path)) {
+          unawaited(() async {
+            final existing = await _db.getSongMetadata(currentSong.path);
+            if (existing != null) {
+              if (existing.duration != durMs) {
+                await _db.insertOrUpdateSong(existing.copyWith(duration: durMs));
+              }
+            } else {
+              // WebDAV lacks server-side metadata API. Avoid inserting a placeholder row
+              // with 'Unknown Artist' before the file is cached and parsed by TagLib.
+              final isWebDav = currentSong.path.startsWith('webdav://');
+              final hasRealMetadata = currentSong.artist != null &&
+                  currentSong.artist!.trim().isNotEmpty &&
+                  currentSong.artist != 'Unknown Artist';
+              if (!isWebDav || hasRealMetadata) {
+                await _db.insertOrUpdateSong(
+                  SongMetadata(
+                    path: currentSong.path,
+                    title: currentSong.title ?? currentSong.name,
+                    artist: currentSong.artist ?? 'Unknown Artist',
+                    album: currentSong.album ?? 'Unknown Album',
+                    duration: durMs,
+                    trackNumber: currentSong.trackNumber,
+                    artworkPath: currentSong.artworkPath,
+                    thumbnailPath: currentSong.thumbnailPath,
+                  ),
+                );
+              }
+            }
+          }());
+        }
+      }
+    }
 
     if (_player.player.currentState == PlayerState.error) {
       final err = _player.player.error;
@@ -2110,6 +2180,66 @@ class AudioService extends Notifier<AudioSnapshot> {
       durationMillis: durationMillis,
     );
     notifyListeners();
+  }
+
+  void _handleRemoteTrackCacheReady(String cacheKey, File file) {
+    final virtualUri = RemoteMediaResolver.uriFromCacheKey(cacheKey);
+    if (virtualUri == null || virtualUri.isEmpty) return;
+
+    unawaited(() async {
+      try {
+        debugPrint('[AudioService] Remote track cached on disk: $virtualUri (${file.path})');
+        final result = await MetadataHelper.processRemoteCachedMetadata(
+          virtualUri,
+          file.path,
+          generateThumbnail: true,
+        );
+        if (result == null) return;
+        final meta = result.$1;
+
+        bool queueModified = false;
+        final decodedVirtualUri = Uri.decodeFull(virtualUri);
+        for (int i = 0; i < _queue.length; i++) {
+          final queuePath = _queue[i].path;
+          if (queuePath == virtualUri || Uri.decodeFull(queuePath) == decodedVirtualUri) {
+            _queue[i] = _queue[i].copyWith(
+              title: meta.title.isNotEmpty ? meta.title : _queue[i].title,
+              artist: (meta.artist.isNotEmpty && meta.artist != 'Unknown Artist') ? meta.artist : _queue[i].artist,
+              album: (meta.album.isNotEmpty && meta.album != 'Unknown Album') ? meta.album : _queue[i].album,
+              trackNumber: meta.trackNumber ?? _queue[i].trackNumber,
+              durationMillis: meta.duration ?? _queue[i].durationMillis,
+              thumbnailPath: meta.thumbnailPath ?? _queue[i].thumbnailPath,
+              artworkPath: meta.artworkPath ?? _queue[i].artworkPath,
+              artworkWidth: meta.artworkWidth ?? _queue[i].artworkWidth,
+              artworkHeight: meta.artworkHeight ?? _queue[i].artworkHeight,
+              themeColorsBlob: meta.themeColorsBlob ?? _queue[i].themeColorsBlob,
+            );
+            queueModified = true;
+          }
+        }
+
+        final currentPath = currentMusic?.path;
+        if ((currentPath == virtualUri || (currentPath != null && Uri.decodeFull(currentPath) == decodedVirtualUri)) &&
+            _currentIndex >= 0 &&
+            _currentIndex < _queue.length) {
+          final updatedCurrent = _queue[_currentIndex];
+          _windowsIntegration?.updateMetadata(updatedCurrent);
+          _androidIntegration?.updateMetadata(updatedCurrent);
+          _darwinIntegration?.updateMetadata(updatedCurrent);
+          _linuxIntegration?.updateMetadata(updatedCurrent);
+          if (meta.themeColorsBlob != null) {
+            final colorsMap = ThemeColorHelper.blobToColors(meta.themeColorsBlob!);
+            _applyThemeColors(colorsMap);
+          }
+        }
+
+        if (queueModified) {
+          notifyListeners();
+        }
+      } catch (e) {
+        debugPrint('[AudioService] Failed to process cached remote metadata for $virtualUri: $e');
+      }
+    }());
   }
 
   void _logLyricsDebug(String message) {

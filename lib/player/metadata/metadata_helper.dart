@@ -797,18 +797,130 @@ class MetadataHelper {
   /// the database through [processMetadata].
   ///
   /// The returned artwork bytes are only populated when the fallback file parse
+  /// Reads metadata and embedded artwork from a locally cached file for a remote song URI,
+  /// saves the metadata into the database (keyed by [remoteUri]), and returns the metadata.
+  static Future<(SongMetadata, Uint8List?)?> processRemoteCachedMetadata(
+    String remoteUri,
+    String cachedFilePath, {
+    bool generateThumbnail = true,
+  }) async {
+    final file = File(cachedFilePath);
+    if (!await file.exists()) {
+      return null;
+    }
+    final db = MetadataDatabase();
+    final existing = await db.getSongMetadata(remoteUri);
+
+    try {
+      Uint8List? artworkData;
+      String? title;
+      String? album;
+      String? artist;
+      int? duration;
+      int? trackNumber;
+
+      try {
+        final metadata = await compute(
+          generateThumbnail
+              ? _readMetadataWithImageIsolateEntryPoint
+              : _readMetadataIsolateEntryPoint,
+          <String, dynamic>{
+            'path': cachedFilePath,
+            'token': RootIsolateToken.instance,
+          },
+        );
+        title = metadata.title;
+        album = metadata.album;
+        artist = metadata.artist;
+        duration = metadata.duration?.inMilliseconds;
+        trackNumber = metadata.trackNumber;
+        artworkData = metadata.pictures.isNotEmpty
+            ? metadata.pictures.first.bytes
+            : null;
+      } catch (e) {
+        debugPrint('TagLib read error for remote cache $cachedFilePath ($remoteUri): $e');
+      }
+
+      String? artworkPath = existing?.artworkPath;
+      String? thumbnailPath = existing?.thumbnailPath;
+      int? artworkWidth = existing?.artworkWidth;
+      int? artworkHeight = existing?.artworkHeight;
+      Uint8List? themeColorsBlob = existing?.themeColorsBlob;
+
+      if (artworkData != null && artworkData.isNotEmpty && generateThumbnail) {
+        final artworkInfo = await saveArtworkAndThumbnail(
+          remoteUri,
+          artworkData,
+          saveLarge: false,
+        );
+        if (artworkInfo != null) {
+          artworkPath = artworkInfo['artworkPath'] as String?;
+          thumbnailPath = artworkInfo['thumbnailPath'] as String?;
+          artworkWidth = artworkInfo['width'] as int?;
+          artworkHeight = artworkInfo['height'] as int?;
+          themeColorsBlob = artworkInfo['themeColorsBlob'] as Uint8List?;
+        }
+      }
+
+      final resolvedTitle = (title != null && title.trim().isNotEmpty)
+          ? title.trim()
+          : (existing?.title ?? p.basenameWithoutExtension(remoteUri));
+      final resolvedArtist = (artist != null && artist.trim().isNotEmpty)
+          ? artist.trim()
+          : (existing?.artist ?? 'Unknown Artist');
+      final resolvedAlbum = (album != null && album.trim().isNotEmpty)
+          ? album.trim()
+          : (existing?.album ?? 'Unknown Album');
+      final resolvedDuration = duration ?? existing?.duration;
+      final resolvedTrackNumber = trackNumber ?? existing?.trackNumber;
+
+      final song = SongMetadata(
+        path: remoteUri,
+        title: resolvedTitle,
+        album: resolvedAlbum,
+        artist: resolvedArtist,
+        duration: resolvedDuration,
+        artworkPath: artworkPath,
+        thumbnailPath: thumbnailPath,
+        artworkWidth: artworkWidth,
+        artworkHeight: artworkHeight,
+        trackNumber: resolvedTrackNumber,
+        themeColorsBlob: themeColorsBlob,
+        waveformBlob: existing?.waveformBlob,
+        lastModifiedTime: DateTime.now().millisecondsSinceEpoch,
+        metadataImgScanned: DateTime.now().millisecondsSinceEpoch,
+        metadataTextScanned: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      await db.insertOrUpdateSong(song);
+      return (song, artworkData);
+    } catch (e) {
+      debugPrint('Error processing remote cached metadata for $remoteUri: $e');
+      return null;
+    }
+  }
+
+  /// Loads metadata for the playback pipeline.
+  ///
+  /// This is optimized for quick playback startup: if the metadata is already
+  /// cached in the database, it returns immediately with that metadata (and null
+  /// for artwork bytes, which can be hydrated asynchronously). If not cached, it
+  /// does a quick scan to extract basic metadata and embedded artwork bytes.
+  ///
+  /// Returns a tuple of `(SongMetadata, Uint8List?)` where the second element
+  /// is non-null only if a fresh scan (not a DB cache hit)
   /// was needed and the file contained embedded artwork.
   static Future<(SongMetadata, Uint8List?)?> loadMetadataForPlayback(
     String filePath, {
     bool generateThumbnail = false,
   }) async {
-    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
-      return null;
-    }
     final db = MetadataDatabase();
     final cached = await db.getSongMetadata(filePath);
     if (cached != null) {
       return (cached, null);
+    }
+    if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
+      return null;
     }
 
     return processMetadata(
