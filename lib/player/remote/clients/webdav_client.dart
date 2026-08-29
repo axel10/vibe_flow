@@ -274,28 +274,48 @@ class WebDavClient {
   /// Parses PROPFIND Multi-Status XML response into a list of [WebDavFile].
   static List<WebDavFile> parsePropfindXml(String xmlString, {String? requestPath}) {
     final document = XmlDocument.parse(xmlString);
-    final responseNodes = document.findAllElements('response', namespace: '*');
+    final responseNodes = document.findAllElements('response', namespace: '*').toList();
     final List<WebDavFile> results = [];
 
-    // Normalize target requested path to compare against the first (parent) node
-    final normalizedReq = requestPath != null
-        ? Uri.decodeFull(requestPath).replaceAll(RegExp(r'/+$'), '')
-        : null;
+    // Normalize target requested path (e.g. '/dav' or '/dav/test')
+    String? cleanReqPath;
+    if (requestPath != null && requestPath.trim().isNotEmpty) {
+      var pStr = Uri.decodeFull(requestPath).trim();
+      final parsed = Uri.tryParse(pStr);
+      if (parsed != null && parsed.hasScheme) {
+        pStr = parsed.path;
+      }
+      pStr = pStr.replaceAll(RegExp(r'/+$'), '');
+      if (pStr.isNotEmpty) {
+        cleanReqPath = pStr.startsWith('/') ? pStr : '/$pStr';
+      }
+    }
 
-    for (final resp in responseNodes) {
+    for (int i = 0; i < responseNodes.length; i++) {
+      final resp = responseNodes[i];
       final hrefEl = resp.findElements('href', namespace: '*').firstOrNull;
       if (hrefEl == null) continue;
 
       var rawHref = hrefEl.innerText.trim();
       final decodedHref = Uri.decodeFull(rawHref);
 
-      // Skip the container folder itself (parent) if Depth=1
-      final normalizedHref = decodedHref.replaceAll(RegExp(r'/+$'), '');
-      if (normalizedReq != null && (normalizedHref == normalizedReq || normalizedHref.endsWith(normalizedReq))) {
-        // Double check if this is the root node
-        if (responseNodes.length > 1 && results.isEmpty) {
-          continue;
-        }
+      var cleanHref = decodedHref;
+      final parsedHref = Uri.tryParse(cleanHref);
+      if (parsedHref != null && parsedHref.hasScheme) {
+        cleanHref = parsedHref.path;
+      }
+      cleanHref = cleanHref.replaceAll(RegExp(r'/+$'), '');
+      if (!cleanHref.startsWith('/')) {
+        cleanHref = '/$cleanHref';
+      }
+
+      // Skip the container folder itself (parent) in Depth: 1 PROPFIND
+      if (responseNodes.length > 1 && i == 0) {
+        // RFC 4918: First response node in Depth:1 response is always the target container
+        continue;
+      }
+      if (cleanReqPath != null && cleanHref == cleanReqPath) {
+        continue;
       }
 
       final propStat = resp.findElements('propstat', namespace: '*').firstOrNull;
@@ -330,14 +350,14 @@ class WebDavClient {
         }
       }
 
-      var name = p.basename(normalizedHref);
+      var name = p.basename(cleanHref);
       if (name.isEmpty) {
-        name = normalizedHref;
+        name = cleanHref;
       }
 
       results.add(
         WebDavFile(
-          path: decodedHref,
+          path: cleanHref.isEmpty ? '/' : cleanHref,
           name: name,
           isDirectory: isDirectory,
           contentLength: contentLength,
