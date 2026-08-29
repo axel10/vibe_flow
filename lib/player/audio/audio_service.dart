@@ -1577,10 +1577,17 @@ class AudioService extends Notifier<AudioSnapshot> {
 
   List<MusicFile> get playbackQueue => List.unmodifiable(_queue);
 
-  bool get isBuffering =>
-      _isTransitioning ||
-      _player.isTransitioning ||
-      _player.player.currentState == PlayerState.buffering;
+  bool get isBuffering {
+    final path = currentMusic?.path;
+    if (path == null) return false;
+    final isRemote = RemoteMediaResolver.isRemoteUri(path) ||
+        path.startsWith('http://') ||
+        path.startsWith('https://');
+    if (!isRemote) return false;
+    return _isTransitioning ||
+        _player.isTransitioning ||
+        _player.player.currentState == PlayerState.buffering;
+  }
 
   int get currentIndex => _currentIndex;
 
