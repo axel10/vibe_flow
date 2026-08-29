@@ -105,6 +105,7 @@ class AudioService extends Notifier<AudioSnapshot> {
   bool _hasLoggedCurrentPlayback = false;
   Duration _lastPlaybackObservedPosition = Duration.zero;
   String? _lastMissingCurrentTrackPathHandled;
+  String? _lastReportedPlayerError;
 
   Duration? _seekTargetPosition;
   bool _isSeeking = false;
@@ -1065,7 +1066,13 @@ class AudioService extends Notifier<AudioSnapshot> {
 
     if (_player.player.currentState == PlayerState.error) {
       final err = _player.player.error;
-      debugPrint('[AudioService] Playback error state detected for track ${currentMusic?.title} (${currentMusic?.path}): $err');
+      final errKey = '${currentMusic?.path}_$err';
+      if (_lastReportedPlayerError != errKey) {
+        _lastReportedPlayerError = errKey;
+        debugPrint('[AudioService] Playback error state detected for track ${currentMusic?.title} (${currentMusic?.path}): $err');
+      }
+    } else {
+      _lastReportedPlayerError = null;
     }
 
     final realPosition = _player.player.position;

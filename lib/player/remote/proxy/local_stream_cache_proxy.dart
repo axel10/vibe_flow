@@ -206,39 +206,55 @@ class LocalStreamCacheProxy {
       reqHeaders[HttpHeaders.rangeHeader] = clientRangeHeader;
     }
 
-    final response = await _dio.get<ResponseBody>(
-      targetUrl,
-      options: Options(
-        headers: reqHeaders,
-        responseType: ResponseType.stream,
-        followRedirects: true,
-      ),
-    );
+    final safeUrl = targetUrl.contains(' ') || targetUrl.contains('[') || targetUrl.contains(']')
+        ? Uri.encodeFull(targetUrl)
+        : targetUrl;
 
-    final statusCode = response.statusCode ?? 200;
-    request.response.statusCode = statusCode;
+    try {
+      final response = await _dio.get<ResponseBody>(
+        safeUrl,
+        options: Options(
+          headers: reqHeaders,
+          responseType: ResponseType.stream,
+          followRedirects: true,
+        ),
+      );
 
-    // Forward relevant headers to the audio player
-    for (final header in [
-      HttpHeaders.contentTypeHeader,
-      HttpHeaders.contentLengthHeader,
-      HttpHeaders.contentRangeHeader,
-      HttpHeaders.acceptRangesHeader,
-    ]) {
-      final val = response.headers.value(header);
-      if (val != null) {
-        request.response.headers.set(header, val);
+      final statusCode = response.statusCode ?? 200;
+      request.response.statusCode = statusCode;
+
+      // Forward relevant headers to the audio player
+      for (final header in [
+        HttpHeaders.contentTypeHeader,
+        HttpHeaders.contentLengthHeader,
+        HttpHeaders.contentRangeHeader,
+        HttpHeaders.acceptRangesHeader,
+      ]) {
+        final val = response.headers.value(header);
+        if (val != null) {
+          request.response.headers.set(header, val);
+        }
       }
+
+      if (request.response.headers.value(HttpHeaders.acceptRangesHeader) == null) {
+        request.response.headers.set(HttpHeaders.acceptRangesHeader, 'bytes');
+      }
+
+      final stream = response.data?.stream;
+      if (stream != null) {
+        try {
+          await request.response.addStream(stream);
+        } catch (_) {}
+      }
+    } catch (e) {
+      debugPrint('[LocalStreamCacheProxy] Proxy upstream request failed: $e');
+      try {
+        request.response.statusCode = HttpStatus.badGateway;
+      } catch (_) {}
     }
 
-    if (request.response.headers.value(HttpHeaders.acceptRangesHeader) == null) {
-      request.response.headers.set(HttpHeaders.acceptRangesHeader, 'bytes');
-    }
-
-    final stream = response.data?.stream;
-    if (stream != null) {
-      await request.response.addStream(stream);
-    }
-    await request.response.close();
+    try {
+      await request.response.close();
+    } catch (_) {}
   }
 }
