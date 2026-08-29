@@ -196,151 +196,69 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
         controller: _scrollController,
         slivers: [
           SliverToBoxAdapter(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 600;
-                return Container(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, isWide ? 12 : 16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    border: Border(
-                      bottom: BorderSide(
-                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                      ),
-                    ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (isWide)
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.title,
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _searchQuery.isNotEmpty
-                                        ? l10n.songCount(filteredItems.length)
-                                        : widget.subtitle,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 4,
-                              child: _buildSearchField(theme, l10n),
-                            ),
-                            const SizedBox(width: 16),
-                            if (filteredItems.isNotEmpty) ...[
-                              FilledButton.icon(
-                                onPressed: () {
-                                  audio.playPlaylist(filteredItems.map((e) => e.song).toList());
-                                },
-                                icon: const Icon(Icons.play_arrow_rounded),
-                                label: Text(l10n.playAll),
-                              ),
-                              const SizedBox(width: 12),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  final songs = filteredItems.map((e) => e.song).toList()..shuffle();
-                                  audio.playPlaylist(songs);
-                                },
-                                icon: const Icon(Icons.shuffle_rounded),
-                                label: Text(l10n.shufflePlay),
-                              ),
-                            ],
-                          ],
-                        )
-                      else
-                        Column(
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1080),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth >= 600;
+                      return Container(
+                        padding: EdgeInsets.fromLTRB(16, 16, 16, isWide ? 12 : 16),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        widget.title,
-                                        style: theme.textTheme.headlineSmall?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _searchQuery.isNotEmpty
-                                            ? l10n.songCount(filteredItems.length)
-                                            : widget.subtitle,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    _isSearchExpanded || _searchQuery.isNotEmpty
-                                        ? Icons.search_off_rounded
-                                        : Icons.search_rounded,
-                                  ),
-                                  tooltip: l10n.search,
-                                  onPressed: () {
-                                    setState(() {
-                                      _isSearchExpanded = !_isSearchExpanded;
-                                      if (_isSearchExpanded) {
-                                        _searchFocusNode.requestFocus();
-                                      } else {
-                                        _searchController.clear();
-                                        _searchQuery = '';
-                                        _searchFocusNode.unfocus();
-                                      }
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                            AnimatedCrossFade(
-                              firstChild: const SizedBox.shrink(),
-                              secondChild: Padding(
-                                padding: const EdgeInsets.only(top: 12),
-                                child: _buildSearchField(theme, l10n),
-                              ),
-                              crossFadeState: (_isSearchExpanded || _searchQuery.isNotEmpty)
-                                  ? CrossFadeState.showSecond
-                                  : CrossFadeState.showFirst,
-                              duration: const Duration(milliseconds: 200),
-                            ),
-                            if (filteredItems.isNotEmpty) ...[
-                              const SizedBox(height: 16),
+                            if (isWide)
                               Row(
                                 children: [
                                   Expanded(
-                                    child: FilledButton.icon(
+                                    flex: 3,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          widget.title,
+                                          style: theme.textTheme.headlineSmall?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _searchQuery.isNotEmpty
+                                              ? l10n.songCount(filteredItems.length)
+                                              : widget.subtitle,
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    flex: 4,
+                                    child: _buildSearchField(theme, l10n),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  if (filteredItems.isNotEmpty) ...[
+                                    FilledButton.icon(
                                       onPressed: () {
                                         audio.playPlaylist(filteredItems.map((e) => e.song).toList());
                                       },
                                       icon: const Icon(Icons.play_arrow_rounded),
                                       label: Text(l10n.playAll),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
+                                    const SizedBox(width: 12),
+                                    OutlinedButton.icon(
                                       onPressed: () {
                                         final songs = filteredItems.map((e) => e.song).toList()..shuffle();
                                         audio.playPlaylist(songs);
@@ -348,46 +266,139 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                                       icon: const Icon(Icons.shuffle_rounded),
                                       label: Text(l10n.shufflePlay),
                                     ),
+                                  ],
+                                ],
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              widget.title,
+                                              style: theme.textTheme.headlineSmall?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _searchQuery.isNotEmpty
+                                                  ? l10n.songCount(filteredItems.length)
+                                              : widget.subtitle,
+                                            style: theme.textTheme.bodyMedium?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        _isSearchExpanded || _searchQuery.isNotEmpty
+                                            ? Icons.search_off_rounded
+                                            : Icons.search_rounded,
+                                      ),
+                                      tooltip: l10n.search,
+                                      onPressed: () {
+                                        setState(() {
+                                          _isSearchExpanded = !_isSearchExpanded;
+                                          if (_isSearchExpanded) {
+                                            _searchFocusNode.requestFocus();
+                                          } else {
+                                            _searchController.clear();
+                                            _searchQuery = '';
+                                            _searchFocusNode.unfocus();
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                AnimatedCrossFade(
+                                  firstChild: const SizedBox.shrink(),
+                                  secondChild: Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: _buildSearchField(theme, l10n),
+                                  ),
+                                  crossFadeState: (_isSearchExpanded || _searchQuery.isNotEmpty)
+                                      ? CrossFadeState.showSecond
+                                      : CrossFadeState.showFirst,
+                                  duration: const Duration(milliseconds: 200),
+                                ),
+                                if (filteredItems.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: FilledButton.icon(
+                                          onPressed: () {
+                                            audio.playPlaylist(filteredItems.map((e) => e.song).toList());
+                                          },
+                                          icon: const Icon(Icons.play_arrow_rounded),
+                                          label: Text(l10n.playAll),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          onPressed: () {
+                                            final songs = filteredItems.map((e) => e.song).toList()..shuffle();
+                                            audio.playPlaylist(songs);
+                                          },
+                                          icon: const Icon(Icons.shuffle_rounded),
+                                          label: Text(l10n.shufflePlay),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      const SizedBox(height: 16),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            for (int i = 0; i < LibraryTimeRange.values.length; i++) ...[
-                              if (i > 0) const SizedBox(width: 8),
-                              ChoiceChip(
-                                label: Text(_timeRangeLabel(l10n, LibraryTimeRange.values[i])),
-                                selected: widget.selectedRange == LibraryTimeRange.values[i],
-                                onSelected: (_) => widget.onRangeChanged(LibraryTimeRange.values[i]),
-                              ),
-                            ],
-                          ],
-                        ),
+                              ],
+                            ),
+                          const SizedBox(height: 16),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            child: Row(
+                              children: [
+                                for (int i = 0; i < LibraryTimeRange.values.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 8),
+                                  ChoiceChip(
+                                    label: Text(_timeRangeLabel(l10n, LibraryTimeRange.values[i])),
+                                    selected: widget.selectedRange == LibraryTimeRange.values[i],
+                                    onSelected: (_) => widget.onRangeChanged(LibraryTimeRange.values[i]),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
           ),
+        ),
           if (widget.items.isEmpty)
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    widget.emptyText,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1080),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      widget.emptyText,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ),
@@ -397,36 +408,39 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.search_off_rounded,
-                        size: 48,
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.noMatchingResults,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1080),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 48,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextButton.icon(
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchQuery = '';
-                          });
-                        },
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        label: Text(l10n.clearSearch),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.noMatchingResults,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton.icon(
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          label: Text(l10n.clearSearch),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -440,32 +454,38 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                 itemBuilder: (context, index) {
                   final entry = filteredItems[index];
                   final isSelected = _selectedSongPaths.contains(entry.song.path);
-                  return Padding(
+                  return Align(
                     key: ValueKey(entry.song.path),
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _SongListItem(
-                      entry: entry,
-                      l10n: l10n,
-                      audio: audio,
-                      trailingBuilder: widget.trailingBuilder,
-                      isSelectionMode: _isSelectionMode,
-                      isSelected: isSelected,
-                      onTap: () {
-                        if (_isSelectionMode) {
-                          _toggleSelection(entry.song.path);
-                        } else {
-                          audio.playPlaylist(
-                            filteredItems.map((e) => e.song).toList(),
-                            initialIndex: index,
-                          );
-                        }
-                      },
-                      onLongPress: () {
-                        if (!_isSelectionMode) {
-                          _toggleSelectionMode();
-                          _toggleSelection(entry.song.path);
-                        }
-                      },
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1080),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _SongListItem(
+                          entry: entry,
+                          l10n: l10n,
+                          audio: audio,
+                          trailingBuilder: widget.trailingBuilder,
+                          isSelectionMode: _isSelectionMode,
+                          isSelected: isSelected,
+                          onTap: () {
+                            if (_isSelectionMode) {
+                              _toggleSelection(entry.song.path);
+                            } else {
+                              audio.playPlaylist(
+                                filteredItems.map((e) => e.song).toList(),
+                                initialIndex: index,
+                              );
+                            }
+                          },
+                          onLongPress: () {
+                            if (!_isSelectionMode) {
+                              _toggleSelectionMode();
+                              _toggleSelection(entry.song.path);
+                            }
+                          },
+                        ),
+                      ),
                     ),
                   );
                 },

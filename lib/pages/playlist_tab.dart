@@ -563,15 +563,9 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     final hasSongs = currentPlaylist?.songs.isNotEmpty == true;
     final isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
-    final horizontalPadding = isPortrait ? 20.0 : 32.0;
+    final horizontalPadding = isPortrait ? 12.0 : 16.0;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        horizontalPadding,
-        16,
-        horizontalPadding,
-        12,
-      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
@@ -580,96 +574,110 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
           ),
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Align(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1080),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              16,
+              horizontalPadding,
+              12,
+            ),
+            child: Row(
               children: [
-                Text(
-                  l10n.playlist,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => _showPlaylistSelector(context),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 2,
-                      vertical: 2,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            currentPlaylist == null
-                                ? l10n.emptyList
-                                : localizedPlaylistName(
-                                    context,
-                                    currentPlaylist,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.playlist,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _showPlaylistSelector(context),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 2,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  currentPlaylist == null
+                                      ? l10n.emptyList
+                                      : localizedPlaylistName(
+                                          context,
+                                          currentPlaylist,
+                                        ),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 2),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                ),
+                if (hasSongs) ...[
+                  IconButton(
+                    tooltip: l10n.clearPlaylist,
+                    onPressed: () {
+                      if (currentPlaylist != null) {
+                        ref
+                            .read(playlistServiceProvider)
+                            .clearPlaylist(currentPlaylist.id);
+                      }
+                    },
+                    icon: const Icon(Icons.clear_all),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                PopupMenuButton<String>(
+                  tooltip: l10n.managePlaylists,
+                  onSelected: (value) {
+                    if (value == 'create') {
+                      _showCreatePlaylistDialog(context);
+                    } else if (value == 'manage') {
+                      _showPlaylistManager(context);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    buildContextMenuItem<String>(
+                      value: 'create',
+                      label: l10n.createPlaylist,
+                      icon: Icons.add_rounded,
+                      context: context,
+                    ),
+                    buildContextMenuItem<String>(
+                      value: 'manage',
+                      label: l10n.managePlaylists,
+                      icon: Icons.list_rounded,
+                      context: context,
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          if (hasSongs) ...[
-            IconButton(
-              tooltip: l10n.clearPlaylist,
-              onPressed: () {
-                if (currentPlaylist != null) {
-                  ref
-                      .read(playlistServiceProvider)
-                      .clearPlaylist(currentPlaylist.id);
-                }
-              },
-              icon: const Icon(Icons.clear_all),
-            ),
-            const SizedBox(width: 8),
-          ],
-          PopupMenuButton<String>(
-            tooltip: l10n.managePlaylists,
-            onSelected: (value) {
-              if (value == 'create') {
-                _showCreatePlaylistDialog(context);
-              } else if (value == 'manage') {
-                _showPlaylistManager(context);
-              }
-            },
-            itemBuilder: (context) => [
-              buildContextMenuItem<String>(
-                value: 'create',
-                label: l10n.createPlaylist,
-                icon: Icons.add_rounded,
-                context: context,
-              ),
-              buildContextMenuItem<String>(
-                value: 'manage',
-                label: l10n.managePlaylists,
-                icon: Icons.list_rounded,
-                context: context,
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -677,28 +685,31 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.playlist_add,
-            size: 64,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.emptyList,
-            style: const TextStyle(fontSize: 18, color: Colors.grey),
-          ),
-          if (Platform.isWindows)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                l10n.dragToAddMusic,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1080),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.playlist_add,
+              size: 64,
+              color: Theme.of(context).colorScheme.outlineVariant,
             ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              l10n.emptyList,
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+            if (Platform.isWindows)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  l10n.dragToAddMusic,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -812,76 +823,77 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                       );
                     }
 
-                    return Padding(
+                    return Align(
                       key: ObjectKey(song),
-                      padding: EdgeInsets.symmetric(
-                        horizontal:
-                            MediaQuery.of(context).orientation ==
-                                Orientation.portrait
-                            ? 8
-                            : 16,
-                        vertical: 4,
-                      ),
-                      child: SongTile(
-                        song: song,
-                        isCurrent: isCurrent,
-                        isSelected: isSelected,
-                        isSelectionMode: isSelectionMode,
-                        dragHandle: ReorderableDragStartListener(
-                          index: index,
-                          child: const Icon(Icons.drag_handle),
-                        ),
-                        onTap: isSelectionMode
-                            ? () {
-                                if (isMissing) {
-                                  showDeletedSongSnack(
-                                    context,
-                                    ref,
-                                    skipped: false,
-                                  );
-                                  return;
-                                }
+                      alignment: Alignment.center,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1080),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 2,
+                          ),
+                          child: SongTile(
+                            song: song,
+                            isCurrent: isCurrent,
+                            isSelected: isSelected,
+                            isSelectionMode: isSelectionMode,
+                            dragHandle: ReorderableDragStartListener(
+                              index: index,
+                              child: const Icon(Icons.drag_handle),
+                            ),
+                            onTap: isSelectionMode
+                                ? () {
+                                    if (isMissing) {
+                                      showDeletedSongSnack(
+                                        context,
+                                        ref,
+                                        skipped: false,
+                                      );
+                                      return;
+                                    }
+                                    _toggleSelection(index);
+                                  }
+                                : () {
+                                    if (isMissing) {
+                                      showDeletedSongSnack(
+                                        context,
+                                        ref,
+                                        skipped: false,
+                                      );
+                                      return;
+                                    }
+                                    audio.playPlaylist(
+                                      activePlaylist.songs,
+                                      initialIndex: index,
+                                      source: PlaybackSource(
+                                        type: PlaybackSourceType.playlist,
+                                        id: activePlaylist.id,
+                                        name: activePlaylist.name,
+                                      ),
+                                    );
+                                  },
+                            onLongPress: () {
+                              if (!isSelectionMode) {
+                                _toggleSelectionMode();
                                 _toggleSelection(index);
                               }
-                            : () {
-                                if (isMissing) {
-                                  showDeletedSongSnack(
-                                    context,
-                                    ref,
-                                    skipped: false,
-                                  );
-                                  return;
-                                }
-                                audio.playPlaylist(
-                                  activePlaylist.songs,
-                                  initialIndex: index,
-                                  source: PlaybackSource(
-                                    type: PlaybackSourceType.playlist,
-                                    id: activePlaylist.id,
-                                    name: activePlaylist.name,
-                                  ),
-                                );
-                              },
-                        onLongPress: () {
-                          if (!isSelectionMode) {
-                            _toggleSelectionMode();
-                            _toggleSelection(index);
-                          }
-                        },
-                        onSecondaryTapDown: (details) {
-                          handleShowMenu(context, details.globalPosition);
-                        },
-                        onMorePressed: (buttonContext) {
-                          final renderObject = buttonContext.findRenderObject();
-                          final renderBox = renderObject is RenderBox
-                              ? renderObject
-                              : null;
-                          if (renderBox == null) return;
-                          final Offset offset = renderBox.localToGlobal(
-                            Offset.zero,
-                          );
-                          handleShowMenu(buttonContext, offset);
-                        },
+                            },
+                            onSecondaryTapDown: (details) {
+                              handleShowMenu(context, details.globalPosition);
+                            },
+                            onMorePressed: (buttonContext) {
+                              final renderObject = buttonContext.findRenderObject();
+                              final renderBox = renderObject is RenderBox
+                                  ? renderObject
+                                  : null;
+                              if (renderBox == null) return;
+                              final Offset offset = renderBox.localToGlobal(
+                                Offset.zero,
+                              );
+                              handleShowMenu(buttonContext, offset);
+                            },
+                          ),
+                        ),
                       ),
                     );
                   },
