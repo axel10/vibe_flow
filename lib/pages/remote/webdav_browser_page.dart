@@ -34,6 +34,7 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
 
 class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   late final WebDavClient _client;
+  late String _rootPath;
   late String _currentPath;
   bool _isLoading = false;
   String? _error;
@@ -46,11 +47,25 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       server: widget.server,
       password: widget.password,
     );
-    _currentPath = widget.initialPath ??
+    _rootPath = widget.initialPath ??
         (widget.server.customPath?.trim().isNotEmpty == true
             ? widget.server.customPath!
             : '/');
+    _currentPath = _rootPath;
     _loadDirectory(_currentPath);
+  }
+
+  bool get _isAtRoot {
+    if (_currentPath.isEmpty || _currentPath == '/' || _currentPath == _rootPath) {
+      return true;
+    }
+    final cleanCurrent = _currentPath.endsWith('/') && _currentPath.length > 1
+        ? _currentPath.substring(0, _currentPath.length - 1)
+        : _currentPath;
+    final cleanRoot = _rootPath.endsWith('/') && _rootPath.length > 1
+        ? _rootPath.substring(0, _rootPath.length - 1)
+        : _rootPath;
+    return cleanCurrent == cleanRoot;
   }
 
   Future<void> _loadDirectory(String path) async {
@@ -72,18 +87,25 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       var effectivePath = path;
       if (path == '/' && list.isNotEmpty && list.first.path.startsWith('/dav')) {
         effectivePath = '/dav';
+        if (_rootPath == '/') {
+          _rootPath = '/dav';
+        }
       }
 
-      setState(() {
-        _items = list;
-        _currentPath = effectivePath;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _items = list;
+          _currentPath = effectivePath;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -178,9 +200,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   }
 
   void _navigateToParent() {
-    if (_currentPath == '/' || _currentPath.isEmpty) return;
-    final parent = p.dirname(_currentPath);
-    _loadDirectory(parent.isEmpty ? '/' : parent);
+    if (_isAtRoot) return;
+    var parent = p.dirname(_currentPath);
+    if (parent == '.' || parent.isEmpty) {
+      parent = _rootPath;
+    }
+    _loadDirectory(parent);
   }
 
   @override
@@ -193,13 +218,20 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
     Widget content = PopScope(
-      canPop: _currentPath == '/' || _currentPath.isEmpty,
+      canPop: _isAtRoot,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _navigateToParent();
+        if (!_isAtRoot) {
+          _navigateToParent();
+        }
       },
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            tooltip: 'Exit',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -453,55 +485,75 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     return Container(
       width: double.infinity,
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            InkWell(
-              onTap: () => _loadDirectory('/'),
-              borderRadius: BorderRadius.circular(4),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.cloud_queue_rounded,
-                      size: 16,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('Root', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ),
-            ),
-            for (int i = 0; i < segments.length; i++) ...[
-              const Icon(Icons.chevron_right_rounded, size: 16),
-              InkWell(
-                onTap: () {
-                  final targetPath = '/${segments.sublist(0, i + 1).join('/')}';
-                  _loadDirectory(targetPath);
-                },
-                borderRadius: BorderRadius.circular(4),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  child: Text(
-                    segments[i],
-                    style: TextStyle(
-                      fontWeight: i == segments.length - 1
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: i == segments.length - 1
-                          ? theme.colorScheme.primary
-                          : null,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_upward_rounded, size: 20),
+            tooltip: 'Up to parent folder',
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.all(6),
+            constraints: const BoxConstraints(),
+            onPressed: _isAtRoot ? null : _navigateToParent,
+          ),
+          const SizedBox(width: 4),
+          const SizedBox(
+            height: 16,
+            child: VerticalDivider(width: 8, thickness: 1),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () => _loadDirectory(_rootPath),
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.cloud_queue_rounded,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text('Root', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  for (int i = 0; i < segments.length; i++) ...[
+                    const Icon(Icons.chevron_right_rounded, size: 16),
+                    InkWell(
+                      onTap: () {
+                        final targetPath = '/${segments.sublist(0, i + 1).join('/')}';
+                        _loadDirectory(targetPath);
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Text(
+                          segments[i],
+                          style: TextStyle(
+                            fontWeight: i == segments.length - 1
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: i == segments.length - 1
+                                ? theme.colorScheme.primary
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
