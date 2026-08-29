@@ -690,6 +690,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
       },
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: TabBar(
             controller: _tabController,
             isScrollable: isLandscape ? false : true,
@@ -719,29 +720,6 @@ class _SharingPageState extends ConsumerState<SharingPage>
               ),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: Badge(
-                isLabelVisible: ref.watch(activeDownloadsCountProvider) > 0,
-                label: Text('${ref.watch(activeDownloadsCountProvider)}'),
-                child: const Icon(Icons.download_rounded),
-              ),
-              tooltip: l10n.downloadManager,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const RemoteDownloadManagerPage(),
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_rounded),
-              tooltip: l10n.addRemoteServer,
-              onPressed: () => AddEditRemoteServerDialog.show(context),
-            ),
-          ],
         ),
         body: TabBarView(
           controller: _tabController,
@@ -1568,10 +1546,36 @@ class _SharingPageState extends ConsumerState<SharingPage>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () => AddEditRemoteServerDialog.show(context),
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text(l10n.addRemoteServer),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: () => AddEditRemoteServerDialog.show(context),
+                        icon: const Icon(Icons.add_rounded),
+                        label: Text(l10n.addRemoteServer),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RemoteDownloadManagerPage(),
+                            ),
+                          );
+                        },
+                        icon: Badge(
+                          isLabelVisible:
+                              ref.watch(activeDownloadsCountProvider) > 0,
+                          label: Text(
+                            '${ref.watch(activeDownloadsCountProvider)}',
+                          ),
+                          child: const Icon(Icons.download_rounded),
+                        ),
+                        label: Text(l10n.downloadManager),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1595,10 +1599,37 @@ class _SharingPageState extends ConsumerState<SharingPage>
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    FilledButton.tonalIcon(
-                      onPressed: () => AddEditRemoteServerDialog.show(context),
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      label: Text(l10n.addRemoteServer),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Badge(
+                            isLabelVisible:
+                                ref.watch(activeDownloadsCountProvider) > 0,
+                            label: Text(
+                              '${ref.watch(activeDownloadsCountProvider)}',
+                            ),
+                            child: const Icon(Icons.download_rounded),
+                          ),
+                          tooltip: l10n.downloadManager,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const RemoteDownloadManagerPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton.tonalIcon(
+                          onPressed: () =>
+                              AddEditRemoteServerDialog.show(context),
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: Text(l10n.addRemoteServer),
+                        ),
+                      ],
                     ),
                   ],
                 ),
