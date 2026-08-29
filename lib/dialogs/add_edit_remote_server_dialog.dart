@@ -97,13 +97,38 @@ class _AddEditRemoteServerDialogState
     super.dispose();
   }
 
+  String _resolveServerName([String? inputName]) {
+    final rawInput = (inputName ?? _nameController.text).trim();
+    final defaultBaseName =
+        _serverType == RemoteServerType.subsonic ? 'Navidrome' : 'WebDAV';
+
+    final existingServers = ref.read(remoteServersProvider).asData?.value ?? [];
+    final currentId = widget.server?.id;
+    final otherNames = existingServers
+        .where((s) => s.id != currentId)
+        .map((s) => s.name.trim().toLowerCase())
+        .toSet();
+
+    if (rawInput.isNotEmpty) {
+      return rawInput;
+    }
+
+    if (!otherNames.contains(defaultBaseName.toLowerCase())) {
+      return defaultBaseName;
+    }
+
+    int index = 2;
+    while (otherNames.contains('$defaultBaseName ($index)'.toLowerCase())) {
+      index++;
+    }
+    return '$defaultBaseName ($index)';
+  }
+
   RemoteServer _buildServerModel() {
     return RemoteServer(
       id: widget.server?.id ??
           'srv_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(9999)}',
-      name: _nameController.text.trim().isNotEmpty
-          ? _nameController.text.trim()
-          : (_serverType == RemoteServerType.subsonic ? 'Navidrome' : 'WebDAV'),
+      name: _resolveServerName(),
       type: _serverType,
       url: _urlController.text.trim(),
       username: _usernameController.text.trim(),
@@ -243,12 +268,27 @@ class _AddEditRemoteServerDialogState
                           controller: _nameController,
                           decoration: InputDecoration(
                             labelText: l10n.serverName,
-                            hintText: _serverType == RemoteServerType.subsonic
-                                ? 'My Navidrome NAS'
-                                : 'Nextcloud WebDAV',
+                            hintText: _resolveServerName(''),
                             prefixIcon: const Icon(Icons.badge_outlined),
                             border: const OutlineInputBorder(),
                           ),
+                          validator: (val) {
+                            final input = val?.trim() ?? '';
+                            if (input.isNotEmpty) {
+                              final existingServers =
+                                  ref.read(remoteServersProvider).asData?.value ?? [];
+                              final hasDuplicate = existingServers.any(
+                                (s) =>
+                                    s.id != widget.server?.id &&
+                                    s.name.trim().toLowerCase() ==
+                                        input.toLowerCase(),
+                              );
+                              if (hasDuplicate) {
+                                return l10n.serverNameAlreadyExists;
+                              }
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 14),
                         TextFormField(

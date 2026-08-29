@@ -3957,6 +3957,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get serverName => '服务器名称';
 
   @override
+  String get serverNameAlreadyExists => '服务器名称已存在，请使用其他名称';
+
+  @override
   String get serverType => '服务类型';
 
   @override

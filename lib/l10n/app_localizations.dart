@@ -7041,6 +7041,12 @@ abstract class AppLocalizations {
   /// **'服务器名称'**
   String get serverName;
 
+  /// No description provided for @serverNameAlreadyExists.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务器名称已存在，请使用其他名称'**
+  String get serverNameAlreadyExists;
+
   /// No description provided for @serverType.
   ///
   /// In zh, this message translates to:

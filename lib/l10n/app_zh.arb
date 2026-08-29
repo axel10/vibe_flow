@@ -2324,6 +2324,7 @@
   "addRemoteServer": "添加媒体服务器",
   "editRemoteServer": "编辑媒体服务器",
   "serverName": "服务器名称",
+  "serverNameAlreadyExists": "服务器名称已存在，请使用其他名称",
   "serverType": "服务类型",
   "serverUrl": "服务器地址 (URL)",
   "serverUsername": "用户名",

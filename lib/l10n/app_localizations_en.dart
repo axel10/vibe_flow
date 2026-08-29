@@ -3944,6 +3944,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverName => 'Server Name';
 
   @override
+  String get serverNameAlreadyExists =>
+      'Server name already exists. Please choose another name.';
+
+  @override
   String get serverType => 'Server Type';
 
   @override

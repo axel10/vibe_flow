@@ -1616,6 +1616,7 @@
   "addRemoteServer": "Add Media Server",
   "editRemoteServer": "Edit Media Server",
   "serverName": "Server Name",
+  "serverNameAlreadyExists": "Server name already exists. Please choose another name.",
   "serverType": "Server Type",
   "serverUrl": "Server URL",
   "serverUsername": "Username",
