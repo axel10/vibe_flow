@@ -16,6 +16,7 @@ import '../../utils/app_snack_bar.dart';
 import '../../utils/remote_context_menu_utils.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
+import '../../widgets/playing_equalizer_icon.dart';
 import 'remote_download_manager_page.dart';
 
 class WebDavBrowserPage extends ConsumerStatefulWidget {
@@ -227,6 +228,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final isAudioPlaying = ref.watch(audioIsPlayingProvider);
     final audioCount = _items.where((i) => i.isAudio).length;
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
@@ -425,7 +427,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                     widget.server.id,
                                     item.path,
                                   );
-                                  final isPlaying = currentMusic?.path == remoteUri;
+                                  final isCurrent = currentMusic?.path == remoteUri;
+                                  final ext = p.extension(item.name).replaceAll('.', '').toUpperCase();
+                                  final sizeStr = _formatFileSize(item.contentLength);
+                                  final subtitleStr = (isAudio && ext.isNotEmpty) ? '$sizeStr | $ext' : sizeStr;
 
                                   void showFileMenu(Offset pos) {
                                     final audioFiles = _getAudioFiles();
@@ -464,81 +469,75 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                     child: ListTile(
                                       leading: Icon(
                                         isAudio
-                                            ? (isPlaying
-                                                ? Icons.volume_up_rounded
-                                                : Icons.music_note_rounded)
+                                            ? Icons.music_note_rounded
                                             : Icons.insert_drive_file_outlined,
                                         color: isAudio
-                                            ? (isPlaying
+                                            ? (isCurrent
                                                 ? theme.colorScheme.primary
                                                 : Colors.blue)
                                             : theme.colorScheme.onSurfaceVariant
                                                 .withValues(alpha: 0.5),
                                       ),
-                                      title: Text(
-                                        item.name,
-                                        style: TextStyle(
-                                          color: isPlaying
-                                              ? theme.colorScheme.primary
-                                              : (isAudio
-                                                  ? null
-                                                  : theme.colorScheme.onSurfaceVariant
-                                                      .withValues(alpha: 0.6)),
-                                          fontWeight: isPlaying
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                        ),
+                                      title: Row(
+                                        children: [
+                                          if (isCurrent) ...[
+                                            PlayingEqualizerIcon(
+                                              color: theme.colorScheme.primary,
+                                              size: 16,
+                                              isPlaying: isAudioPlaying,
+                                            ),
+                                            const SizedBox(width: 6),
+                                          ],
+                                          Expanded(
+                                            child: Text(
+                                              item.name,
+                                              style: TextStyle(
+                                                color: isCurrent
+                                                    ? theme.colorScheme.primary
+                                                    : (isAudio
+                                                        ? null
+                                                        : theme.colorScheme.onSurfaceVariant
+                                                            .withValues(alpha: 0.6)),
+                                                fontWeight: isCurrent
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       subtitle: Text(
-                                        _formatFileSize(item.contentLength),
+                                        subtitleStr,
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: theme.colorScheme.onSurfaceVariant,
+                                          color: isCurrent
+                                              ? theme.colorScheme.primary.withValues(alpha: 0.75)
+                                              : theme.colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                       trailing: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          if (isAudio) ...[
+                                          if (isAudio)
                                             IconButton(
                                               icon: Icon(
-                                                isPlaying
-                                                    ? Icons.pause_circle_rounded
-                                                    : Icons.play_circle_rounded,
-                                                size: 28,
-                                                color: theme.colorScheme.primary,
+                                                Icons.download_rounded,
+                                                size: 22,
+                                                color: isCurrent ? theme.colorScheme.primary : null,
                                               ),
-                                              onPressed: () async {
-                                                final audioService =
-                                                    ref.read(audioServiceProvider);
-                                                if (isPlaying) {
-                                                  await audioService.togglePlay();
-                                                  return;
-                                                }
-                                                final audioFiles = _getAudioFiles();
-                                                final target =
-                                                    RemoteMediaResolver.buildMusicFileFromWebDav(
-                                                  item,
-                                                  widget.server,
-                                                );
-                                                final initialIndex =
-                                                    audioFiles.indexWhere((s) => s.path == target.path);
-                                                await audioService.playPlaylist(
-                                                  audioFiles.isNotEmpty ? audioFiles : [target],
-                                                  initialIndex: initialIndex >= 0 ? initialIndex : 0,
-                                                );
-                                              },
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.download_rounded, size: 22),
                                               tooltip: 'Download',
                                               onPressed: () => _downloadSingleAudio(item),
                                             ),
-                                          ],
                                           Builder(
                                             builder: (btnContext) {
                                               return IconButton(
-                                                icon: const Icon(Icons.more_vert_rounded, size: 20),
+                                                icon: Icon(
+                                                  Icons.more_vert_rounded,
+                                                  size: 20,
+                                                  color: isCurrent ? theme.colorScheme.primary : null,
+                                                ),
                                                 tooltip: 'More',
                                                 onPressed: () {
                                                   final box = btnContext.findRenderObject() as RenderBox?;
