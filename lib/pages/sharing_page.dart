@@ -1814,73 +1814,109 @@ class _SharingPageState extends ConsumerState<SharingPage>
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 380;
+                final userText = Text(
                   'User: ${server.username.isNotEmpty ? server.username : "Anonymous"}',
                   style: TextStyle(
                     fontSize: 12,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                ),
-                Row(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                );
+
+                final testBtn = TextButton.icon(
+                  onPressed: () async {
+                    showToast('Testing ${server.name}...');
+                    final pwd = await ref
+                        .read(remoteServersProvider.notifier)
+                        .getPassword(server.id);
+                    final res = await ref
+                        .read(remoteServersProvider.notifier)
+                        .testConnection(server, pwd ?? '');
+                    if (res.isSuccess) {
+                      showToast('✅ ${res.message}');
+                    } else {
+                      showToast('❌ ${res.message}');
+                    }
+                  },
+                  icon: const Icon(Icons.network_ping_rounded, size: 16),
+                  label: Text(l10n.testConnection),
+                );
+
+                final browseBtn = FilledButton.icon(
+                  onPressed: () async {
+                    final pwd = await ref
+                        .read(remoteServersProvider.notifier)
+                        .getPassword(server.id);
+                    if (!context.mounted) return;
+
+                    if (server.type == RemoteServerType.subsonic) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => NavidromeLibraryPage(
+                            server: server,
+                            password: pwd ?? '',
+                            wrapWithMiniPlayer: true,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => WebDavBrowserPage(
+                            server: server,
+                            password: pwd ?? '',
+                            wrapWithMiniPlayer: true,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                  label: Text(l10n.browseServer),
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      userText,
+                      const SizedBox(height: 8),
+                      Wrap(
+                        alignment: WrapAlignment.end,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          testBtn,
+                          browseBtn,
+                        ],
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton.icon(
-                      onPressed: () async {
-                        showToast('Testing ${server.name}...');
-                        final pwd = await ref
-                            .read(remoteServersProvider.notifier)
-                            .getPassword(server.id);
-                        final res = await ref
-                            .read(remoteServersProvider.notifier)
-                            .testConnection(server, pwd ?? '');
-                        if (res.isSuccess) {
-                          showToast('✅ ${res.message}');
-                        } else {
-                          showToast('❌ ${res.message}');
-                        }
-                      },
-                      icon: const Icon(Icons.network_ping_rounded, size: 16),
-                      label: Text(l10n.testConnection),
+                    Expanded(child: userText),
+                    const SizedBox(width: 8),
+                    Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        testBtn,
+                        browseBtn,
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    FilledButton.icon(
-                      onPressed: () async {
-                        final pwd = await ref
-                            .read(remoteServersProvider.notifier)
-                            .getPassword(server.id);
-                        if (!context.mounted) return;
-
-                        if (server.type == RemoteServerType.subsonic) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => NavidromeLibraryPage(
-                                server: server,
-                                password: pwd ?? '',
-                                wrapWithMiniPlayer: true,
-                              ),
-                            ),
-                          );
-                        } else {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => WebDavBrowserPage(
-                                server: server,
-                                password: pwd ?? '',
-                                wrapWithMiniPlayer: true,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                      label: Text(l10n.browseServer),
-                    ),
-
                   ],
-                ),
-              ],
+                );
+              },
             ),
           ],
         ),
