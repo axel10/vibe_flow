@@ -52,6 +52,11 @@ class MiniPlayerCard extends ConsumerWidget {
     final double infoMaxWidth =
         isLandscape || windowWidth >= 568.0 ? (windowWidth >= 800 ? 380.0 : 320.0) : 220.0;
 
+    final double prevNextIconSize = isLandscape ? 28.0 : 24.0;
+    final double playPauseIconSize = isLandscape ? 34.0 : 24.0;
+    final double secondaryIconSize = isLandscape ? 21.0 : 18.0;
+    final double controlsSpacing = isLandscape ? 6.0 : 4.0;
+
     final playControls = Padding(
       padding: const EdgeInsets.only(bottom: 9),
       child: Row(
@@ -62,23 +67,25 @@ class MiniPlayerCard extends ConsumerWidget {
             icon: Icons.skip_previous_rounded,
             onPressed: onPrevious,
             tooltip: l10n.previous,
+            iconSize: prevNextIconSize,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: controlsSpacing),
           AnimatedPlayPauseButton(
             isPlaying: isPlaying,
             isLoading: isBuffering,
             onPressed: onPlayPause,
             color: isDark ? Colors.white : Colors.black87,
-            size: 24,
+            size: playPauseIconSize,
             padding: const EdgeInsets.all(6.0),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             tooltip: isPlaying ? l10n.pause : l10n.play,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: controlsSpacing),
           MiniControlButton(
             icon: Icons.skip_next_rounded,
             onPressed: onNext,
             tooltip: l10n.next,
+            iconSize: prevNextIconSize,
           ),
         ],
       ),
@@ -114,10 +121,10 @@ class MiniPlayerCard extends ConsumerWidget {
             onChanged: onVolumeChanged,
             onScroll: onVolumeScroll,
             tooltip: l10n.volume,
-            iconSize: 18,
+            iconSize: secondaryIconSize,
           ),
           if (currentMusic != null) ...[
-            const SizedBox(width: 2),
+            SizedBox(width: isLandscape ? 4 : 2),
             MiniControlButton(
               icon: isFavorite
                   ? Icons.favorite_rounded
@@ -128,7 +135,7 @@ class MiniPlayerCard extends ConsumerWidget {
               tooltip: isFavorite
                   ? l10n.removeFromFavorites
                   : l10n.addToFavorites,
-              iconSize: 18,
+              iconSize: secondaryIconSize,
               padding: const EdgeInsets.all(6.0),
               color: isFavorite ? Colors.redAccent : null,
             ),
