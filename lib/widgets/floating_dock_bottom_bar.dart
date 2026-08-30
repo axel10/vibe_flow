@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/utils/playback_utils.dart';
 import 'package:vynody/widgets/animated_play_pause_button.dart';
 import 'package:vynody/widgets/app_tooltip.dart';
 import 'package:vynody/widgets/mini_player_widgets.dart';
 
 /// 一体化悬浮底部面板（Mini播放器 + 实时进度条分割线 + Tab栏）
-class FloatingDockBottomBar extends ConsumerWidget {
+class FloatingDockBottomBar extends ConsumerStatefulWidget {
   const FloatingDockBottomBar({
     super.key,
     required this.currentIndex,
@@ -27,35 +28,46 @@ class FloatingDockBottomBar extends ConsumerWidget {
   final double additionalBottomOffset;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FloatingDockBottomBar> createState() =>
+      _FloatingDockBottomBarState();
+}
+
+class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
+  bool _isDragging = false;
+  double _dragProgress = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final isPlaying = ref.watch(audioIsPlayingProvider);
     final isBuffering = ref.watch(audioIsBufferingProvider);
     final progress = ref.watch(audioProgressProvider);
+    final position = ref.watch(audioPositionProvider);
+    final duration = ref.watch(audioDurationProvider);
     final audio = ref.watch(audioServiceProvider);
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     // 当有正在播放的歌曲且不在全屏播放页且未被多选屏蔽时，展开 Mini 播放器
-    final showMini = currentMusic != null && !isPlayback && !hideMiniPlayer;
+    final showMini = currentMusic != null && !widget.isPlayback && !widget.hideMiniPlayer;
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final totalBottomOffset = bottomPadding + 8.0 + additionalBottomOffset;
+    final totalBottomOffset = bottomPadding + 8.0 + widget.additionalBottomOffset;
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
       left: 16.0,
       right: 16.0,
-      bottom: isHidden ? -(200.0 + bottomPadding) : totalBottomOffset,
+      bottom: widget.isHidden ? -(200.0 + bottomPadding) : totalBottomOffset,
       child: Center(
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          opacity: isHidden ? 0.0 : 1.0,
+          opacity: widget.isHidden ? 0.0 : 1.0,
           child: IgnorePointer(
-            ignoring: isHidden,
+            ignoring: widget.isHidden,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 580),
               decoration: BoxDecoration(
@@ -63,17 +75,17 @@ class FloatingDockBottomBar extends ConsumerWidget {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(
-                      alpha: isPlayback
+                      alpha: widget.isPlayback
                           ? (isDark ? 0.22 : 0.08)
                           : (isDark ? 0.40 : 0.12),
                     ),
-                    blurRadius: isPlayback ? 20 : 28,
+                    blurRadius: widget.isPlayback ? 20 : 28,
                     offset: const Offset(0, 8),
                     spreadRadius: 0,
                   ),
                   BoxShadow(
                     color: Colors.black.withValues(
-                      alpha: isPlayback
+                      alpha: widget.isPlayback
                           ? (isDark ? 0.10 : 0.04)
                           : (isDark ? 0.20 : 0.06),
                     ),
@@ -87,14 +99,14 @@ class FloatingDockBottomBar extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(28),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(
-                    sigmaX: isPlayback ? 28 : 24,
-                    sigmaY: isPlayback ? 28 : 24,
+                    sigmaX: widget.isPlayback ? 28 : 24,
+                    sigmaY: widget.isPlayback ? 28 : 24,
                   ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
                     decoration: BoxDecoration(
-                      color: isPlayback
+                      color: widget.isPlayback
                           ? (isDark
                               ? Colors.black.withValues(alpha: 0.22)
                               : Colors.white.withValues(alpha: 0.32))
@@ -105,9 +117,9 @@ class FloatingDockBottomBar extends ConsumerWidget {
                       border: Border.all(
                         color: (isDark
                                 ? Colors.white
-                                : (isPlayback ? Colors.white : Colors.black))
+                                : (widget.isPlayback ? Colors.white : Colors.black))
                             .withValues(
-                              alpha: isPlayback
+                              alpha: widget.isPlayback
                                   ? (isDark ? 0.16 : 0.28)
                                   : (isDark ? 0.12 : 0.08),
                             ),
@@ -132,6 +144,8 @@ class FloatingDockBottomBar extends ConsumerWidget {
                                   isPlaying: isPlaying,
                                   isBuffering: isBuffering,
                                   audio: audio,
+                                  position: position,
+                                  duration: duration,
                                 )
                               : const SizedBox.shrink(),
                         ),
@@ -145,7 +159,41 @@ class FloatingDockBottomBar extends ConsumerWidget {
                                   theme: theme,
                                   isDark: isDark,
                                   progress: progress,
-                                  audio: audio,
+                                  isDragging: _isDragging,
+                                  dragProgress: _dragProgress,
+                                  onDragStart: (val) {
+                                    setState(() {
+                                      _isDragging = true;
+                                      _dragProgress = val;
+                                    });
+                                  },
+                                  onDragUpdate: (val) {
+                                    setState(() {
+                                      _isDragging = true;
+                                      _dragProgress = val;
+                                    });
+                                  },
+                                  onDragEnd: (val) {
+                                    final seekProgress = val.clamp(0.0, 1.0);
+                                    if (duration.inMilliseconds > 0) {
+                                      audio.seek(
+                                        Duration(
+                                          milliseconds:
+                                              (duration.inMilliseconds *
+                                                      seekProgress)
+                                                  .toInt(),
+                                        ),
+                                      );
+                                    }
+                                    setState(() {
+                                      _isDragging = false;
+                                    });
+                                  },
+                                  onDragCancel: () {
+                                    setState(() {
+                                      _isDragging = false;
+                                    });
+                                  },
                                 )
                               : const SizedBox.shrink(),
                         ),
@@ -156,7 +204,7 @@ class FloatingDockBottomBar extends ConsumerWidget {
                           theme,
                           isDark,
                           l10n,
-                          isPlayback: isPlayback,
+                          isPlayback: widget.isPlayback,
                         ),
                       ],
                     ),
@@ -181,56 +229,166 @@ class FloatingDockBottomBar extends ConsumerWidget {
     required bool isPlaying,
     required bool isBuffering,
     required dynamic audio,
+    required Duration position,
+    required Duration duration,
   }) {
+    final displayPosition = _isDragging
+        ? Duration(
+            milliseconds:
+                (duration.inMilliseconds * _dragProgress.clamp(0.0, 1.0))
+                    .toInt(),
+          )
+        : position;
+
     return Container(
       height: 54,
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // 左侧：封面 + 歌曲名/歌手（点击直达播放页）
-          Expanded(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => onDestinationSelected(1),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4.0,
-                    vertical: 2.0,
+          // 1. 歌曲信息与按钮区域（拖动进度条时高斯模糊并淡出）
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 200),
+              tween: Tween<double>(begin: 0, end: _isDragging ? 5.0 : 0.0),
+              builder: (context, blur, child) {
+                return ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: _isDragging ? 0.25 : 1.0,
+                    child: IgnorePointer(
+                      ignoring: _isDragging,
+                      child: child,
+                    ),
                   ),
-                  child: Row(
+                );
+              },
+              child: Row(
+                children: [
+                  // 左侧：封面 + 歌曲名/歌手（点击直达播放页）
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => widget.onDestinationSelected(1),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 2.0,
+                          ),
+                          child: Row(
+                            children: [
+                              const MiniArtwork(),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      currentMusic.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      currentMusic.artist ?? l10n.unknownArtist,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? Colors.white60
+                                            : Colors.black54,
+                                        height: 1.1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // 右侧：播放控制按钮
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const MiniArtwork(),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              currentMusic.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black87,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              currentMusic.artist ?? l10n.unknownArtist,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark ? Colors.white60 : Colors.black54,
-                                height: 1.1,
-                              ),
-                            ),
-                          ],
+                      MiniControlButton(
+                        icon: Icons.skip_previous_rounded,
+                        iconSize: 22,
+                        padding: const EdgeInsets.all(5),
+                        onPressed: audio.previous,
+                        tooltip: l10n.previous,
+                      ),
+                      const SizedBox(width: 2),
+                      AnimatedPlayPauseButton(
+                        isPlaying: isPlaying,
+                        isLoading: isBuffering,
+                        onPressed: audio.togglePlay,
+                        color: isDark ? Colors.white : Colors.black87,
+                        size: 24,
+                        padding: const EdgeInsets.all(5.0),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        tooltip: isPlaying ? l10n.pause : l10n.play,
+                      ),
+                      const SizedBox(width: 2),
+                      MiniControlButton(
+                        icon: Icons.skip_next_rounded,
+                        iconSize: 22,
+                        padding: const EdgeInsets.all(5),
+                        onPressed: audio.next,
+                        tooltip: l10n.next,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 2. 拖拽时浮现的时间指示层（左侧当前拖拽进度时间，右侧歌曲总时长）
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isDragging ? 1.0 : 0.0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        formatDuration(displayPosition),
+                        style: TextStyle(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        formatDuration(duration),
+                        style: TextStyle(
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ],
@@ -238,40 +396,6 @@ class FloatingDockBottomBar extends ConsumerWidget {
                 ),
               ),
             ),
-          ),
-
-          // 右侧：播放控制按钮
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              MiniControlButton(
-                icon: Icons.skip_previous_rounded,
-                iconSize: 22,
-                padding: const EdgeInsets.all(5),
-                onPressed: audio.previous,
-                tooltip: l10n.previous,
-              ),
-              const SizedBox(width: 2),
-              AnimatedPlayPauseButton(
-                isPlaying: isPlaying,
-                isLoading: isBuffering,
-                onPressed: audio.togglePlay,
-                color: isDark ? Colors.white : Colors.black87,
-                size: 24,
-                padding: const EdgeInsets.all(5.0),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                tooltip: isPlaying ? l10n.pause : l10n.play,
-              ),
-              const SizedBox(width: 2),
-              MiniControlButton(
-                icon: Icons.skip_next_rounded,
-                iconSize: 22,
-                padding: const EdgeInsets.all(5),
-                onPressed: audio.next,
-                tooltip: l10n.next,
-              ),
-              const SizedBox(width: 4),
-            ],
           ),
         ],
       ),
@@ -333,7 +457,7 @@ class FloatingDockBottomBar extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: tabs.map((tab) {
-          final isSelected = currentIndex == tab.index;
+          final isSelected = widget.currentIndex == tab.index;
           return Expanded(
             child: _TabButton(
               item: tab,
@@ -341,7 +465,7 @@ class FloatingDockBottomBar extends ConsumerWidget {
               isPlayback: isPlayback,
               theme: theme,
               isDark: isDark,
-              onTap: () => onDestinationSelected(tab.index),
+              onTap: () => widget.onDestinationSelected(tab.index),
             ),
           );
         }).toList(),
@@ -431,58 +555,46 @@ class _TabButton extends StatelessWidget {
 }
 
 /// 具备可拖动胶囊滑块的实时播放进度条
-class _FloatingDockProgressBar extends StatefulWidget {
+class _FloatingDockProgressBar extends StatelessWidget {
   const _FloatingDockProgressBar({
     required this.theme,
     required this.isDark,
     required this.progress,
-    required this.audio,
+    required this.isDragging,
+    required this.dragProgress,
+    required this.onDragStart,
+    required this.onDragUpdate,
+    required this.onDragEnd,
+    required this.onDragCancel,
   });
 
   final ThemeData theme;
   final bool isDark;
   final double progress;
-  final dynamic audio;
+  final bool isDragging;
+  final double dragProgress;
+  final ValueChanged<double> onDragStart;
+  final ValueChanged<double> onDragUpdate;
+  final ValueChanged<double> onDragEnd;
+  final VoidCallback onDragCancel;
 
-  @override
-  State<_FloatingDockProgressBar> createState() =>
-      _FloatingDockProgressBarState();
-}
-
-class _FloatingDockProgressBarState extends State<_FloatingDockProgressBar> {
-  bool _isDragging = false;
-  double _dragProgress = 0.0;
-
-  void _updateProgress(double localX, double totalWidth) {
+  void _handleUpdate(double localX, double totalWidth, bool isStart) {
     if (totalWidth <= 0) return;
     final newProgress = (localX / totalWidth).clamp(0.0, 1.0);
-    setState(() {
-      _isDragging = true;
-      _dragProgress = newProgress;
-    });
-  }
-
-  void _commitSeek() {
-    if (!_isDragging) return;
-    final seekProgress = _dragProgress.clamp(0.0, 1.0);
-    final duration = widget.audio.duration;
-    if (duration != null && duration.inMilliseconds > 0) {
-      widget.audio.seek(
-        Duration(milliseconds: (duration.inMilliseconds * seekProgress).toInt()),
-      );
+    if (isStart) {
+      onDragStart(newProgress);
+    } else {
+      onDragUpdate(newProgress);
     }
-    setState(() {
-      _isDragging = false;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     final effectiveProgress =
-        (_isDragging ? _dragProgress : widget.progress).clamp(0.0, 1.0);
+        (isDragging ? dragProgress : progress).clamp(0.0, 1.0);
     const trackHeight = 3.5;
-    final thumbWidth = _isDragging ? 18.0 : 14.0;
-    final thumbHeight = _isDragging ? 8.0 : 7.0;
+    final thumbWidth = isDragging ? 18.0 : 14.0;
+    final thumbHeight = isDragging ? 8.0 : 7.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -494,14 +606,14 @@ class _FloatingDockProgressBarState extends State<_FloatingDockProgressBar> {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onHorizontalDragStart: (details) =>
-              _updateProgress(details.localPosition.dx, totalWidth),
+              _handleUpdate(details.localPosition.dx, totalWidth, true),
           onHorizontalDragUpdate: (details) =>
-              _updateProgress(details.localPosition.dx, totalWidth),
-          onHorizontalDragEnd: (details) => _commitSeek(),
-          onHorizontalDragCancel: () => setState(() => _isDragging = false),
+              _handleUpdate(details.localPosition.dx, totalWidth, false),
+          onHorizontalDragEnd: (details) => onDragEnd(effectiveProgress),
+          onHorizontalDragCancel: onDragCancel,
           onTapDown: (details) =>
-              _updateProgress(details.localPosition.dx, totalWidth),
-          onTapUp: (details) => _commitSeek(),
+              _handleUpdate(details.localPosition.dx, totalWidth, true),
+          onTapUp: (details) => onDragEnd(effectiveProgress),
           child: Container(
             height: 14.0, // 充足的手势触控热区
             alignment: Alignment.center,
@@ -514,8 +626,8 @@ class _FloatingDockProgressBarState extends State<_FloatingDockProgressBar> {
                   height: trackHeight,
                   width: totalWidth,
                   decoration: BoxDecoration(
-                    color: widget.theme.colorScheme.onSurface.withValues(
-                      alpha: widget.isDark ? 0.12 : 0.08,
+                    color: theme.colorScheme.onSurface.withValues(
+                      alpha: isDark ? 0.12 : 0.08,
                     ),
                     borderRadius: BorderRadius.circular(trackHeight / 2),
                   ),
@@ -528,8 +640,8 @@ class _FloatingDockProgressBarState extends State<_FloatingDockProgressBar> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        widget.theme.colorScheme.primary.withValues(alpha: 0.85),
-                        widget.theme.colorScheme.primary,
+                        theme.colorScheme.primary.withValues(alpha: 0.85),
+                        theme.colorScheme.primary,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(trackHeight / 2),
@@ -544,14 +656,14 @@ class _FloatingDockProgressBarState extends State<_FloatingDockProgressBar> {
                     width: thumbWidth,
                     height: thumbHeight,
                     decoration: BoxDecoration(
-                      color: widget.isDark
+                      color: isDark
                           ? Colors.white
-                          : widget.theme.colorScheme.primary,
+                          : theme.colorScheme.primary,
                       borderRadius: BorderRadius.circular(thumbHeight / 2),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(
-                            alpha: widget.isDark ? 0.45 : 0.25,
+                            alpha: isDark ? 0.45 : 0.25,
                           ),
                           blurRadius: 4,
                           offset: const Offset(0, 1),
