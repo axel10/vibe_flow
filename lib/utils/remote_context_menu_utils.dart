@@ -1391,7 +1391,7 @@ String _formatWebDavFileSize(int bytes) {
 }
 
 /// Helper to fetch tracks of a WebDAV folder on-demand
-Future<List<MusicFile>> _fetchWebDavFolderAudioFiles(
+Future<List<MusicFile>> fetchWebDavFolderAudioFiles(
   WebDavClient client,
   RemoteServer server,
   String folderPath,
@@ -1793,38 +1793,38 @@ Future<String?> showWebDavFolderBottomSheet({
                           const Divider(height: 1),
                           const SizedBox(height: 8),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'play_all',
                             label: l10n.playAll,
                             icon: Icons.play_arrow_rounded,
                             iconColor: theme.colorScheme.primary,
                           ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'shuffle',
                             label: l10n.shufflePlay,
                             icon: Icons.shuffle_rounded,
                           ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'play_next',
                             label: l10n.playNext,
                             icon: Icons.queue_play_next_rounded,
                           ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'add_to_queue',
                             label: l10n.addToQueue,
                             icon: Icons.queue_music_rounded,
                           ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'add_to_playlist',
                             label: l10n.playlist,
                             icon: Icons.playlist_add_rounded,
                           ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'download_folder',
                             label: l10n.copyAlbumTitle.contains('复制')
                                 ? '下载文件夹全部音频'
@@ -1833,7 +1833,7 @@ Future<String?> showWebDavFolderBottomSheet({
                           ),
                           if (onOpen != null)
                             _buildWebDavBottomSheetItem(
-                              context: context,
+                              context: ctx,
                               value: 'open',
                               label: l10n.openFolderLocation.contains('打开')
                                   ? '打开文件夹'
@@ -1841,14 +1841,14 @@ Future<String?> showWebDavFolderBottomSheet({
                               icon: Icons.folder_open_rounded,
                             ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'multi_select',
                             label: l10n.selectFolders,
                             icon: Icons.checklist_rounded,
                           ),
                           const Divider(height: 1),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'copy_name',
                             label: l10n.copyAlbumTitle.contains('复制')
                                 ? '复制文件夹名称'
@@ -1856,7 +1856,7 @@ Future<String?> showWebDavFolderBottomSheet({
                             icon: Icons.copy_rounded,
                           ),
                           _buildWebDavBottomSheetItem(
-                            context: context,
+                            context: ctx,
                             value: 'copy_path',
                             label: l10n.copyAlbumTitle.contains('复制')
                                 ? '复制文件夹路径'
@@ -1971,7 +1971,7 @@ Future<void> _handleWebDavFolderMenuSelection({
 
   Future<List<MusicFile>> getAudioFiles() async {
     showToast('Loading folder audio...');
-    return await _fetchWebDavFolderAudioFiles(client, server, folder.path);
+    return await fetchWebDavFolderAudioFiles(client, server, folder.path);
   }
 
   switch (selected) {

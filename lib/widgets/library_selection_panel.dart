@@ -23,6 +23,13 @@ class LibrarySelectionPanel extends ConsumerWidget {
     this.openLocationLabel,
     this.replaceFavoritesWithSongDetails = false,
     this.hideSongProperties = false,
+    this.onPlayNext,
+    this.onAddToQueue,
+    this.onAddToPlaylist,
+    this.onAddToFavorites,
+    this.onDownload,
+    this.isSelectionEmpty,
+    this.isAllSelected,
   });
 
   final List<MusicFile> selectedSongs;
@@ -36,6 +43,13 @@ class LibrarySelectionPanel extends ConsumerWidget {
   final String? openLocationLabel;
   final bool replaceFavoritesWithSongDetails;
   final bool hideSongProperties;
+  final VoidCallback? onPlayNext;
+  final VoidCallback? onAddToQueue;
+  final VoidCallback? onAddToPlaylist;
+  final VoidCallback? onAddToFavorites;
+  final VoidCallback? onDownload;
+  final bool? isSelectionEmpty;
+  final bool? isAllSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,13 +58,13 @@ class LibrarySelectionPanel extends ConsumerWidget {
     final audio = ref.read(audioServiceProvider);
     final playlistService = ref.read(playlistServiceProvider);
 
-    final isAllSelected =
-        selectedSongs.length == allSongs.length && allSongs.isNotEmpty;
-    final isSingleSelected = selectedSongs.length == 1;
-    final isEmpty = selectedSongs.isEmpty;
+    final isAllSelected = this.isAllSelected ??
+        (selectedSongs.length == allSongs.length && allSongs.isNotEmpty);
+    final isEmpty = isSelectionEmpty ?? selectedSongs.isEmpty;
+    final isSingleSelected = !isEmpty && selectedSongs.length == 1;
 
     final hasFilePath =
-        isSingleSelected && selectedSongs.first.path.trim().isNotEmpty;
+        isSingleSelected && selectedSongs.isNotEmpty && selectedSongs.first.path.trim().isNotEmpty;
     final canOpenLocation =
         (Platform.isWindows || Platform.isMacOS || Platform.isLinux) &&
         (onOpenLocation != null || hasFilePath);
@@ -115,6 +129,16 @@ class LibrarySelectionPanel extends ConsumerWidget {
             );
           }
         }
+        if (onDownload != null) {
+          secondaryActions.add(
+            _buildSelectionActionButton(
+              context: context,
+              icon: Icons.download_rounded,
+              label: l10n.downloadSong.contains('下载') ? '下载' : 'Download',
+              onPressed: isEmpty ? null : onDownload,
+            ),
+          );
+        }
         if (onDelete != null) {
           secondaryActions.add(
             _buildSelectionActionButton(
@@ -134,23 +158,27 @@ class LibrarySelectionPanel extends ConsumerWidget {
             onPressed: isEmpty
                 ? null
                 : () async {
-                    await playlistService.addSongsToPlaylist(
-                      PlaylistService.favoritePlaylistId,
-                      selectedSongs,
-                    );
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            l10n.addedToPlaylist(
-                              selectedSongs.length,
-                              l10n.favorites,
+                    if (onAddToFavorites != null) {
+                      onAddToFavorites!();
+                    } else {
+                      await playlistService.addSongsToPlaylist(
+                        PlaylistService.favoritePlaylistId,
+                        selectedSongs,
+                      );
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              l10n.addedToPlaylist(
+                                selectedSongs.length,
+                                l10n.favorites,
+                              ),
                             ),
                           ),
-                        ),
-                      );
+                        );
+                      }
+                      onCancel();
                     }
-                    onCancel();
                   },
           ),
         );
@@ -176,7 +204,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
               context: context,
               icon: Icons.info_outline_rounded,
               label: l10n.songProperties,
-              onPressed: selectedSongs.length == 1
+              onPressed: isSingleSelected
                   ? () => showSongDetailsDialog(context, selectedSongs.first)
                   : null,
             ),
@@ -204,6 +232,16 @@ class LibrarySelectionPanel extends ConsumerWidget {
               ),
             );
           }
+        }
+        if (onDownload != null) {
+          secondaryActions.add(
+            _buildSelectionActionButton(
+              context: context,
+              icon: Icons.download_rounded,
+              label: l10n.downloadSong.contains('下载') ? '下载' : 'Download',
+              onPressed: isEmpty ? null : onDownload,
+            ),
+          );
         }
         if (onDelete != null) {
           secondaryActions.add(
@@ -291,7 +329,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
                                 ? Icons.deselect
                                 : Icons.select_all,
                             label: selectAllText,
-                            onPressed: allSongs.isEmpty
+                            onPressed: (allSongs.isEmpty && this.isAllSelected == null)
                                 ? null
                                 : onToggleSelectAll,
                           ),
@@ -305,8 +343,12 @@ class LibrarySelectionPanel extends ConsumerWidget {
                             onPressed: isEmpty
                                 ? null
                                 : () async {
-                                    await audio.enqueueNext(selectedSongs);
-                                    onCancel();
+                                    if (onPlayNext != null) {
+                                      onPlayNext!();
+                                    } else {
+                                      await audio.enqueueNext(selectedSongs);
+                                      onCancel();
+                                    }
                                   },
                           ),
                         ),
@@ -319,8 +361,12 @@ class LibrarySelectionPanel extends ConsumerWidget {
                             onPressed: isEmpty
                                 ? null
                                 : () async {
-                                    await audio.appendToQueue(selectedSongs);
-                                    onCancel();
+                                    if (onAddToQueue != null) {
+                                      onAddToQueue!();
+                                    } else {
+                                      await audio.appendToQueue(selectedSongs);
+                                      onCancel();
+                                    }
                                   },
                           ),
                         ),
@@ -333,12 +379,16 @@ class LibrarySelectionPanel extends ConsumerWidget {
                             onPressed: isEmpty
                                 ? null
                                 : () async {
-                                    await showAddSongsToPlaylistDialog(
-                                      context,
-                                      playlistService,
-                                      selectedSongs,
-                                    );
-                                    onCancel();
+                                    if (onAddToPlaylist != null) {
+                                      onAddToPlaylist!();
+                                    } else {
+                                      await showAddSongsToPlaylistDialog(
+                                        context,
+                                        playlistService,
+                                        selectedSongs,
+                                      );
+                                      onCancel();
+                                    }
                                   },
                           ),
                         ),

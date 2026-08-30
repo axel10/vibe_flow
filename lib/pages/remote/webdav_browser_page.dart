@@ -13,6 +13,7 @@ import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import '../../player/remote/services/webdav_metadata_helper.dart';
+import '../../player/library/playlist_service.dart';
 import '../../player/metadata/metadata_database.dart';
 import '../../player/settings/settings_service.dart';
 import '../../utils/app_snack_bar.dart';
@@ -66,6 +67,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   final Set<String> _selectedFolderPaths = {};
 
   // Search & Scroll states
+  late final LibrarySelectionScopeController _selectionScopeNotifier;
   late final TextEditingController _searchController;
   final ScrollController _scrollController = ScrollController();
   final ScrollController _breadcrumbsScrollController = ScrollController();
@@ -77,6 +79,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   @override
   void initState() {
     super.initState();
+    _selectionScopeNotifier =
+        ref.read(librarySelectionScopeProvider.notifier);
     _searchController = TextEditingController();
     _client = WebDavClient(
       server: widget.server,
@@ -130,11 +134,13 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
   @override
   void dispose() {
-    ref.read(librarySelectionScopeProvider.notifier).clear();
     _searchController.dispose();
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
     _scrollProgress.dispose();
+    Future.microtask(() {
+      _selectionScopeNotifier.clear();
+    });
     super.dispose();
   }
 
@@ -439,15 +445,29 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   }
 
   void _clearAllSelection() {
-    ref.read(librarySelectionScopeProvider.notifier).clear();
-    if (_isSelectionMode ||
+    final shouldClearSelection = _isSelectionMode ||
         _selectedSongPaths.isNotEmpty ||
-        _selectedFolderPaths.isNotEmpty) {
-      setState(() {
+        _selectedFolderPaths.isNotEmpty;
+    final currentScope = ref.read(librarySelectionScopeProvider);
+    final isWebDavScope = currentScope == LibrarySelectionScope.webdav ||
+        currentScope == LibrarySelectionScope.folder;
+    if (!shouldClearSelection && !isWebDavScope) return;
+
+    if (isWebDavScope) {
+      _selectionScopeNotifier.clear();
+    }
+    if (shouldClearSelection) {
+      if (mounted) {
+        setState(() {
+          _isSelectionMode = false;
+          _selectedSongPaths.clear();
+          _selectedFolderPaths.clear();
+        });
+      } else {
         _isSelectionMode = false;
         _selectedSongPaths.clear();
         _selectedFolderPaths.clear();
-      });
+      }
     }
   }
 
@@ -457,11 +477,9 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       if (!_isSelectionMode) {
         _selectedSongPaths.clear();
         _selectedFolderPaths.clear();
-        ref.read(librarySelectionScopeProvider.notifier).clear();
+        _selectionScopeNotifier.clear();
       } else {
-        ref
-            .read(librarySelectionScopeProvider.notifier)
-            .setScope(LibrarySelectionScope.folder);
+        _selectionScopeNotifier.setScope(LibrarySelectionScope.webdav);
       }
     });
   }
@@ -475,11 +493,9 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       }
       if (_selectedSongPaths.isEmpty && _selectedFolderPaths.isEmpty) {
         _isSelectionMode = false;
-        ref.read(librarySelectionScopeProvider.notifier).clear();
+        _selectionScopeNotifier.clear();
       } else {
-        ref
-            .read(librarySelectionScopeProvider.notifier)
-            .setScope(LibrarySelectionScope.folder);
+        _selectionScopeNotifier.setScope(LibrarySelectionScope.webdav);
       }
     });
   }
@@ -493,19 +509,15 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       }
       if (_selectedSongPaths.isEmpty && _selectedFolderPaths.isEmpty) {
         _isSelectionMode = false;
-        ref.read(librarySelectionScopeProvider.notifier).clear();
+        _selectionScopeNotifier.clear();
       } else {
-        ref
-            .read(librarySelectionScopeProvider.notifier)
-            .setScope(LibrarySelectionScope.folder);
+        _selectionScopeNotifier.setScope(LibrarySelectionScope.webdav);
       }
     });
   }
 
   void _selectAllVisible(List<WebDavFile> displayedItems) {
-    ref
-        .read(librarySelectionScopeProvider.notifier)
-        .setScope(LibrarySelectionScope.folder);
+    _selectionScopeNotifier.setScope(LibrarySelectionScope.webdav);
     setState(() {
       _isSelectionMode = true;
       for (final item in displayedItems) {
@@ -528,6 +540,28 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         songs.add(song);
       }
     }
+    final seen = <String>{};
+    return songs.where((s) => seen.add(s.path)).toList(growable: false);
+  }
+
+  Future<List<MusicFile>> _resolveAllSelectedSongs({
+    List<WebDavFile>? sourceList,
+  }) async {
+    final songs = <MusicFile>[];
+    songs.addAll(_getSelectedSongs(sourceList: sourceList));
+
+    if (_selectedFolderPaths.isNotEmpty) {
+      showToast('Loading selected folders...');
+      for (final folderPath in _selectedFolderPaths) {
+        final folderAudios = await fetchWebDavFolderAudioFiles(
+          _client,
+          widget.server,
+          folderPath,
+        );
+        songs.addAll(folderAudios);
+      }
+    }
+
     final seen = <String>{};
     return songs.where((s) => seen.add(s.path)).toList(growable: false);
   }
@@ -1119,6 +1153,29 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     final displayedAudio = _getAudioFiles(sourceList: displayedItems);
     final selectedSongs = _getSelectedSongs(sourceList: displayedItems);
 
+    final selectedFoldersCount = _selectedFolderPaths.length;
+    final selectedSongsCount = _selectedSongPaths.length;
+    final totalSelectedCount = selectedFoldersCount + selectedSongsCount;
+    final isSelectionEmpty = totalSelectedCount == 0;
+
+    final allVisibleFoldersCount =
+        displayedItems.where((i) => i.isDirectory).length;
+    final allVisibleAudioCount =
+        displayedItems.where((i) => !i.isDirectory && i.isAudio).length;
+    final isAllSelected = (allVisibleFoldersCount + allVisibleAudioCount > 0) &&
+        selectedFoldersCount == allVisibleFoldersCount &&
+        selectedSongsCount == allVisibleAudioCount;
+
+    final String selectionTitle;
+    if (selectedFoldersCount > 0 && selectedSongsCount > 0) {
+      selectionTitle =
+          '${l10n.selectedFolders(selectedFoldersCount)}, ${l10n.selectedSongs(selectedSongsCount)}';
+    } else if (selectedFoldersCount > 0) {
+      selectionTitle = l10n.selectedFolders(selectedFoldersCount);
+    } else {
+      selectionTitle = l10n.selectedSongs(selectedSongsCount);
+    }
+
     final scaffold = Scaffold(
       body: SafeArea(
         top: false,
@@ -1170,10 +1227,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                         key: const ValueKey('webdav-selection-panel'),
                         selectedSongs: selectedSongs,
                         allSongs: displayedAudio,
+                        title: selectionTitle,
+                        isSelectionEmpty: isSelectionEmpty,
+                        isAllSelected: isAllSelected,
+                        hideSongProperties:
+                            selectedFoldersCount > 0 || selectedSongsCount != 1,
                         onToggleSelectAll: () {
-                          final isAllSelected = selectedSongs.length ==
-                                  displayedAudio.length &&
-                              displayedAudio.isNotEmpty;
                           if (isAllSelected) {
                             _clearAllSelection();
                           } else {
@@ -1181,6 +1240,135 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                           }
                         },
                         onCancel: _clearAllSelection,
+                        onPlayNext: () async {
+                          final songs = await _resolveAllSelectedSongs(
+                            sourceList: displayedItems,
+                          );
+                          if (songs.isNotEmpty) {
+                            await ref.read(audioServiceProvider).enqueueNext(songs);
+                            showToast(l10n.addedToQueue);
+                          } else {
+                            showToast('No audio files in selected items');
+                          }
+                          _clearAllSelection();
+                        },
+                        onAddToQueue: () async {
+                          final songs = await _resolveAllSelectedSongs(
+                            sourceList: displayedItems,
+                          );
+                          if (songs.isNotEmpty) {
+                            await ref.read(audioServiceProvider).appendToQueue(songs);
+                            showToast(l10n.addedToQueue);
+                          } else {
+                            showToast('No audio files in selected items');
+                          }
+                          _clearAllSelection();
+                        },
+                        onAddToPlaylist: () async {
+                          final songs = await _resolveAllSelectedSongs(
+                            sourceList: displayedItems,
+                          );
+                          if (songs.isNotEmpty && mounted) {
+                            final playlistService =
+                                ref.read(playlistServiceProvider);
+                            await showAddSongsToPlaylistDialog(
+                              context,
+                              playlistService,
+                              songs,
+                            );
+                          } else if (mounted) {
+                            showToast('No audio files in selected items');
+                          }
+                          _clearAllSelection();
+                        },
+                        onAddToFavorites: () async {
+                          final songs = await _resolveAllSelectedSongs(
+                            sourceList: displayedItems,
+                          );
+                          if (songs.isNotEmpty && mounted) {
+                            final playlistService =
+                                ref.read(playlistServiceProvider);
+                            await playlistService.addSongsToPlaylist(
+                              PlaylistService.favoritePlaylistId,
+                              songs,
+                            );
+                            AppSnackBar.show(
+                              context,
+                              ref,
+                              SnackBar(
+                                content: Text(
+                                  l10n.addedToPlaylist(
+                                    songs.length,
+                                    l10n.favorites,
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else if (mounted) {
+                            showToast('No audio files in selected items');
+                          }
+                          _clearAllSelection();
+                        },
+                        onDownload: () async {
+                          final songs = await _resolveAllSelectedSongs(
+                            sourceList: displayedItems,
+                          );
+                          if (songs.isEmpty) {
+                            showToast(l10n.noActiveDownloads);
+                            return;
+                          }
+                          final notifier =
+                              ref.read(remoteDownloadTasksProvider.notifier);
+                          final webDavFiles = <WebDavFile>[];
+                          for (final song in songs) {
+                            final uriInfo =
+                                RemoteMediaResolver.parseUri(song.path);
+                            final remotePath = (uriInfo != null &&
+                                    uriInfo.type == RemoteServerType.webdav)
+                                ? uriInfo.trackIdOrPath
+                                : null;
+                            if (remotePath != null) {
+                              webDavFiles.add(WebDavFile(
+                                path: remotePath,
+                                name: p.basename(remotePath),
+                                isDirectory: false,
+                                contentLength: 0,
+                              ));
+                            }
+                          }
+                          if (webDavFiles.isNotEmpty && mounted) {
+                            await notifier.enqueueWebDavFiles(
+                              server: widget.server,
+                              password: widget.password,
+                              files: webDavFiles,
+                            );
+                            if (mounted) {
+                              AppSnackBar.show(
+                                context,
+                                ref,
+                                SnackBar(
+                                  content: Text(
+                                    l10n.batchAddedToDownloadQueue(
+                                        webDavFiles.length),
+                                  ),
+                                  action: SnackBarAction(
+                                    label: l10n.viewDownloadProgress,
+                                    onPressed: () {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const RemoteDownloadManagerPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                          _clearAllSelection();
+                        },
                       )
                     : const SizedBox.shrink(
                         key: ValueKey('webdav-selection-panel-hidden'),
@@ -1192,25 +1380,19 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       ),
     );
 
-    if (_isSelectionMode) {
-      final popScoped = PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          _clearAllSelection();
-        },
-        child: scaffold,
-      );
-      if (widget.wrapWithMiniPlayer) {
-        return MiniPlayerWrapper(child: popScoped);
-      }
-      return popScoped;
-    }
+    final content = PopScope(
+      canPop: !_isSelectionMode,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _clearAllSelection();
+      },
+      child: scaffold,
+    );
 
     if (widget.wrapWithMiniPlayer) {
-      return MiniPlayerWrapper(child: scaffold);
+      return MiniPlayerWrapper(child: content);
     }
-    return scaffold;
+    return content;
   }
 
   Widget _buildBanner({
