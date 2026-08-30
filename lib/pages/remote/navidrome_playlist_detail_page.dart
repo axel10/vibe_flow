@@ -848,6 +848,10 @@ class _NavidromePlaylistDetailContentState
                     const Spacer(),
                     PopupMenuButton<String>(
                       tooltip: l10n.managePlaylists,
+                      iconSize: 20,
+                      style: IconButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                      ),
                       icon: const Icon(Icons.more_vert_rounded),
                       onSelected: (value) {
                         if (value == 'rename') {
@@ -942,7 +946,7 @@ class _NavidromePlaylistDetailContentState
           )
         else
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 80),
+            padding: const EdgeInsets.only(top: 8, bottom: 80),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
