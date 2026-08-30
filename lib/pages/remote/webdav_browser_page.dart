@@ -278,7 +278,9 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       canPop: _isAtRoot,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          ref.read(activeRemoteSessionProvider.notifier).clear();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(activeRemoteSessionProvider.notifier).clear();
+          });
           return;
         }
         if (!_isAtRoot) {
@@ -292,7 +294,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
             tooltip: 'Exit',
             onPressed: () {
               ref.read(activeRemoteSessionProvider.notifier).clear();
-              Navigator.of(context).maybePop();
             },
           ),
           title: Column(

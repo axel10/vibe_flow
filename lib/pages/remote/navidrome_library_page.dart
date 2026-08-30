@@ -592,7 +592,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          ref.read(activeRemoteSessionProvider.notifier).clear();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(activeRemoteSessionProvider.notifier).clear();
+          });
         }
       },
       child: Scaffold(
@@ -602,7 +604,6 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             tooltip: 'Exit',
             onPressed: () {
               ref.read(activeRemoteSessionProvider.notifier).clear();
-              Navigator.of(context).maybePop();
             },
           ),
           title: Column(

@@ -918,17 +918,21 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       pages: pages,
       observers: [_heroController],
       onDidRemovePage: (page) {
-        if (activeRemoteSession != null) {
-          final detailStack = activeRemoteSession.navidromeDetailStack;
-          if (detailStack.isNotEmpty) {
-            ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
-          } else if (page.key ==
-              ValueKey('remote-page-${activeRemoteSession.server.id}')) {
-            ref.read(activeRemoteSessionProvider.notifier).clear();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final currentSession = ref.read(activeRemoteSessionProvider);
+          if (currentSession != null) {
+            final detailStack = currentSession.navidromeDetailStack;
+            if (detailStack.isNotEmpty) {
+              ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
+            } else if (page.key ==
+                ValueKey('remote-page-${currentSession.server.id}')) {
+              ref.read(activeRemoteSessionProvider.notifier).clear();
+            }
+          } else {
+            _goBack(scanner);
           }
-        } else {
-          _goBack(scanner);
-        }
+        });
       },
     );
   }

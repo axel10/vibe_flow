@@ -52,33 +52,36 @@ class MiniPlayerCard extends ConsumerWidget {
     final double infoMaxWidth =
         isLandscape || windowWidth >= 568.0 ? (windowWidth >= 800 ? 380.0 : 320.0) : 220.0;
 
-    final playControls = Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        MiniControlButton(
-          icon: Icons.skip_previous_rounded,
-          onPressed: onPrevious,
-          tooltip: l10n.previous,
-        ),
-        const SizedBox(width: 4),
-        AnimatedPlayPauseButton(
-          isPlaying: isPlaying,
-          isLoading: isBuffering,
-          onPressed: onPlayPause,
-          color: isDark ? Colors.white : Colors.black87,
-          size: 24,
-          padding: const EdgeInsets.all(6.0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          tooltip: isPlaying ? l10n.pause : l10n.play,
-        ),
-        const SizedBox(width: 4),
-        MiniControlButton(
-          icon: Icons.skip_next_rounded,
-          onPressed: onNext,
-          tooltip: l10n.next,
-        ),
-      ],
+    final playControls = Padding(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          MiniControlButton(
+            icon: Icons.skip_previous_rounded,
+            onPressed: onPrevious,
+            tooltip: l10n.previous,
+          ),
+          const SizedBox(width: 4),
+          AnimatedPlayPauseButton(
+            isPlaying: isPlaying,
+            isLoading: isBuffering,
+            onPressed: onPlayPause,
+            color: isDark ? Colors.white : Colors.black87,
+            size: 24,
+            padding: const EdgeInsets.all(6.0),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            tooltip: isPlaying ? l10n.pause : l10n.play,
+          ),
+          const SizedBox(width: 4),
+          MiniControlButton(
+            icon: Icons.skip_next_rounded,
+            onPressed: onNext,
+            tooltip: l10n.next,
+          ),
+        ],
+      ),
     );
 
     final trackInfo = Flexible(
@@ -97,38 +100,41 @@ class MiniPlayerCard extends ConsumerWidget {
       ),
     );
 
-    final rightControls = Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        MiniInlineVolumeControl(
-          volume: ref.watch(audioVolumeProvider),
-          isMuted: ref.watch(audioIsMutedProvider),
-          showSlider: showMiniVolumeSlider,
-          onTap: onVolumeTap,
-          onChanged: onVolumeChanged,
-          onScroll: onVolumeScroll,
-          tooltip: l10n.volume,
-          iconSize: 18,
-        ),
-        if (currentMusic != null) ...[
-          const SizedBox(width: 2),
-          MiniControlButton(
-            icon: isFavorite
-                ? Icons.favorite_rounded
-                : Icons.favorite_border_rounded,
-            onPressed: () async {
-              await playlistService.toggleFavoriteSong(currentMusic);
-            },
-            tooltip: isFavorite
-                ? l10n.removeFromFavorites
-                : l10n.addToFavorites,
+    final rightControls = Padding(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          MiniInlineVolumeControl(
+            volume: ref.watch(audioVolumeProvider),
+            isMuted: ref.watch(audioIsMutedProvider),
+            showSlider: showMiniVolumeSlider,
+            onTap: onVolumeTap,
+            onChanged: onVolumeChanged,
+            onScroll: onVolumeScroll,
+            tooltip: l10n.volume,
             iconSize: 18,
-            padding: const EdgeInsets.all(6.0),
-            color: isFavorite ? Colors.redAccent : null,
           ),
+          if (currentMusic != null) ...[
+            const SizedBox(width: 2),
+            MiniControlButton(
+              icon: isFavorite
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              onPressed: () async {
+                await playlistService.toggleFavoriteSong(currentMusic);
+              },
+              tooltip: isFavorite
+                  ? l10n.removeFromFavorites
+                  : l10n.addToFavorites,
+              iconSize: 18,
+              padding: const EdgeInsets.all(6.0),
+              color: isFavorite ? Colors.redAccent : null,
+            ),
+          ],
         ],
-      ],
+      ),
     );
 
     return MouseRegion(
@@ -161,10 +167,12 @@ class MiniPlayerCard extends ConsumerWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 6,
-                ),
+  padding: const EdgeInsets.only(
+    left: 16,
+    right: 16,
+    top: 10,     // 👈 在这里给顶部留出合适的上边距（例如 5 或 6）
+    bottom: 2,  // 保持当前满意的下边距不变
+  ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
