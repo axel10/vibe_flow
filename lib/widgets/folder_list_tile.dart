@@ -8,7 +8,7 @@ class FolderListTile extends StatelessWidget {
   const FolderListTile({
     super.key,
     required this.folder,
-    required this.songsCount,
+    this.songsCount = 0,
     this.representativeSong,
     this.isSelected = false,
     this.isSelectionMode = false,
@@ -17,6 +17,8 @@ class FolderListTile extends StatelessWidget {
     this.onSecondaryTapDown,
     this.trailing,
     this.subtitle,
+    this.customTitle,
+    this.enableHero = true,
   });
 
   final MusicFolder folder;
@@ -29,6 +31,8 @@ class FolderListTile extends StatelessWidget {
   final void Function(TapDownDetails)? onSecondaryTapDown;
   final Widget? trailing;
   final String? subtitle;
+  final String? customTitle;
+  final bool enableHero;
 
   @override
   Widget build(BuildContext context) {
@@ -75,24 +79,28 @@ class FolderListTile extends StatelessWidget {
       );
     }
 
+    final coverContent = ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Opacity(
+        opacity: isSelectionMode
+            ? (isSelected ? 0.5 : 0.7)
+            : 1.0,
+        child: coverWidget,
+      ),
+    );
+
     final leadingWidget = SizedBox(
       width: 56,
       height: 56,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Hero(
-            tag: 'folder-cover-${folder.path}',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Opacity(
-                opacity: isSelectionMode
-                    ? (isSelected ? 0.5 : 0.7)
-                    : 1.0,
-                child: coverWidget,
-              ),
-            ),
-          ),
+          enableHero
+              ? Hero(
+                  tag: 'folder-cover-${folder.path}',
+                  child: coverContent,
+                )
+              : coverContent,
           if (isSelectionMode)
             Positioned.fill(
               child: Align(
@@ -155,7 +163,7 @@ class FolderListTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          folder.name,
+                          customTitle ?? folder.name,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.normal,

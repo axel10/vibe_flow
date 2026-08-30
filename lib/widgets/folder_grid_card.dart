@@ -8,7 +8,7 @@ class FolderGridCard extends StatelessWidget {
   const FolderGridCard({
     super.key,
     required this.folder,
-    required this.songsCount,
+    this.songsCount = 0,
     this.representativeSong,
     this.isSelected = false,
     this.isSelectionMode = false,
@@ -16,6 +16,8 @@ class FolderGridCard extends StatelessWidget {
     this.onLongPress,
     this.onSecondaryTapDown,
     this.subtitle,
+    this.customTitle,
+    this.enableHero = true,
   });
 
   final MusicFolder folder;
@@ -27,6 +29,8 @@ class FolderGridCard extends StatelessWidget {
   final VoidCallback? onLongPress;
   final void Function(TapDownDetails)? onSecondaryTapDown;
   final String? subtitle;
+  final String? customTitle;
+  final bool enableHero;
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +79,32 @@ class FolderGridCard extends StatelessWidget {
       );
     }
 
+    final cardCover = ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          coverWidget,
+          if (isSelectionMode)
+            Container(
+              color: isSelected
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
+                  : Colors.black26,
+            ),
+          if (isSelectionMode)
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Icon(
+                isSelected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+                color: isSelected ? theme.colorScheme.primary : Colors.white70,
+                size: 24,
+              ),
+            ),
+        ],
+      ),
+    );
+
     return GestureDetector(
       onSecondaryTapDown: onSecondaryTapDown,
       onLongPress: onLongPress,
@@ -97,34 +127,12 @@ class FolderGridCard extends StatelessWidget {
               children: [
                 AspectRatio(
                   aspectRatio: 1.0,
-                  child: Hero(
-                    tag: 'folder-cover-${folder.path}',
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          coverWidget,
-                          if (isSelectionMode)
-                            Container(
-                              color: isSelected
-                                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-                                  : Colors.black26,
-                            ),
-                          if (isSelectionMode)
-                            Positioned(
-                              top: 8,
-                              left: 8,
-                              child: Icon(
-                                isSelected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
-                                color: isSelected ? theme.colorScheme.primary : Colors.white70,
-                                size: 24,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  child: enableHero
+                      ? Hero(
+                          tag: 'folder-cover-${folder.path}',
+                          child: cardCover,
+                        )
+                      : cardCover,
                 ),
                 Expanded(
                   child: Padding(
@@ -134,7 +142,7 @@ class FolderGridCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          folder.name,
+                          customTitle ?? folder.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: (isPortrait
