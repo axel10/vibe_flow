@@ -1636,10 +1636,40 @@ class AudioService extends Notifier<AudioSnapshot> {
     playbackSpeed: _player.player.playbackSpeed,
   );
 
+  static String safeDecodeUri(String? uri) {
+    if (uri == null) return '';
+    try {
+      return Uri.decodeFull(uri);
+    } catch (_) {
+      return uri;
+    }
+  }
+
   Uint8List? getCachedArtwork(String? path) {
     if (path == null) return null;
-    final song = _queue.firstWhereOrNull((s) => s.path == path);
+    final decoded = safeDecodeUri(path);
+    final song = _queue.firstWhereOrNull((s) => s.path == path || safeDecodeUri(s.path) == decoded);
     return song?.artworkBytes;
+  }
+
+  void setCachedArtwork(String path, Uint8List artworkBytes, {String? thumbnailPath}) {
+    bool modified = false;
+    final decoded = safeDecodeUri(path);
+    for (int i = 0; i < _queue.length; i++) {
+      final qPath = _queue[i].path;
+      if (qPath == path || safeDecodeUri(qPath) == decoded) {
+        if (_queue[i].artworkBytes == null || (_queue[i].thumbnailPath == null && thumbnailPath != null)) {
+          _queue[i] = _queue[i].copyWith(
+            artworkBytes: _queue[i].artworkBytes ?? artworkBytes,
+            thumbnailPath: _queue[i].thumbnailPath ?? thumbnailPath,
+          );
+          modified = true;
+        }
+      }
+    }
+    if (modified) {
+      notifyListeners();
+    }
   }
 
   bool get isShuffleRandomMode =>
@@ -2224,12 +2254,13 @@ class AudioService extends Notifier<AudioSnapshot> {
         );
         if (result == null) return;
         final meta = result.$1;
+        final artworkBytes = result.$2;
 
         bool queueModified = false;
-        final decodedVirtualUri = Uri.decodeFull(virtualUri);
+        final decodedVirtualUri = safeDecodeUri(virtualUri);
         for (int i = 0; i < _queue.length; i++) {
           final queuePath = _queue[i].path;
-          if (queuePath == virtualUri || Uri.decodeFull(queuePath) == decodedVirtualUri) {
+          if (queuePath == virtualUri || safeDecodeUri(queuePath) == decodedVirtualUri) {
             _queue[i] = _queue[i].copyWith(
               title: meta.title.isNotEmpty ? meta.title : _queue[i].title,
               artist: (meta.artist.isNotEmpty && meta.artist != 'Unknown Artist') ? meta.artist : _queue[i].artist,
@@ -2241,13 +2272,14 @@ class AudioService extends Notifier<AudioSnapshot> {
               artworkWidth: meta.artworkWidth ?? _queue[i].artworkWidth,
               artworkHeight: meta.artworkHeight ?? _queue[i].artworkHeight,
               themeColorsBlob: meta.themeColorsBlob ?? _queue[i].themeColorsBlob,
+              artworkBytes: artworkBytes ?? _queue[i].artworkBytes,
             );
             queueModified = true;
           }
         }
 
         final currentPath = currentMusic?.path;
-        if ((currentPath == virtualUri || (currentPath != null && Uri.decodeFull(currentPath) == decodedVirtualUri)) &&
+        if ((currentPath == virtualUri || (currentPath != null && safeDecodeUri(currentPath) == decodedVirtualUri)) &&
             _currentIndex >= 0 &&
             _currentIndex < _queue.length) {
           final updatedCurrent = _queue[_currentIndex];

@@ -60,6 +60,16 @@ void main() {
     expect(davInfo?.type, RemoteServerType.webdav);
     expect(davInfo?.serverId, 'webdav_test');
     expect(davInfo?.trackIdOrPath, '/Music/Song.flac');
+
+    final davInfoWithSpace = RemoteMediaResolver.parseUri('webdav://webdav_test/dav/test/Heartbeat Song (feat. Artist).flac');
+    expect(davInfoWithSpace?.type, RemoteServerType.webdav);
+    expect(davInfoWithSpace?.serverId, 'webdav_test');
+    expect(davInfoWithSpace?.trackIdOrPath, '/dav/test/Heartbeat Song (feat. Artist).flac');
+
+    final davInfoEncoded = RemoteMediaResolver.parseUri('webdav://webdav_test/dav/test/Heartbeat%20Song.flac');
+    expect(davInfoEncoded?.type, RemoteServerType.webdav);
+    expect(davInfoEncoded?.serverId, 'webdav_test');
+    expect(davInfoEncoded?.trackIdOrPath, '/dav/test/Heartbeat Song.flac');
   });
 
   test('RemoteMediaResolver creates MusicFiles from Subsonic and WebDAV responses', () {
@@ -100,7 +110,7 @@ void main() {
     expect(subSource.cacheKey, 'subsonic_test:track_123');
 
     final davSource = await resolver.resolvePlayableSource('webdav://webdav_test/Music/Song.flac');
-    expect(davSource.uri, 'http://example.com/dav/Music/Song.flac');
+    expect(davSource.uri, 'http://bob:bob_pwd@example.com/dav/Music/Song.flac');
     expect(davSource.headers?['Authorization'], isNotNull);
     expect(davSource.cacheKey, 'webdav_test:/Music/Song.flac');
   });

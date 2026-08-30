@@ -940,7 +940,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
   Future<SongMetadata?> getRemoteSongMetadata(String virtualUri) async {
     final normalized = virtualUri.trim();
     if (normalized.isEmpty) return null;
-    final row = await customSelect(
+    var row = await customSelect(
       '''
       SELECT *
       FROM remote_songs
@@ -951,6 +951,28 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       variables: [Variable(normalized)],
       readsFrom: {remoteSongs},
     ).getSingleOrNull();
+
+    if (row == null) {
+      String decoded = normalized;
+      try {
+        decoded = Uri.decodeFull(normalized);
+      } catch (_) {}
+      final encoded = Uri.encodeFull(normalized);
+      final fallbackUri = decoded != normalized ? decoded : encoded;
+      if (fallbackUri != normalized) {
+        row = await customSelect(
+          '''
+          SELECT *
+          FROM remote_songs
+          WHERE virtualUri = ?
+            AND deletedAt IS NULL
+          LIMIT 1
+          ''',
+          variables: [Variable(fallbackUri)],
+          readsFrom: {remoteSongs},
+        ).getSingleOrNull();
+      }
+    }
     return row == null ? null : _songFromRemoteRow(row);
   }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +54,7 @@ class _CoverCarouselState extends State<CoverCarousel>
   late int _currentPage;
   bool _isDragging = false;
   final Map<int, int> _indexOverrides = {};
-  final Map<int, ({Uint8List? bytes, String? path})> _loadedCovers = {};
+  final Map<String, ({Uint8List? bytes, String? path})> _loadedCoversByPath = {};
   MusicFile? _oldSongBeforePlaylistChange;
   double? _oldPageBeforePlaylistChange;
 
@@ -182,7 +183,20 @@ class _CoverCarouselState extends State<CoverCarousel>
   void _notifyAnimationComplete(int page) {
     if (page < 0 || page >= widget.playlist.length) return;
     final currentSong = widget.playlist[page];
-    final loadedBytes = _loadedCovers[page]?.bytes ?? currentSong.artworkBytes;
+    String safeDecode(String uri) {
+      try {
+        return Uri.decodeFull(uri);
+      } catch (_) {
+        return uri;
+      }
+    }
+    final decodedCurrent = safeDecode(currentSong.path);
+    final loadedEntry = _loadedCoversByPath[currentSong.path] ??
+        _loadedCoversByPath[decodedCurrent] ??
+        _loadedCoversByPath.entries
+            .firstWhereOrNull((e) => safeDecode(e.key) == decodedCurrent)
+            ?.value;
+    final loadedBytes = loadedEntry?.bytes ?? currentSong.artworkBytes;
     _logCarouselTrace(
       '_notifyAnimationComplete page=$page song=${currentSong.path} '
       'loadedBytes=${loadedBytes?.length ?? 0} '
@@ -285,8 +299,11 @@ class _CoverCarouselState extends State<CoverCarousel>
     final double value = _animationController.value;
     final int center = value.round();
 
-    // Prune _loadedCovers to release memory of non-visible/adjacent covers
-    _loadedCovers.removeWhere((key, _) => (key - center).abs() > 2);
+    // Prune _loadedCoversByPath to release memory of non-visible/far covers
+    if (_loadedCoversByPath.length > 20) {
+      final activePaths = widget.playlist.map((s) => s.path).toSet();
+      _loadedCoversByPath.removeWhere((path, _) => !activePaths.contains(path));
+    }
 
     final List<int> indices = [];
 
@@ -329,7 +346,14 @@ class _CoverCarouselState extends State<CoverCarousel>
             displaySize: widget.displaySize,
             cacheWidthSize: widget.cacheWidthSize,
             onArtworkLoaded: (bytes, path) {
-              _loadedCovers[index] = (bytes: bytes, path: path);
+              if (bytes != null) {
+                _loadedCoversByPath[musicFile.path] = (bytes: bytes, path: path);
+                widget.audioService.setCachedArtwork(
+                  musicFile.path,
+                  bytes,
+                  thumbnailPath: path,
+                );
+              }
               _logCarouselTrace(
                 'onArtworkLoaded slot=$index actual=$actualIndex '
                 'path=${musicFile.path} '
@@ -419,13 +443,12 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
       _hasLoadedHighRes = false;
       _loadArtwork();
     }
-    // If the path is the same but artworkBytes or artworkPath appeared, we should update.
-    // This happens when background processing completes.
+    // If the path is the same but artwork appeared or is currently missing, try loading again
     else if (widget.musicFile.artworkBytes != oldWidget.musicFile.artworkBytes ||
-        widget.musicFile.artworkPath != oldWidget.musicFile.artworkPath) {
-      if (_isSettled) {
-        _loadArtwork();
-      }
+        widget.musicFile.artworkPath != oldWidget.musicFile.artworkPath ||
+        widget.musicFile.thumbnailPath != oldWidget.musicFile.thumbnailPath ||
+        _artworkBytes == null) {
+      _loadArtwork();
     }
   }
 
@@ -534,7 +557,7 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
   }
 
   Future<void> _loadHighResArtwork() async {
-    if (_hasLoadedHighRes) return;
+    if (_hasLoadedHighRes && _artworkBytes != null) return;
     _hasLoadedHighRes = true;
 
     final highResPath = widget.musicFile.artworkPath;
@@ -622,7 +645,7 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
           setState(() {
             _artworkBytes = bytes;
           });
-          widget.onArtworkLoaded?.call(bytes, null);
+          widget.onArtworkLoaded?.call(bytes, thumbPath);
           return;
         } catch (_) {}
       }
@@ -639,7 +662,7 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
           setState(() {
             _artworkBytes = bytes;
           });
-          widget.onArtworkLoaded?.call(bytes, null);
+          widget.onArtworkLoaded?.call(bytes, res.thumbnailPath);
           return;
         }
       } catch (e) {
@@ -672,11 +695,15 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
           setState(() {
             _artworkBytes = bytes;
           });
-          widget.onArtworkLoaded?.call(bytes, null);
+          widget.onArtworkLoaded?.call(bytes, thumbPath);
         } catch (e) {
           debugPrint('Error loading fallback thumbnail from $thumbPath: $e');
         }
       }
+    }
+
+    if (_artworkBytes == null) {
+      _hasLoadedHighRes = false;
     }
   }
 

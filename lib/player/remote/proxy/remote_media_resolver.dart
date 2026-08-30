@@ -45,25 +45,55 @@ class RemoteMediaResolver {
   static RemoteUriInfo? parseUri(String uriString) {
     if (!isRemoteUri(uriString)) return null;
     try {
-      final uri = Uri.parse(uriString);
-      if (uri.scheme == 'subsonic') {
-        final serverId = uri.host;
-        final trackId = uri.pathSegments.isNotEmpty ? uri.pathSegments.join('/') : '';
-        return RemoteUriInfo(
-          type: RemoteServerType.subsonic,
-          serverId: serverId,
-          trackIdOrPath: trackId,
-          queryParameters: uri.queryParameters,
-        );
-      } else if (uri.scheme == 'webdav') {
-        final serverId = uri.host;
-        final rawPath = uri.path;
-        return RemoteUriInfo(
-          type: RemoteServerType.webdav,
-          serverId: serverId,
-          trackIdOrPath: rawPath,
-          queryParameters: uri.queryParameters,
-        );
+      final schemeEnd = uriString.indexOf('://');
+      if (schemeEnd > 0) {
+        final scheme = uriString.substring(0, schemeEnd).toLowerCase();
+        final rest = uriString.substring(schemeEnd + 3);
+        final slashIdx = rest.indexOf('/');
+        final queryIdx = rest.indexOf('?');
+
+        final serverId = slashIdx >= 0
+            ? rest.substring(0, slashIdx)
+            : (queryIdx >= 0 ? rest.substring(0, queryIdx) : rest);
+
+        String rawPath = slashIdx >= 0
+            ? (queryIdx >= 0
+                ? rest.substring(slashIdx, queryIdx)
+                : rest.substring(slashIdx))
+            : '';
+
+        Map<String, String> queryParams = const {};
+        if (queryIdx >= 0) {
+          final queryStr = rest.substring(queryIdx + 1);
+          try {
+            queryParams = Uri.splitQueryString(queryStr);
+          } catch (_) {}
+        }
+
+        if (scheme == 'subsonic') {
+          var trackId = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath;
+          try {
+            trackId = Uri.decodeFull(trackId);
+          } catch (_) {}
+          return RemoteUriInfo(
+            type: RemoteServerType.subsonic,
+            serverId: serverId,
+            trackIdOrPath: trackId,
+            queryParameters: queryParams,
+          );
+        } else if (scheme == 'webdav') {
+          var cleanPath = rawPath.isNotEmpty ? rawPath : '/';
+          if (!cleanPath.startsWith('/')) cleanPath = '/$cleanPath';
+          try {
+            cleanPath = Uri.decodeFull(cleanPath);
+          } catch (_) {}
+          return RemoteUriInfo(
+            type: RemoteServerType.webdav,
+            serverId: serverId,
+            trackIdOrPath: cleanPath,
+            queryParameters: queryParams,
+          );
+        }
       }
     } catch (_) {}
     return null;
@@ -83,7 +113,7 @@ class RemoteMediaResolver {
       return info.trackIdOrPath;
     }
     if (song.path.startsWith('subsonic://')) {
-      final uri = Uri.tryParse(song.path);
+      final uri = Uri.tryParse(song.path) ?? Uri.tryParse(Uri.encodeFull(song.path));
       if (uri != null && uri.pathSegments.isNotEmpty) {
         return uri.pathSegments.join('/');
       }
@@ -109,7 +139,10 @@ class RemoteMediaResolver {
     final idx = cacheKey.indexOf(':');
     if (idx <= 0) return null;
     final serverId = cacheKey.substring(0, idx);
-    final trackIdOrPath = cacheKey.substring(idx + 1);
+    var trackIdOrPath = cacheKey.substring(idx + 1);
+    try {
+      trackIdOrPath = Uri.decodeFull(trackIdOrPath);
+    } catch (_) {}
     if (trackIdOrPath.startsWith('/')) {
       return buildWebDavUri(serverId, trackIdOrPath);
     } else {
@@ -145,10 +178,10 @@ class RemoteMediaResolver {
       );
     } else {
       final client = WebDavClient(server: server, password: password);
-      final fullUrl = client.buildFullUrl(info.trackIdOrPath);
+      final streamUrl = client.buildStreamUrl(info.trackIdOrPath);
 
       return ResolvedAudioUri(
-        uri: fullUrl,
+        uri: streamUrl,
         headers: client.authHeaders,
         cacheKey: '${server.id}:${info.trackIdOrPath}',
       );

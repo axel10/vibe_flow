@@ -370,32 +370,37 @@ class PlaybackQueueProcessor {
             final info = RemoteMediaResolver.parseUri(song.path);
             if (info != null) {
               try {
-                final cacheKey = '${info.serverId}:${info.trackIdOrPath}';
-                final cacheFile = await player.streamCacheManager.getCacheFile(cacheKey);
-                if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
-                  final cachedResult = await MetadataHelper.processRemoteCachedMetadata(
-                    song.path,
-                    cacheFile.path,
-                    generateThumbnail: true,
-                  );
-                  if (cachedResult != null) {
-                    m = cachedResult.$1;
-                    final updates = <String, dynamic>{
-                      'title': m.title,
-                      'artist': m.artist,
-                      'album': m.album,
-                      'trackNumber': m.trackNumber,
-                      'durationMillis': m.duration,
-                      'thumbnailPath': m.thumbnailPath,
-                      'artworkPath': m.artworkPath,
-                      'artworkWidth': m.artworkWidth,
-                      'artworkHeight': m.artworkHeight,
-                    };
-                    if (m.themeColorsBlob != null) {
-                      updates['themeColorsBlob'] = m.themeColorsBlob;
-                      updates['themeColors'] = ThemeColorHelper.blobToColors(m.themeColorsBlob!);
+                final rawKey = '${info.serverId}:${info.trackIdOrPath}';
+                final decodedKey = '${info.serverId}:${Uri.decodeFull(info.trackIdOrPath)}';
+                final encodedKey = '${info.serverId}:${Uri.encodeFull(info.trackIdOrPath)}';
+                for (final key in {rawKey, decodedKey, encodedKey}) {
+                  final cacheFile = await player.streamCacheManager.getCacheFile(key);
+                  if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
+                    final cachedResult = await MetadataHelper.processRemoteCachedMetadata(
+                      song.path,
+                      cacheFile.path,
+                      generateThumbnail: true,
+                    );
+                    if (cachedResult != null) {
+                      m = cachedResult.$1;
+                      final updates = <String, dynamic>{
+                        'title': m.title,
+                        'artist': m.artist,
+                        'album': m.album,
+                        'trackNumber': m.trackNumber,
+                        'durationMillis': m.duration,
+                        'thumbnailPath': m.thumbnailPath,
+                        'artworkPath': m.artworkPath,
+                        'artworkWidth': m.artworkWidth,
+                        'artworkHeight': m.artworkHeight,
+                      };
+                      if (m.themeColorsBlob != null) {
+                        updates['themeColorsBlob'] = m.themeColorsBlob;
+                        updates['themeColors'] = ThemeColorHelper.blobToColors(m.themeColorsBlob!);
+                      }
+                      onUpdate(song.path, updates);
+                      break;
                     }
-                    onUpdate(song.path, updates);
                   }
                 }
               } catch (e) {

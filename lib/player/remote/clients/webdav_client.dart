@@ -104,21 +104,39 @@ class WebDavClient {
         'Authorization': basicAuthHeader,
       };
 
-  String buildFullUrl(String relativePath) {
+  static String safeEncodeUrl(String url) {
+    if (url.contains(' ') || url.contains('[') || url.contains(']') || url.contains('{') || url.contains('}')) {
+      try {
+        return Uri.encodeFull(url);
+      } catch (_) {}
+    }
+    return url;
+  }
+
+  String buildStreamUrl(String relativePath) {
+    return buildFullUrl(relativePath, includeAuth: true);
+  }
+
+  String buildFullUrl(String relativePath, {bool includeAuth = false}) {
     var path = relativePath.trim();
     if (!path.startsWith('/')) {
       path = '/$path';
     }
-    final parsedBase = Uri.tryParse(baseUrl);
-    if (parsedBase != null &&
-        parsedBase.path.isNotEmpty &&
-        parsedBase.path != '/') {
-      final basePath = parsedBase.path.replaceAll(RegExp(r'/+$'), '');
-      if (path == basePath || path.startsWith('$basePath/')) {
-        final origin =
-            '${parsedBase.scheme}://${parsedBase.host}${parsedBase.hasPort ? ':${parsedBase.port}' : ''}';
-        return '$origin$path';
+    final parsedBase = Uri.tryParse(baseUrl) ?? Uri.tryParse(Uri.encodeFull(baseUrl));
+    if (parsedBase != null) {
+      final authPrefix = includeAuth && server.username.isNotEmpty
+          ? '${Uri.encodeComponent(server.username)}${password.isNotEmpty ? ':${Uri.encodeComponent(password)}' : ''}@'
+          : '';
+      final origin =
+          '${parsedBase.scheme}://$authPrefix${parsedBase.host}${parsedBase.hasPort ? ':${parsedBase.port}' : ''}';
+      if (parsedBase.path.isNotEmpty && parsedBase.path != '/') {
+        final basePath = parsedBase.path.replaceAll(RegExp(r'/+$'), '');
+        if (path == basePath || path.startsWith('$basePath/')) {
+          return '$origin$path';
+        }
+        return '$origin$basePath$path';
       }
+      return '$origin$path';
     }
     return '$baseUrl$path';
   }
@@ -126,7 +144,7 @@ class WebDavClient {
   /// Attempts a PROPFIND Depth: 0 request against a specific path.
   Future<int?> _probePath(String path) async {
     try {
-      final url = buildFullUrl(path);
+      final url = safeEncodeUrl(buildFullUrl(path));
       final response = await _dio.request<String>(
         url,
         options: Options(
@@ -154,7 +172,7 @@ class WebDavClient {
     final initialPath = hasExplicitCustomPath ? customPath : '/';
 
     try {
-      final url = buildFullUrl(initialPath);
+      final url = safeEncodeUrl(buildFullUrl(initialPath));
 
       final response = await _dio.request<String>(
         url,
@@ -227,7 +245,7 @@ class WebDavClient {
   /// Lists files and directories inside the given path using PROPFIND (Depth: 1).
   Future<List<WebDavFile>> listFiles(String path) async {
     try {
-      final url = buildFullUrl(path);
+      final url = safeEncodeUrl(buildFullUrl(path));
       final response = await _dio.request<String>(
         url,
         options: Options(
@@ -249,7 +267,7 @@ class WebDavClient {
       // If root path was requested and returned 405/404, try /dav fallback
       if (path == '/' &&
           (e.response?.statusCode == 405 || e.response?.statusCode == 404)) {
-        final fallbackUrl = buildFullUrl('/dav');
+        final fallbackUrl = safeEncodeUrl(buildFullUrl('/dav'));
         final response = await _dio.request<String>(
           fallbackUrl,
           options: Options(
@@ -280,10 +298,14 @@ class WebDavClient {
     // Normalize target requested path (e.g. '/dav' or '/dav/test')
     String? cleanReqPath;
     if (requestPath != null && requestPath.trim().isNotEmpty) {
-      var pStr = Uri.decodeFull(requestPath).trim();
-      final parsed = Uri.tryParse(pStr);
-      if (parsed != null && parsed.hasScheme) {
-        pStr = parsed.path;
+      var pStr = requestPath.trim();
+      try {
+        pStr = Uri.decodeFull(pStr).trim();
+      } catch (_) {}
+      final schemeIdx = pStr.indexOf('://');
+      if (schemeIdx > 0) {
+        final pathStart = pStr.indexOf('/', schemeIdx + 3);
+        pStr = pathStart >= 0 ? pStr.substring(pathStart) : '/';
       }
       pStr = pStr.replaceAll(RegExp(r'/+$'), '');
       if (pStr.isNotEmpty) {
@@ -297,12 +319,16 @@ class WebDavClient {
       if (hrefEl == null) continue;
 
       var rawHref = hrefEl.innerText.trim();
-      final decodedHref = Uri.decodeFull(rawHref);
+      var decodedHref = rawHref;
+      try {
+        decodedHref = Uri.decodeFull(rawHref);
+      } catch (_) {}
 
       var cleanHref = decodedHref;
-      final parsedHref = Uri.tryParse(cleanHref);
-      if (parsedHref != null && parsedHref.hasScheme) {
-        cleanHref = parsedHref.path;
+      final schemeIdx = cleanHref.indexOf('://');
+      if (schemeIdx > 0) {
+        final pathStart = cleanHref.indexOf('/', schemeIdx + 3);
+        cleanHref = pathStart >= 0 ? cleanHref.substring(pathStart) : '/';
       }
       cleanHref = cleanHref.replaceAll(RegExp(r'/+$'), '');
       if (!cleanHref.startsWith('/')) {
@@ -373,9 +399,10 @@ class WebDavClient {
   /// Downloads text content of a file (e.g. .lrc lyrics file).
   Future<String?> getFileContent(String relativeOrFullPath) async {
     try {
-      final url = relativeOrFullPath.startsWith('http://') || relativeOrFullPath.startsWith('https://')
+      final rawUrl = relativeOrFullPath.startsWith('http://') || relativeOrFullPath.startsWith('https://')
           ? relativeOrFullPath
           : buildFullUrl(relativeOrFullPath);
+      final url = safeEncodeUrl(rawUrl);
 
       final response = await _dio.get<String>(
         url,

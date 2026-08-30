@@ -231,10 +231,15 @@ class TrackArtworkThemeService {
           try {
             final info = RemoteMediaResolver.parseUri(path);
             if (info != null) {
-              final cacheKey = '${info.serverId}:${info.trackIdOrPath}';
-              final cacheFile = await controller.streamCacheManager.getCacheFile(cacheKey);
-              if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
-                artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(cacheFile.path);
+              final rawKey = '${info.serverId}:${info.trackIdOrPath}';
+              final decodedKey = '${info.serverId}:${Uri.decodeFull(info.trackIdOrPath)}';
+              final encodedKey = '${info.serverId}:${Uri.encodeFull(info.trackIdOrPath)}';
+              for (final key in {rawKey, decodedKey, encodedKey}) {
+                final cacheFile = await controller.streamCacheManager.getCacheFile(key);
+                if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
+                  artworkBytes = await MetadataHelper.decodeEmbeddedArtwork(cacheFile.path);
+                  if (artworkBytes != null && artworkBytes.isNotEmpty) break;
+                }
               }
             }
           } catch (_) {}

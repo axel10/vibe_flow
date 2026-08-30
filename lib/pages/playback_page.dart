@@ -172,6 +172,9 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     String? sourcePath,
   ) {
     if (!mounted) return;
+    if (sourcePath != null && artworkBytes != null && artworkBytes.isNotEmpty) {
+      _fileArtworkBytesCache[sourcePath] = artworkBytes;
+    }
     if (sourcePath == _pendingArtworkPath &&
         artworkBytes?.length == _pendingArtworkBytes?.length) {
       return;
@@ -1509,17 +1512,31 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
               final metadata = songPath != null
                   ? ref.read(scannerServiceProvider).metadataMap[songPath]
                   : null;
+              String? safeDecode(String? uri) {
+                if (uri == null) return null;
+                try {
+                  return Uri.decodeFull(uri);
+                } catch (_) {
+                  return uri;
+                }
+              }
+              final decodedSongPath = safeDecode(songPath);
+              final isCurrentSong = songPath == currentMusic?.path ||
+                  (currentMusic != null && decodedSongPath != null && safeDecode(currentMusic.path) == decodedSongPath);
+              final isPendingSong = songPath == _pendingArtworkPath ||
+                  (_pendingArtworkPath != null && decodedSongPath != null && safeDecode(_pendingArtworkPath) == decodedSongPath);
+
               final String? artworkPath =
                   metadata?.artworkPath ??
-                  (songPath == currentMusic?.path ? currentMusic?.artworkPath : null);
+                  (isCurrentSong ? currentMusic?.artworkPath : null);
               final String? thumbnailPath =
                   metadata?.thumbnailPath ??
-                  (songPath == currentMusic?.path ? currentMusic?.thumbnailPath : null);
+                  (isCurrentSong ? currentMusic?.thumbnailPath : null);
               final Uint8List? cachedBytes = songPath != null
-                  ? (((songPath == currentMusic?.path
-                          ? currentMusic?.artworkBytes
-                          : null) ??
-                      _fileArtworkBytesCache[songPath]) ??
+                  ? (((isCurrentSong ? currentMusic?.artworkBytes : null) ??
+                      (isPendingSong ? _pendingArtworkBytes : null) ??
+                      _fileArtworkBytesCache[songPath] ??
+                      (decodedSongPath != null ? _fileArtworkBytesCache[decodedSongPath] : null)) ??
                       ref.read(audioServiceProvider).getCachedArtwork(songPath))
                   : null;
 
