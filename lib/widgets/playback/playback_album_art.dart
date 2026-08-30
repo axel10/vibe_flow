@@ -9,6 +9,7 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/widgets/cover_carousel.dart';
+import 'package:vynody/widgets/app_context_menu.dart';
 import '../../l10n/app_localizations.dart';
 
 class PlaybackAlbumArt extends ConsumerWidget {
@@ -36,9 +37,6 @@ class PlaybackAlbumArt extends ConsumerWidget {
   ) async {
     if (currentMusic == null) return;
 
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (overlay == null) return;
     final l10n = AppLocalizations.of(context)!;
     final audioService = ref.read(audioServiceProvider);
     final bytes =
@@ -49,12 +47,9 @@ class PlaybackAlbumArt extends ConsumerWidget {
         (bytes != null && bytes.isNotEmpty) ||
         (path != null && File(path).existsSync());
 
-    final selected = await showMenu<String>(
+    final selected = await AppContextMenu.show<String>(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(globalPosition, globalPosition),
-        Offset.zero & overlay.size,
-      ),
+      position: globalPosition,
       items: [
         buildContextMenuItem<String>(
           value: 'copy_cover',

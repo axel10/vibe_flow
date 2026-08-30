@@ -28,6 +28,7 @@ import 'package:vynody/player/lyrics/lyrics_song_task_state.dart';
 import 'lyrics_panel_toasts.dart';
 import 'lyrics_panel_views.dart';
 import 'playback_ui_tuning.dart';
+import 'app_context_menu.dart';
 import '../utils/song_context_menu_utils.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
@@ -553,9 +554,6 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     required double lyricsFontScale,
     bool requeryOnly = false,
   }) async {
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (overlay == null) return;
     final l10n = AppLocalizations.of(context)!;
 
     final currentSong = ref.read(audioCurrentMusicProvider);
@@ -707,12 +705,9 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       ),
     ];
 
-    final selected = await showMenu<String>(
+    final selected = await AppContextMenu.show<String>(
       context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(globalPosition, globalPosition),
-        Offset.zero & overlay.size,
-      ),
+      position: globalPosition,
       items: items,
     );
 

@@ -7,6 +7,7 @@ import '../player/remote/remote_server_riverpod.dart';
 import '../player/settings/settings_service.dart';
 import 'folder_grid_card.dart';
 import 'folder_layout_utils.dart';
+import 'app_context_menu.dart';
 
 /// Shows a context menu for a remote media server (Browse, Edit, Delete).
 Future<void> showRemoteServerContextMenu({
@@ -19,15 +20,9 @@ Future<void> showRemoteServerContextMenu({
   final theme = Theme.of(context);
   final isSubsonic = server.type == RemoteServerType.subsonic;
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromLTRB(
-      position.dx,
-      position.dy,
-      position.dx + 1,
-      position.dy + 1,
-    ),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    position: position,
     items: [
       PopupMenuItem(
         value: 'browse',

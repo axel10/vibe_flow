@@ -18,6 +18,7 @@ import '../player/remote/services/remote_download_service.dart';
 import '../widgets/library_selection_scope.dart';
 import 'app_snack_bar.dart';
 import 'song_context_menu_utils.dart';
+import '../widgets/app_context_menu.dart';
 
 /// Helper to fetch tracks of an album on-demand if not already supplied
 Future<List<MusicFile>> _fetchAlbumTracks(
@@ -98,19 +99,14 @@ Future<void> showRemoteAlbumContextMenu({
   VoidCallback? onViewDetails,
   VoidCallback? onViewArtist,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
   final client = SubsonicClient(server: server, password: password);
   final isMobile = Platform.isAndroid || Platform.isIOS;
 
   if (isMobile) {
     // BottomSheet for mobile
-    final selected = await showModalBottomSheet<String>(
+    final selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -272,12 +268,9 @@ Future<void> showRemoteAlbumContextMenu({
     ),
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -434,8 +427,6 @@ Future<void> showRemoteSongContextMenu({
   VoidCallback? onViewArtist,
   VoidCallback? onRemoveFromPlaylist,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
   final client = SubsonicClient(server: server, password: password);
   final isMobile = Platform.isAndroid || Platform.isIOS;
@@ -445,11 +436,8 @@ Future<void> showRemoteSongContextMenu({
       (song.id != null && song.id! > 0 ? song.id.toString() : '');
 
   if (isMobile) {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -640,12 +628,9 @@ Future<void> showRemoteSongContextMenu({
       ),
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -775,18 +760,13 @@ Future<void> showRemoteArtistContextMenu({
   required String artistName,
   VoidCallback? onViewDetails,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
   final client = SubsonicClient(server: server, password: password);
   final isMobile = Platform.isAndroid || Platform.isIOS;
 
   if (isMobile) {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -922,12 +902,9 @@ Future<void> showRemoteArtistContextMenu({
     ),
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -1087,18 +1064,13 @@ Future<void> showRemotePlaylistContextMenu({
   VoidCallback? onRename,
   VoidCallback? onDelete,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
   final client = SubsonicClient(server: server, password: password);
   final isMobile = Platform.isAndroid || Platform.isIOS;
 
   if (isMobile) {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -1256,12 +1228,9 @@ Future<void> showRemotePlaylistContextMenu({
     ),
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -1418,8 +1387,6 @@ Future<void> showWebDavFileContextMenu({
   List<MusicFile>? currentAudioFiles,
   VoidCallback? onPlay,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
   final isMobile = Platform.isAndroid || Platform.isIOS;
   final isAudio = file.isAudio;
@@ -1428,11 +1395,8 @@ Future<void> showWebDavFileContextMenu({
   final song = isAudio ? RemoteMediaResolver.buildMusicFileFromWebDav(file, server, metadata: meta) : null;
 
   if (isMobile) {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -1586,12 +1550,9 @@ Future<void> showWebDavFileContextMenu({
     ),
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -1716,12 +1677,8 @@ Future<String?> showWebDavFolderBottomSheet({
 
   final String? selected;
   try {
-    selected = await showModalBottomSheet<String>(
+    selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
-      useRootNavigator: true,
       builder: (ctx) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.pop(ctx),
@@ -1945,8 +1902,6 @@ Future<void> showWebDavFolderContextMenu({
   VoidCallback? onOpen,
   void Function(String folderPath)? onMultiSelect,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
   final client = WebDavClient(server: server, password: password);
   final isMobile = Platform.isAndroid || Platform.isIOS;
@@ -2040,12 +1995,9 @@ Future<void> showWebDavFolderContextMenu({
     ),
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 

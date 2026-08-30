@@ -12,6 +12,7 @@ import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/library/playlist_service.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/widgets/song_thumbnail.dart';
+import 'package:vynody/widgets/app_context_menu.dart';
 
 enum SongContextMenuMode { full, title, artistAlbum }
 
@@ -116,8 +117,6 @@ Future<void> showSongContextMenu(
   VoidCallback? onRemoveFromQueue,
   VoidCallback? onRemoveFromPlaylist,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
 
   final titleText = song?.displayName.trim() ?? '';
@@ -304,12 +303,9 @@ Future<void> showSongContextMenu(
     );
   }
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -387,20 +383,15 @@ Future<void> showFolderContextMenu(
   Offset globalPosition, {
   required String folderPath,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
 
   final canOpenLocation =
       (Platform.isWindows || Platform.isMacOS || Platform.isLinux) &&
       folderPath.trim().isNotEmpty;
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: [
       buildContextMenuItem<String>(
         value: 'open_folder_location',
@@ -427,32 +418,13 @@ PopupMenuItem<T> buildContextMenuItem<T>({
   bool enabled = true,
   Color? iconColor,
 }) {
-  final theme = Theme.of(context);
-  final defaultIconColor = theme.colorScheme.onSurfaceVariant;
-  return PopupMenuItem<T>(
+  return AppContextMenu.buildItem<T>(
     value: value,
+    label: label,
+    icon: icon,
+    context: context,
     enabled: enabled,
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: enabled
-              ? (iconColor ?? defaultIconColor)
-              : defaultIconColor.withValues(alpha: 0.4),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: enabled
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-        ),
-      ],
-    ),
+    iconColor: iconColor,
   );
 }
 
@@ -479,6 +451,7 @@ Future<void> showSongBottomSheet(
     backgroundColor: Colors.transparent,
     elevation: 0,
     isScrollControlled: true,
+    useRootNavigator: true,
     builder: (context) => GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.pop(context),

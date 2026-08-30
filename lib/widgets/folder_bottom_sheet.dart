@@ -10,6 +10,7 @@ import 'package:vynody/utils/song_context_menu_utils.dart';
 import '../widgets/library_selection_scope.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import '../dialogs/transcode_dialog.dart';
+import 'app_context_menu.dart';
 
 /// Shows context menu (at mouse position) for a local folder.
 Future<String?> showFolderContextMenu({
@@ -20,8 +21,6 @@ Future<String?> showFolderContextMenu({
   required bool isRoot,
   void Function(String folderPath)? onMultiSelect,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return null;
   final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
   final scanner = ref.read(scannerServiceProvider);
@@ -104,12 +103,9 @@ Future<String?> showFolderContextMenu({
     ],
   ];
 
-  final selected = await showMenu<String>(
+  final selected = await AppContextMenu.show<String>(
     context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
+    position: globalPosition,
     items: items,
   );
 
@@ -157,12 +153,8 @@ Future<String?> showFolderBottomSheet(
 
   final String? selected;
   try {
-    selected = await showModalBottomSheet<String>(
+    selected = await AppContextMenu.showModalSheet<String>(
       context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      isScrollControlled: true,
-      useRootNavigator: true,
       builder: (context) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.pop(context),
