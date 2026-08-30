@@ -39,6 +39,14 @@ class WebDavFile {
       '.dsf',
       '.dff',
       '.alac',
+      '.webm',
+      '.aif',
+      '.aiff',
+      '.caf',
+      '.m4b',
+      '.m4p',
+      '.mid',
+      '.midi',
     }.contains(ext);
   }
 

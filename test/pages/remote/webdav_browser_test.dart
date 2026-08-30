@@ -27,6 +27,16 @@ void main() {
     expect(audioFile.isImage, isFalse);
     expect(audioFile.isLyric, isFalse);
 
+    const webmFile = WebDavFile(
+      path: '/Music/Track.webm',
+      name: 'Track.webm',
+      isDirectory: false,
+      contentLength: 5242880,
+    );
+    expect(webmFile.isAudio, isTrue);
+    expect(webmFile.isImage, isFalse);
+    expect(webmFile.isLyric, isFalse);
+
     const lrcFile = WebDavFile(
       path: '/Music/Track.lrc',
       name: 'Track.lrc',
