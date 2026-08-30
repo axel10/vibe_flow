@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/widgets/animated_play_pause_button.dart';
-import 'package:vynody/widgets/app_tooltip.dart';
 import 'package:vynody/widgets/mini_player_widgets.dart';
 import 'playback_progress_section.dart';
 import '../../l10n/app_localizations.dart';
@@ -45,12 +44,17 @@ class MiniPlayerCard extends ConsumerWidget {
     final isFavorite =
         currentMusic != null && playlistService.isFavoriteSong(currentMusic);
     final l10n = AppLocalizations.of(context)!;
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final windowWidth = MediaQuery.of(context).size.width;
-    final showVolumeAndFavorite = windowWidth >= 568.0;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final showVolume = windowWidth >= 568.0 || isLandscape;
+    final double infoMaxWidth =
+        isLandscape || windowWidth >= 568.0 ? (windowWidth >= 800 ? 380.0 : 320.0) : 220.0;
 
     final playControls = Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         MiniControlButton(
           icon: Icons.skip_previous_rounded,
@@ -62,9 +66,7 @@ class MiniPlayerCard extends ConsumerWidget {
           isPlaying: isPlaying,
           isLoading: isBuffering,
           onPressed: onPlayPause,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.black87,
+          color: isDark ? Colors.white : Colors.black87,
           size: 24,
           padding: const EdgeInsets.all(6.0),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -83,57 +85,22 @@ class MiniPlayerCard extends ConsumerWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onMiniTap,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const MiniArtwork(),
-            const SizedBox(width: 14),
-            Flexible(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 160),
-                child: MiniPlayerProgressInfo(
-                  currentMusic: currentMusic,
-                  progress: progress,
-                  onScrubbing: onScrubbing,
-                  onSeek: onSeek,
-                ),
-              ),
-            ),
-          ],
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: infoMaxWidth),
+          child: MiniPlayerProgressInfo(
+            currentMusic: currentMusic,
+            progress: progress,
+            onScrubbing: onScrubbing,
+            onSeek: onSeek,
+          ),
         ),
       ),
     );
 
     final rightControls = Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        AppTooltip(
-          message: isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
-          child: IconButton(
-            icon: Icon(
-              isFavorite
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
-              color: isFavorite
-                  ? Colors.redAccent
-                  : (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black87),
-              size: 18,
-            ),
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(),
-            style: IconButton.styleFrom(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            onPressed: currentMusic == null
-                ? null
-                : () async {
-                    await playlistService.toggleFavoriteSong(currentMusic);
-                  },
-          ),
-        ),
-        const SizedBox(width: 4),
         MiniInlineVolumeControl(
           volume: ref.watch(audioVolumeProvider),
           isMuted: ref.watch(audioIsMutedProvider),
@@ -142,7 +109,25 @@ class MiniPlayerCard extends ConsumerWidget {
           onChanged: onVolumeChanged,
           onScroll: onVolumeScroll,
           tooltip: l10n.volume,
+          iconSize: 18,
         ),
+        if (currentMusic != null) ...[
+          const SizedBox(width: 2),
+          MiniControlButton(
+            icon: isFavorite
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            onPressed: () async {
+              await playlistService.toggleFavoriteSong(currentMusic);
+            },
+            tooltip: isFavorite
+                ? l10n.removeFromFavorites
+                : l10n.addToFavorites,
+            iconSize: 18,
+            padding: const EdgeInsets.all(6.0),
+            color: isFavorite ? Colors.redAccent : null,
+          ),
+        ],
       ],
     );
 
@@ -150,17 +135,14 @@ class MiniPlayerCard extends ConsumerWidget {
       onExit: (_) => onMiniMouseExit?.call(),
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
+          color: isDark
               ? Colors.black.withValues(alpha: 0.82)
               : Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(100),
           boxShadow: [
             BoxShadow(
-              color:
-                  (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.black
-                          : Colors.grey[400]!)
-                      .withValues(alpha: 0.3),
+              color: (isDark ? Colors.black : Colors.grey[400]!)
+                  .withValues(alpha: 0.3),
               blurRadius: 10,
               spreadRadius: 2,
             ),
@@ -181,19 +163,24 @@ class MiniPlayerCard extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 6,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: showVolumeAndFavorite
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: showVolume
                       ? [
                           playControls,
                           const SizedBox(width: 14),
                           trackInfo,
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 12),
                           rightControls,
                         ]
-                      : [trackInfo, const SizedBox(width: 14), playControls],
+                      : [
+                          trackInfo,
+                          const SizedBox(width: 14),
+                          playControls,
+                        ],
                 ),
               ),
             ],
@@ -203,3 +190,4 @@ class MiniPlayerCard extends ConsumerWidget {
     );
   }
 }
+

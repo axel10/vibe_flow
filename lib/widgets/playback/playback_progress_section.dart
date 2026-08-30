@@ -6,6 +6,7 @@ import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/utils/playback_utils.dart';
+import 'package:vynody/widgets/mini_player_widgets.dart';
 import 'package:vynody/widgets/waveform_progress_bar.dart';
 import 'package:vynody/widgets/playback_ui_tuning.dart';
 import '../../l10n/app_localizations.dart';
@@ -538,6 +539,7 @@ class _MiniPlayerProgressInfoState
     final position = ref.watch(audioPositionProvider);
     final duration = ref.watch(audioDurationProvider);
     final currentMusic = widget.currentMusic;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final displayProgress = _isDragging
         ? (_dragValue ?? widget.progress)
@@ -557,154 +559,201 @@ class _MiniPlayerProgressInfoState
         currentMusic.album,
     ].join(' - ');
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 32,
-          child: Stack(
-            children: [
-              TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 200),
-                tween: Tween<double>(begin: 0, end: _isActive ? 5.0 : 0.0),
-                builder: (context, blur, child) {
-                  return ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 36,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  child: TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 200),
+                    tween: Tween<double>(begin: 0, end: _isActive ? 5.0 : 0.0),
+                    builder: (context, blur, child) {
+                      return ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: _isActive ? 0.3 : 1.0,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const MiniArtwork(),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: SizedBox(
+                            height: 36,
+                            child: Column(
+                              mainAxisAlignment: subtitle.isNotEmpty
+                                  ? MainAxisAlignment.spaceBetween
+                                  : MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentMusic?.displayName ??
+                                      AppLocalizations.of(context)!.notSelected,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall!
+                                      .copyWith(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.bold,
+                                        height: 1.15,
+                                      ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (subtitle.isNotEmpty)
+                                  Text(
+                                    subtitle,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall!
+                                        .copyWith(
+                                          color: (isDark
+                                                  ? Colors.white
+                                                  : Colors.black87)
+                                              .withValues(alpha: 0.65),
+                                          fontSize: 11.5,
+                                          height: 1.15,
+                                        ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: IgnorePointer(
                     child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 200),
-                      opacity: _isActive ? 0.3 : 1.0,
-                      child: child,
-                    ),
-                  );
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      currentMusic?.displayName ??
-                          AppLocalizations.of(context)!.notSelected,
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black87,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subtitle.isNotEmpty)
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color:
-                              (Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black87)
-                                  .withValues(alpha: 0.6),
-                          fontSize: 10,
+                      opacity: _isActive ? 1.0 : 0.0,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              formatDuration(displayPosition),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                            ),
+                            Text(
+                              formatDuration(duration),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    fontSize: 13.0,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                            ),
+                          ],
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-              ),
-              if (_isActive)
-                Positioned.fill(
-                  child: Center(
-                    child: Text(
-                      '${formatDuration(displayPosition)} / ${formatDuration(duration)}',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black87,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        MouseRegion(
-          onEnter: (_) => setState(() => _isHovering = true),
-          onExit: (_) => setState(() => _isHovering = false),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onHorizontalDragStart: (details) {
-              setState(() {
-                _isDragging = true;
-                _dragValue = widget.progress;
-              });
-            },
-            onHorizontalDragUpdate: (details) {
-              if (!_isDragging) return;
-              final RenderBox box = context.findRenderObject() as RenderBox;
-              final double localX = details.localPosition.dx;
-              final double newProgress = (localX / box.size.width).clamp(
-                0.0,
-                1.0,
-              );
-              setState(() {
-                _dragValue = newProgress;
-              });
-              widget.onScrubbing?.call(newProgress);
-            },
-            onHorizontalDragEnd: (details) {
-              if (!_isDragging) return;
-              final finalProgress = _dragValue ?? widget.progress;
-              setState(() {
-                _isDragging = false;
-                _dragValue = null;
-              });
-              widget.onSeek?.call(finalProgress);
-            },
-            onTapDown: (details) {
-              final RenderBox box = context.findRenderObject() as RenderBox;
-              final double localX = details.localPosition.dx;
-              final double newProgress = (localX / box.size.width).clamp(
-                0.0,
-                1.0,
-              );
-              widget.onScrubbing?.call(newProgress);
-              widget.onSeek?.call(newProgress);
-            },
-            onTap: () {},
-            child: Container(
-              height: 10,
-              color: Colors.transparent,
-              alignment: Alignment.center,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                height: _isActive ? 6 : 3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    minHeight: _isActive ? 6 : 3,
-                    value: displayProgress.clamp(0.0, 1.0),
-                    backgroundColor:
-                        Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white24
-                        : Colors.black12,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black87,
+          const SizedBox(height: 3),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragStart: (details) {
+                setState(() {
+                  _isDragging = true;
+                  _dragValue = widget.progress;
+                });
+              },
+              onHorizontalDragUpdate: (details) {
+                if (!_isDragging) return;
+                final RenderBox box = context.findRenderObject() as RenderBox;
+                final double localX = details.localPosition.dx;
+                final double newProgress =
+                    (localX / box.size.width).clamp(0.0, 1.0);
+                setState(() {
+                  _dragValue = newProgress;
+                });
+                widget.onScrubbing?.call(newProgress);
+              },
+              onHorizontalDragEnd: (details) {
+                if (!_isDragging) return;
+                final finalProgress = _dragValue ?? widget.progress;
+                setState(() {
+                  _isDragging = false;
+                  _dragValue = null;
+                });
+                widget.onSeek?.call(finalProgress);
+              },
+              onTapDown: (details) {
+                final RenderBox box = context.findRenderObject() as RenderBox;
+                final double localX = details.localPosition.dx;
+                final double newProgress =
+                    (localX / box.size.width).clamp(0.0, 1.0);
+                widget.onScrubbing?.call(newProgress);
+                widget.onSeek?.call(newProgress);
+              },
+              onTap: () {},
+              child: Container(
+                height: 12,
+                color: Colors.transparent,
+                alignment: Alignment.center,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  height: _isActive ? 6.5 : 2.5,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: _isActive ? 6.5 : 2.5,
+                      value: displayProgress.clamp(0.0, 1.0),
+                      backgroundColor:
+                          isDark ? Colors.white24 : Colors.black12,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isDark ? Colors.white : Colors.black87,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

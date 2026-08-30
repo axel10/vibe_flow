@@ -91,6 +91,7 @@ class MiniControlButton extends StatelessWidget {
     this.tooltip,
     this.iconSize = 24.0,
     this.padding = const EdgeInsets.all(6.0),
+    this.color,
   });
 
   final IconData icon;
@@ -98,12 +99,14 @@ class MiniControlButton extends StatelessWidget {
   final String? tooltip;
   final double iconSize;
   final EdgeInsetsGeometry padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = color ?? (isDark ? Colors.white : Colors.black87);
     final Widget buttonWidget = IconButton(
-      icon: Icon(icon, color: isDark ? Colors.white : Colors.black87, size: iconSize),
+      icon: Icon(icon, color: iconColor, size: iconSize),
       padding: padding,
       constraints: const BoxConstraints(),
       style: IconButton.styleFrom(
