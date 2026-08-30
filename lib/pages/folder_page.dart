@@ -73,6 +73,10 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
         ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
         return true;
       }
+      if (session.webDavPathStack.isNotEmpty) {
+        ref.read(activeRemoteSessionProvider.notifier).popWebDavPath();
+        return true;
+      }
       ref.read(activeRemoteSessionProvider.notifier).clear();
       return true;
     }
@@ -835,6 +839,11 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
         (s) => s?.navidromeDetailStack ?? const [],
       ),
     );
+    final webDavPathStack = ref.watch(
+      activeRemoteSessionProvider.select(
+        (s) => s?.webDavPathStack ?? const [],
+      ),
+    );
 
     if (activeRemoteSessionId != null && activeRemoteSession != null) {
       if (activeRemoteSession.server.type == RemoteServerType.subsonic) {
@@ -899,17 +908,38 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
           }
         }
       } else {
+        final rootPath = activeRemoteSession.rootPath ??
+            (activeRemoteSession.server.customPath?.trim().isNotEmpty == true
+                ? activeRemoteSession.server.customPath!
+                : '/');
+
         pages.add(
           _buildPage(
-            key: ValueKey('remote-page-${activeRemoteSession.server.id}'),
+            key: ValueKey('webdav-root-${activeRemoteSession.server.id}'),
             child: WebDavBrowserPage(
               server: activeRemoteSession.server,
               password: activeRemoteSession.password,
-              initialPath: activeRemoteSession.initialPath,
-              rootPath: activeRemoteSession.rootPath,
+              initialPath: rootPath,
+              rootPath: rootPath,
             ),
           ),
         );
+
+        for (int i = 0; i < webDavPathStack.length; i++) {
+          final currentPath = webDavPathStack[i];
+          pages.add(
+            _buildPage(
+              key: ValueKey(
+                  'webdav-page-${activeRemoteSession.server.id}-$currentPath-$i'),
+              child: WebDavBrowserPage(
+                server: activeRemoteSession.server,
+                password: activeRemoteSession.password,
+                initialPath: currentPath,
+                rootPath: rootPath,
+              ),
+            ),
+          );
+        }
       }
     }
 
@@ -920,16 +950,17 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       onDidRemovePage: (page) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          final currentSession = ref.read(activeRemoteSessionProvider);
-          if (currentSession != null) {
-            final detailStack = currentSession.navidromeDetailStack;
-            if (detailStack.isNotEmpty) {
-              ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
-            } else if (page.key ==
-                ValueKey('remote-page-${currentSession.server.id}')) {
-              ref.read(activeRemoteSessionProvider.notifier).clear();
-            }
-          } else {
+          final pageKeyStr = page.key?.toString() ?? '';
+          if (pageKeyStr.contains('webdav-page-')) {
+            ref.read(activeRemoteSessionProvider.notifier).popWebDavPath();
+          } else if (pageKeyStr.contains('webdav-root-') ||
+              pageKeyStr.contains('remote-page-')) {
+            ref.read(activeRemoteSessionProvider.notifier).clear();
+          } else if (pageKeyStr.contains('remote-album-') ||
+              pageKeyStr.contains('remote-artist-') ||
+              pageKeyStr.contains('remote-playlist-')) {
+            ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
+          } else if (pageKeyStr.contains('folder-page-')) {
             _goBack(scanner);
           }
         });

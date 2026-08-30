@@ -172,6 +172,7 @@ class ActiveRemoteSession {
   final int? initialTabIndex;
   final Map<String, List<WebDavFile>> webDavDirectoryCache;
   final Map<String, SongMetadata> webDavMetadataCache;
+  final List<String> webDavPathStack;
 
   // Navidrome / Subsonic cached states
   final List<Map<String, dynamic>>? navidromeAlbums;
@@ -197,6 +198,7 @@ class ActiveRemoteSession {
     this.initialTabIndex,
     this.webDavDirectoryCache = const {},
     this.webDavMetadataCache = const {},
+    this.webDavPathStack = const [],
     this.navidromeAlbums,
     this.navidromeAlbumSortType,
     this.navidromeArtists,
@@ -221,6 +223,7 @@ class ActiveRemoteSession {
     int? initialTabIndex,
     Map<String, List<WebDavFile>>? webDavDirectoryCache,
     Map<String, SongMetadata>? webDavMetadataCache,
+    List<String>? webDavPathStack,
     List<Map<String, dynamic>>? navidromeAlbums,
     String? navidromeAlbumSortType,
     List<Map<String, dynamic>>? navidromeArtists,
@@ -244,6 +247,7 @@ class ActiveRemoteSession {
       initialTabIndex: initialTabIndex ?? this.initialTabIndex,
       webDavDirectoryCache: webDavDirectoryCache ?? this.webDavDirectoryCache,
       webDavMetadataCache: webDavMetadataCache ?? this.webDavMetadataCache,
+      webDavPathStack: webDavPathStack ?? this.webDavPathStack,
       navidromeAlbums: navidromeAlbums ?? this.navidromeAlbums,
       navidromeAlbumSortType:
           navidromeAlbumSortType ?? this.navidromeAlbumSortType,
@@ -423,6 +427,27 @@ class ActiveRemoteSessionNotifier extends Notifier<ActiveRemoteSession?> {
           List<NavidromeDetailRoute>.from(state!.navidromeDetailStack)
             ..removeLast();
       state = state!.copyWith(navidromeDetailStack: newStack);
+    }
+  }
+
+  void pushWebDavPath(String path) {
+    if (state != null) {
+      state = state!.copyWith(
+        webDavPathStack: [...state!.webDavPathStack, path],
+      );
+    }
+  }
+
+  void popWebDavPath() {
+    if (state != null && state!.webDavPathStack.isNotEmpty) {
+      final newStack = List<String>.from(state!.webDavPathStack)..removeLast();
+      state = state!.copyWith(webDavPathStack: newStack);
+    }
+  }
+
+  void setWebDavPathStack(List<String> stack) {
+    if (state != null) {
+      state = state!.copyWith(webDavPathStack: stack);
     }
   }
 

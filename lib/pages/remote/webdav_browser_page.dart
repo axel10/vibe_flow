@@ -69,7 +69,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _scrollController.addListener(_onScroll);
     _client = WebDavClient(
       server: widget.server,
       password: widget.password,
@@ -105,22 +104,24 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
-  void _onScroll() {
-    final offset = _scrollController.offset;
-    final isVisible = offset < 160.0;
-    final progress = (offset / 160.0).clamp(0.0, 1.0);
-    _scrollProgress.value = progress;
-    if (isVisible != _isCoverVisible) {
-      setState(() {
-        _isCoverVisible = isVisible;
-      });
+  bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth == 0) {
+      final offset = notification.metrics.pixels;
+      final isVisible = offset < 160.0;
+      final progress = (offset / 160.0).clamp(0.0, 1.0);
+      _scrollProgress.value = progress;
+      if (isVisible != _isCoverVisible) {
+        setState(() {
+          _isCoverVisible = isVisible;
+        });
+      }
     }
+    return false;
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
     _scrollProgress.dispose();
@@ -174,6 +175,13 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               currentPath: path,
               rootPath: _rootPath,
             );
+        if (_breadcrumbsScrollController.hasClients) {
+          _breadcrumbsScrollController.animateTo(
+            _breadcrumbsScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+          );
+        }
       });
       return;
     }
@@ -184,6 +192,17 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       _currentPath = path;
     });
     _scrollToTop();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_breadcrumbsScrollController.hasClients) {
+        _breadcrumbsScrollController.animateTo(
+          _breadcrumbsScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
 
     try {
       final list = await _client.listFiles(path);
@@ -408,21 +427,24 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
-  void _navigateToParent() {
-    if (_isAtRoot) return;
-    var parent = p.dirname(_currentPath);
-    if (parent == '.' || parent.isEmpty) {
-      parent = _rootPath;
-    }
-    _loadDirectory(parent);
+  void _openFolder(WebDavFile folder) {
+    ref.read(activeRemoteSessionProvider.notifier).pushWebDavPath(folder.path);
   }
 
   void _handleGoBack() {
-    if (_isAtRoot) {
-      ref.read(activeRemoteSessionProvider.notifier).clear();
-    } else {
-      _navigateToParent();
+    Navigator.of(context).maybePop();
+  }
+
+  void _navigateToBreadcrumb(int index) {
+    if (index < 0) {
+      ref.read(activeRemoteSessionProvider.notifier).setWebDavPathStack(const []);
+      return;
     }
+    final targetStack = <String>[];
+    for (int i = 0; i <= index; i++) {
+      targetStack.add(_buildSegmentPath(i));
+    }
+    ref.read(activeRemoteSessionProvider.notifier).setWebDavPathStack(targetStack);
   }
 
   List<String> get _pathSegments {
@@ -819,7 +841,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   viewMode: viewMode,
                   server: widget.server,
                   password: widget.password,
-                  onOpenFolder: (folder) => _loadDirectory(folder.path),
+                  onOpenFolder: (folder) => _openFolder(folder),
                 ),
 
               // 2. Section divider if both folders and files exist
@@ -859,7 +881,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               child: ConstrainedBox(
                 constraints:
                     const BoxConstraints(maxWidth: folderPageMaxWidth),
-                child: mainContent,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: _handleScrollNotification,
+                  child: mainContent,
+                ),
               ),
             ),
             Positioned(
@@ -879,26 +904,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       ),
     );
 
-    Widget scaffoldContent = PopScope(
-      canPop: _isAtRoot,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(activeRemoteSessionProvider.notifier).clear();
-          });
-          return;
-        }
-        if (!_isAtRoot) {
-          _navigateToParent();
-        }
-      },
-      child: scaffold,
-    );
-
     if (widget.wrapWithMiniPlayer) {
-      return MiniPlayerWrapper(child: scaffoldContent);
+      return MiniPlayerWrapper(child: scaffold);
     }
-    return scaffoldContent;
+    return scaffold;
   }
 
   Widget _buildBanner({
@@ -1088,7 +1097,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
             child: InkResponse(
               radius: 18,
               highlightShape: BoxShape.circle,
-              onTap: () => _loadDirectory(_rootPath),
+              onTap: () => _navigateToBreadcrumb(-1),
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Icon(
@@ -1146,7 +1155,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () => _loadDirectory(_rootPath),
+                onTap: () => _navigateToBreadcrumb(-1),
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
@@ -1195,13 +1204,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 ),
               );
             } else {
-              final targetPath = _buildSegmentPath(i);
               breadcrumbItems.add(
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap: () => _loadDirectory(targetPath),
+                    onTap: () => _navigateToBreadcrumb(i),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 6, horizontal: 6),
