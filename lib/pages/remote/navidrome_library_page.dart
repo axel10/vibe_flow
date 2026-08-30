@@ -703,6 +703,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
         final sortChips = SingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
           child: Row(
             children: sortOptions.map((opt) {
               final key = opt['key']!;
@@ -711,6 +712,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
                   label: Text(label, style: const TextStyle(fontSize: 12)),
                   selected: isSelected,
                   onSelected: (selected) {
@@ -777,7 +780,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           key: const ValueKey('album_search_collapsed'),
                           children: [
                             IconButton.filledTonal(
-                              icon: const Icon(Icons.search_rounded, size: 20),
+                              style: IconButton.styleFrom(
+                                minimumSize: const Size(32, 32),
+                                fixedSize: const Size(32, 32),
+                                padding: EdgeInsets.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              icon: const Icon(Icons.search_rounded, size: 18),
                               tooltip: 'Filter albums',
                               onPressed: () {
                                 setState(() {
@@ -839,6 +848,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           ),
           const SizedBox(width: 8),
           FilterChip(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
             avatar: Icon(
               _artistStarredOnly
                   ? Icons.favorite_rounded
