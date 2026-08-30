@@ -52,8 +52,8 @@ class MiniPlayerCard extends ConsumerWidget {
     final double infoMaxWidth =
         isLandscape || windowWidth >= 568.0 ? (windowWidth >= 800 ? 380.0 : 320.0) : 220.0;
 
-    final double prevNextIconSize = isLandscape ? 28.0 : 24.0;
-    final double playPauseIconSize = isLandscape ? 34.0 : 24.0;
+    final double prevNextIconSize = isLandscape ? 28.0 : 20.0;
+    final double playPauseIconSize = isLandscape ? 34.0 : 28.0;
     final double secondaryIconSize = isLandscape ? 21.0 : 18.0;
     final double controlsSpacing = isLandscape ? 6.0 : 4.0;
 

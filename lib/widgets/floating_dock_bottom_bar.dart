@@ -329,7 +329,7 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
                     children: [
                       MiniControlButton(
                         icon: Icons.skip_previous_rounded,
-                        iconSize: 22,
+                        iconSize: 18,
                         padding: const EdgeInsets.all(5),
                         onPressed: audio.previous,
                         tooltip: l10n.previous,
@@ -340,15 +340,15 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
                         isLoading: isBuffering,
                         onPressed: audio.togglePlay,
                         color: isDark ? Colors.white : Colors.black87,
-                        size: 24,
-                        padding: const EdgeInsets.all(5.0),
+                        size: 28,
+                        padding: const EdgeInsets.all(4.0),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         tooltip: isPlaying ? l10n.pause : l10n.play,
                       ),
                       const SizedBox(width: 2),
                       MiniControlButton(
                         icon: Icons.skip_next_rounded,
-                        iconSize: 22,
+                        iconSize: 18,
                         padding: const EdgeInsets.all(5),
                         onPressed: audio.next,
                         tooltip: l10n.next,
