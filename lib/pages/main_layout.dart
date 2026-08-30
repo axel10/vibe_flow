@@ -33,6 +33,7 @@ import 'package:vynody/player/audio/playback_source.dart';
 import 'main_layout_riverpod.dart';
 import 'onboarding_page.dart';
 import '../widgets/desktop_window_title_bar.dart';
+import '../widgets/floating_dock_bottom_bar.dart';
 import '../widgets/playback_hero_card.dart';
 import '../widgets/playback_ui_tuning.dart';
 import '../widgets/volume_controls.dart';
@@ -672,92 +673,6 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     }
   }
 
-  List<NavigationDestination> _buildBottomDestinations(
-    BuildContext context,
-    bool isPlayback,
-  ) {
-    final l10n = AppLocalizations.of(context)!;
-    return [
-      NavigationDestination(
-        icon: _buildTooltipIcon(
-          message: l10n.file,
-          icon: Icons.folder_outlined,
-          color: isPlayback ? Colors.white70 : null,
-        ),
-        selectedIcon: _buildTooltipIcon(
-          message: l10n.file,
-          icon: Icons.folder,
-          color: isPlayback ? Colors.white : null,
-        ),
-        label: l10n.file,
-      ),
-      NavigationDestination(
-        icon: _buildTooltipIcon(
-          message: l10n.play,
-          icon: Icons.play_circle_outline,
-          color: isPlayback ? Colors.white70 : null,
-        ),
-        selectedIcon: _buildTooltipIcon(
-          message: l10n.play,
-          icon: Icons.play_circle,
-          color: isPlayback ? Colors.white : null,
-        ),
-        label: l10n.play,
-      ),
-      NavigationDestination(
-        icon: _buildTooltipIcon(
-          message: l10n.list,
-          icon: Icons.playlist_play_outlined,
-          color: isPlayback ? Colors.white70 : null,
-        ),
-        selectedIcon: _buildTooltipIcon(
-          message: l10n.list,
-          icon: Icons.playlist_play,
-          color: isPlayback ? Colors.white : null,
-        ),
-        label: l10n.list,
-      ),
-      NavigationDestination(
-        icon: _buildTooltipIcon(
-          message: l10n.queueTab,
-          icon: Icons.queue_music_outlined,
-          color: isPlayback ? Colors.white70 : null,
-        ),
-        selectedIcon: _buildTooltipIcon(
-          message: l10n.queueTab,
-          icon: Icons.queue_music,
-          color: isPlayback ? Colors.white : null,
-        ),
-        label: l10n.queueTab,
-      ),
-      NavigationDestination(
-        icon: _buildTooltipIcon(
-          message: l10n.share,
-          icon: Icons.share_outlined,
-          color: isPlayback ? Colors.white70 : null,
-        ),
-        selectedIcon: _buildTooltipIcon(
-          message: l10n.share,
-          icon: Icons.share,
-          color: isPlayback ? Colors.white : null,
-        ),
-        label: l10n.share,
-      ),
-      NavigationDestination(
-        icon: _buildTooltipIcon(
-          message: l10n.settings,
-          icon: Icons.settings_outlined,
-          color: isPlayback ? Colors.white70 : null,
-        ),
-        selectedIcon: _buildTooltipIcon(
-          message: l10n.settings,
-          icon: Icons.settings,
-          color: isPlayback ? Colors.white : null,
-        ),
-        label: l10n.settings,
-      ),
-    ];
-  }
 
   List<NavigationRailDestination> _buildRailDestinations(
     BuildContext context,
@@ -1210,11 +1125,6 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         settings.isImmersiveTabBarEnabled &&
         !uiState.showImmersiveTabBar;
     final bool hideBottomBar = isPlayback && isSmallWin;
-    final bool useOverlayBottomNav =
-        !useSidebar &&
-        isPlayback &&
-        settings.isImmersiveTabBarEnabled &&
-        !hideBottomBar;
 
     final double railWidth = (useSidebar && !hideImmersiveTabBar) ? 80.0 : 0.0;
 
@@ -1370,155 +1280,146 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                             hideButtonsWhenInactive: isPlayback,
                           ),
                         ),
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOutCubic,
-                        bottom:
-                            (!isPlayback &&
-                                currentMusic != null &&
-                                !hideMiniPlayerForSelection)
-                            ? ((useSidebar ? 20 : 80) +
-                                  MediaQuery.of(context).padding.bottom +
-                                  uiState.snackBarOffset +
-                                  (((isRootSelectionMode &&
-                                              _currentIndex == 0) ||
-                                          (isPlaylistSelectionMode &&
-                                              _currentIndex == 2) ||
-                                          (isQueueSelectionMode &&
-                                              _currentIndex == 3))
-                                      ? 80.0
-                                      : 0.0))
-                            : -120.0,
-                        left: railWidth,
-                        right: 0,
-                        child: Center(
-                          child: !isPlayback && currentMusic != null
-                              ? Builder(
-                                  builder: (context) {
-                                    final audio = ref.read(
-                                      audioServiceProvider,
-                                    );
-                                    final isLandscape =
-                                        MediaQuery.of(context).orientation ==
-                                        Orientation.landscape;
-                                    final availableWidth =
-                                        MediaQuery.of(context).size.width -
-                                        railWidth;
+                      if (useSidebar)
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeOutCubic,
+                          bottom:
+                              (!isPlayback &&
+                                  currentMusic != null &&
+                                  !hideMiniPlayerForSelection)
+                              ? (20.0 +
+                                    MediaQuery.of(context).padding.bottom +
+                                    uiState.snackBarOffset +
+                                    (((isRootSelectionMode &&
+                                                _currentIndex == 0) ||
+                                            (isPlaylistSelectionMode &&
+                                                _currentIndex == 2) ||
+                                            (isQueueSelectionMode &&
+                                                _currentIndex == 3))
+                                        ? 80.0
+                                        : 0.0))
+                              : -120.0,
+                          left: railWidth,
+                          right: 0,
+                          child: Center(
+                            child: !isPlayback && currentMusic != null
+                                ? Builder(
+                                    builder: (context) {
+                                      final audio = ref.read(
+                                        audioServiceProvider,
+                                      );
+                                      final isLandscape =
+                                          MediaQuery.of(context).orientation ==
+                                          Orientation.landscape;
+                                      final availableWidth =
+                                          MediaQuery.of(context).size.width -
+                                          railWidth;
 
-                                    return Container(
-                                      key: const ValueKey('dynamic-island'),
-                                      constraints: BoxConstraints(
-                                        maxWidth: availableWidth * 0.9,
-                                      ),
-                                      child: PlaybackHeroCard(
-                                        isMini: true,
-                                        isLandscape: isLandscape,
-                                        showMiniVolumeSlider:
-                                            _showMiniVolumeSlider,
-                                        onMiniTap: () =>
-                                            _onDestinationSelected(1),
-                                        onPrevious: audio.previous,
-                                        onPlayPause: audio.togglePlay,
-                                        onNext: audio.next,
-                                        onScrubbing: (val) {
-                                          // 迷你播放器内部会处理局部 UI 状态
-                                        },
-                                        onSeek: (val) {
-                                          audio.seek(
-                                            Duration(
-                                              milliseconds:
-                                                  (audio
-                                                              .duration
-                                                              .inMilliseconds *
-                                                          val)
-                                                      .toInt(),
-                                            ),
-                                          );
-                                        },
-                                        onVolumeTap: () {
-                                          ref
-                                              .read(settingsServiceProvider)
-                                              .resetInactivity();
-                                          final nextVisible =
-                                              !_showMiniVolumeSlider;
-                                          setState(() {
-                                            _showMiniVolumeSlider = nextVisible;
-                                          });
-                                        },
-                                        onMiniMouseExit: () {
-                                          if (!_showMiniVolumeSlider) return;
-                                          setState(() {
-                                            _showMiniVolumeSlider = false;
-                                          });
-                                        },
-                                        onVolumeChanged: (value) {
-                                          ref
-                                              .read(settingsServiceProvider)
-                                              .resetInactivity();
-                                          _ui.setVolumeHudVisible(true);
-                                          audio.setVolume(
-                                            value.roundToDouble(),
-                                          );
-                                        },
-                                        onVolumeScroll: (deltaY) {
-                                          ref
-                                              .read(settingsServiceProvider)
-                                              .resetInactivity();
-                                          _ui.setVolumeHudVisible(true);
-                                          audio.setVolume(
-                                            (audio.volume - deltaY * 0.1)
-                                                .clamp(0.0, 100.0)
-                                                .roundToDouble(),
-                                          );
-                                        },
-                                      ),
-                                    );
-                                  },
-                                )
-                              : const SizedBox.shrink(
-                                  key: ValueKey('empty-island'),
-                                ),
+                                      return Container(
+                                        key: const ValueKey('dynamic-island'),
+                                        constraints: BoxConstraints(
+                                          maxWidth: availableWidth * 0.9,
+                                        ),
+                                        child: PlaybackHeroCard(
+                                          isMini: true,
+                                          isLandscape: isLandscape,
+                                          showMiniVolumeSlider:
+                                              _showMiniVolumeSlider,
+                                          onMiniTap: () =>
+                                              _onDestinationSelected(1),
+                                          onPrevious: audio.previous,
+                                          onPlayPause: audio.togglePlay,
+                                          onNext: audio.next,
+                                          onScrubbing: (val) {
+                                            // 迷你播放器内部会处理局部 UI 状态
+                                          },
+                                          onSeek: (val) {
+                                            audio.seek(
+                                              Duration(
+                                                milliseconds:
+                                                    (audio
+                                                                .duration
+                                                                .inMilliseconds *
+                                                            val)
+                                                        .toInt(),
+                                              ),
+                                            );
+                                          },
+                                          onVolumeTap: () {
+                                            ref
+                                                .read(settingsServiceProvider)
+                                                .resetInactivity();
+                                            final nextVisible =
+                                                !_showMiniVolumeSlider;
+                                            setState(() {
+                                              _showMiniVolumeSlider = nextVisible;
+                                            });
+                                          },
+                                          onMiniMouseExit: () {
+                                            if (!_showMiniVolumeSlider) return;
+                                            setState(() {
+                                              _showMiniVolumeSlider = false;
+                                            });
+                                          },
+                                          onVolumeChanged: (value) {
+                                            ref
+                                                .read(settingsServiceProvider)
+                                                .resetInactivity();
+                                            _ui.setVolumeHudVisible(true);
+                                            audio.setVolume(
+                                              value.roundToDouble(),
+                                            );
+                                          },
+                                          onVolumeScroll: (deltaY) {
+                                            ref
+                                                .read(settingsServiceProvider)
+                                                .resetInactivity();
+                                            _ui.setVolumeHudVisible(true);
+                                            audio.setVolume(
+                                              (audio.volume - deltaY * 0.1)
+                                                  .clamp(0.0, 100.0)
+                                                  .roundToDouble(),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : const SizedBox.shrink(
+                                    key: ValueKey('empty-island'),
+                                  ),
+                          ),
                         ),
-                      ),
                       if (uiState.showVolumeHud)
                         VolumeHUD(
                           volume: ref.watch(audioVolumeProvider),
                           isMuted: ref.watch(audioIsMutedProvider),
                         ),
-                      if (useOverlayBottomNav)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: _buildBottomNavigationBar(
-                            context,
-                            isPlayback: isPlayback,
-                            navBgBaseColor: navBgBaseColor,
-                            navIndicatorBaseColor: navIndicatorBaseColor,
-                            navBgOpacityTarget: navBgOpacityTarget,
-                            isHidden:
-                                settings.isImmersiveTabBarEnabled &&
-                                settings.isUserInactive,
-                            includeBottomPadding: true,
-                          ),
+                      if (!useSidebar)
+                        FloatingDockBottomBar(
+                          currentIndex: _currentIndex,
+                          onDestinationSelected: _onDestinationSelected,
+                          isPlayback: isPlayback,
+                          isHidden:
+                              hideBottomBar ||
+                              (isPlayback &&
+                                  settings.isImmersiveTabBarEnabled &&
+                                  settings.isUserInactive),
+                          hideMiniPlayer: hideMiniPlayerForSelection,
+                          additionalBottomOffset:
+                              uiState.snackBarOffset +
+                              (((isRootSelectionMode && _currentIndex == 0) ||
+                                      (isPlaylistSelectionMode &&
+                                          _currentIndex == 2) ||
+                                      (isQueueSelectionMode &&
+                                          _currentIndex == 3))
+                                  ? 80.0
+                                  : 0.0),
                         ),
                     ],
                   ),
-                  bottomNavigationBar:
-                      hideBottomBar || useSidebar || useOverlayBottomNav
-                      ? null
-                      : _buildBottomNavigationBar(
-                          context,
-                          isPlayback: isPlayback,
-                          navBgBaseColor: navBgBaseColor,
-                          navIndicatorBaseColor: navIndicatorBaseColor,
-                          navBgOpacityTarget: navBgOpacityTarget,
-                          isHidden:
-                              isPlayback &&
-                              settings.isImmersiveTabBarEnabled &&
-                              settings.isUserInactive,
-                          includeBottomPadding: false,
-                        ),
+                  bottomNavigationBar: null,
                 ),
               ),
             ),
@@ -1610,54 +1511,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     return mainAppWidget;
   }
 
-  Widget _buildBottomNavigationBar(
-    BuildContext context, {
-    required bool isPlayback,
-    required Color navBgBaseColor,
-    required Color navIndicatorBaseColor,
-    required double navBgOpacityTarget,
-    required bool isHidden,
-    required bool includeBottomPadding,
-  }) {
-    final bottomPadding = includeBottomPadding
-        ? MediaQuery.of(context).padding.bottom
-        : 0.0;
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 500),
-      opacity: isHidden ? 0.0 : 1.0,
-      child: IgnorePointer(
-        ignoring: isHidden,
-        child: TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 120),
-          curve: Curves.easeOut,
-          tween: Tween<double>(
-            begin: navBgOpacityTarget,
-            end: navBgOpacityTarget,
-          ),
-          builder: (context, animatedOpacity, child) {
-            return NavigationBar(
-              height: 60 + bottomPadding,
-              labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-              selectedIndex: _currentIndex,
-              backgroundColor: Color.lerp(
-                navBgBaseColor.withValues(alpha: 0.0),
-                navBgBaseColor,
-                animatedOpacity,
-              ),
-              elevation: 0,
-              indicatorColor: Color.lerp(
-                navIndicatorBaseColor.withValues(alpha: 0.0),
-                navIndicatorBaseColor,
-                animatedOpacity,
-              ),
-              onDestinationSelected: _onDestinationSelected,
-              destinations: _buildBottomDestinations(context, isPlayback),
-            );
-          },
-        ),
-      ),
-    );
-  }
+
 }
 
 class AppShortcutManager extends ShortcutManager {
