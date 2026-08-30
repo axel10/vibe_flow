@@ -606,91 +606,107 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            tooltip: 'Exit',
-            onPressed: () {
-              ref.read(activeRemoteSessionProvider.notifier).clear();
-            },
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.server.name),
-            Text(
-              'Navidrome / Subsonic',
-              style: TextStyle(
-                fontSize: 11,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh',
-            onPressed: () {
-              switch (_tabController.index) {
-                case 0:
-                  _loadAlbums(forceRefresh: true);
-                  break;
-                case 1:
-                  _loadArtists(forceRefresh: true);
-                  break;
-                case 2:
-                  _loadPlaylists(forceRefresh: true);
-                  break;
-                case 3:
-                  if (_searchController.text.isNotEmpty) {
-                    _onSearchChanged(_searchController.text);
-                  }
-                  break;
-              }
-            },
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              final activeCount = ref.watch(activeDownloadsCountProvider);
-              return IconButton(
-                icon: Badge(
-                  isLabelVisible: activeCount > 0,
-                  label: Text('$activeCount'),
-                  child: const Icon(Icons.download_rounded),
+        body: NestedScrollView(
+          floatHeaderSlivers: true,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                floating: true,
+                snap: false,
+                pinned: false,
+                forceElevated: innerBoxIsScrolled,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  tooltip: 'Exit',
+                  onPressed: () {
+                    ref.read(activeRemoteSessionProvider.notifier).clear();
+                  },
                 ),
-                tooltip: 'Download Manager',
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute(
-                      builder: (_) => const RemoteDownloadManagerPage(),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.server.name),
+                    Text(
+                      'Navidrome / Subsonic',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  );
-                },
-              );
-            },
+                  ],
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded),
+                    tooltip: 'Refresh',
+                    onPressed: () {
+                      switch (_tabController.index) {
+                        case 0:
+                          _loadAlbums(forceRefresh: true);
+                          break;
+                        case 1:
+                          _loadArtists(forceRefresh: true);
+                          break;
+                        case 2:
+                          _loadPlaylists(forceRefresh: true);
+                          break;
+                        case 3:
+                          if (_searchController.text.isNotEmpty) {
+                            _onSearchChanged(_searchController.text);
+                          }
+                          break;
+                      }
+                    },
+                  ),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final activeCount =
+                          ref.watch(activeDownloadsCountProvider);
+                      return IconButton(
+                        icon: Badge(
+                          isLabelVisible: activeCount > 0,
+                          label: Text('$activeCount'),
+                          child: const Icon(Icons.download_rounded),
+                        ),
+                        tooltip: 'Download Manager',
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const RemoteDownloadManagerPage(),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(icon: Icon(Icons.album_rounded), text: 'Albums'),
+                    Tab(icon: Icon(Icons.person_rounded), text: 'Artists'),
+                    Tab(
+                      icon: Icon(Icons.playlist_play_rounded),
+                      text: 'Playlists',
+                    ),
+                    Tab(icon: Icon(Icons.search_rounded), text: 'Search'),
+                  ],
+                ),
+              ),
+            ];
+          },
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildAlbumsTab(theme, bottomOffset),
+              _buildArtistsTab(theme, bottomOffset),
+              _buildPlaylistsTab(theme, bottomOffset),
+              _buildSearchTab(theme, bottomOffset),
+            ],
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.album_rounded), text: 'Albums'),
-            Tab(icon: Icon(Icons.person_rounded), text: 'Artists'),
-            Tab(icon: Icon(Icons.playlist_play_rounded), text: 'Playlists'),
-            Tab(icon: Icon(Icons.search_rounded), text: 'Search'),
-          ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildAlbumsTab(theme, bottomOffset),
-          _buildArtistsTab(theme, bottomOffset),
-          _buildPlaylistsTab(theme, bottomOffset),
-          _buildSearchTab(theme, bottomOffset),
-        ],
-      ),
-    ),
     );
 
     if (showCustomTitleBar || isMacOS) {
@@ -919,115 +935,118 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         return Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1600),
-            child: Column(
-              children: [
-                buildToolbar(constraints.maxWidth >= 650),
-                Expanded(
-                  child: filteredAlbums.isEmpty
-                      ? Center(
-                          child: Text(
-                            _albumSearchQuery.isEmpty
-                                ? 'No albums found on server'
-                                : 'No matching albums',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
+            child: RefreshIndicator(
+              onRefresh: () => _loadAlbums(forceRefresh: true),
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: buildToolbar(constraints.maxWidth >= 650),
+                  ),
+                  if (filteredAlbums.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Text(
+                          _albumSearchQuery.isEmpty
+                              ? 'No albums found on server'
+                              : 'No matching albums',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: () => _loadAlbums(forceRefresh: true),
-                          child: GridView.builder(
-                            padding:
-                                EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              childAspectRatio: childAspectRatio,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
-                            itemCount: filteredAlbums.length,
-                            itemBuilder: (context, index) {
-                              final album = filteredAlbums[index];
-                              final albumId = album['id'] as String? ?? '';
-                              final title = album['title'] as String? ??
-                                  album['name'] as String? ??
-                                  'Untitled';
-                              final artist = album['artist'] as String? ??
-                                  'Unknown Artist';
-                              final coverId =
-                                  album['coverArt'] as String?;
-                              final songCount = album['songCount'] as int?;
-                              final year = album['year'] as int?;
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
+                      sliver: SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: childAspectRatio,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final album = filteredAlbums[index];
+                            final albumId = album['id'] as String? ?? '';
+                            final title = album['title'] as String? ??
+                                album['name'] as String? ??
+                                'Untitled';
+                            final artist = album['artist'] as String? ??
+                                'Unknown Artist';
+                            final coverId = album['coverArt'] as String?;
+                            final songCount = album['songCount'] as int?;
+                            final year = album['year'] as int?;
 
-                              return GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onSecondaryTapDown: (details) {
-                                  showRemoteAlbumContextMenu(
-                                    context: context,
-                                    globalPosition: details.globalPosition,
-                                    ref: ref,
-                                    server: widget.server,
-                                    password: widget.password,
-                                    albumId: albumId,
-                                    albumTitle: title,
-                                    artistName: artist,
-                                    coverArtId: coverId,
-                                    onViewDetails: () {
-                                      NavidromeNavUtils.openAlbum(
-                                        context,
-                                        ref,
-                                        server: widget.server,
-                                        password: widget.password,
-                                        albumId: albumId,
-                                        albumName: title,
-                                        artistName: artist,
-                                        coverArtId: coverId,
-                                      );
-                                    },
-                                  );
-                                },
-                                onLongPressStart: (details) {
-                                  showRemoteAlbumContextMenu(
-                                    context: context,
-                                    globalPosition: details.globalPosition,
-                                    ref: ref,
-                                    server: widget.server,
-                                    password: widget.password,
-                                    albumId: albumId,
-                                    albumTitle: title,
-                                    artistName: artist,
-                                    coverArtId: coverId,
-                                    onViewDetails: () {
-                                      NavidromeNavUtils.openAlbum(
-                                        context,
-                                        ref,
-                                        server: widget.server,
-                                        password: widget.password,
-                                        albumId: albumId,
-                                        albumName: title,
-                                        artistName: artist,
-                                        coverArtId: coverId,
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(12),
-                                    onTap: () {
-                                      NavidromeNavUtils.openAlbum(
-                                        context,
-                                        ref,
-                                        server: widget.server,
-                                        password: widget.password,
-                                        albumId: albumId,
-                                        albumName: title,
-                                        artistName: artist,
-                                        coverArtId: coverId,
-                                      );
-                                    },
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onSecondaryTapDown: (details) {
+                                showRemoteAlbumContextMenu(
+                                  context: context,
+                                  globalPosition: details.globalPosition,
+                                  ref: ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  albumId: albumId,
+                                  albumTitle: title,
+                                  artistName: artist,
+                                  coverArtId: coverId,
+                                  onViewDetails: () {
+                                    NavidromeNavUtils.openAlbum(
+                                      context,
+                                      ref,
+                                      server: widget.server,
+                                      password: widget.password,
+                                      albumId: albumId,
+                                      albumName: title,
+                                      artistName: artist,
+                                      coverArtId: coverId,
+                                    );
+                                  },
+                                );
+                              },
+                              onLongPressStart: (details) {
+                                showRemoteAlbumContextMenu(
+                                  context: context,
+                                  globalPosition: details.globalPosition,
+                                  ref: ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  albumId: albumId,
+                                  albumTitle: title,
+                                  artistName: artist,
+                                  coverArtId: coverId,
+                                  onViewDetails: () {
+                                    NavidromeNavUtils.openAlbum(
+                                      context,
+                                      ref,
+                                      server: widget.server,
+                                      password: widget.password,
+                                      albumId: albumId,
+                                      albumName: title,
+                                      artistName: artist,
+                                      coverArtId: coverId,
+                                    );
+                                  },
+                                );
+                              },
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () {
+                                    NavidromeNavUtils.openAlbum(
+                                      context,
+                                      ref,
+                                      server: widget.server,
+                                      password: widget.password,
+                                      albumId: albumId,
+                                      albumName: title,
+                                      artistName: artist,
+                                      coverArtId: coverId,
+                                    );
+                                  },
                                   child: Ink(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -1180,10 +1199,12 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               ),
                             );
                           },
+                          childCount: filteredAlbums.length,
                         ),
                       ),
-                ),
-              ],
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -1455,54 +1476,62 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
 
         // Portrait: Vertical List of Artist Cards
-        return Column(
-          children: [
-            buildArtistToolbar(),
-            Expanded(
-              child: filteredArtists.isEmpty
-                  ? Center(
-                      child: Text(
-                        _artistSearchQuery.isEmpty
-                            ? 'No artists found'
-                            : 'No matching artists',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _loadArtists(forceRefresh: true),
-                      child: ListView.builder(
-                        padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-                        itemCount: filteredArtists.length,
-                        itemBuilder: (context, index) {
-                          final artist = filteredArtists[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: _buildArtistItem(
-                              theme: theme,
-                              artist: artist,
-                              isSelected: false,
-                              onTap: () {
-                                NavidromeNavUtils.openArtist(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  artistId: artist['id'] as String? ?? '',
-                                  artistName: artist['name'] as String? ??
-                                      'Unknown Artist',
-                                  coverArtId: artist['coverArt'] as String?,
-                                  albumCount: artist['albumCount'] as int?,
-                                );
-                              },
-                            ),
-                          );
-                        },
+        return RefreshIndicator(
+          onRefresh: () => _loadArtists(forceRefresh: true),
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: buildArtistToolbar(),
+              ),
+              if (filteredArtists.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text(
+                      _artistSearchQuery.isEmpty
+                          ? 'No artists found'
+                          : 'No matching artists',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-            ),
-          ],
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final artist = filteredArtists[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: _buildArtistItem(
+                            theme: theme,
+                            artist: artist,
+                            isSelected: false,
+                            onTap: () {
+                              NavidromeNavUtils.openArtist(
+                                context,
+                                ref,
+                                server: widget.server,
+                                password: widget.password,
+                                artistId: artist['id'] as String? ?? '',
+                                artistName: artist['name'] as String? ??
+                                    'Unknown Artist',
+                                coverArtId: artist['coverArt'] as String?,
+                                albumCount: artist['albumCount'] as int?,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      childCount: filteredArtists.length,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -1728,17 +1757,6 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       );
     }
 
-    if (filteredPlaylists.isEmpty) {
-      return Column(
-        children: [
-          buildPlaylistToolbar(),
-          const Expanded(
-            child: Center(child: Text('No playlists found')),
-          ),
-        ],
-      );
-    }
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final isLandscape =
@@ -1856,59 +1874,67 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
 
         // Portrait: Vertical List of Playlist Cards
-        return Column(
-          children: [
-            buildPlaylistToolbar(),
-            Expanded(
-              child: filteredPlaylists.isEmpty
-                  ? Center(
-                      child: Text(
-                        _playlistSearchQuery.isEmpty
-                            ? 'No playlists found'
-                            : 'No matching playlists',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _loadPlaylists(forceRefresh: true),
-                      child: ListView.builder(
-                        padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-                        itemCount: filteredPlaylists.length,
-                        itemBuilder: (context, index) {
-                          final pl = filteredPlaylists[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: _buildPlaylistItem(
-                              theme: theme,
-                              playlist: pl,
-                              isSelected: false,
-                              onTap: () {
-                                NavidromeNavUtils.openPlaylist(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  playlistId: pl['id'] as String? ?? '',
-                                  playlistName:
-                                      pl['name'] as String? ?? 'Playlist',
-                                  coverArtId: pl['coverArt'] as String?,
-                                  songCount: pl['songCount'] as int?,
-                                  duration: pl['duration'] as int?,
-                                  isStarred: pl['isStarred'] == true ||
-                                      pl['id'] == _starredPlaylistId,
-                                  onPlaylistModified: () =>
-                                      _loadPlaylists(forceRefresh: true),
-                                );
-                              },
-                            ),
-                          );
-                        },
+        return RefreshIndicator(
+          onRefresh: () => _loadPlaylists(forceRefresh: true),
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: buildPlaylistToolbar(),
+              ),
+              if (filteredPlaylists.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Text(
+                      _playlistSearchQuery.isEmpty
+                          ? 'No playlists found'
+                          : 'No matching playlists',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-            ),
-          ],
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final pl = filteredPlaylists[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: _buildPlaylistItem(
+                            theme: theme,
+                            playlist: pl,
+                            isSelected: false,
+                            onTap: () {
+                              NavidromeNavUtils.openPlaylist(
+                                context,
+                                ref,
+                                server: widget.server,
+                                password: widget.password,
+                                playlistId: pl['id'] as String? ?? '',
+                                playlistName:
+                                    pl['name'] as String? ?? 'Playlist',
+                                coverArtId: pl['coverArt'] as String?,
+                                songCount: pl['songCount'] as int?,
+                                duration: pl['duration'] as int?,
+                                isStarred: pl['isStarred'] == true ||
+                                    pl['id'] == _starredPlaylistId,
+                                onPlaylistModified: () =>
+                                    _loadPlaylists(forceRefresh: true),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      childCount: filteredPlaylists.length,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );
@@ -2076,304 +2102,318 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   // ================= SEARCH TAB =================
   Widget _buildSearchTab(ThemeData theme, double bottomOffset) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            onChanged: _onSearchChanged,
-            decoration: InputDecoration(
-              hintText: 'Search songs, albums, artists...',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear_rounded),
-                      onPressed: () {
-                        _searchController.clear();
-                        _onSearchChanged('');
-                      },
-                    )
-                  : null,
-              filled: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
+    final hasResults = _searchedSongs.isNotEmpty ||
+        _searchedAlbums.isNotEmpty ||
+        _searchedArtists.isNotEmpty;
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  decoration: InputDecoration(
+                    hintText: 'Search songs, albums, artists...',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              if (_isSearching) const LinearProgressIndicator(),
+            ],
           ),
         ),
-        if (_isSearching) const LinearProgressIndicator(),
-        Expanded(
-          child: _searchedSongs.isEmpty &&
-                  _searchedAlbums.isEmpty &&
-                  _searchedArtists.isEmpty
-              ? Center(
-                  child: Text(
-                    _searchController.text.trim().isEmpty
-                        ? 'Type something to search'
-                        : 'No matching results',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+        if (!hasResults)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                _searchController.text.trim().isEmpty
+                    ? 'Type something to search'
+                    : 'No matching results',
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(16, 0, 16, bottomOffset),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                if (_searchedArtists.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Artists (${_searchedArtists.length})',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                )
-              : ListView(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomOffset),
-                  children: [
-                    if (_searchedArtists.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          'Artists (${_searchedArtists.length})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                  for (final artist in _searchedArtists)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onSecondaryTapDown: (details) {
+                        showRemoteArtistContextMenu(
+                          context: context,
+                          globalPosition: details.globalPosition,
+                          ref: ref,
+                          server: widget.server,
+                          password: widget.password,
+                          artistId: artist['id'] as String? ?? '',
+                          artistName: artist['name'] as String? ?? '',
+                          onViewDetails: () {
+                            NavidromeNavUtils.openArtist(
+                              context,
+                              ref,
+                              server: widget.server,
+                              password: widget.password,
+                              artistId: artist['id'] as String? ?? '',
+                              artistName: artist['name'] as String? ?? '',
+                              coverArtId: artist['coverArt'] as String?,
+                              albumCount: artist['albumCount'] as int?,
+                            );
+                          },
+                        );
+                      },
+                      onLongPressStart: (details) {
+                        showRemoteArtistContextMenu(
+                          context: context,
+                          globalPosition: details.globalPosition,
+                          ref: ref,
+                          server: widget.server,
+                          password: widget.password,
+                          artistId: artist['id'] as String? ?? '',
+                          artistName: artist['name'] as String? ?? '',
+                          onViewDetails: () {
+                            NavidromeNavUtils.openArtist(
+                              context,
+                              ref,
+                              server: widget.server,
+                              password: widget.password,
+                              artistId: artist['id'] as String? ?? '',
+                              artistName: artist['name'] as String? ?? '',
+                              coverArtId: artist['coverArt'] as String?,
+                              albumCount: artist['albumCount'] as int?,
+                            );
+                          },
+                        );
+                      },
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.person_rounded),
                         ),
+                        title: Text(artist['name'] as String? ?? ''),
+                        subtitle: artist['albumCount'] != null
+                            ? Text('${artist['albumCount']} albums')
+                            : null,
+                        onTap: () {
+                          NavidromeNavUtils.openArtist(
+                            context,
+                            ref,
+                            server: widget.server,
+                            password: widget.password,
+                            artistId: artist['id'] as String? ?? '',
+                            artistName:
+                                artist['name'] as String? ?? '',
+                            coverArtId: artist['coverArt'] as String?,
+                            albumCount: artist['albumCount'] as int?,
+                          );
+                        },
                       ),
-                      for (final artist in _searchedArtists)
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onSecondaryTapDown: (details) {
-                            showRemoteArtistContextMenu(
-                              context: context,
-                              globalPosition: details.globalPosition,
-                              ref: ref,
-                              server: widget.server,
-                              password: widget.password,
-                              artistId: artist['id'] as String? ?? '',
-                              artistName: artist['name'] as String? ?? '',
-                              onViewDetails: () {
-                                NavidromeNavUtils.openArtist(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  artistId: artist['id'] as String? ?? '',
-                                  artistName: artist['name'] as String? ?? '',
-                                  coverArtId: artist['coverArt'] as String?,
-                                  albumCount: artist['albumCount'] as int?,
-                                );
-                              },
-                            );
-                          },
-                          onLongPressStart: (details) {
-                            showRemoteArtistContextMenu(
-                              context: context,
-                              globalPosition: details.globalPosition,
-                              ref: ref,
-                              server: widget.server,
-                              password: widget.password,
-                              artistId: artist['id'] as String? ?? '',
-                              artistName: artist['name'] as String? ?? '',
-                              onViewDetails: () {
-                                NavidromeNavUtils.openArtist(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  artistId: artist['id'] as String? ?? '',
-                                  artistName: artist['name'] as String? ?? '',
-                                  coverArtId: artist['coverArt'] as String?,
-                                  albumCount: artist['albumCount'] as int?,
-                                );
-                              },
-                            );
-                          },
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const CircleAvatar(
-                              child: Icon(Icons.person_rounded),
-                            ),
-                            title: Text(artist['name'] as String? ?? ''),
-                            subtitle: artist['albumCount'] != null
-                                ? Text('${artist['albumCount']} albums')
-                                : null,
-                            onTap: () {
-                              NavidromeNavUtils.openArtist(
-                                context,
-                                ref,
+                    ),
+                  const SizedBox(height: 12),
+                ],
+                if (_searchedAlbums.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Albums (${_searchedAlbums.length})',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _searchedAlbums.length,
+                      itemBuilder: (context, index) {
+                        final album = _searchedAlbums[index];
+                        final albumId = album['id'] as String? ?? '';
+                        final title = album['name'] as String? ??
+                            album['title'] as String? ??
+                            'Untitled';
+                        final artist =
+                            album['artist'] as String? ?? 'Unknown Artist';
+                        final coverId =
+                            album['coverArt'] as String?;
+
+                        return Container(
+                          width: 100,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onSecondaryTapDown: (details) {
+                              showRemoteAlbumContextMenu(
+                                context: context,
+                                globalPosition: details.globalPosition,
+                                ref: ref,
                                 server: widget.server,
                                 password: widget.password,
-                                artistId: artist['id'] as String? ?? '',
-                                artistName:
-                                    artist['name'] as String? ?? '',
-                                coverArtId: artist['coverArt'] as String?,
-                                albumCount: artist['albumCount'] as int?,
+                                albumId: albumId,
+                                albumTitle: title,
+                                artistName: artist,
+                                coverArtId: coverId,
+                                onViewDetails: () {
+                                  NavidromeNavUtils.openAlbum(
+                                    context,
+                                    ref,
+                                    server: widget.server,
+                                    password: widget.password,
+                                    albumId: albumId,
+                                    albumName: title,
+                                    artistName: artist,
+                                    coverArtId: coverId,
+                                  );
+                                },
                               );
                             },
-                          ),
-                        ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_searchedAlbums.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          'Albums (${_searchedAlbums.length})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 120,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _searchedAlbums.length,
-                          itemBuilder: (context, index) {
-                            final album = _searchedAlbums[index];
-                            final albumId = album['id'] as String? ?? '';
-                            final title = album['name'] as String? ??
-                                album['title'] as String? ??
-                                'Untitled';
-                            final artist = album['artist'] as String? ?? 'Unknown Artist';
-                            final coverId =
-                                album['coverArt'] as String?;
-
-                            return Container(
-                              width: 100,
-                              margin: const EdgeInsets.only(right: 12),
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onSecondaryTapDown: (details) {
-                                  showRemoteAlbumContextMenu(
-                                    context: context,
-                                    globalPosition: details.globalPosition,
-                                    ref: ref,
+                            onLongPressStart: (details) {
+                              showRemoteAlbumContextMenu(
+                                context: context,
+                                globalPosition: details.globalPosition,
+                                ref: ref,
+                                server: widget.server,
+                                password: widget.password,
+                                albumId: albumId,
+                                albumTitle: title,
+                                artistName: artist,
+                                coverArtId: coverId,
+                                onViewDetails: () {
+                                  NavidromeNavUtils.openAlbum(
+                                    context,
+                                    ref,
                                     server: widget.server,
                                     password: widget.password,
                                     albumId: albumId,
-                                    albumTitle: title,
+                                    albumName: title,
                                     artistName: artist,
                                     coverArtId: coverId,
-                                    onViewDetails: () {
-                                      NavidromeNavUtils.openAlbum(
-                                        context,
-                                        ref,
-                                        server: widget.server,
-                                        password: widget.password,
-                                        albumId: albumId,
-                                        albumName: title,
-                                        artistName: artist,
-                                        coverArtId: coverId,
-                                      );
-                                    },
                                   );
                                 },
-                                onLongPressStart: (details) {
-                                  showRemoteAlbumContextMenu(
-                                    context: context,
-                                    globalPosition: details.globalPosition,
-                                    ref: ref,
-                                    server: widget.server,
-                                    password: widget.password,
-                                    albumId: albumId,
-                                    albumTitle: title,
-                                    artistName: artist,
-                                    coverArtId: coverId,
-                                    onViewDetails: () {
-                                      NavidromeNavUtils.openAlbum(
-                                        context,
-                                        ref,
-                                        server: widget.server,
-                                        password: widget.password,
-                                        albumId: albumId,
-                                        albumName: title,
-                                        artistName: artist,
-                                        coverArtId: coverId,
-                                      );
-                                    },
-                                  );
-                                },
-                                child: InkWell(
-                                  onTap: () {
-                                    NavidromeNavUtils.openAlbum(
-                                      context,
-                                      ref,
-                                      server: widget.server,
-                                      password: widget.password,
-                                      albumId: albumId,
-                                      albumName: title,
-                                      artistName: artist,
-                                      coverArtId: coverId,
-                                    );
-                                  },
-                                  child: Column(
-                                    children: [
-                                      RemoteArtworkWidget(
-                                        server: widget.server,
-                                        password: widget.password,
-                                        coverArtId: coverId,
-                                        size: 80,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_searchedSongs.isNotEmpty) ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          'Songs (${_searchedSongs.length})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      for (final song in _searchedSongs)
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onSecondaryTapDown: (details) {
-                            showRemoteSongContextMenu(
-                              context: context,
-                              globalPosition: details.globalPosition,
-                              ref: ref,
-                              server: widget.server,
-                              password: widget.password,
-                              song: song,
-                            );
-                          },
-                          onLongPressStart: (details) {
-                            showRemoteSongContextMenu(
-                              context: context,
-                              globalPosition: details.globalPosition,
-                              ref: ref,
-                              server: widget.server,
-                              password: widget.password,
-                              song: song,
-                            );
-                          },
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.music_note_rounded),
-                            title: Text(
-                              song.title ?? song.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              _buildSongSubtitle(song),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            onTap: () async {
-                              final audioService =
-                                  ref.read(audioServiceProvider);
-                              await audioService.playPlaylist([song]);
+                              );
                             },
+                            child: InkWell(
+                              onTap: () {
+                                NavidromeNavUtils.openAlbum(
+                                  context,
+                                  ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  albumId: albumId,
+                                  albumName: title,
+                                  artistName: artist,
+                                  coverArtId: coverId,
+                                );
+                              },
+                              child: Column(
+                                children: [
+                                  RemoteArtworkWidget(
+                                    server: widget.server,
+                                    password: widget.password,
+                                    coverArtId: coverId,
+                                    size: 80,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (_searchedSongs.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Songs (${_searchedSongs.length})',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  for (final song in _searchedSongs)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onSecondaryTapDown: (details) {
+                        showRemoteSongContextMenu(
+                          context: context,
+                          globalPosition: details.globalPosition,
+                          ref: ref,
+                          server: widget.server,
+                          password: widget.password,
+                          song: song,
+                        );
+                      },
+                      onLongPressStart: (details) {
+                        showRemoteSongContextMenu(
+                          context: context,
+                          globalPosition: details.globalPosition,
+                          ref: ref,
+                          server: widget.server,
+                          password: widget.password,
+                          song: song,
+                        );
+                      },
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.music_note_rounded),
+                        title: Text(
+                          song.title ?? song.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    ],
-                  ],
-                ),
-        ),
+                        subtitle: Text(
+                          _buildSongSubtitle(song),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () async {
+                          final audioService =
+                              ref.read(audioServiceProvider);
+                          await audioService.playPlaylist([song]);
+                        },
+                      ),
+                    ),
+                ],
+              ]),
+            ),
+          ),
       ],
     );
   }

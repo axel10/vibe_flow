@@ -292,339 +292,456 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            tooltip: 'Exit',
-            onPressed: () {
-              ref.read(activeRemoteSessionProvider.notifier).clear();
-            },
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.server.name),
-              Text(
-                'WebDAV Storage',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: theme.colorScheme.onSurfaceVariant,
+        body: NestedScrollView(
+          floatHeaderSlivers: true,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                floating: true,
+                snap: false,
+                pinned: false,
+                forceElevated: innerBoxIsScrolled,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  tooltip: 'Exit',
+                  onPressed: () {
+                    ref.read(activeRemoteSessionProvider.notifier).clear();
+                  },
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            if (audioCount > 0) ...[
-              IconButton(
-                icon: const Icon(Icons.play_circle_fill_rounded),
-                tooltip: 'Play All',
-                onPressed: () => _playFolder(shuffle: false),
-              ),
-              IconButton(
-                icon: const Icon(Icons.shuffle_rounded),
-                tooltip: 'Shuffle',
-                onPressed: () => _playFolder(shuffle: true),
-              ),
-              IconButton(
-                icon: const Icon(Icons.download_for_offline_outlined),
-                tooltip: 'Download All Audio',
-                onPressed: _downloadAllAudio,
-              ),
-            ],
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              tooltip: 'Refresh',
-              onPressed: () => _loadDirectory(_currentPath, forceRefresh: true),
-            ),
-            IconButton(
-              icon: Badge(
-                isLabelVisible: ref.watch(activeDownloadsCountProvider) > 0,
-                label: Text('${ref.watch(activeDownloadsCountProvider)}'),
-                child: const Icon(Icons.download_rounded),
-              ),
-              tooltip: 'Download Manager',
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (_) => const RemoteDownloadManagerPage(),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.server.name),
+                    Text(
+                      'WebDAV Storage',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  if (audioCount > 0) ...[
+                    IconButton(
+                      icon: const Icon(Icons.play_circle_fill_rounded),
+                      tooltip: 'Play All',
+                      onPressed: () => _playFolder(shuffle: false),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.shuffle_rounded),
+                      tooltip: 'Shuffle',
+                      onPressed: () => _playFolder(shuffle: true),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.download_for_offline_outlined),
+                      tooltip: 'Download All Audio',
+                      onPressed: _downloadAllAudio,
+                    ),
+                  ],
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded),
+                    tooltip: 'Refresh',
+                    onPressed: () =>
+                        _loadDirectory(_currentPath, forceRefresh: true),
                   ),
-                );
-              },
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            // Breadcrumbs path header
-            _buildBreadcrumbs(theme),
-            const Divider(height: 1),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
+                  IconButton(
+                    icon: Badge(
+                      isLabelVisible:
+                          ref.watch(activeDownloadsCountProvider) > 0,
+                      label:
+                          Text('${ref.watch(activeDownloadsCountProvider)}'),
+                      child: const Icon(Icons.download_rounded),
+                    ),
+                    tooltip: 'Download Manager',
+                    onPressed: () {
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RemoteDownloadManagerPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ];
+          },
+          body: _isLoading
+              ? Column(
+                  children: [
+                    _buildBreadcrumbs(theme),
+                    const Divider(height: 1),
+                    const Expanded(
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ],
+                )
+              : _error != null
+                  ? Column(
+                      children: [
+                        _buildBreadcrumbs(theme),
+                        const Divider(height: 1),
+                        Expanded(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline_rounded,
+                                    size: 48,
+                                    color: theme.colorScheme.error,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Error: $_error',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  FilledButton(
+                                    onPressed: () => _loadDirectory(
+                                        _currentPath,
+                                        forceRefresh: true),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () =>
+                          _loadDirectory(_currentPath, forceRefresh: true),
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  Icons.error_outline_rounded,
-                                  size: 48,
-                                  color: theme.colorScheme.error,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Error: $_error',
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 16),
-                                FilledButton(
-                                  onPressed: () =>
-                                      _loadDirectory(_currentPath, forceRefresh: true),
-                                  child: const Text('Retry'),
-                                ),
+                                _buildBreadcrumbs(theme),
+                                const Divider(height: 1),
                               ],
                             ),
                           ),
-                        )
-                      : _items.isEmpty
-                          ? const Center(child: Text('Folder is empty'))
-                          : RefreshIndicator(
-                              onRefresh: () =>
-                                  _loadDirectory(_currentPath, forceRefresh: true),
-                              child: ListView.builder(
-                                padding:
-                                    EdgeInsets.fromLTRB(0, 0, 0, bottomOffset),
-                                itemCount: _items.length,
-                                itemBuilder: (context, index) {
-                                  final item = _items[index];
-                                  if (item.isDirectory) {
+                          if (_items.isEmpty)
+                            const SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Center(child: Text('Folder is empty')),
+                            )
+                          else
+                            SliverPadding(
+                              padding:
+                                  EdgeInsets.fromLTRB(0, 0, 0, bottomOffset),
+                              sliver: SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final item = _items[index];
+                                    if (item.isDirectory) {
+                                      return GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onSecondaryTapDown: (details) {
+                                          showWebDavFolderContextMenu(
+                                            context: context,
+                                            globalPosition:
+                                                details.globalPosition,
+                                            ref: ref,
+                                            server: widget.server,
+                                            password: widget.password,
+                                            folder: item,
+                                            onOpen: () =>
+                                                _loadDirectory(item.path),
+                                          );
+                                        },
+                                        onLongPressStart: (details) {
+                                          showWebDavFolderContextMenu(
+                                            context: context,
+                                            globalPosition:
+                                                details.globalPosition,
+                                            ref: ref,
+                                            server: widget.server,
+                                            password: widget.password,
+                                            folder: item,
+                                            onOpen: () =>
+                                                _loadDirectory(item.path),
+                                          );
+                                        },
+                                        child: ListTile(
+                                          leading: const Icon(
+                                            Icons.folder_rounded,
+                                            color: Colors.amber,
+                                            size: 28,
+                                          ),
+                                          title: Text(
+                                            item.name,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                          trailing: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Builder(
+                                                builder: (btnContext) {
+                                                  return IconButton(
+                                                    icon: const Icon(
+                                                        Icons.more_vert_rounded,
+                                                        size: 20),
+                                                    tooltip: 'More',
+                                                    onPressed: () {
+                                                      final box = btnContext
+                                                              .findRenderObject()
+                                                          as RenderBox?;
+                                                      final pos = box != null
+                                                          ? box.localToGlobal(
+                                                              Offset(
+                                                                  box.size
+                                                                          .width /
+                                                                      2,
+                                                                  box.size
+                                                                          .height /
+                                                                      2))
+                                                          : Offset.zero;
+                                                      showWebDavFolderContextMenu(
+                                                        context: context,
+                                                        globalPosition: pos,
+                                                        ref: ref,
+                                                        server: widget.server,
+                                                        password:
+                                                            widget.password,
+                                                        folder: item,
+                                                        onOpen: () =>
+                                                            _loadDirectory(
+                                                                item.path),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                              const Icon(
+                                                  Icons.chevron_right_rounded),
+                                            ],
+                                          ),
+                                          onTap: () {
+                                            _loadDirectory(item.path);
+                                          },
+                                        ),
+                                      );
+                                    }
+
+                                    // Only emphasize audio files
+                                    final isAudio = item.isAudio;
+                                    final remoteUri =
+                                        RemoteMediaResolver.buildWebDavUri(
+                                      widget.server.id,
+                                      item.path,
+                                    );
+                                    final isCurrent =
+                                        currentMusic?.path == remoteUri;
+                                    final ext = p
+                                        .extension(item.name)
+                                        .replaceAll('.', '')
+                                        .toUpperCase();
+                                    final sizeStr =
+                                        _formatFileSize(item.contentLength);
+                                    final subtitleStr =
+                                        (isAudio && ext.isNotEmpty)
+                                            ? '$sizeStr | $ext'
+                                            : sizeStr;
+
+                                    void showFileMenu(Offset pos) {
+                                      final audioFiles = _getAudioFiles();
+                                      showWebDavFileContextMenu(
+                                        context: context,
+                                        globalPosition: pos,
+                                        ref: ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        file: item,
+                                        currentAudioFiles: audioFiles,
+                                        onPlay: isAudio
+                                            ? () async {
+                                                final target =
+                                                    RemoteMediaResolver
+                                                        .buildMusicFileFromWebDav(
+                                                  item,
+                                                  widget.server,
+                                                );
+                                                final initialIndex = audioFiles
+                                                    .indexWhere((s) =>
+                                                        s.path == target.path);
+                                                final audioService = ref.read(
+                                                    audioServiceProvider);
+                                                await audioService.playPlaylist(
+                                                  audioFiles.isNotEmpty
+                                                      ? audioFiles
+                                                      : [target],
+                                                  initialIndex:
+                                                      initialIndex >= 0
+                                                          ? initialIndex
+                                                          : 0,
+                                                );
+                                              }
+                                            : null,
+                                      );
+                                    }
+
                                     return GestureDetector(
                                       behavior: HitTestBehavior.opaque,
-                                      onSecondaryTapDown: (details) {
-                                        showWebDavFolderContextMenu(
-                                          context: context,
-                                          globalPosition: details.globalPosition,
-                                          ref: ref,
-                                          server: widget.server,
-                                          password: widget.password,
-                                          folder: item,
-                                          onOpen: () => _loadDirectory(item.path),
-                                        );
-                                      },
-                                      onLongPressStart: (details) {
-                                        showWebDavFolderContextMenu(
-                                          context: context,
-                                          globalPosition: details.globalPosition,
-                                          ref: ref,
-                                          server: widget.server,
-                                          password: widget.password,
-                                          folder: item,
-                                          onOpen: () => _loadDirectory(item.path),
-                                        );
-                                      },
+                                      onSecondaryTapDown: (details) =>
+                                          showFileMenu(
+                                              details.globalPosition),
+                                      onLongPressStart: (details) =>
+                                          showFileMenu(
+                                              details.globalPosition),
                                       child: ListTile(
-                                        leading: const Icon(
-                                          Icons.folder_rounded,
-                                          color: Colors.amber,
-                                          size: 28,
+                                        leading: Icon(
+                                          isAudio
+                                              ? Icons.music_note_rounded
+                                              : Icons
+                                                  .insert_drive_file_outlined,
+                                          color: isAudio
+                                              ? (isCurrent
+                                                  ? theme.colorScheme.primary
+                                                  : Colors.blue)
+                                              : theme
+                                                  .colorScheme.onSurfaceVariant
+                                                  .withValues(alpha: 0.5),
                                         ),
-                                        title: Text(
-                                          item.name,
-                                          style: const TextStyle(fontWeight: FontWeight.w600),
+                                        title: Row(
+                                          children: [
+                                            if (isCurrent) ...[
+                                              PlayingEqualizerIcon(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                size: 16,
+                                                isPlaying: isAudioPlaying,
+                                              ),
+                                              const SizedBox(width: 6),
+                                            ],
+                                            Expanded(
+                                              child: Text(
+                                                item.name,
+                                                style: TextStyle(
+                                                  color: isCurrent
+                                                      ? theme
+                                                          .colorScheme.primary
+                                                      : (isAudio
+                                                          ? null
+                                                          : theme
+                                                              .colorScheme
+                                                              .onSurfaceVariant
+                                                              .withValues(
+                                                                  alpha: 0.6)),
+                                                  fontWeight: isCurrent
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                                ),
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        subtitle: Text(
+                                          subtitleStr,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: isCurrent
+                                                ? theme.colorScheme.primary
+                                                    .withValues(alpha: 0.75)
+                                                : theme.colorScheme
+                                                    .onSurfaceVariant,
+                                          ),
                                         ),
                                         trailing: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
+                                            if (isAudio)
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.download_rounded,
+                                                  size: 22,
+                                                  color: isCurrent
+                                                      ? theme
+                                                          .colorScheme.primary
+                                                      : null,
+                                                ),
+                                                tooltip: 'Download',
+                                                onPressed: () =>
+                                                    _downloadSingleAudio(item),
+                                              ),
                                             Builder(
                                               builder: (btnContext) {
                                                 return IconButton(
-                                                  icon: const Icon(Icons.more_vert_rounded, size: 20),
+                                                  icon: Icon(
+                                                    Icons.more_vert_rounded,
+                                                    size: 20,
+                                                    color: isCurrent
+                                                      ? theme
+                                                          .colorScheme.primary
+                                                      : null,
+                                                  ),
                                                   tooltip: 'More',
                                                   onPressed: () {
-                                                    final box = btnContext.findRenderObject() as RenderBox?;
+                                                    final box = btnContext
+                                                            .findRenderObject()
+                                                        as RenderBox?;
                                                     final pos = box != null
-                                                        ? box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2))
+                                                        ? box.localToGlobal(
+                                                            Offset(
+                                                                box.size
+                                                                        .width /
+                                                                    2,
+                                                                box.size
+                                                                        .height /
+                                                                    2))
                                                         : Offset.zero;
-                                                    showWebDavFolderContextMenu(
-                                                      context: context,
-                                                      globalPosition: pos,
-                                                      ref: ref,
-                                                      server: widget.server,
-                                                      password: widget.password,
-                                                      folder: item,
-                                                      onOpen: () => _loadDirectory(item.path),
-                                                    );
+                                                    showFileMenu(pos);
                                                   },
                                                 );
                                               },
                                             ),
-                                            const Icon(Icons.chevron_right_rounded),
                                           ],
                                         ),
-                                        onTap: () {
-                                          _loadDirectory(item.path);
-                                        },
+                                        onTap: isAudio
+                                            ? () async {
+                                                final audioFiles =
+                                                    _getAudioFiles();
+                                                final target =
+                                                    RemoteMediaResolver
+                                                        .buildMusicFileFromWebDav(
+                                                  item,
+                                                  widget.server,
+                                                );
+                                                final initialIndex = audioFiles
+                                                    .indexWhere((s) =>
+                                                        s.path == target.path);
+                                                final audioService = ref.read(
+                                                    audioServiceProvider);
+                                                await audioService.playPlaylist(
+                                                  audioFiles.isNotEmpty
+                                                      ? audioFiles
+                                                      : [target],
+                                                  initialIndex:
+                                                      initialIndex >= 0
+                                                          ? initialIndex
+                                                          : 0,
+                                                );
+                                              }
+                                            : null,
                                       ),
                                     );
-                                  }
-
-                                  // Only emphasize audio files
-                                  final isAudio = item.isAudio;
-                                  final remoteUri = RemoteMediaResolver.buildWebDavUri(
-                                    widget.server.id,
-                                    item.path,
-                                  );
-                                  final isCurrent = currentMusic?.path == remoteUri;
-                                  final ext = p.extension(item.name).replaceAll('.', '').toUpperCase();
-                                  final sizeStr = _formatFileSize(item.contentLength);
-                                  final subtitleStr = (isAudio && ext.isNotEmpty) ? '$sizeStr | $ext' : sizeStr;
-
-                                  void showFileMenu(Offset pos) {
-                                    final audioFiles = _getAudioFiles();
-                                    showWebDavFileContextMenu(
-                                      context: context,
-                                      globalPosition: pos,
-                                      ref: ref,
-                                      server: widget.server,
-                                      password: widget.password,
-                                      file: item,
-                                      currentAudioFiles: audioFiles,
-                                      onPlay: isAudio
-                                          ? () async {
-                                              final target =
-                                                  RemoteMediaResolver.buildMusicFileFromWebDav(
-                                                item,
-                                                widget.server,
-                                              );
-                                              final initialIndex = audioFiles
-                                                  .indexWhere((s) => s.path == target.path);
-                                              final audioService =
-                                                  ref.read(audioServiceProvider);
-                                              await audioService.playPlaylist(
-                                                audioFiles.isNotEmpty ? audioFiles : [target],
-                                                initialIndex: initialIndex >= 0 ? initialIndex : 0,
-                                              );
-                                            }
-                                          : null,
-                                    );
-                                  }
-
-                                  return GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onSecondaryTapDown: (details) => showFileMenu(details.globalPosition),
-                                    onLongPressStart: (details) => showFileMenu(details.globalPosition),
-                                    child: ListTile(
-                                      leading: Icon(
-                                        isAudio
-                                            ? Icons.music_note_rounded
-                                            : Icons.insert_drive_file_outlined,
-                                        color: isAudio
-                                            ? (isCurrent
-                                                ? theme.colorScheme.primary
-                                                : Colors.blue)
-                                            : theme.colorScheme.onSurfaceVariant
-                                                .withValues(alpha: 0.5),
-                                      ),
-                                      title: Row(
-                                        children: [
-                                          if (isCurrent) ...[
-                                            PlayingEqualizerIcon(
-                                              color: theme.colorScheme.primary,
-                                              size: 16,
-                                              isPlaying: isAudioPlaying,
-                                            ),
-                                            const SizedBox(width: 6),
-                                          ],
-                                          Expanded(
-                                            child: Text(
-                                              item.name,
-                                              style: TextStyle(
-                                                color: isCurrent
-                                                    ? theme.colorScheme.primary
-                                                    : (isAudio
-                                                        ? null
-                                                        : theme.colorScheme.onSurfaceVariant
-                                                            .withValues(alpha: 0.6)),
-                                                fontWeight: isCurrent
-                                                    ? FontWeight.bold
-                                                    : FontWeight.normal,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      subtitle: Text(
-                                        subtitleStr,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: isCurrent
-                                              ? theme.colorScheme.primary.withValues(alpha: 0.75)
-                                              : theme.colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                      trailing: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (isAudio)
-                                            IconButton(
-                                              icon: Icon(
-                                                Icons.download_rounded,
-                                                size: 22,
-                                                color: isCurrent ? theme.colorScheme.primary : null,
-                                              ),
-                                              tooltip: 'Download',
-                                              onPressed: () => _downloadSingleAudio(item),
-                                            ),
-                                          Builder(
-                                            builder: (btnContext) {
-                                              return IconButton(
-                                                icon: Icon(
-                                                  Icons.more_vert_rounded,
-                                                  size: 20,
-                                                  color: isCurrent ? theme.colorScheme.primary : null,
-                                                ),
-                                                tooltip: 'More',
-                                                onPressed: () {
-                                                  final box = btnContext.findRenderObject() as RenderBox?;
-                                                  final pos = box != null
-                                                      ? box.localToGlobal(Offset(box.size.width / 2, box.size.height / 2))
-                                                      : Offset.zero;
-                                                  showFileMenu(pos);
-                                                },
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                      onTap: isAudio
-                                          ? () async {
-                                              final audioFiles = _getAudioFiles();
-                                              final target =
-                                                  RemoteMediaResolver.buildMusicFileFromWebDav(
-                                                item,
-                                                widget.server,
-                                              );
-                                              final initialIndex =
-                                                  audioFiles.indexWhere((s) => s.path == target.path);
-                                              final audioService =
-                                                  ref.read(audioServiceProvider);
-                                              await audioService.playPlaylist(
-                                                audioFiles.isNotEmpty ? audioFiles : [target],
-                                                initialIndex: initialIndex >= 0 ? initialIndex : 0,
-                                              );
-                                            }
-                                          : null,
-                                    ),
-                                  );
-                                },
+                                  },
+                                  childCount: _items.length,
+                                ),
                               ),
                             ),
-            ),
-          ],
+                        ],
+                      ),
+                    ),
         ),
       ),
     );
