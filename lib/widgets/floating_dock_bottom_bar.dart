@@ -609,11 +609,17 @@ class _FloatingDockProgressBar extends StatelessWidget {
               _handleUpdate(details.localPosition.dx, totalWidth, true),
           onHorizontalDragUpdate: (details) =>
               _handleUpdate(details.localPosition.dx, totalWidth, false),
-          onHorizontalDragEnd: (details) => onDragEnd(effectiveProgress),
+          onHorizontalDragEnd: (details) => onDragEnd(dragProgress),
           onHorizontalDragCancel: onDragCancel,
           onTapDown: (details) =>
               _handleUpdate(details.localPosition.dx, totalWidth, true),
-          onTapUp: (details) => onDragEnd(effectiveProgress),
+          onTapUp: (details) {
+            if (totalWidth <= 0) return;
+            final newProgress =
+                (details.localPosition.dx / totalWidth).clamp(0.0, 1.0);
+            onDragEnd(newProgress);
+          },
+          onTapCancel: onDragCancel,
           child: Container(
             height: 14.0, // 充足的手势触控热区
             alignment: Alignment.center,
