@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../dialogs/add_edit_remote_server_dialog.dart';
@@ -9,7 +10,7 @@ import 'folder_grid_card.dart';
 import 'folder_layout_utils.dart';
 import 'app_context_menu.dart';
 
-/// Shows a context menu for a remote media server (Browse, Edit, Delete).
+/// Shows a context menu or bottom sheet for a remote media server (Browse, Edit, Delete).
 Future<void> showRemoteServerContextMenu({
   required BuildContext context,
   required Offset position,
@@ -19,56 +20,193 @@ Future<void> showRemoteServerContextMenu({
   final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
   final isSubsonic = server.type == RemoteServerType.subsonic;
+  final isMobile = Platform.isAndroid || Platform.isIOS;
 
-  final selected = await AppContextMenu.show<String>(
-    context: context,
-    position: position,
-    items: [
-      PopupMenuItem(
-        value: 'browse',
-        child: Row(
-          children: [
-            Icon(
-              isSubsonic
-                  ? Icons.library_music_rounded
-                  : Icons.folder_copy_outlined,
-              size: 18,
-              color: isSubsonic ? Colors.orange : Colors.blue,
+  final String? selected;
+
+  if (isMobile) {
+    final gradientColors = isSubsonic
+        ? const [Color(0xFFFF5E3A), Color(0xFFFF2A68)]
+        : const [Color(0xFF0072FF), Color(0xFF00C6FF)];
+    final serverIcon = isSubsonic
+        ? Icons.library_music_rounded
+        : Icons.cloud_queue_rounded;
+    final typeLabel = isSubsonic ? 'Navidrome' : 'WebDAV';
+
+    selected = await AppContextMenu.showModalSheet<String>(
+      context: context,
+      builder: (ctx) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(ctx),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Material(
+                    elevation: 16,
+                    color: theme.colorScheme.surface,
+                    shadowColor: Colors.black26,
+                    borderRadius: BorderRadius.circular(24),
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: gradientColors,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    serverIcon,
+                                    size: 26,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      server.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$typeLabel · ${server.url}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Divider(height: 1),
+                          const SizedBox(height: 8),
+                          ListTile(
+                            leading: Icon(
+                              isSubsonic
+                                  ? Icons.library_music_rounded
+                                  : Icons.folder_copy_outlined,
+                              color: isSubsonic ? Colors.orange : Colors.blue,
+                            ),
+                            title: Text(l10n.browseServer),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            onTap: () => Navigator.pop(ctx, 'browse'),
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.edit_rounded),
+                            title: Text(l10n.editRemoteServer),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            onTap: () => Navigator.pop(ctx, 'edit'),
+                          ),
+                          ListTile(
+                            leading: Icon(
+                              Icons.delete_outline_rounded,
+                              color: theme.colorScheme.error,
+                            ),
+                            title: Text(
+                              l10n.delete,
+                              style: TextStyle(color: theme.colorScheme.error),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            onTap: () => Navigator.pop(ctx, 'delete'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
-            Text(l10n.browseServer),
-          ],
+          ),
         ),
       ),
-      PopupMenuItem(
-        value: 'edit',
-        child: Row(
-          children: [
-            const Icon(Icons.edit_rounded, size: 18),
-            const SizedBox(width: 12),
-            Text(l10n.editRemoteServer),
-          ],
+    );
+  } else {
+    selected = await AppContextMenu.show<String>(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem(
+          value: 'browse',
+          child: Row(
+            children: [
+              Icon(
+                isSubsonic
+                    ? Icons.library_music_rounded
+                    : Icons.folder_copy_outlined,
+                size: 18,
+                color: isSubsonic ? Colors.orange : Colors.blue,
+              ),
+              const SizedBox(width: 12),
+              Text(l10n.browseServer),
+            ],
+          ),
         ),
-      ),
-      PopupMenuItem(
-        value: 'delete',
-        child: Row(
-          children: [
-            Icon(
-              Icons.delete_outline_rounded,
-              size: 18,
-              color: theme.colorScheme.error,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              l10n.delete,
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-          ],
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: [
+              const Icon(Icons.edit_rounded, size: 18),
+              const SizedBox(width: 12),
+              Text(l10n.editRemoteServer),
+            ],
+          ),
         ),
-      ),
-    ],
-  );
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                l10n.delete,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   if (!context.mounted || selected == null) return;
 
@@ -289,15 +427,10 @@ class RemoteServersSliver extends ConsumerWidget {
                           ref: ref,
                         );
                       },
-                      onLongPress: () {
-                        final renderBox =
-                            context.findRenderObject() as RenderBox?;
-                        final offset = renderBox != null
-                            ? renderBox.localToGlobal(Offset.zero)
-                            : Offset.zero;
+                      onLongPressStart: (details) {
                         showRemoteServerContextMenu(
                           context: context,
-                          position: offset,
+                          position: details.globalPosition,
                           server: server,
                           ref: ref,
                         );
@@ -337,15 +470,10 @@ class RemoteServersSliver extends ConsumerWidget {
                       ref: ref,
                     );
                   },
-                  onLongPress: () {
-                    final renderBox =
-                        context.findRenderObject() as RenderBox?;
-                    final offset = renderBox != null
-                        ? renderBox.localToGlobal(Offset.zero)
-                        : Offset.zero;
+                  onLongPressStart: (details) {
                     showRemoteServerContextMenu(
                       context: context,
-                      position: offset,
+                      position: details.globalPosition,
                       server: server,
                       ref: ref,
                     );
@@ -366,6 +494,7 @@ class RemoteServerGridCard extends StatelessWidget {
   final RemoteServer server;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final void Function(LongPressStartDetails)? onLongPressStart;
   final void Function(TapDownDetails)? onSecondaryTapDown;
 
   const RemoteServerGridCard({
@@ -373,6 +502,7 @@ class RemoteServerGridCard extends StatelessWidget {
     required this.server,
     this.onTap,
     this.onLongPress,
+    this.onLongPressStart,
     this.onSecondaryTapDown,
   });
 
@@ -394,6 +524,7 @@ class RemoteServerGridCard extends StatelessWidget {
 
     return GestureDetector(
       onSecondaryTapDown: onSecondaryTapDown,
+      onLongPressStart: onLongPressStart,
       onLongPress: onLongPress,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -531,6 +662,7 @@ class RemoteServerListTile extends StatelessWidget {
   final RemoteServer server;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
+  final void Function(LongPressStartDetails)? onLongPressStart;
   final void Function(TapDownDetails)? onSecondaryTapDown;
 
   const RemoteServerListTile({
@@ -538,6 +670,7 @@ class RemoteServerListTile extends StatelessWidget {
     required this.server,
     this.onTap,
     this.onLongPress,
+    this.onLongPressStart,
     this.onSecondaryTapDown,
   });
 
@@ -587,6 +720,7 @@ class RemoteServerListTile extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: onSecondaryTapDown,
+      onLongPressStart: onLongPressStart,
       onLongPress: onLongPress,
       child: Material(
         color: Colors.transparent,
