@@ -4,7 +4,6 @@ import 'package:oktoast/oktoast.dart';
 import '../l10n/app_localizations.dart';
 import '../models/music_file.dart';
 import '../player/audio/audio_riverpod.dart';
-import '../player/library/playlist_service.dart';
 import '../player/remote/clients/subsonic_client.dart';
 import '../player/remote/proxy/remote_media_resolver.dart';
 import '../player/remote/remote_server_models.dart';
@@ -137,13 +136,25 @@ class _RemotePlaylistDialogContentState
     await showDialog(
       context: context,
       builder: (createCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         title: Text(widget.l10n.createNewServerPlaylist),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: widget.l10n.playlistName,
-            hintText: widget.l10n.enterPlaylistName,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: widget.l10n.playlistName,
+              hintText: widget.l10n.enterPlaylistName,
+              filled: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+            ),
           ),
         ),
         actions: [
@@ -184,13 +195,25 @@ class _RemotePlaylistDialogContentState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       title: Row(
         children: [
-          Icon(
-            Icons.playlist_add_rounded,
-            color: widget.theme.colorScheme.primary,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: widget.theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.playlist_add_rounded,
+              color: widget.theme.colorScheme.onPrimaryContainer,
+              size: 22,
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               widget.l10n.addToServerPlaylist,
@@ -199,97 +222,109 @@ class _RemotePlaylistDialogContentState
           ),
         ],
       ),
-      content: SizedBox(
-        width: double.maxFinite,
-        height: 340,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 420,
+          minWidth: 320,
+        ),
+        child: SizedBox(
+          height: 340,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Error: $_error', textAlign: TextAlign.center),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: _fetchServerPlaylists,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Error: $_error', textAlign: TextAlign.center),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: _fetchServerPlaylists,
-                          child: const Text('Retry'),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Text(
+                            widget.l10n.serverPlaylists,
+                            style: widget.theme.textTheme.labelMedium?.copyWith(
+                              color: widget.theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: _serverPlaylists.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'No server playlists found',
+                                    style: TextStyle(
+                                      color: widget
+                                          .theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: _serverPlaylists.length,
+                                  itemBuilder: (context, index) {
+                                    final pl = _serverPlaylists[index];
+                                    final name =
+                                        pl['name'] as String? ?? 'Playlist';
+                                    final id = pl['id'] as String? ?? '';
+                                    final count = pl['songCount'] as int? ?? 0;
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 2),
+                                      child: ListTile(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        leading: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange
+                                                .withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(
+                                            Icons.queue_music_rounded,
+                                            color: Colors.orange,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          widget.l10n.songCount(count),
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        onTap: () =>
+                                            _addToExistingPlaylist(id, name),
+                                      ),
+                                    );
+                                  },
+                                ),
                         ),
                       ],
                     ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          widget.l10n.serverPlaylists,
-                          style: widget.theme.textTheme.labelMedium?.copyWith(
-                            color: widget.theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: _serverPlaylists.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'No server playlists found',
-                                  style: TextStyle(
-                                    color: widget
-                                        .theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                itemCount: _serverPlaylists.length,
-                                itemBuilder: (context, index) {
-                                  final pl = _serverPlaylists[index];
-                                  final name =
-                                      pl['name'] as String? ?? 'Playlist';
-                                  final id = pl['id'] as String? ?? '';
-                                  final count = pl['songCount'] as int? ?? 0;
-
-                                  return ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    leading: Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.orange
-                                            .withValues(alpha: 0.15),
-                                        borderRadius:
-                                            BorderRadius.circular(8),
-                                      ),
-                                      child: const Icon(
-                                        Icons.queue_music_rounded,
-                                        color: Colors.orange,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      widget.l10n.songCount(count),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    onTap: () =>
-                                        _addToExistingPlaylist(id, name),
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
-                  ),
+        ),
       ),
       actions: [
         TextButton(

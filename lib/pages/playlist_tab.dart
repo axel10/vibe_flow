@@ -11,7 +11,6 @@ import 'package:vynody/player/library/playlist_service.dart';
 import '../widgets/song_tile.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
-import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/utils/playlist_name.dart';
 import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
@@ -111,139 +110,13 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     List<MusicFile> selectedSongs,
   ) {
     final playlistService = ref.read(playlistServiceProvider);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.addToPlaylist),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
-          child: ListView.builder(
-            itemCount: playlistService.playlists.length,
-            itemBuilder: (context, index) {
-              final playlist = playlistService.playlists[index];
-              return ListTile(
-                leading: const Icon(Icons.playlist_play),
-                title: Text(localizedPlaylistName(context, playlist)),
-                subtitle: Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.songCount(playlist.songs.length),
-                ),
-                onTap: () {
-                  playlistService.addSongsToPlaylist(
-                    playlist.id,
-                    selectedSongs,
-                  );
-                  Navigator.pop(context);
-                  AppSnackBar.show(
-                    context,
-                    ref,
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.addedToPlaylist(
-                          selectedSongs.length,
-                          localizedPlaylistName(context, playlist),
-                        ),
-                      ),
-                    ),
-                  );
-                  _toggleSelectionMode();
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showCreatePlaylistAndAddDialog(context, selectedSongs);
-            },
-            child: Text(AppLocalizations.of(context)!.createNewList),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCreatePlaylistAndAddDialog(
-    BuildContext context,
-    List<MusicFile> selectedSongs,
-  ) {
-    final controller = TextEditingController();
-    String? errorText;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.createPlaylist),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.playlistName,
-              hintText: AppLocalizations.of(context)!.enterPlaylistName,
-              errorText: errorText,
-            ),
-            onChanged: (val) {
-              if (errorText != null) {
-                setState(() {
-                  errorText = null;
-                });
-              }
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  final playlistService = ref.read(playlistServiceProvider);
-                  if (playlistService.playlistExists(name)) {
-                    setState(() {
-                      errorText = AppLocalizations.of(
-                        context,
-                      )!.playlistNameExists;
-                    });
-                    return;
-                  }
-                  final playlist = await playlistService.createPlaylist(name);
-                  if (context.mounted) {
-                    ref
-                        .read(playlistServiceProvider)
-                        .addSongsToPlaylist(playlist.id, selectedSongs);
-                    Navigator.pop(context);
-                    AppSnackBar.show(
-                      context,
-                      ref,
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.createdPlaylist(name, selectedSongs.length),
-                        ),
-                      ),
-                    );
-                    _toggleSelectionMode();
-                  }
-                }
-              },
-              child: Text(AppLocalizations.of(context)!.createPlaylist),
-            ),
-          ],
-        ),
-      ),
+    showAddSongsToPlaylistDialog(
+      context,
+      playlistService,
+      selectedSongs,
+      onPlaylistCreatedOrUpdated: () {
+        _cancelSelection();
+      },
     );
   }
 
