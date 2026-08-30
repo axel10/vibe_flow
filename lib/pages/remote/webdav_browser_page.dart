@@ -12,11 +12,15 @@ import '../../player/remote/clients/webdav_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
+import '../../player/remote/services/webdav_metadata_helper.dart';
+import '../../player/metadata/metadata_database.dart';
+import '../../player/scanner/scanner_service.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/remote_context_menu_utils.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/playing_equalizer_icon.dart';
+import '../../widgets/song_thumbnail.dart';
 import 'remote_download_manager_page.dart';
 
 class WebDavBrowserPage extends ConsumerStatefulWidget {
@@ -46,6 +50,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   bool _isLoading = false;
   String? _error;
   List<WebDavFile> _items = [];
+  final Map<String, SongMetadata> _metadataMap = {};
+  int _loadEpoch = 0;
 
   @override
   void initState() {
@@ -58,6 +64,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     final session = ref.read(activeRemoteSessionProvider);
     final isSameServer =
         session != null && session.server.id == widget.server.id;
+
+    if (isSameServer && session.webDavMetadataCache.isNotEmpty) {
+      _metadataMap.addAll(session.webDavMetadataCache);
+    }
 
     _rootPath = widget.rootPath ??
         (isSameServer && session.rootPath != null ? session.rootPath! : null) ??
@@ -75,6 +85,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         session.webDavDirectoryCache.containsKey(_currentPath)) {
       _items = session.webDavDirectoryCache[_currentPath]!;
       _isLoading = false;
+      _startMetadataExtraction(_items, _loadEpoch);
     } else {
       _loadDirectory(_currentPath);
     }
@@ -98,6 +109,9 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     final isSameServer =
         session != null && session.server.id == widget.server.id;
 
+    _loadEpoch++;
+    final currentEpoch = _loadEpoch;
+
     if (!forceRefresh &&
         isSameServer &&
         session.webDavDirectoryCache.containsKey(path)) {
@@ -107,6 +121,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         _isLoading = false;
         _error = null;
       });
+      _startMetadataExtraction(_items, currentEpoch);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
@@ -140,12 +155,13 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         }
       }
 
-      if (mounted) {
+      if (mounted && _loadEpoch == currentEpoch) {
         setState(() {
           _items = list;
           _currentPath = effectivePath;
           _isLoading = false;
         });
+        _startMetadataExtraction(list, currentEpoch);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
@@ -156,7 +172,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         });
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && _loadEpoch == currentEpoch) {
         setState(() {
           _error = e.toString();
           _isLoading = false;
@@ -165,10 +181,83 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
+  Future<void> _startMetadataExtraction(List<WebDavFile> files, int epoch) async {
+    final audioFiles = files.where((f) => f.isAudio).toList();
+    if (audioFiles.isEmpty) return;
+
+    // 1. Check local SQLite metadata database first for instant cache hits
+    final db = MetadataDatabase();
+    final Map<String, SongMetadata> dbHits = {};
+    for (final file in audioFiles) {
+      final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, file.path);
+      if (!_metadataMap.containsKey(virtualUri)) {
+        final cached = await db.getSongMetadata(virtualUri);
+        if (cached != null) {
+          dbHits[virtualUri] = cached;
+          _metadataMap[virtualUri] = cached;
+        }
+      }
+    }
+
+    if (dbHits.isNotEmpty && mounted && _loadEpoch == epoch) {
+      setState(() {});
+      for (final meta in dbHits.values) {
+        ref.read(scannerServiceProvider).updateMetadataForPath(meta);
+      }
+      ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
+            currentPath: _currentPath,
+            rootPath: _rootPath,
+            metadataMap: dbHits,
+          );
+    }
+
+    // 2. Identify unparsed files that need HTTP Range tag extraction
+    final unparsedFiles = audioFiles.where((f) {
+      final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, f.path);
+      return !_metadataMap.containsKey(virtualUri);
+    }).toList();
+
+    if (unparsedFiles.isEmpty) return;
+
+    // 3. Concurrently extract metadata with pool of 3
+    final Map<String, SongMetadata> newMetas = {};
+    await WebDavMetadataHelper.processBatchMetadata(
+      files: unparsedFiles,
+      server: widget.server,
+      password: widget.password,
+      concurrency: 3,
+      isCancelled: () => !mounted || _loadEpoch != epoch,
+      onMetadataLoaded: (virtualUri, meta) {
+        if (!mounted || _loadEpoch != epoch) return;
+        _metadataMap[virtualUri] = meta;
+        newMetas[virtualUri] = meta;
+        ref.read(scannerServiceProvider).updateMetadataForPath(meta);
+        setState(() {});
+      },
+    );
+
+    if (newMetas.isNotEmpty && mounted && _loadEpoch == epoch) {
+      ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
+            currentPath: _currentPath,
+            rootPath: _rootPath,
+            metadataMap: newMetas,
+          );
+    }
+  }
+
   List<MusicFile> _getAudioFiles() {
+    final scanner = ref.read(scannerServiceProvider);
     return _items
         .where((item) => item.isAudio)
-        .map((item) => RemoteMediaResolver.buildMusicFileFromWebDav(item, widget.server))
+        .map((item) {
+          final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+          final meta = _metadataMap[virtualUri] ?? scanner.metadataMap[virtualUri];
+          return RemoteMediaResolver.buildMusicFileFromWebDav(
+            item,
+            widget.server,
+            metadata: meta,
+          );
+        })
         .toList();
   }
 
@@ -517,16 +606,47 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                               );
                               final isCurrent =
                                   currentMusic?.path == remoteUri;
+
+                              final metadata = _metadataMap[remoteUri] ??
+                                  ref.watch(scannerServiceProvider
+                                      .select((s) => s.metadataMap[remoteUri]));
+
+                              final titleText = (metadata != null &&
+                                      metadata.title.isNotEmpty)
+                                  ? metadata.title
+                                  : item.name;
+
+                              final hasArtist = metadata != null &&
+                                  metadata.artist.isNotEmpty &&
+                                  metadata.artist != 'Unknown';
+                              final hasAlbum = metadata != null &&
+                                  metadata.album.isNotEmpty &&
+                                  metadata.album != 'Unknown';
+                              String? artistAlbumStr;
+                              if (hasArtist && hasAlbum) {
+                                artistAlbumStr =
+                                    '${metadata.artist} - ${metadata.album}';
+                              } else if (hasArtist) {
+                                artistAlbumStr = metadata.artist;
+                              } else if (hasAlbum) {
+                                artistAlbumStr = metadata.album;
+                              }
+
+                              final durationStr = metadata?.duration != null
+                                  ? _formatDuration(metadata!.duration!)
+                                  : null;
                               final ext = p
                                   .extension(item.name)
                                   .replaceAll('.', '')
                                   .toUpperCase();
                               final sizeStr =
                                   _formatFileSize(item.contentLength);
-                              final subtitleStr =
-                                  (isAudio && ext.isNotEmpty)
-                                      ? '$sizeStr | $ext'
-                                      : sizeStr;
+
+                              final List<String> techParts = [];
+                              if (durationStr != null) techParts.add(durationStr);
+                              if (ext.isNotEmpty) techParts.add(ext);
+                              if (sizeStr.isNotEmpty) techParts.add(sizeStr);
+                              final techInfoStr = techParts.join(' | ');
 
                               void showFileMenu(Offset pos) {
                                 final audioFiles = _getAudioFiles();
@@ -545,6 +665,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                                   .buildMusicFileFromWebDav(
                                             item,
                                             widget.server,
+                                            metadata: metadata,
                                           );
                                           final initialIndex = audioFiles
                                               .indexWhere((s) =>
@@ -565,6 +686,46 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                 );
                               }
 
+                              Widget leadingWidget;
+                              if (isAudio) {
+                                leadingWidget = ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: SizedBox(
+                                    width: 48,
+                                    height: 48,
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        SongThumbnail(
+                                          path: remoteUri,
+                                          thumbnailPath:
+                                              metadata?.thumbnailPath,
+                                          size: 48.0,
+                                        ),
+                                        if (isCurrent)
+                                          Container(
+                                            color: Colors.black45,
+                                            child: Center(
+                                              child: PlayingEqualizerIcon(
+                                                color: Colors.white,
+                                                size: 18,
+                                                isPlaying: isAudioPlaying,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                leadingWidget = Icon(
+                                  Icons.insert_drive_file_outlined,
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.5),
+                                  size: 28,
+                                );
+                              }
+
                               return GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onSecondaryTapDown: (details) =>
@@ -574,33 +735,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                     showFileMenu(
                                         details.globalPosition),
                                 child: ListTile(
-                                  leading: Icon(
-                                    isAudio
-                                        ? Icons.music_note_rounded
-                                        : Icons
-                                            .insert_drive_file_outlined,
-                                    color: isAudio
-                                        ? (isCurrent
-                                            ? theme.colorScheme.primary
-                                            : Colors.blue)
-                                        : theme
-                                            .colorScheme.onSurfaceVariant
-                                            .withValues(alpha: 0.5),
-                                  ),
+                                  leading: leadingWidget,
                                   title: Row(
                                     children: [
-                                      if (isCurrent) ...[
-                                        PlayingEqualizerIcon(
-                                          color:
-                                              theme.colorScheme.primary,
-                                          size: 16,
-                                          isPlaying: isAudioPlaying,
-                                        ),
-                                        const SizedBox(width: 6),
-                                      ],
                                       Expanded(
                                         child: Text(
-                                          item.name,
+                                          titleText,
                                           style: TextStyle(
                                             color: isCurrent
                                                 ? theme
@@ -623,17 +763,59 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                       ),
                                     ],
                                   ),
-                                  subtitle: Text(
-                                    subtitleStr,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isCurrent
-                                          ? theme.colorScheme.primary
-                                              .withValues(alpha: 0.75)
-                                          : theme.colorScheme
-                                              .onSurfaceVariant,
-                                    ),
-                                  ),
+                                  subtitle: isAudio
+                                      ? Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (artistAlbumStr != null) ...[
+                                              Text(
+                                                artistAlbumStr,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: isCurrent
+                                                      ? theme.colorScheme
+                                                          .primary
+                                                          .withValues(
+                                                              alpha: 0.85)
+                                                      : theme.colorScheme
+                                                          .onSurfaceVariant,
+                                                ),
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 1),
+                                            ],
+                                            Text(
+                                              techInfoStr,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: isCurrent
+                                                    ? theme.colorScheme
+                                                        .primary
+                                                        .withValues(
+                                                            alpha: 0.7)
+                                                    : theme.colorScheme
+                                                        .onSurfaceVariant
+                                                        .withValues(
+                                                            alpha: 0.75),
+                                              ),
+                                              maxLines: 1,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        )
+                                      : Text(
+                                          sizeStr,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: theme.colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                        ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -693,6 +875,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                                   .buildMusicFileFromWebDav(
                                             item,
                                             widget.server,
+                                            metadata: metadata,
                                           );
                                           final initialIndex = audioFiles
                                               .indexWhere((s) =>
@@ -820,6 +1003,17 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         ],
       ),
     );
+  }
+
+  String _formatDuration(int durationMs) {
+    final duration = Duration(milliseconds: durationMs);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
   String _formatFileSize(int bytes) {

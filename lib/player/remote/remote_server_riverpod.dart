@@ -5,6 +5,7 @@ import 'remote_server_storage.dart';
 import '../../models/music_file.dart';
 import 'clients/subsonic_client.dart';
 import 'clients/webdav_client.dart';
+import '../metadata/metadata_database.dart';
 
 final remoteServerStorageProvider = FutureProvider<RemoteServerStorage>((ref) async {
   final prefs = await SharedPreferences.getInstance();
@@ -170,6 +171,7 @@ class ActiveRemoteSession {
   final String? rootPath;
   final int? initialTabIndex;
   final Map<String, List<WebDavFile>> webDavDirectoryCache;
+  final Map<String, SongMetadata> webDavMetadataCache;
 
   // Navidrome / Subsonic cached states
   final List<Map<String, dynamic>>? navidromeAlbums;
@@ -194,6 +196,7 @@ class ActiveRemoteSession {
     this.rootPath,
     this.initialTabIndex,
     this.webDavDirectoryCache = const {},
+    this.webDavMetadataCache = const {},
     this.navidromeAlbums,
     this.navidromeAlbumSortType,
     this.navidromeArtists,
@@ -217,6 +220,7 @@ class ActiveRemoteSession {
     String? rootPath,
     int? initialTabIndex,
     Map<String, List<WebDavFile>>? webDavDirectoryCache,
+    Map<String, SongMetadata>? webDavMetadataCache,
     List<Map<String, dynamic>>? navidromeAlbums,
     String? navidromeAlbumSortType,
     List<Map<String, dynamic>>? navidromeArtists,
@@ -239,6 +243,7 @@ class ActiveRemoteSession {
       rootPath: rootPath ?? this.rootPath,
       initialTabIndex: initialTabIndex ?? this.initialTabIndex,
       webDavDirectoryCache: webDavDirectoryCache ?? this.webDavDirectoryCache,
+      webDavMetadataCache: webDavMetadataCache ?? this.webDavMetadataCache,
       navidromeAlbums: navidromeAlbums ?? this.navidromeAlbums,
       navidromeAlbumSortType:
           navidromeAlbumSortType ?? this.navidromeAlbumSortType,
@@ -284,17 +289,24 @@ class ActiveRemoteSessionNotifier extends Notifier<ActiveRemoteSession?> {
     required String currentPath,
     String? rootPath,
     List<WebDavFile>? items,
+    Map<String, SongMetadata>? metadataMap,
   }) {
     if (state != null) {
-      final newCache =
+      final newDirCache =
           Map<String, List<WebDavFile>>.from(state!.webDavDirectoryCache);
       if (items != null) {
-        newCache[currentPath] = items;
+        newDirCache[currentPath] = items;
+      }
+      final newMetaCache =
+          Map<String, SongMetadata>.from(state!.webDavMetadataCache);
+      if (metadataMap != null) {
+        newMetaCache.addAll(metadataMap);
       }
       state = state!.copyWith(
         initialPath: currentPath,
         rootPath: rootPath ?? state!.rootPath,
-        webDavDirectoryCache: newCache,
+        webDavDirectoryCache: newDirCache,
+        webDavMetadataCache: newMetaCache,
       );
     }
   }

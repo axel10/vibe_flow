@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/clients/subsonic_client.dart';
 import 'package:vynody/player/remote/clients/webdav_client.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/metadata/metadata_database.dart';
 
 void main() {
   group('RemoteServer Model Tests', () {
@@ -191,6 +193,60 @@ void main() {
       expect(image.name, 'cover.jpg');
       expect(image.isImage, true);
       expect(image.isAudio, false);
+    });
+  });
+
+  group('RemoteMediaResolver WebDAV metadata tests', () {
+    final server = RemoteServer(
+      id: 'test-dav',
+      name: 'WebDAV Test',
+      type: RemoteServerType.webdav,
+      url: 'https://dav.example.com/dav',
+      username: 'user',
+      createdAt: DateTime.now(),
+    );
+
+    final file = const WebDavFile(
+      path: '/Music/Rock/01.Hotel California.flac',
+      name: '01.Hotel California.flac',
+      isDirectory: false,
+      contentLength: 35000000,
+    );
+
+    test('buildMusicFileFromWebDav without metadata uses filename fallback', () {
+      final musicFile = RemoteMediaResolver.buildMusicFileFromWebDav(file, server);
+      expect(musicFile.path, 'webdav://test-dav/Music/Rock/01.Hotel California.flac');
+      expect(musicFile.name, '01.Hotel California.flac');
+      expect(musicFile.title, '01.Hotel California');
+      expect(musicFile.artist, isNull);
+      expect(musicFile.album, isNull);
+    });
+
+    test('buildMusicFileFromWebDav with metadata injects full metadata fields', () {
+      final metadata = SongMetadata(
+        path: 'webdav://test-dav/Music/Rock/01.Hotel California.flac',
+        title: 'Hotel California',
+        artist: 'Eagles',
+        album: 'Hotel California',
+        duration: 391000,
+        trackNumber: 1,
+        thumbnailPath: '/path/to/thumb.jpg',
+      );
+
+      final musicFile = RemoteMediaResolver.buildMusicFileFromWebDav(
+        file,
+        server,
+        metadata: metadata,
+      );
+
+      expect(musicFile.path, 'webdav://test-dav/Music/Rock/01.Hotel California.flac');
+      expect(musicFile.name, '01.Hotel California.flac');
+      expect(musicFile.title, 'Hotel California');
+      expect(musicFile.artist, 'Eagles');
+      expect(musicFile.album, 'Hotel California');
+      expect(musicFile.durationMillis, 391000);
+      expect(musicFile.trackNumber, 1);
+      expect(musicFile.thumbnailPath, '/path/to/thumb.jpg');
     });
   });
 }

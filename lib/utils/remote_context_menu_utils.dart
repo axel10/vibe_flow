@@ -1422,7 +1422,9 @@ Future<void> showWebDavFileContextMenu({
   final l10n = AppLocalizations.of(context)!;
   final isMobile = Platform.isAndroid || Platform.isIOS;
   final isAudio = file.isAudio;
-  final song = isAudio ? RemoteMediaResolver.buildMusicFileFromWebDav(file, server) : null;
+  final virtualUri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
+  final meta = ref.read(scannerServiceProvider).metadataMap[virtualUri];
+  final song = isAudio ? RemoteMediaResolver.buildMusicFileFromWebDav(file, server, metadata: meta) : null;
 
   if (isMobile) {
     final selected = await showModalBottomSheet<String>(

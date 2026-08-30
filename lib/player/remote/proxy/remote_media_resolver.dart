@@ -12,6 +12,7 @@ import '../remote_server_models.dart';
 import '../remote_server_storage.dart';
 import '../clients/subsonic_client.dart';
 import '../clients/webdav_client.dart';
+import '../../metadata/metadata_database.dart';
 
 class RemoteUriInfo {
   final RemoteServerType type;
@@ -261,15 +262,22 @@ class RemoteMediaResolver {
   /// Constructs a [MusicFile] model from a [WebDavFile].
   static MusicFile buildMusicFileFromWebDav(
     WebDavFile file,
-    RemoteServer server,
-  ) {
+    RemoteServer server, {
+    SongMetadata? metadata,
+  }) {
     final uri = buildWebDavUri(server.id, file.path);
-    final title = p.basenameWithoutExtension(file.name);
+    final fallbackTitle = p.basenameWithoutExtension(file.name);
 
     return MusicFile(
       path: uri,
       name: file.name,
-      title: title,
+      title: metadata != null && metadata.title.isNotEmpty ? metadata.title : fallbackTitle,
+      artist: metadata != null && metadata.artist.isNotEmpty && metadata.artist != 'Unknown' ? metadata.artist : null,
+      album: metadata != null && metadata.album.isNotEmpty && metadata.album != 'Unknown' ? metadata.album : null,
+      trackNumber: metadata?.trackNumber,
+      durationMillis: metadata?.duration,
+      thumbnailPath: metadata?.thumbnailPath,
+      artworkPath: metadata?.artworkPath,
       isMissing: false,
     );
   }

@@ -283,6 +283,8 @@ dependency_overrides:
   #   path: ./Bonsoir/packages/bonsoir_windows
   audio_core:
     path: ./audio_core
+  flutter_taglib:
+    path: ./audio_core/flutter_taglib
   # windows_taskbar:
   #   path: ./windows_taskbar
   sqlparser: 0.44.4
