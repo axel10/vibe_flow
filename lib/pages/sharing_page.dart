@@ -25,9 +25,8 @@ import '../utils/song_context_menu_utils.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'package:vynody/dialogs/add_edit_remote_server_dialog.dart';
-import 'remote/navidrome_library_page.dart';
+import 'package:vynody/pages/main_layout.dart';
 import 'remote/remote_download_manager_page.dart';
-import 'remote/webdav_browser_page.dart';
 import 'package:vynody/player/remote/services/remote_download_service.dart';
 
 class SharingPage extends ConsumerStatefulWidget {
@@ -1853,27 +1852,13 @@ class _SharingPageState extends ConsumerState<SharingPage>
                         .getPassword(server.id);
                     if (!context.mounted) return;
 
-                    if (server.type == RemoteServerType.subsonic) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => NavidromeLibraryPage(
-                            server: server,
-                            password: pwd ?? '',
-                            wrapWithMiniPlayer: true,
-                          ),
-                        ),
-                      );
-                    } else {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => WebDavBrowserPage(
-                            server: server,
-                            password: pwd ?? '',
-                            wrapWithMiniPlayer: true,
-                          ),
-                        ),
-                      );
-                    }
+                    ref.read(activeRemoteSessionProvider.notifier).setSession(
+                      ActiveRemoteSession(
+                        server: server,
+                        password: pwd ?? '',
+                      ),
+                    );
+                    await navigateToMainTab(context, index: 0, fromIndex: 4);
                   },
                   icon: const Icon(Icons.arrow_forward_rounded, size: 16),
                   label: Text(l10n.browseServer),
