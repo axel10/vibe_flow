@@ -222,14 +222,7 @@ class PlaybackHeroCard extends ConsumerWidget {
           : _buildFullCard(context, ref),
     );
 
-    if (!enableHero) {
-      return card;
-    }
-
-    return Hero(
-      tag: playbackHeroTag,
-      child: card,
-    );
+    return card;
   }
 
   Widget _buildFullCard(BuildContext context, WidgetRef ref) {

@@ -45,14 +45,41 @@ import 'package:vynody/utils/app_snack_bar.dart';
 Route<void> buildMainLayoutRoute({
   required List<String> args,
   required int initialIndex,
+  int? fromIndex,
 }) {
   return PageRouteBuilder<void>(
     settings: RouteSettings(name: 'main-tab-$initialIndex'),
     pageBuilder: (context, animation, secondaryAnimation) =>
         MainLayout(args: args, initialIndex: initialIndex),
-    transitionDuration: const Duration(milliseconds: 320),
-    reverseTransitionDuration: const Duration(milliseconds: 320),
+    transitionDuration: const Duration(milliseconds: 350),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (initialIndex == 1) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.0, 1.0),
+            end: Offset.zero,
+          ).animate(curvedAnimation),
+          child: FadeTransition(
+            opacity: Tween<double>(begin: 0.7, end: 1.0).animate(curvedAnimation),
+            child: child,
+          ),
+        );
+      } else if (fromIndex == 1) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        );
+        return FadeTransition(
+          opacity: curvedAnimation,
+          child: child,
+        );
+      }
       return child;
     },
   );
@@ -61,6 +88,7 @@ Route<void> buildMainLayoutRoute({
 Future<void> navigateToMainTab(
   BuildContext context, {
   required int index,
+  int? fromIndex,
   List<String> args = const [],
 }) async {
   // 切页前先收起所有 tooltip，避免鼠标事件在路由切换期间继续驱动
@@ -74,8 +102,15 @@ Future<void> navigateToMainTab(
   await Navigator.of(
     context,
     rootNavigator: true,
-  ).pushReplacement(buildMainLayoutRoute(args: args, initialIndex: index));
+  ).pushReplacement(
+    buildMainLayoutRoute(
+      args: args,
+      initialIndex: index,
+      fromIndex: fromIndex,
+    ),
+  );
 }
+
 
 class PlayPauseIntent extends Intent {
   const PlayPauseIntent();
@@ -204,6 +239,13 @@ class _MainLayoutState extends ConsumerState<MainLayout>
 
   Future<void> _handleBackPressed() async {
     if (!Platform.isAndroid) return;
+
+    // 如果在播放页，返回上一 Tab
+    if (_currentIndex == 1) {
+      final previousTab = ref.read(previousMainTabIndexProvider);
+      await _onDestinationSelected(previousTab == 1 ? 0 : previousTab);
+      return;
+    }
 
     // 如果在目录页，且当前处于非根目录，则返回上一级目录
     if (_currentIndex == 0) {
@@ -581,7 +623,14 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     if (index == _currentIndex) {
       return;
     }
-    await navigateToMainTab(context, index: index);
+    if (_currentIndex != 1) {
+      ref.read(previousMainTabIndexProvider.notifier).setIndex(_currentIndex);
+    }
+    await navigateToMainTab(
+      context,
+      index: index,
+      fromIndex: _currentIndex,
+    );
   }
 
   Future<void> _openSettingsPage() async {

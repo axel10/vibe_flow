@@ -37,6 +37,7 @@ import '../widgets/mini_lyrics_view.dart';
 import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'main_layout_riverpod.dart';
+import 'main_layout.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:oktoast/oktoast.dart';
 
@@ -202,55 +203,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     });
   }
 
-  Uint8List? _getArtworkBytes(String songPath) {
-    if (_pendingArtworkPath == songPath && _pendingArtworkBytes != null) {
-      return _pendingArtworkBytes;
-    }
-    if (_fileArtworkBytesCache.containsKey(songPath)) {
-      return _fileArtworkBytesCache[songPath];
-    }
-    final currentMusic = ref.read(audioCurrentMusicProvider);
-    if (currentMusic?.path == songPath && currentMusic?.artworkBytes != null) {
-      return currentMusic!.artworkBytes;
-    }
-    final cached = _audioService?.getCachedArtwork(songPath);
-    if (cached != null) {
-      return cached;
-    }
-    _asyncLoadFileBytes(songPath);
-    return null;
-  }
 
-  void _asyncLoadFileBytes(String songPath) async {
-    if (_loadingPaths.contains(songPath)) return;
-    _loadingPaths.add(songPath);
-    try {
-      final currentMusic = ref.read(audioCurrentMusicProvider);
-      final metadata = ref.read(scannerServiceProvider).metadataMap[songPath];
-      String? imagePath = metadata?.thumbnailPath ?? metadata?.artworkPath;
-      if (imagePath == null || imagePath.isEmpty) {
-        if (songPath == currentMusic?.path) {
-          imagePath = currentMusic?.thumbnailPath ?? currentMusic?.artworkPath;
-        }
-      }
-      if (imagePath != null && imagePath.isNotEmpty) {
-        final file = File(imagePath);
-        if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          if (mounted) {
-            setState(() {
-              _fileArtworkBytesCache.clear();
-              _fileArtworkBytesCache[songPath] = bytes;
-            });
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error reading artwork file: $e');
-    } finally {
-      _loadingPaths.remove(songPath);
-    }
-  }
 
   /// 当用户点击专辑封面时触发，切换歌词模式显示状态。
   ///
@@ -1045,6 +998,42 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                     const DragToMoveArea(
                       child: SizedBox(
                         height: PlaybackPageUiTuning.desktopTopSpacer,
+                      ),
+                    ),
+                  if (!isLandscape && !isSmallWin && !isDesktop)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        final prev = ref.read(previousMainTabIndexProvider);
+                        navigateToMainTab(
+                          context,
+                          index: prev == 1 ? 0 : prev,
+                          fromIndex: 1,
+                        );
+                      },
+                      onVerticalDragEnd: (details) {
+                        if ((details.primaryVelocity ?? 0) > 180) {
+                          final prev = ref.read(previousMainTabIndexProvider);
+                          navigateToMainTab(
+                            context,
+                            index: prev == 1 ? 0 : prev,
+                            fromIndex: 1,
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
+                        child: Center(
+                          child: Container(
+                            width: 36,
+                            height: 4.5,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.38),
+                              borderRadius: BorderRadius.circular(2.5),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   if (showMiniPanel) ...[

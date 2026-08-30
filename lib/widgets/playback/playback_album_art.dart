@@ -140,21 +140,27 @@ class PlaybackAlbumArt extends ConsumerWidget {
       );
     }
 
-    final cover = ExcludeSemantics(
-      child: CoverCarousel(
-        playlist: playlist,
-        currentIndex: currentIndex,
-        audioService: ref.read(audioServiceProvider),
-        isNext: isNext,
-        displaySize: currentSize,
-        cacheWidthSize: cacheWidthSize,
-        onPageChanged: (page) {
-          final audio = ref.read(audioServiceProvider);
-          if (page >= 0 && page < playlist.length && page != currentIndex) {
-            audio.playAtIndex(page);
-          }
-        },
-        onAnimationComplete: onCarouselAnimationComplete,
+    final cover = Hero(
+      tag: 'playback_artwork_hero',
+      child: Material(
+        type: MaterialType.transparency,
+        child: ExcludeSemantics(
+          child: CoverCarousel(
+            playlist: playlist,
+            currentIndex: currentIndex,
+            audioService: ref.read(audioServiceProvider),
+            isNext: isNext,
+            displaySize: currentSize,
+            cacheWidthSize: cacheWidthSize,
+            onPageChanged: (page) {
+              final audio = ref.read(audioServiceProvider);
+              if (page >= 0 && page < playlist.length && page != currentIndex) {
+                audio.playAtIndex(page);
+              }
+            },
+            onAnimationComplete: onCarouselAnimationComplete,
+          ),
+        ),
       ),
     );
 

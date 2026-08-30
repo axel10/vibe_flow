@@ -54,31 +54,39 @@ class MiniArtwork extends ConsumerWidget {
 
     final hasImage = imageProvider != null;
 
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
+    return Hero(
+      tag: 'playback_artwork_hero',
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
-        image: hasImage
-            ? DecorationImage(
-                image: imageProvider,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.low,
-              )
-            : null,
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[900]
-            : Colors.grey[200],
-      ),
-      child: !hasImage
-          ? Icon(
-              Icons.music_note,
+        child: Material(
+          type: MaterialType.transparency,
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              image: hasImage
+                  ? DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.low,
+                    )
+                  : null,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black54,
-              size: 20,
-            )
-          : null,
+                  ? Colors.grey[900]
+                  : Colors.grey[200],
+            ),
+            child: !hasImage
+                ? Icon(
+                    Icons.music_note,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black54,
+                    size: 20,
+                  )
+                : null,
+          ),
+        ),
+      ),
     );
   }
 }

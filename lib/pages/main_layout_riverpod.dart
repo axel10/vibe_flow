@@ -91,3 +91,20 @@ class MainTabIndexNotifier extends Notifier<int> {
 
 final mainTabIndexProvider =
     NotifierProvider<MainTabIndexNotifier, int>(MainTabIndexNotifier.new);
+
+class PreviousMainTabIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setIndex(int index) {
+    if (state != index) {
+      state = index;
+    }
+  }
+}
+
+final previousMainTabIndexProvider =
+    NotifierProvider<PreviousMainTabIndexNotifier, int>(
+      PreviousMainTabIndexNotifier.new,
+    );
+
