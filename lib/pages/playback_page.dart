@@ -37,7 +37,6 @@ import '../widgets/mini_lyrics_view.dart';
 import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'main_layout_riverpod.dart';
-import 'main_layout.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:oktoast/oktoast.dart';
 
@@ -853,18 +852,16 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
             });
           }
           final bottomPadding = MediaQuery.of(context).padding.bottom;
-          final isImmersiveTabBarEnabled = settings.isImmersiveTabBarEnabled;
 
           final shouldReserveBottomNavSpace =
               !isLyricsMode && !isLandscape && !isSmallWin;
 
-          // When immersive tab bar is enabled, the NavigationBar in MainLayout
-          // is positioned in a Stack over the content with height (60 + bottomPadding).
+          // In portrait mode, FloatingDockBottomBar is positioned in a Stack over the content with height (60 + bottomPadding).
           double effectiveBottomPadding = bottomPadding;
           final lyricsBottomSpacerHeight = 0.0;
           double lyricsBottomTabBarHeight = 0.0;
 
-          if (isImmersiveTabBarEnabled && !isLandscape && !isSmallWin) {
+          if (!isLandscape && !isSmallWin) {
             // For lyrics mode, we want the background to be immersive (full screen),
             // so we don't pad the whole page. Instead, we pass the tab bar height
             // to the lyrics panel so it can add internal scrolling space.
@@ -998,42 +995,6 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                     const DragToMoveArea(
                       child: SizedBox(
                         height: PlaybackPageUiTuning.desktopTopSpacer,
-                      ),
-                    ),
-                  if (!isLandscape && !isSmallWin && !isDesktop)
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        final prev = ref.read(previousMainTabIndexProvider);
-                        navigateToMainTab(
-                          context,
-                          index: prev == 1 ? 0 : prev,
-                          fromIndex: 1,
-                        );
-                      },
-                      onVerticalDragEnd: (details) {
-                        if ((details.primaryVelocity ?? 0) > 180) {
-                          final prev = ref.read(previousMainTabIndexProvider);
-                          navigateToMainTab(
-                            context,
-                            index: prev == 1 ? 0 : prev,
-                            fromIndex: 1,
-                          );
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-                        child: Center(
-                          child: Container(
-                            width: 36,
-                            height: 4.5,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.38),
-                              borderRadius: BorderRadius.circular(2.5),
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                   if (showMiniPanel) ...[
