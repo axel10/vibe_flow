@@ -558,7 +558,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                   // Wide or Square cover extending across full width
                   if (isWideOrSquare && hasImage) ...[
                     Positioned.fill(
-                      child: heroTag != null
+                      child: (heroTag != null && !isWideScreen)
                           ? HeroMode(
                               enabled: isHeroModeEnabled,
                               child: Hero(
@@ -684,7 +684,8 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            constraints: const BoxConstraints(maxHeight: 110, maxWidth: 110),
+                            width: 100,
+                            height: 100,
                             margin: const EdgeInsets.only(right: 16),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
@@ -696,7 +697,7 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: (heroTag != null && !isWideOrSquare)
+                            child: heroTag != null
                                 ? HeroMode(
                                     enabled: isHeroModeEnabled,
                                     child: Hero(
@@ -708,17 +709,13 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                       ),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child: hasImage
-                                            ? Image.file(coverFile!, fit: BoxFit.cover)
-                                            : coverWidget,
+                                        child: coverWidget,
                                       ),
                                     ),
                                   )
                                 : ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: hasImage
-                                        ? Image.file(coverFile!, fit: BoxFit.cover)
-                                        : coverWidget,
+                                    child: coverWidget,
                                   ),
                           ),
                           Expanded(
