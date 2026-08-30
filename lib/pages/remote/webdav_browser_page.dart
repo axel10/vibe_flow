@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
+import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/webdav_client.dart';
@@ -14,10 +15,15 @@ import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import '../../player/remote/services/webdav_metadata_helper.dart';
 import '../../player/metadata/metadata_database.dart';
-import '../../player/scanner/scanner_service.dart';
+import '../../player/settings/settings_service.dart';
 import '../../utils/app_snack_bar.dart';
+import '../../utils/folder_helpers.dart';
 import '../../utils/remote_context_menu_utils.dart';
 import '../../widgets/desktop_window_title_bar.dart';
+import '../../widgets/folder_header_banner.dart';
+import '../../widgets/folder_layout_utils.dart';
+import '../../widgets/folder_grid_card.dart';
+import '../../widgets/folder_content_slivers.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/playing_equalizer_icon.dart';
 import '../../widgets/song_thumbnail.dart';
@@ -53,9 +59,17 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   final Map<String, SongMetadata> _metadataMap = {};
   int _loadEpoch = 0;
 
+  // Search & Scroll states
+  late final TextEditingController _searchController;
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _breadcrumbsScrollController = ScrollController();
+  bool _isSearching = false;
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _client = WebDavClient(
       server: widget.server,
       password: widget.password,
@@ -91,6 +105,14 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    _breadcrumbsScrollController.dispose();
+    super.dispose();
+  }
+
   bool get _isAtRoot {
     if (_currentPath.isEmpty || _currentPath == '/' || _currentPath == _rootPath) {
       return true;
@@ -112,6 +134,15 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     _loadEpoch++;
     final currentEpoch = _loadEpoch;
 
+    // Reset search on directory change
+    if (_isSearching || _searchQuery.isNotEmpty) {
+      setState(() {
+        _isSearching = false;
+        _searchQuery = '';
+        _searchController.clear();
+      });
+    }
+
     if (!forceRefresh &&
         isSameServer &&
         session.webDavDirectoryCache.containsKey(path)) {
@@ -121,6 +152,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         _isLoading = false;
         _error = null;
       });
+      _scrollToTop();
       _startMetadataExtraction(_items, currentEpoch);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -137,6 +169,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       _error = null;
       _currentPath = path;
     });
+    _scrollToTop();
 
     try {
       final list = await _client.listFiles(path);
@@ -178,6 +211,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0);
     }
   }
 
@@ -245,9 +284,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
-  List<MusicFile> _getAudioFiles() {
+  List<MusicFile> _getAudioFiles({List<WebDavFile>? sourceList}) {
     final scanner = ref.read(scannerServiceProvider);
-    return _items
+    final list = sourceList ?? _items;
+    return list
         .where((item) => item.isAudio)
         .map((item) {
           final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
@@ -273,7 +313,15 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     if (shuffle) {
       playlist.shuffle();
     }
-    await audioService.playPlaylist(playlist);
+    final folderName = _isAtRoot ? widget.server.name : p.basename(_currentPath);
+    await audioService.playPlaylist(
+      playlist,
+      source: PlaybackSource(
+        type: PlaybackSourceType.folder,
+        id: 'webdav-${widget.server.id}-$_currentPath',
+        name: folderName,
+      ),
+    );
     showToast('Playing ${playlist.length} songs');
   }
 
@@ -356,9 +404,11 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final settings = ref.watch(settingsServiceProvider);
+    final viewMode = settings.folderViewMode;
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final isAudioPlaying = ref.watch(audioIsPlayingProvider);
-    final audioCount = _items.where((i) => i.isAudio).length;
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
@@ -367,7 +417,206 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       hasPlayingMusic: currentMusic != null,
     );
 
-    Widget content = PopScope(
+    // Current directory audio stats
+    final audioItems = _items.where((i) => i.isAudio).toList();
+    final audioCount = audioItems.length;
+    int totalDurationMs = 0;
+    for (final item in audioItems) {
+      final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+      final meta = _metadataMap[virtualUri] ?? ref.watch(scannerServiceProvider.select((s) => s.metadataMap[virtualUri]));
+      if (meta?.duration != null) {
+        totalDurationMs += meta!.duration!;
+      }
+    }
+
+    // Banner cover finding logic:
+    // Only search in current directory audio files for an existing thumbnail file. No deep recursive search.
+    String? bannerCoverThumbnailPath;
+    String? bannerCoverVirtualUri;
+    for (final item in audioItems) {
+      final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+      final meta = _metadataMap[virtualUri] ?? ref.watch(scannerServiceProvider.select((s) => s.metadataMap[virtualUri]));
+      if (meta?.thumbnailPath != null && File(meta!.thumbnailPath!).existsSync()) {
+        bannerCoverThumbnailPath = meta.thumbnailPath;
+        bannerCoverVirtualUri = virtualUri;
+        break;
+      }
+    }
+
+    // Current folder display name & subtitle
+    final folderDisplayName = _isAtRoot ? widget.server.name : p.basename(_currentPath);
+    final folderDisplaySubtitle = _currentPath;
+
+    // Search filtering within current directory
+    final lowercaseQuery = _searchQuery.toLowerCase();
+    final List<WebDavFile> displayedItems;
+    if (_searchQuery.isEmpty) {
+      displayedItems = _items;
+    } else {
+      displayedItems = _items.where((item) {
+        if (item.name.toLowerCase().contains(lowercaseQuery)) return true;
+        final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+        final meta = _metadataMap[virtualUri] ?? ref.read(scannerServiceProvider).metadataMap[virtualUri];
+        if (meta != null) {
+          if (meta.title.toLowerCase().contains(lowercaseQuery)) return true;
+          if (meta.artist.toLowerCase().contains(lowercaseQuery)) return true;
+          if (meta.album.toLowerCase().contains(lowercaseQuery)) return true;
+        }
+        return false;
+      }).toList();
+    }
+
+    final matchedFolders = displayedItems.where((i) => i.isDirectory).toList();
+    final matchedFiles = displayedItems.where((i) => !i.isDirectory).toList();
+    final noSearchResults = _searchQuery.isNotEmpty && displayedItems.isEmpty && !_isLoading;
+
+    // Build Banner cover widget
+    final int hash = _currentPath.hashCode;
+    final double hue = (hash.abs() % 360).toDouble();
+    final Color startColor = HSLColor.fromAHSL(1.0, hue, 0.65, 0.45).toColor();
+    final Color endColor = HSLColor.fromAHSL(1.0, (hue + 40) % 360, 0.75, 0.35).toColor();
+
+    final Widget bannerCoverWidget = bannerCoverThumbnailPath != null
+        ? SongThumbnail(
+            path: bannerCoverVirtualUri!,
+            thumbnailPath: bannerCoverThumbnailPath,
+            size: 100,
+            width: 100,
+            height: 100,
+            borderRadius: BorderRadius.zero,
+          )
+        : Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [startColor, endColor],
+              ),
+            ),
+            child: const Center(
+              child: Icon(Icons.cloud_queue_rounded, size: 42, color: Colors.white70),
+            ),
+          );
+
+    Widget mainContent;
+    if (_isLoading) {
+      mainContent = const Center(child: CircularProgressIndicator());
+    } else if (_error != null) {
+      mainContent = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Error: $_error',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () =>
+                    _loadDirectory(_currentPath, forceRefresh: true),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (_items.isEmpty) {
+      mainContent = RefreshIndicator(
+        onRefresh: () => _loadDirectory(_currentPath, forceRefresh: true),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverToBoxAdapter(
+              child: _buildBanner(
+                theme: theme,
+                l10n: l10n,
+                title: folderDisplayName,
+                subtitle: folderDisplaySubtitle,
+                audioCount: audioCount,
+                totalDurationMs: totalDurationMs,
+                bannerCoverThumbnailPath: bannerCoverThumbnailPath,
+                bannerCoverWidget: bannerCoverWidget,
+              ),
+            ),
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text('Folder is empty')),
+            ),
+          ],
+        ),
+      );
+    } else {
+      mainContent = RefreshIndicator(
+        onRefresh: () => _loadDirectory(_currentPath, forceRefresh: true),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverToBoxAdapter(
+              child: _buildBanner(
+                theme: theme,
+                l10n: l10n,
+                title: folderDisplayName,
+                subtitle: folderDisplaySubtitle,
+                audioCount: audioCount,
+                totalDurationMs: totalDurationMs,
+                bannerCoverThumbnailPath: bannerCoverThumbnailPath,
+                bannerCoverWidget: bannerCoverWidget,
+              ),
+            ),
+            if (noSearchResults)
+              FolderEmptySearchResultsSliver(
+                message: l10n.noMatchingFoldersOrSongs,
+                isSearching: false,
+              )
+            else ...[
+              // 1. Subfolders Sliver (Grid or List according to viewMode)
+              if (matchedFolders.isNotEmpty)
+                _WebDavSubfoldersSliver(
+                  folders: matchedFolders,
+                  viewMode: viewMode,
+                  server: widget.server,
+                  password: widget.password,
+                  onOpenFolder: (folder) => _loadDirectory(folder.path),
+                ),
+
+              // 2. Section divider if both folders and files exist
+              if (matchedFolders.isNotEmpty && matchedFiles.isNotEmpty)
+                FolderSectionHeaderSliver(
+                  title: l10n.songsCountFormat(matchedFiles.length),
+                ),
+
+              // 3. Files/Songs Sliver (Grid or List according to viewMode)
+              if (matchedFiles.isNotEmpty)
+                _WebDavSongsSliver(
+                  files: matchedFiles,
+                  viewMode: viewMode,
+                  server: widget.server,
+                  password: widget.password,
+                  metadataMap: _metadataMap,
+                  currentMusicPath: currentMusic?.path,
+                  isAudioPlaying: isAudioPlaying,
+                  allAudioFiles: _getAudioFiles(sourceList: displayedItems),
+                  onDownloadSingle: _downloadSingleAudio,
+                  bottomPadding: bottomOffset,
+                ),
+            ],
+            SliverPadding(padding: EdgeInsets.only(bottom: bottomOffset + 24)),
+          ],
+        ),
+      );
+    }
+
+    Widget scaffoldContent = PopScope(
       canPop: _isAtRoot,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
@@ -381,529 +630,159 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         }
       },
       child: Scaffold(
-        body: NestedScrollView(
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                floating: true,
-                snap: false,
-                pinned: false,
-                forceElevated: innerBoxIsScrolled,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  tooltip: 'Exit',
-                  onPressed: () {
-                    ref.read(activeRemoteSessionProvider.notifier).clear();
-                  },
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(_isAtRoot ? Icons.arrow_back_rounded : Icons.arrow_upward_rounded),
+            tooltip: _isAtRoot ? 'Exit' : 'Up to parent folder',
+            onPressed: _isAtRoot
+                ? () => ref.read(activeRemoteSessionProvider.notifier).clear()
+                : _navigateToParent,
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.server.name),
+              Text(
+                'WebDAV Storage',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.server.name),
-                    Text(
-                      'WebDAV Storage',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  if (audioCount > 0) ...[
-                    IconButton(
-                      icon: const Icon(Icons.play_circle_fill_rounded),
-                      tooltip: 'Play All',
-                      onPressed: () => _playFolder(shuffle: false),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.shuffle_rounded),
-                      tooltip: 'Shuffle',
-                      onPressed: () => _playFolder(shuffle: true),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.download_for_offline_outlined),
-                      tooltip: 'Download All Audio',
-                      onPressed: _downloadAllAudio,
-                    ),
-                  ],
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded),
-                    tooltip: 'Refresh',
-                    onPressed: () =>
-                        _loadDirectory(_currentPath, forceRefresh: true),
-                  ),
-                  IconButton(
-                    icon: Badge(
-                      isLabelVisible:
-                          ref.watch(activeDownloadsCountProvider) > 0,
-                      label:
-                          Text('${ref.watch(activeDownloadsCountProvider)}'),
-                      child: const Icon(Icons.download_rounded),
-                    ),
-                    tooltip: 'Download Manager',
-                    onPressed: () {
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(
-                          builder: (_) => const RemoteDownloadManagerPage(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(49.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+              ),
+            ],
+          ),
+          actions: [
+            // View Mode switcher (List, Grid, Hybrid)
+            PopupMenuButton<FolderViewMode>(
+              icon: Icon(_getViewModeIcon(viewMode)),
+              tooltip: 'View Mode',
+              onSelected: (mode) {
+                ref.read(settingsServiceProvider).folderViewMode = mode;
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: FolderViewMode.list,
+                  child: Row(
                     children: [
-                      _buildBreadcrumbs(theme),
-                      const Divider(height: 1),
+                      Icon(
+                        Icons.view_list_rounded,
+                        color: viewMode == FolderViewMode.list
+                            ? theme.colorScheme.primary
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'List View',
+                        style: TextStyle(
+                          fontWeight: viewMode == FolderViewMode.list
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: viewMode == FolderViewMode.list
+                              ? theme.colorScheme.primary
+                              : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ];
-          },
-          body: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline_rounded,
-                              size: 48,
-                              color: theme.colorScheme.error,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Error: $_error',
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton(
-                              onPressed: () => _loadDirectory(
-                                  _currentPath,
-                                  forceRefresh: true),
-                              child: const Text('Retry'),
-                            ),
-                          ],
+                PopupMenuItem(
+                  value: FolderViewMode.grid,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.grid_view_rounded,
+                        color: viewMode == FolderViewMode.grid
+                            ? theme.colorScheme.primary
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Grid View',
+                        style: TextStyle(
+                          fontWeight: viewMode == FolderViewMode.grid
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: viewMode == FolderViewMode.grid
+                              ? theme.colorScheme.primary
+                              : null,
                         ),
                       ),
-                    )
-                  : _items.isEmpty
-                      ? const Center(child: Text('Folder is empty'))
-                      : RefreshIndicator(
-                          onRefresh: () =>
-                              _loadDirectory(_currentPath, forceRefresh: true),
-                          child: ListView.builder(
-                            padding:
-                                EdgeInsets.fromLTRB(0, 0, 0, bottomOffset),
-                            itemCount: _items.length,
-                            itemBuilder: (context, index) {
-                              final item = _items[index];
-                              if (item.isDirectory) {
-                                return GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onSecondaryTapDown: (details) {
-                                    showWebDavFolderContextMenu(
-                                      context: context,
-                                      globalPosition:
-                                          details.globalPosition,
-                                      ref: ref,
-                                      server: widget.server,
-                                      password: widget.password,
-                                      folder: item,
-                                      onOpen: () =>
-                                          _loadDirectory(item.path),
-                                    );
-                                  },
-                                  onLongPressStart: (details) {
-                                    showWebDavFolderContextMenu(
-                                      context: context,
-                                      globalPosition:
-                                          details.globalPosition,
-                                      ref: ref,
-                                      server: widget.server,
-                                      password: widget.password,
-                                      folder: item,
-                                      onOpen: () =>
-                                          _loadDirectory(item.path),
-                                    );
-                                  },
-                                  child: ListTile(
-                                    leading: const Icon(
-                                      Icons.folder_rounded,
-                                      color: Colors.amber,
-                                      size: 28,
-                                    ),
-                                    title: Text(
-                                      item.name,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Builder(
-                                          builder: (btnContext) {
-                                            return IconButton(
-                                              icon: const Icon(
-                                                  Icons.more_vert_rounded,
-                                                  size: 20),
-                                              tooltip: 'More',
-                                              onPressed: () {
-                                                final box = btnContext
-                                                        .findRenderObject()
-                                                    as RenderBox?;
-                                                final pos = box != null
-                                                    ? box.localToGlobal(
-                                                        Offset(
-                                                            box.size
-                                                                    .width /
-                                                                2,
-                                                            box.size
-                                                                    .height /
-                                                                2))
-                                                    : Offset.zero;
-                                                showWebDavFolderContextMenu(
-                                                  context: context,
-                                                  globalPosition: pos,
-                                                  ref: ref,
-                                                  server: widget.server,
-                                                  password:
-                                                      widget.password,
-                                                  folder: item,
-                                                  onOpen: () =>
-                                                      _loadDirectory(
-                                                          item.path),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        ),
-                                        const Icon(
-                                            Icons.chevron_right_rounded),
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      _loadDirectory(item.path);
-                                    },
-                                  ),
-                                );
-                              }
-
-                              // Only emphasize audio files
-                              final isAudio = item.isAudio;
-                              final remoteUri =
-                                  RemoteMediaResolver.buildWebDavUri(
-                                widget.server.id,
-                                item.path,
-                              );
-                              final isCurrent =
-                                  currentMusic?.path == remoteUri;
-
-                              final metadata = _metadataMap[remoteUri] ??
-                                  ref.watch(scannerServiceProvider
-                                      .select((s) => s.metadataMap[remoteUri]));
-
-                              final titleText = (metadata != null &&
-                                      metadata.title.isNotEmpty)
-                                  ? metadata.title
-                                  : item.name;
-
-                              final hasArtist = metadata != null &&
-                                  metadata.artist.isNotEmpty &&
-                                  metadata.artist != 'Unknown';
-                              final hasAlbum = metadata != null &&
-                                  metadata.album.isNotEmpty &&
-                                  metadata.album != 'Unknown';
-                              String? artistAlbumStr;
-                              if (hasArtist && hasAlbum) {
-                                artistAlbumStr =
-                                    '${metadata.artist} - ${metadata.album}';
-                              } else if (hasArtist) {
-                                artistAlbumStr = metadata.artist;
-                              } else if (hasAlbum) {
-                                artistAlbumStr = metadata.album;
-                              }
-
-                              final durationStr = metadata?.duration != null
-                                  ? _formatDuration(metadata!.duration!)
-                                  : null;
-                              final ext = p
-                                  .extension(item.name)
-                                  .replaceAll('.', '')
-                                  .toUpperCase();
-                              final sizeStr =
-                                  _formatFileSize(item.contentLength);
-
-                              final List<String> techParts = [];
-                              if (durationStr != null) techParts.add(durationStr);
-                              if (ext.isNotEmpty) techParts.add(ext);
-                              if (sizeStr.isNotEmpty) techParts.add(sizeStr);
-                              final techInfoStr = techParts.join(' | ');
-
-                              void showFileMenu(Offset pos) {
-                                final audioFiles = _getAudioFiles();
-                                showWebDavFileContextMenu(
-                                  context: context,
-                                  globalPosition: pos,
-                                  ref: ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  file: item,
-                                  currentAudioFiles: audioFiles,
-                                  onPlay: isAudio
-                                      ? () async {
-                                          final target =
-                                              RemoteMediaResolver
-                                                  .buildMusicFileFromWebDav(
-                                            item,
-                                            widget.server,
-                                            metadata: metadata,
-                                          );
-                                          final initialIndex = audioFiles
-                                              .indexWhere((s) =>
-                                                  s.path == target.path);
-                                          final audioService = ref.read(
-                                              audioServiceProvider);
-                                          await audioService.playPlaylist(
-                                            audioFiles.isNotEmpty
-                                                ? audioFiles
-                                                : [target],
-                                            initialIndex:
-                                                initialIndex >= 0
-                                                    ? initialIndex
-                                                    : 0,
-                                          );
-                                        }
-                                      : null,
-                                );
-                              }
-
-                              Widget leadingWidget;
-                              if (isAudio) {
-                                leadingWidget = ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: SizedBox(
-                                    width: 48,
-                                    height: 48,
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        SongThumbnail(
-                                          path: remoteUri,
-                                          thumbnailPath:
-                                              metadata?.thumbnailPath,
-                                          size: 48.0,
-                                        ),
-                                        if (isCurrent)
-                                          Container(
-                                            color: Colors.black45,
-                                            child: Center(
-                                              child: PlayingEqualizerIcon(
-                                                color: Colors.white,
-                                                size: 18,
-                                                isPlaying: isAudioPlaying,
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                leadingWidget = Icon(
-                                  Icons.insert_drive_file_outlined,
-                                  color: theme.colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.5),
-                                  size: 28,
-                                );
-                              }
-
-                              return GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onSecondaryTapDown: (details) =>
-                                    showFileMenu(
-                                        details.globalPosition),
-                                onLongPressStart: (details) =>
-                                    showFileMenu(
-                                        details.globalPosition),
-                                child: ListTile(
-                                  leading: leadingWidget,
-                                  title: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          titleText,
-                                          style: TextStyle(
-                                            color: isCurrent
-                                                ? theme
-                                                    .colorScheme.primary
-                                                : (isAudio
-                                                    ? null
-                                                    : theme
-                                                        .colorScheme
-                                                        .onSurfaceVariant
-                                                        .withValues(
-                                                            alpha: 0.6)),
-                                            fontWeight: isCurrent
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                          maxLines: 1,
-                                          overflow:
-                                              TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  subtitle: isAudio
-                                      ? Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (artistAlbumStr != null) ...[
-                                              Text(
-                                                artistAlbumStr,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: isCurrent
-                                                      ? theme.colorScheme
-                                                          .primary
-                                                          .withValues(
-                                                              alpha: 0.85)
-                                                      : theme.colorScheme
-                                                          .onSurfaceVariant,
-                                                ),
-                                                maxLines: 1,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 1),
-                                            ],
-                                            Text(
-                                              techInfoStr,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: isCurrent
-                                                    ? theme.colorScheme
-                                                        .primary
-                                                        .withValues(
-                                                            alpha: 0.7)
-                                                    : theme.colorScheme
-                                                        .onSurfaceVariant
-                                                        .withValues(
-                                                            alpha: 0.75),
-                                              ),
-                                              maxLines: 1,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        )
-                                      : Text(
-                                          sizeStr,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: theme.colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                        ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (isAudio)
-                                        IconButton(
-                                          icon: Icon(
-                                            Icons.download_rounded,
-                                            size: 22,
-                                            color: isCurrent
-                                                ? theme
-                                                    .colorScheme.primary
-                                                : null,
-                                          ),
-                                          tooltip: 'Download',
-                                          onPressed: () =>
-                                              _downloadSingleAudio(item),
-                                        ),
-                                      Builder(
-                                        builder: (btnContext) {
-                                          return IconButton(
-                                            icon: Icon(
-                                              Icons.more_vert_rounded,
-                                              size: 20,
-                                              color: isCurrent
-                                                ? theme
-                                                    .colorScheme.primary
-                                                : null,
-                                            ),
-                                            tooltip: 'More',
-                                            onPressed: () {
-                                              final box = btnContext
-                                                      .findRenderObject()
-                                                  as RenderBox?;
-                                              final pos = box != null
-                                                  ? box.localToGlobal(
-                                                      Offset(
-                                                          box.size
-                                                                  .width /
-                                                              2,
-                                                          box.size
-                                                                  .height /
-                                                              2))
-                                                  : Offset.zero;
-                                              showFileMenu(pos);
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  onTap: isAudio
-                                      ? () async {
-                                          final audioFiles =
-                                              _getAudioFiles();
-                                          final target =
-                                              RemoteMediaResolver
-                                                  .buildMusicFileFromWebDav(
-                                            item,
-                                            widget.server,
-                                            metadata: metadata,
-                                          );
-                                          final initialIndex = audioFiles
-                                              .indexWhere((s) =>
-                                                  s.path == target.path);
-                                          final audioService = ref.read(
-                                              audioServiceProvider);
-                                          await audioService.playPlaylist(
-                                            audioFiles.isNotEmpty
-                                                ? audioFiles
-                                                : [target],
-                                            initialIndex:
-                                                initialIndex >= 0
-                                                    ? initialIndex
-                                                    : 0,
-                                          );
-                                        }
-                                      : null,
-                                ),
-                              );
-                            },
-                          ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: FolderViewMode.hybrid,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.dashboard_customize_rounded,
+                        color: viewMode == FolderViewMode.hybrid
+                            ? theme.colorScheme.primary
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Hybrid View',
+                        style: TextStyle(
+                          fontWeight: viewMode == FolderViewMode.hybrid
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: viewMode == FolderViewMode.hybrid
+                              ? theme.colorScheme.primary
+                              : null,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh',
+              onPressed: () =>
+                  _loadDirectory(_currentPath, forceRefresh: true),
+            ),
+            IconButton(
+              icon: Badge(
+                isLabelVisible:
+                    ref.watch(activeDownloadsCountProvider) > 0,
+                label:
+                    Text('${ref.watch(activeDownloadsCountProvider)}'),
+                child: const Icon(Icons.download_rounded),
+              ),
+              tooltip: 'Download Manager',
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RemoteDownloadManagerPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(42.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildBreadcrumbs(theme),
+                const Divider(height: 1),
+              ],
+            ),
+          ),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
+            child: mainContent,
+          ),
         ),
       ),
     );
 
     if (showCustomTitleBar || isMacOS) {
-      content = Material(
+      scaffoldContent = Material(
         color: theme.colorScheme.surface,
         child: Column(
           children: [
@@ -911,16 +790,100 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               DesktopWindowTitleBar(brightness: theme.brightness)
             else
               const DragToMoveArea(child: SizedBox(height: 32)),
-            Expanded(child: content),
+            Expanded(child: scaffoldContent),
           ],
         ),
       );
     }
 
     if (widget.wrapWithMiniPlayer) {
-      return MiniPlayerWrapper(child: content);
+      return MiniPlayerWrapper(child: scaffoldContent);
     }
-    return content;
+    return scaffoldContent;
+  }
+
+  IconData _getViewModeIcon(FolderViewMode mode) {
+    switch (mode) {
+      case FolderViewMode.list:
+        return Icons.view_list_rounded;
+      case FolderViewMode.grid:
+        return Icons.grid_view_rounded;
+      case FolderViewMode.hybrid:
+        return Icons.dashboard_customize_rounded;
+    }
+  }
+
+  Widget _buildBanner({
+    required ThemeData theme,
+    required AppLocalizations l10n,
+    required String title,
+    required String subtitle,
+    required int audioCount,
+    required int totalDurationMs,
+    required String? bannerCoverThumbnailPath,
+    required Widget bannerCoverWidget,
+  }) {
+    return FolderHeaderBanner(
+      title: title,
+      subtitle: subtitle,
+      songsCount: audioCount,
+      totalDuration: Duration(milliseconds: totalDurationMs),
+      coverImagePath: bannerCoverThumbnailPath,
+      coverWidget: bannerCoverWidget,
+      heroTag: 'webdav-cover-$_currentPath',
+      actionButtons: [
+        FilledButton.icon(
+          onPressed: audioCount > 0 ? () => _playFolder(shuffle: false) : null,
+          icon: const Icon(Icons.play_arrow_rounded, size: 20),
+          label: Text(l10n.playAll),
+          style: FilledButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: audioCount > 0 ? () => _playFolder(shuffle: true) : null,
+          icon: const Icon(Icons.shuffle_rounded, size: 18),
+          label: Text(l10n.shufflePlay),
+          style: OutlinedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          ),
+        ),
+        if (audioCount > 0) ...[
+          const SizedBox(width: 8),
+          IconButton.outlined(
+            icon: const Icon(Icons.download_for_offline_outlined, size: 18),
+            tooltip: 'Download All Audio',
+            onPressed: _downloadAllAudio,
+            style: IconButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.all(8),
+            ),
+          ),
+        ],
+      ],
+      actionButtonsScrollable: false,
+      isSearching: _isSearching,
+      searchController: _searchController,
+      searchQuery: _searchQuery,
+      searchHintText: 'Search in current folder...',
+      onSearchQueryChanged: (val) {
+        setState(() {
+          _searchQuery = val.trim();
+        });
+      },
+      onToggleSearch: (val) {
+        setState(() {
+          _isSearching = val;
+          if (!val) {
+            _searchQuery = '';
+            _searchController.clear();
+          }
+        });
+      },
+    );
   }
 
   Widget _buildBreadcrumbs(ThemeData theme) {
@@ -931,34 +894,21 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
     return Container(
       width: double.infinity,
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_upward_rounded, size: 20),
-            tooltip: 'Up to parent folder',
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.all(6),
-            constraints: const BoxConstraints(),
-            onPressed: _isAtRoot ? null : _navigateToParent,
-          ),
-          const SizedBox(width: 4),
-          const SizedBox(
-            height: 16,
-            child: VerticalDivider(width: 8, thickness: 1),
-          ),
-          const SizedBox(width: 4),
           Expanded(
             child: SingleChildScrollView(
+              controller: _breadcrumbsScrollController,
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
                   InkWell(
                     onTap: () => _loadDirectory(_rootPath),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: Row(
                         children: [
                           Icon(
@@ -967,21 +917,31 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                             color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 4),
-                          const Text('Root', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            widget.server.name,
+                            style: TextStyle(
+                              fontWeight: _isAtRoot ? FontWeight.bold : FontWeight.w500,
+                              color: _isAtRoot ? theme.colorScheme.primary : null,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                   for (int i = 0; i < segments.length; i++) ...[
-                    const Icon(Icons.chevron_right_rounded, size: 16),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    ),
                     InkWell(
                       onTap: () {
                         final targetPath = '/${segments.sublist(0, i + 1).join('/')}';
                         _loadDirectory(targetPath);
                       },
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                         child: Text(
                           segments[i],
                           style: TextStyle(
@@ -1004,22 +964,993 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       ),
     );
   }
+}
 
-  String _formatDuration(int durationMs) {
-    final duration = Duration(milliseconds: durationMs);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    if (hours > 0) {
-      return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+/// Renders subfolders in grid or list mode for WebDAV.
+/// Subfolders do NOT generate representative covers, using clean HSL gradient icons instead.
+class _WebDavSubfoldersSliver extends ConsumerWidget {
+  final List<WebDavFile> folders;
+  final FolderViewMode viewMode;
+  final RemoteServer server;
+  final String password;
+  final void Function(WebDavFile) onOpenFolder;
+
+  const _WebDavSubfoldersSliver({
+    required this.folders,
+    required this.viewMode,
+    required this.server,
+    required this.password,
+    required this.onOpenFolder,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isGrid =
+        viewMode == FolderViewMode.hybrid || viewMode == FolderViewMode.grid;
+
+    if (isGrid) {
+      return SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.crossAxisExtent;
+          final crossAxisCount = getFolderGridCrossAxisCount(width);
+          final childAspectRatio = calculateFolderGridChildAspectRatio(
+            context,
+            width,
+            crossAxisCount,
+          );
+
+          return SliverPadding(
+            padding: const EdgeInsets.only(
+              top: 8,
+              bottom: 8,
+              left: 16,
+              right: 16,
+            ),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final folder = folders[index];
+                  return HoverableCard(
+                    child: _WebDavFolderGridCard(
+                      folder: folder,
+                      server: server,
+                      password: password,
+                      onTap: () => onOpenFolder(folder),
+                    ),
+                  );
+                },
+                childCount: folders.length,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+      return SliverPadding(
+        padding: const EdgeInsets.only(top: 8, bottom: 8),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final folder = folders[index];
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isPortrait ? 8 : 16,
+                  vertical: 4,
+                ),
+                child: _WebDavFolderListTile(
+                  folder: folder,
+                  server: server,
+                  password: password,
+                  onTap: () => onOpenFolder(folder),
+                ),
+              );
+            },
+            childCount: folders.length,
+          ),
+        ),
+      );
     }
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
+}
 
-  String _formatFileSize(int bytes) {
-    if (bytes <= 0) return '0 B';
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+/// Rich Grid Card widget for a WebDAV Folder.
+class _WebDavFolderGridCard extends ConsumerWidget {
+  final WebDavFile folder;
+  final RemoteServer server;
+  final String password;
+  final VoidCallback onTap;
+
+  const _WebDavFolderGridCard({
+    required this.folder,
+    required this.server,
+    required this.password,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+
+    final int hash = folder.path.hashCode;
+    final double hue = (hash.abs() % 360).toDouble();
+    final Color startColor = HSLColor.fromAHSL(1.0, hue, 0.65, 0.45).toColor();
+    final Color endColor = HSLColor.fromAHSL(1.0, (hue + 40) % 360, 0.75, 0.35).toColor();
+
+    void showContextMenu(Offset pos) {
+      showWebDavFolderContextMenu(
+        context: context,
+        globalPosition: pos,
+        ref: ref,
+        server: server,
+        password: password,
+        folder: folder,
+        onOpen: onTap,
+      );
+    }
+
+    return GestureDetector(
+      onSecondaryTapDown: (details) => showContextMenu(details.globalPosition),
+      onLongPressStart: (details) => showContextMenu(details.globalPosition),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        enableFeedback: false,
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1.0,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [startColor, endColor],
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.folder_rounded,
+                          size: 48,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          folder.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (isPortrait
+                                  ? theme.textTheme.titleSmall
+                                  : theme.textTheme.titleMedium)
+                              ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Folder',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (isPortrait
+                                  ? theme.textTheme.bodySmall
+                                  : theme.textTheme.bodyMedium)
+                              ?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
+}
+
+/// Rich List Tile widget for a WebDAV Folder.
+class _WebDavFolderListTile extends ConsumerWidget {
+  final WebDavFile folder;
+  final RemoteServer server;
+  final String password;
+  final VoidCallback onTap;
+
+  const _WebDavFolderListTile({
+    required this.folder,
+    required this.server,
+    required this.password,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+
+    final int hash = folder.path.hashCode;
+    final double hue = (hash.abs() % 360).toDouble();
+    final Color startColor = HSLColor.fromAHSL(1.0, hue, 0.65, 0.45).toColor();
+    final Color endColor = HSLColor.fromAHSL(1.0, (hue + 40) % 360, 0.75, 0.35).toColor();
+
+    void showContextMenu(Offset pos) {
+      showWebDavFolderContextMenu(
+        context: context,
+        globalPosition: pos,
+        ref: ref,
+        server: server,
+        password: password,
+        folder: folder,
+        onOpen: onTap,
+      );
+    }
+
+    final leadingWidget = Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [startColor, endColor],
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.folder_rounded,
+          size: 28,
+          color: Colors.white,
+        ),
+      ),
+    );
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) => showContextMenu(details.globalPosition),
+      onLongPressStart: (details) => showContextMenu(details.globalPosition),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          enableFeedback: false,
+          onTap: onTap,
+          hoverColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isPortrait ? 8 : 12,
+              vertical: 6,
+            ),
+            child: Row(
+              children: [
+                leadingWidget,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        folder.name,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Folder',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Builder(
+                  builder: (btnContext) {
+                    return IconButton(
+                      icon: const Icon(Icons.more_vert_rounded, size: 20),
+                      tooltip: 'More',
+                      onPressed: () {
+                        final box = btnContext.findRenderObject() as RenderBox?;
+                        final pos = box != null
+                            ? box.localToGlobal(
+                                Offset(box.size.width / 2, box.size.height / 2))
+                            : Offset.zero;
+                        showContextMenu(pos);
+                      },
+                    );
+                  },
+                ),
+                const Icon(Icons.chevron_right_rounded, size: 18),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Renders songs & files in grid or list mode for WebDAV.
+class _WebDavSongsSliver extends ConsumerWidget {
+  final List<WebDavFile> files;
+  final FolderViewMode viewMode;
+  final RemoteServer server;
+  final String password;
+  final Map<String, SongMetadata> metadataMap;
+  final String? currentMusicPath;
+  final bool isAudioPlaying;
+  final List<MusicFile> allAudioFiles;
+  final void Function(WebDavFile) onDownloadSingle;
+  final double bottomPadding;
+
+  const _WebDavSongsSliver({
+    required this.files,
+    required this.viewMode,
+    required this.server,
+    required this.password,
+    required this.metadataMap,
+    required this.currentMusicPath,
+    required this.isAudioPlaying,
+    required this.allAudioFiles,
+    required this.onDownloadSingle,
+    required this.bottomPadding,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSongGrid = viewMode == FolderViewMode.grid;
+
+    if (isSongGrid) {
+      return SliverLayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.crossAxisExtent;
+          final crossAxisCount = getFolderGridCrossAxisCount(width);
+          final childAspectRatio = calculateFolderGridChildAspectRatio(
+            context,
+            width,
+            crossAxisCount,
+          );
+
+          return SliverPadding(
+            padding: const EdgeInsets.only(
+              top: 8,
+              bottom: 8,
+              left: 16,
+              right: 16,
+            ),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final file = files[index];
+                  return HoverableCard(
+                    child: _WebDavSongGridCard(
+                      file: file,
+                      server: server,
+                      password: password,
+                      metadata: metadataMap[RemoteMediaResolver.buildWebDavUri(server.id, file.path)] ??
+                          ref.watch(scannerServiceProvider.select((s) => s.metadataMap[RemoteMediaResolver.buildWebDavUri(server.id, file.path)])),
+                      currentMusicPath: currentMusicPath,
+                      isAudioPlaying: isAudioPlaying,
+                      allAudioFiles: allAudioFiles,
+                    ),
+                  );
+                },
+                childCount: files.length,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+      return SliverPadding(
+        padding: const EdgeInsets.only(top: 8, bottom: 8),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final file = files[index];
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isPortrait ? 8 : 16,
+                  vertical: 4,
+                ),
+                child: _WebDavSongListTile(
+                  file: file,
+                  server: server,
+                  password: password,
+                  metadata: metadataMap[RemoteMediaResolver.buildWebDavUri(server.id, file.path)] ??
+                      ref.watch(scannerServiceProvider.select((s) => s.metadataMap[RemoteMediaResolver.buildWebDavUri(server.id, file.path)])),
+                  currentMusicPath: currentMusicPath,
+                  isAudioPlaying: isAudioPlaying,
+                  allAudioFiles: allAudioFiles,
+                  onDownload: () => onDownloadSingle(file),
+                ),
+              );
+            },
+            childCount: files.length,
+          ),
+        ),
+      );
+    }
+  }
+}
+
+/// Rich Grid Card widget for a WebDAV Song / Audio File.
+class _WebDavSongGridCard extends ConsumerWidget {
+  final WebDavFile file;
+  final RemoteServer server;
+  final String password;
+  final SongMetadata? metadata;
+  final String? currentMusicPath;
+  final bool isAudioPlaying;
+  final List<MusicFile> allAudioFiles;
+
+  const _WebDavSongGridCard({
+    required this.file,
+    required this.server,
+    required this.password,
+    required this.metadata,
+    required this.currentMusicPath,
+    required this.isAudioPlaying,
+    required this.allAudioFiles,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final isDark = theme.brightness == Brightness.dark;
+    final isAudio = file.isAudio;
+    final remoteUri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
+    final isCurrent = currentMusicPath == remoteUri;
+
+    final titleText = (metadata != null && metadata!.title.isNotEmpty)
+        ? metadata!.title
+        : file.name;
+
+    final hasArtist = metadata != null &&
+        metadata!.artist.isNotEmpty &&
+        metadata!.artist != 'Unknown';
+    final hasAlbum = metadata != null &&
+        metadata!.album.isNotEmpty &&
+        metadata!.album != 'Unknown';
+    String artistAlbumStr = 'WebDAV File';
+    if (hasArtist && hasAlbum) {
+      artistAlbumStr = '${metadata!.artist} - ${metadata!.album}';
+    } else if (hasArtist) {
+      artistAlbumStr = metadata!.artist;
+    } else if (hasAlbum) {
+      artistAlbumStr = metadata!.album;
+    }
+
+    final durationStr = metadata?.duration != null
+        ? _formatDuration(metadata!.duration!)
+        : null;
+    final ext = p.extension(file.name).replaceAll('.', '').toUpperCase();
+
+    final capsuleBgColor = isDark
+        ? Colors.black.withValues(alpha: 0.6)
+        : Colors.white.withValues(alpha: 0.75);
+    final capsuleTextColor = isDark
+        ? Colors.white.withValues(alpha: 0.9)
+        : Colors.black.withValues(alpha: 0.9);
+
+    final titleColor = isCurrent
+        ? theme.colorScheme.primary
+        : (isAudio
+            ? theme.colorScheme.onSurface
+            : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7));
+
+    void showContextMenu(Offset pos) {
+      showWebDavFileContextMenu(
+        context: context,
+        globalPosition: pos,
+        ref: ref,
+        server: server,
+        password: password,
+        file: file,
+        currentAudioFiles: allAudioFiles,
+        onPlay: isAudio
+            ? () async {
+                final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+                  file,
+                  server,
+                  metadata: metadata,
+                );
+                final initialIndex =
+                    allAudioFiles.indexWhere((s) => s.path == target.path);
+                final audioService = ref.read(audioServiceProvider);
+                await audioService.playPlaylist(
+                  allAudioFiles.isNotEmpty ? allAudioFiles : [target],
+                  initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                );
+              }
+            : null,
+      );
+    }
+
+    return GestureDetector(
+      onSecondaryTapDown: (details) => showContextMenu(details.globalPosition),
+      onLongPressStart: (details) => showContextMenu(details.globalPosition),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        enableFeedback: false,
+        onTap: isAudio
+            ? () async {
+                final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+                  file,
+                  server,
+                  metadata: metadata,
+                );
+                final initialIndex =
+                    allAudioFiles.indexWhere((s) => s.path == target.path);
+                final audioService = ref.read(audioServiceProvider);
+                await audioService.playPlaylist(
+                  allAudioFiles.isNotEmpty ? allAudioFiles : [target],
+                  initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                );
+              }
+            : null,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
+            border: Border.all(
+              color: isCurrent
+                  ? theme.colorScheme.primary.withValues(alpha: 0.8)
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
+              width: isCurrent ? 1.5 : 1.0,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AspectRatio(
+                  aspectRatio: 1.0,
+                  child: ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(11)),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (isAudio)
+                          SongThumbnail(
+                            path: remoteUri,
+                            thumbnailPath: metadata?.thumbnailPath,
+                            size: 200,
+                            width: double.infinity,
+                            height: double.infinity,
+                            borderRadius: BorderRadius.zero,
+                          )
+                        else
+                          Container(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.4),
+                            child: Center(
+                              child: Icon(
+                                Icons.insert_drive_file_outlined,
+                                size: 48,
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ),
+                        if (isAudio && (durationStr != null || ext.isNotEmpty))
+                          Positioned(
+                            left: 8,
+                            bottom: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: capsuleBgColor,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: (isDark ? Colors.white : Colors.black)
+                                      .withValues(alpha: 0.1),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                '${ext.isNotEmpty ? ext : "AUDIO"}${durationStr != null ? " • $durationStr" : ""}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: capsuleTextColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (isCurrent)
+                          Container(
+                            color: Colors.black45,
+                            child: Center(
+                              child: PlayingEqualizerIcon(
+                                color: Colors.white,
+                                size: 22,
+                                isPlaying: isAudioPlaying,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            if (isCurrent) ...[
+                              PlayingEqualizerIcon(
+                                color: theme.colorScheme.primary,
+                                size: 14,
+                                isPlaying: isAudioPlaying,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Expanded(
+                              child: Text(
+                                titleText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: (isPortrait
+                                        ? theme.textTheme.titleSmall
+                                        : theme.textTheme.titleMedium)
+                                    ?.copyWith(
+                                  fontWeight: isCurrent
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
+                                  color: titleColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isAudio
+                              ? artistAlbumStr
+                              : _formatFileSize(file.contentLength),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (isPortrait
+                                  ? theme.textTheme.bodySmall
+                                  : theme.textTheme.bodyMedium)
+                              ?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Rich List Tile widget for a WebDAV Song / Audio File.
+class _WebDavSongListTile extends ConsumerWidget {
+  final WebDavFile file;
+  final RemoteServer server;
+  final String password;
+  final SongMetadata? metadata;
+  final String? currentMusicPath;
+  final bool isAudioPlaying;
+  final List<MusicFile> allAudioFiles;
+  final VoidCallback onDownload;
+
+  const _WebDavSongListTile({
+    required this.file,
+    required this.server,
+    required this.password,
+    required this.metadata,
+    required this.currentMusicPath,
+    required this.isAudioPlaying,
+    required this.allAudioFiles,
+    required this.onDownload,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isAudio = file.isAudio;
+    final remoteUri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
+    final isCurrent = currentMusicPath == remoteUri;
+
+    final titleText = (metadata != null && metadata!.title.isNotEmpty)
+        ? metadata!.title
+        : file.name;
+
+    final hasArtist = metadata != null &&
+        metadata!.artist.isNotEmpty &&
+        metadata!.artist != 'Unknown';
+    final hasAlbum = metadata != null &&
+        metadata!.album.isNotEmpty &&
+        metadata!.album != 'Unknown';
+    String? artistAlbumStr;
+    if (hasArtist && hasAlbum) {
+      artistAlbumStr = '${metadata!.artist} - ${metadata!.album}';
+    } else if (hasArtist) {
+      artistAlbumStr = metadata!.artist;
+    } else if (hasAlbum) {
+      artistAlbumStr = metadata!.album;
+    }
+
+    final durationStr = metadata?.duration != null
+        ? _formatDuration(metadata!.duration!)
+        : null;
+    final ext = p.extension(file.name).replaceAll('.', '').toUpperCase();
+    final sizeStr = _formatFileSize(file.contentLength);
+
+    final List<String> techParts = [];
+    if (durationStr != null) techParts.add(durationStr);
+    if (ext.isNotEmpty) techParts.add(ext);
+    if (sizeStr.isNotEmpty) techParts.add(sizeStr);
+    final techInfoStr = techParts.join(' | ');
+
+    void showContextMenu(Offset pos) {
+      showWebDavFileContextMenu(
+        context: context,
+        globalPosition: pos,
+        ref: ref,
+        server: server,
+        password: password,
+        file: file,
+        currentAudioFiles: allAudioFiles,
+        onPlay: isAudio
+            ? () async {
+                final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+                  file,
+                  server,
+                  metadata: metadata,
+                );
+                final initialIndex =
+                    allAudioFiles.indexWhere((s) => s.path == target.path);
+                final audioService = ref.read(audioServiceProvider);
+                await audioService.playPlaylist(
+                  allAudioFiles.isNotEmpty ? allAudioFiles : [target],
+                  initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                );
+              }
+            : null,
+      );
+    }
+
+    Widget leadingWidget;
+    if (isAudio) {
+      leadingWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: SizedBox(
+          width: 52,
+          height: 52,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              SongThumbnail(
+                path: remoteUri,
+                thumbnailPath: metadata?.thumbnailPath,
+                size: 52.0,
+              ),
+              if (isCurrent)
+                Container(
+                  color: Colors.black45,
+                  child: Center(
+                    child: PlayingEqualizerIcon(
+                      color: Colors.white,
+                      size: 18,
+                      isPlaying: isAudioPlaying,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      leadingWidget = Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          Icons.insert_drive_file_outlined,
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          size: 26,
+        ),
+      );
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onSecondaryTapDown: (details) => showContextMenu(details.globalPosition),
+      onLongPressStart: (details) => showContextMenu(details.globalPosition),
+      child: ListTile(
+        leading: leadingWidget,
+        title: Text(
+          titleText,
+          style: TextStyle(
+            color: isCurrent
+                ? theme.colorScheme.primary
+                : (isAudio
+                    ? null
+                    : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: isAudio
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (artistAlbumStr != null) ...[
+                    Text(
+                      artistAlbumStr,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isCurrent
+                            ? theme.colorScheme.primary.withValues(alpha: 0.85)
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                  ],
+                  Text(
+                    techInfoStr,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isCurrent
+                          ? theme.colorScheme.primary.withValues(alpha: 0.7)
+                          : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              )
+            : Text(
+                sizeStr,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isAudio)
+              IconButton(
+                icon: Icon(
+                  Icons.download_rounded,
+                  size: 22,
+                  color: isCurrent ? theme.colorScheme.primary : null,
+                ),
+                tooltip: 'Download',
+                onPressed: onDownload,
+              ),
+            Builder(
+              builder: (btnContext) {
+                return IconButton(
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    size: 20,
+                    color: isCurrent ? theme.colorScheme.primary : null,
+                  ),
+                  tooltip: 'More',
+                  onPressed: () {
+                    final box = btnContext.findRenderObject() as RenderBox?;
+                    final pos = box != null
+                        ? box.localToGlobal(
+                            Offset(box.size.width / 2, box.size.height / 2))
+                        : Offset.zero;
+                    showContextMenu(pos);
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        onTap: isAudio
+            ? () async {
+                final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+                  file,
+                  server,
+                  metadata: metadata,
+                );
+                final initialIndex =
+                    allAudioFiles.indexWhere((s) => s.path == target.path);
+                final audioService = ref.read(audioServiceProvider);
+                await audioService.playPlaylist(
+                  allAudioFiles.isNotEmpty ? allAudioFiles : [target],
+                  initialIndex: initialIndex >= 0 ? initialIndex : 0,
+                );
+              }
+            : null,
+      ),
+    );
+  }
+}
+
+String _formatDuration(int durationMs) {
+  final duration = Duration(milliseconds: durationMs);
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  final seconds = duration.inSeconds.remainder(60);
+  if (hours > 0) {
+    return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+  return '$minutes:${seconds.toString().padLeft(2, '0')}';
+}
+
+String _formatFileSize(int bytes) {
+  if (bytes <= 0) return '0 B';
+  if (bytes < 1024) return '$bytes B';
+  if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
 }
