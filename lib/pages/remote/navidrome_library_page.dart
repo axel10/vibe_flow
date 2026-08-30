@@ -52,7 +52,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   List<Map<String, dynamic>> _albums = [];
   String? _albumsError;
   final TextEditingController _albumSearchController = TextEditingController();
+  final FocusNode _albumSearchFocusNode = FocusNode();
   String _albumSearchQuery = '';
+  bool _isAlbumSearchExpanded = false;
 
   // Artists state
   bool _isLoadingArtists = false;
@@ -146,6 +148,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     _albumSearchController.dispose();
+    _albumSearchFocusNode.dispose();
     _artistSearchController.dispose();
     _playlistSearchController.dispose();
     _searchController.dispose();
@@ -733,6 +736,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     Widget buildToolbar(bool isWide) {
       final searchField = TextField(
         controller: _albumSearchController,
+        focusNode: _albumSearchFocusNode,
         onChanged: (val) {
           setState(() {
             _albumSearchQuery = val.trim();
@@ -791,6 +795,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         ),
       );
 
+      final isNarrowExpanded =
+          _isAlbumSearchExpanded || _albumSearchQuery.isNotEmpty;
+
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: isWide
@@ -807,13 +814,49 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   ),
                 ],
               )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  searchField,
-                  const SizedBox(height: 6),
-                  sortChips,
-                ],
+            : AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: isNarrowExpanded
+                    ? Row(
+                        key: const ValueKey('album_search_expanded'),
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                            tooltip: 'Close search',
+                            onPressed: () {
+                              _albumSearchFocusNode.unfocus();
+                              setState(() {
+                                _isAlbumSearchExpanded = false;
+                                _albumSearchController.clear();
+                                _albumSearchQuery = '';
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(child: searchField),
+                        ],
+                      )
+                    : Row(
+                        key: const ValueKey('album_search_collapsed'),
+                        children: [
+                          IconButton.filledTonal(
+                            icon: const Icon(Icons.search_rounded, size: 20),
+                            tooltip: 'Filter albums',
+                            onPressed: () {
+                              setState(() {
+                                _isAlbumSearchExpanded = true;
+                              });
+                              _albumSearchFocusNode.requestFocus();
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(child: sortChips),
+                        ],
+                      ),
               ),
       );
     }
