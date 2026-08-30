@@ -39,6 +39,7 @@ class FolderDetailView extends ConsumerStatefulWidget {
     required this.onClearAllSelection,
     required this.onLocateCurrentSong,
     required this.onShowFolderBottomSheet,
+    required this.onShowFolderContextMenu,
     required this.highlightedSongPath,
   });
 
@@ -56,6 +57,7 @@ class FolderDetailView extends ConsumerStatefulWidget {
   final VoidCallback onClearAllSelection;
   final VoidCallback onLocateCurrentSong;
   final void Function(MusicFolder, {required bool isRoot}) onShowFolderBottomSheet;
+  final void Function(MusicFolder, Offset, {required bool isRoot}) onShowFolderContextMenu;
   final String? highlightedSongPath;
 
   @override
@@ -479,6 +481,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             onToggleFolderSelection: widget.onToggleFolderSelection,
             onToggleSelectionMode: widget.onToggleSelectionMode,
             onShowFolderBottomSheet: widget.onShowFolderBottomSheet,
+            onShowFolderContextMenu: widget.onShowFolderContextMenu,
           ),
           if (matchedFolders.isNotEmpty && matchedSongs.isNotEmpty)
             FolderSectionHeaderSliver(

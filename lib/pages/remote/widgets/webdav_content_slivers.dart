@@ -50,12 +50,27 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
         viewMode == FolderViewMode.hybrid || viewMode == FolderViewMode.grid;
 
     void openContextMenu(WebDavFile folder, Offset globalPosition) {
+      showWebDavFolderContextMenu(
+        context: context,
+        globalPosition: globalPosition,
+        ref: ref,
+        server: server,
+        password: password,
+        folder: folder,
+        onOpen: () => onOpenFolder(folder),
+        onMultiSelect: (path) {
+          if (!isSelectionMode) onToggleSelectionMode?.call();
+          onToggleFolderSelection?.call(path);
+        },
+      );
+    }
+
+    void openBottomSheet(WebDavFile folder) {
       if (onShowFolderBottomSheet != null) {
         onShowFolderBottomSheet!(folder);
       } else {
-        showWebDavFolderContextMenu(
+        showWebDavFolderBottomSheet(
           context: context,
-          globalPosition: globalPosition,
           ref: ref,
           server: server,
           password: password,

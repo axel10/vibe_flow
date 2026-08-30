@@ -35,6 +35,7 @@ class FolderRootView extends ConsumerStatefulWidget {
     required this.onNavigateTo,
     required this.onLocateCurrentSong,
     required this.onShowFolderBottomSheet,
+    required this.onShowFolderContextMenu,
   });
 
   final Future<void> Function()? onOpenPlayback;
@@ -47,6 +48,7 @@ class FolderRootView extends ConsumerStatefulWidget {
   final void Function(MusicFolder) onNavigateTo;
   final VoidCallback onLocateCurrentSong;
   final void Function(MusicFolder, {required bool isRoot}) onShowFolderBottomSheet;
+  final void Function(MusicFolder, Offset, {required bool isRoot}) onShowFolderContextMenu;
 
   @override
   ConsumerState<FolderRootView> createState() => _FolderRootViewState();
@@ -494,12 +496,16 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               viewMode: settings.folderViewMode,
               scanner: scanner,
               isRoot: true,
+              isSelectionMode: isRootSelectionMode,
+              selectedFolderPaths: widget.selectedRootPaths,
               showSystemMedia: Platform.isAndroid && _searchQuery.isEmpty,
               hasPermission: hasPermission,
               systemMediaTitle: l10n.systemMediaLibrary,
               systemMediaSubtitle: l10n.needPermissionToScan,
               onNavigateTo: widget.onNavigateTo,
-              onShowFolderBottomSheet: widget.onShowFolderBottomSheet,
+              onToggleFolderSelection: widget.onToggleRootSelection,
+              onToggleSelectionMode: widget.onToggleRootSelectionMode,
+              onShowFolderContextMenu: widget.onShowFolderContextMenu,
               bottomPadding: localFoldersBottomPadding,
             ),
             if (matchedRemoteServers.isNotEmpty) ...[

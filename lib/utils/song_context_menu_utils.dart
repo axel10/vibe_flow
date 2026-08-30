@@ -202,13 +202,14 @@ Future<void> showSongContextMenu(
   switch (mode) {
     case SongContextMenuMode.full:
       items.addAll([
-        buildContextMenuItem<String>(
-          value: 'open_file_location',
-          enabled: canOpenLocation,
-          label: l10n.openFileLocation,
-          icon: Icons.folder_open_rounded,
-          context: context,
-        ),
+        if (canOpenLocation)
+          buildContextMenuItem<String>(
+            value: 'open_file_location',
+            enabled: canOpenLocation,
+            label: l10n.openFileLocation,
+            icon: Icons.folder_open_rounded,
+            context: context,
+          ),
         buildContextMenuItem<String>(
           value: 'song_details',
           enabled: song != null,
@@ -257,14 +258,16 @@ Future<void> showSongContextMenu(
           icon: Icons.title_rounded,
           context: context,
         ),
-        const PopupMenuDivider(),
-        buildContextMenuItem<String>(
-          value: 'open_file_location',
-          enabled: canOpenLocation,
-          label: l10n.openFileLocation,
-          icon: Icons.folder_open_rounded,
-          context: context,
-        ),
+        if (canOpenLocation) ...[
+          const PopupMenuDivider(),
+          buildContextMenuItem<String>(
+            value: 'open_file_location',
+            enabled: canOpenLocation,
+            label: l10n.openFileLocation,
+            icon: Icons.folder_open_rounded,
+            context: context,
+          ),
+        ],
       ]);
       break;
     case SongContextMenuMode.artistAlbum:
@@ -463,10 +466,13 @@ Future<void> showSongBottomSheet(
   final audio = ref.read(audioServiceProvider);
   final playlistService = ref.read(playlistServiceProvider);
 
+  final isRemoteSong =
+      song.path.startsWith('subsonic://') || song.path.startsWith('webdav://');
   final hasFilePath = song.path.trim().isNotEmpty;
   final canOpenLocation =
       (Platform.isWindows || Platform.isMacOS || Platform.isLinux) &&
-      hasFilePath;
+      hasFilePath &&
+      !isRemoteSong;
 
   final selected = await showModalBottomSheet<String>(
     context: context,

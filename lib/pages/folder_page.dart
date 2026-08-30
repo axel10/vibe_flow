@@ -765,6 +765,19 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                   });
                 },
               ),
+          onShowFolderContextMenu: (folder, position, {required isRoot}) =>
+              showFolderContextMenu(
+                context: context,
+                globalPosition: position,
+                ref: ref,
+                folder: folder,
+                isRoot: isRoot,
+                onMultiSelect: (path) {
+                  setState(() {
+                    _selectedRootPaths.add(path);
+                  });
+                },
+              ),
         ),
       ),
     ];
@@ -794,6 +807,19 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                     context,
                     ref,
                     folder,
+                    isRoot: isRoot,
+                    onMultiSelect: (path) {
+                      setState(() {
+                        _selectedRootPaths.add(path);
+                      });
+                    },
+                  ),
+              onShowFolderContextMenu: (folder, position, {required isRoot}) =>
+                  showFolderContextMenu(
+                    context: context,
+                    globalPosition: position,
+                    ref: ref,
+                    folder: folder,
                     isRoot: isRoot,
                     onMultiSelect: (path) {
                       setState(() {
@@ -831,6 +857,19 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                   context,
                   ref,
                   folder,
+                  isRoot: isRoot,
+                  onMultiSelect: (path) {
+                    setState(() {
+                      _selectedRootPaths.add(path);
+                    });
+                  },
+                ),
+            onShowFolderContextMenu: (folder, position, {required isRoot}) =>
+                showFolderContextMenu(
+                  context: context,
+                  globalPosition: position,
+                  ref: ref,
+                  folder: folder,
                   isRoot: isRoot,
                   onMultiSelect: (path) {
                     setState(() {

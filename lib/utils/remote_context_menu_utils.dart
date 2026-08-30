@@ -1945,14 +1945,126 @@ Future<void> showWebDavFolderContextMenu({
   VoidCallback? onOpen,
   void Function(String folderPath)? onMultiSelect,
 }) async {
-  await showWebDavFolderBottomSheet(
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+  if (overlay == null) return;
+  final l10n = AppLocalizations.of(context)!;
+  final client = WebDavClient(server: server, password: password);
+  final isMobile = Platform.isAndroid || Platform.isIOS;
+
+  if (isMobile) {
+    await showWebDavFolderBottomSheet(
+      context: context,
+      ref: ref,
+      server: server,
+      password: password,
+      folder: folder,
+      onOpen: onOpen,
+      onMultiSelect: onMultiSelect,
+    );
+    return;
+  }
+
+  // Desktop PopupMenu
+  final items = <PopupMenuEntry<String>>[
+    buildContextMenuItem<String>(
+      value: 'play_all',
+      label: l10n.playAll,
+      icon: Icons.play_arrow_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'shuffle',
+      label: l10n.shufflePlay,
+      icon: Icons.shuffle_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'play_next',
+      label: l10n.playNext,
+      icon: Icons.queue_play_next_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'add_to_queue',
+      label: l10n.addToQueue,
+      icon: Icons.queue_music_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'add_to_playlist',
+      label: l10n.addToPlaylist,
+      icon: Icons.playlist_add_rounded,
+      context: context,
+    ),
+    const PopupMenuDivider(),
+    buildContextMenuItem<String>(
+      value: 'download_folder',
+      label: l10n.copyAlbumTitle.contains('复制')
+          ? '下载文件夹全部音频'
+          : 'Download All Audio in Folder',
+      icon: Icons.download_rounded,
+      context: context,
+    ),
+    if (onOpen != null)
+      buildContextMenuItem<String>(
+        value: 'open',
+        label: l10n.openFolderLocation.contains('打开')
+            ? '打开文件夹'
+            : 'Open Folder',
+        icon: Icons.folder_open_rounded,
+        context: context,
+      ),
+    if (onMultiSelect != null)
+      buildContextMenuItem<String>(
+        value: 'multi_select',
+        label: l10n.selectFolders,
+        icon: Icons.checklist_rounded,
+        context: context,
+      ),
+    const PopupMenuDivider(),
+    buildContextMenuItem<String>(
+      value: 'copy_name',
+      label: l10n.copyAlbumTitle.contains('复制')
+          ? '复制文件夹名称'
+          : 'Copy Folder Name',
+      icon: Icons.copy_rounded,
+      context: context,
+    ),
+    buildContextMenuItem<String>(
+      value: 'copy_path',
+      label: l10n.copyAlbumTitle.contains('复制')
+          ? '复制文件夹路径'
+          : 'Copy Folder Path',
+      icon: Icons.link_rounded,
+      context: context,
+    ),
+  ];
+
+  final selected = await showMenu<String>(
+    context: context,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(globalPosition, globalPosition),
+      Offset.zero & overlay.size,
+    ),
+    items: items,
+  );
+
+  if (!context.mounted || selected == null) return;
+
+  if (selected == 'multi_select') {
+    onMultiSelect?.call(folder.path);
+    return;
+  }
+
+  await _handleWebDavFolderMenuSelection(
+    selected: selected,
     context: context,
     ref: ref,
+    client: client,
     server: server,
     password: password,
     folder: folder,
     onOpen: onOpen,
-    onMultiSelect: onMultiSelect,
   );
 }
 

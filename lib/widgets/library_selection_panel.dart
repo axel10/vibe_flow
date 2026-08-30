@@ -63,8 +63,13 @@ class LibrarySelectionPanel extends ConsumerWidget {
     final isEmpty = isSelectionEmpty ?? selectedSongs.isEmpty;
     final isSingleSelected = !isEmpty && selectedSongs.length == 1;
 
-    final hasFilePath =
-        isSingleSelected && selectedSongs.isNotEmpty && selectedSongs.first.path.trim().isNotEmpty;
+    final isRemote = selectedSongs.isNotEmpty &&
+        (selectedSongs.first.path.startsWith('subsonic://') ||
+            selectedSongs.first.path.startsWith('webdav://'));
+    final hasFilePath = isSingleSelected &&
+        selectedSongs.isNotEmpty &&
+        selectedSongs.first.path.trim().isNotEmpty &&
+        !isRemote;
     final canOpenLocation =
         (Platform.isWindows || Platform.isMacOS || Platform.isLinux) &&
         (onOpenLocation != null || hasFilePath);

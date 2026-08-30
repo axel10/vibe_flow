@@ -122,6 +122,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
   final void Function(String path)? onToggleFolderSelection;
   final VoidCallback? onToggleSelectionMode;
   final void Function(MusicFolder, {required bool isRoot})? onShowFolderBottomSheet;
+  final void Function(MusicFolder, Offset position, {required bool isRoot})? onShowFolderContextMenu;
   final double? bottomPadding;
 
   const FolderSubfoldersSliver({
@@ -140,6 +141,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
     this.onToggleFolderSelection,
     this.onToggleSelectionMode,
     this.onShowFolderBottomSheet,
+    this.onShowFolderContextMenu,
     this.bottomPadding,
   });
 
@@ -240,19 +242,19 @@ class FolderSubfoldersSliver extends StatelessWidget {
                             ? () => onToggleFolderSelection?.call(folder.path)
                             : (isAvailable ? () => onNavigateTo(folder) : null),
                         onLongPress: () {
-                          if (isRoot) {
-                            onShowFolderBottomSheet?.call(folder, isRoot: true);
+                          if (!isSelectionMode) {
+                            onToggleSelectionMode?.call();
+                            onToggleFolderSelection?.call(folder.path);
                           } else {
-                            if (!isSelectionMode) {
-                              onToggleSelectionMode?.call();
-                              onToggleFolderSelection?.call(folder.path);
-                            } else {
-                              onToggleFolderSelection?.call(folder.path);
-                            }
+                            onToggleFolderSelection?.call(folder.path);
                           }
                         },
                         onSecondaryTapDown: (details) {
-                          onShowFolderBottomSheet?.call(folder, isRoot: isRoot);
+                          onShowFolderContextMenu?.call(
+                            folder,
+                            details.globalPosition,
+                            isRoot: isRoot,
+                          );
                         },
                       ),
                     ),
@@ -348,19 +350,19 @@ class FolderSubfoldersSliver extends StatelessWidget {
                         ? () => onToggleFolderSelection?.call(folder.path)
                         : (isAvailable ? () => onNavigateTo(folder) : null),
                     onLongPress: () {
-                      if (isRoot) {
-                        onShowFolderBottomSheet?.call(folder, isRoot: true);
+                      if (!isSelectionMode) {
+                        onToggleSelectionMode?.call();
+                        onToggleFolderSelection?.call(folder.path);
                       } else {
-                        if (!isSelectionMode) {
-                          onToggleSelectionMode?.call();
-                          onToggleFolderSelection?.call(folder.path);
-                        } else {
-                          onToggleFolderSelection?.call(folder.path);
-                        }
+                        onToggleFolderSelection?.call(folder.path);
                       }
                     },
                     onSecondaryTapDown: (details) {
-                      onShowFolderBottomSheet?.call(folder, isRoot: isRoot);
+                      onShowFolderContextMenu?.call(
+                        folder,
+                        details.globalPosition,
+                        isRoot: isRoot,
+                      );
                     },
                   ),
                 ),
