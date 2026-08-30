@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_reorderable_grid_view/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../dialogs/add_edit_remote_server_dialog.dart';
 import '../l10n/app_localizations.dart';
@@ -405,17 +406,32 @@ class RemoteServersSliver extends ConsumerWidget {
               left: 16,
               right: 16,
             ),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final server = servers[index];
+            sliver: SliverToBoxAdapter(
+              child: ReorderableBuilder(
+                onReorder: (ReorderedListFunction reorderedListFunction) {
+                  final reordered =
+                      reorderedListFunction(servers) as List<RemoteServer>;
+                  ref
+                      .read(remoteServersProvider.notifier)
+                      .reorderServers(reordered);
+                },
+                builder: (children) {
+                  return GridView(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: childAspectRatio,
+                    ),
+                    children: children,
+                  );
+                },
+                children: servers.map((server) {
                   return HoverableCard(
+                    key: ValueKey('server_${server.id}'),
                     child: RemoteServerGridCard(
                       server: server,
                       onTap: () => onOpenServer(server),
@@ -427,18 +443,9 @@ class RemoteServersSliver extends ConsumerWidget {
                           ref: ref,
                         );
                       },
-                      onLongPressStart: (details) {
-                        showRemoteServerContextMenu(
-                          context: context,
-                          position: details.globalPosition,
-                          server: server,
-                          ref: ref,
-                        );
-                      },
                     ),
                   );
-                },
-                childCount: servers.length,
+                }).toList(),
               ),
             ),
           );

@@ -129,6 +129,7 @@ dependencies:
     git:
       url: https://github.com/axel10/linux_directory_access
       ref: master
+  flutter_reorderable_grid_view: ^5.7.0
 
 dev_dependencies:
   flutter_test:

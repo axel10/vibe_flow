@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_reorderable_grid_view/widgets/widgets.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/scanner/scanner_service.dart';
@@ -167,6 +169,137 @@ class FolderSubfoldersSliver extends StatelessWidget {
           );
 
           final paddingBottom = bottomPadding ?? (isRoot ? 160.0 : 0.0);
+
+          if (isRoot) {
+            final List<MusicFolder> allFoldersWithSystem = [];
+            final systemFolder = scanner.systemMediaFolder ??
+                MusicFolder(
+                  path: 'system',
+                  name: systemMediaTitle ?? '',
+                );
+            if (showSystemMedia) {
+              allFoldersWithSystem.add(systemFolder);
+            }
+            allFoldersWithSystem.addAll(folders);
+
+            return SliverPadding(
+              padding: EdgeInsets.only(
+                top: 8,
+                bottom: paddingBottom,
+                left: 16,
+                right: 16,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: ReorderableBuilder(
+                  lockedIndices: showSystemMedia ? const [0] : const [],
+                  nonDraggableIndices:
+                      showSystemMedia ? const [0] : const [],
+                  onReorder: (ReorderedListFunction reorderedListFunction) {
+                    final reordered =
+                        reorderedListFunction(allFoldersWithSystem)
+                            as List<MusicFolder>;
+                    final realFolders = showSystemMedia
+                        ? reordered.where((f) => f.path != 'system').toList()
+                        : reordered;
+                    final newPaths =
+                        realFolders.map((f) => f.path).toList();
+                    unawaited(scanner.reorderRootPaths(newPaths));
+                  },
+                  builder: (children) {
+                    return GridView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: childAspectRatio,
+                      ),
+                      children: children,
+                    );
+                  },
+                  children: allFoldersWithSystem.map((folder) {
+                    if (folder.path == 'system') {
+                      final songsCount =
+                          scanner.getSongCountForFolder(systemFolder);
+                      final representativeSong =
+                          scanner.getRepresentativeSongForFolder(systemFolder);
+
+                      return AnimatedOpacity(
+                        key: const ValueKey('folder_system'),
+                        opacity: 1.0,
+                        duration: const Duration(milliseconds: 180),
+                        child: HoverableCard(
+                          child: FolderGridCard(
+                            folder: systemFolder,
+                            songsCount: songsCount,
+                            representativeSong: representativeSong,
+                            subtitle:
+                                hasPermission ? null : systemMediaSubtitle,
+                            onTap: () async {
+                              if (!hasPermission) {
+                                await scanner
+                                    .checkAndRequestPermissions();
+                              }
+                              if (context.mounted) {
+                                onNavigateTo(systemFolder);
+                              }
+                            },
+                          ),
+                        ),
+                      );
+                    }
+
+                    final isAvailable =
+                        scanner.isRootPathAvailable(folder.path);
+                    final isSelected =
+                        selectedFolderPaths.contains(folder.path);
+                    final representativeSong =
+                        scanner.getRepresentativeSongForFolder(folder);
+                    final songsCount =
+                        scanner.getSongCountForFolder(folder);
+
+                    return AnimatedOpacity(
+                      key: ValueKey('folder_${folder.path}'),
+                      opacity: isAvailable ? 1.0 : 0.45,
+                      duration: const Duration(milliseconds: 180),
+                      child: HoverableCard(
+                        child: FolderGridCard(
+                          folder: folder,
+                          songsCount: songsCount,
+                          representativeSong: representativeSong,
+                          isSelected: isSelected,
+                          isSelectionMode: isSelectionMode,
+                          onTap: isSelectionMode
+                              ? () =>
+                                  onToggleFolderSelection?.call(folder.path)
+                              : (isAvailable
+                                  ? () => onNavigateTo(folder)
+                                  : null),
+                          onLongPress: () {
+                            if (!isSelectionMode) {
+                              onToggleSelectionMode?.call();
+                              onToggleFolderSelection?.call(folder.path);
+                            } else {
+                              onToggleFolderSelection?.call(folder.path);
+                            }
+                          },
+                          onSecondaryTapDown: (details) {
+                            onShowFolderContextMenu?.call(
+                              folder,
+                              details.globalPosition,
+                              isRoot: isRoot,
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          }
 
           return SliverPadding(
             padding: EdgeInsets.only(

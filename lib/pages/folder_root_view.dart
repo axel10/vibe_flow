@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_reorderable_grid_view/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import 'package:vynody/models/music_file.dart';
@@ -13,6 +14,8 @@ import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/folder_header_banner.dart';
 import '../widgets/song_thumbnail.dart';
+import '../widgets/folder_grid_card.dart';
+import '../widgets/folder_layout_utils.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
@@ -21,6 +24,7 @@ import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_content_slivers.dart';
 import '../widgets/remote_server_slivers.dart';
 import '../dialogs/add_edit_remote_server_dialog.dart';
+import 'package:vynody/player/settings/settings_service.dart';
 
 class FolderRootView extends ConsumerStatefulWidget {
   const FolderRootView({
@@ -238,75 +242,152 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
     Widget rootList;
     if (isRootSelectionMode) {
       final topPadding = MediaQuery.of(context).padding.top + 16.0;
-      rootList = ReorderableListView.builder(
-        key: const ValueKey('root_folders_list'),
-        buildDefaultDragHandles: false,
-        scrollController: _localScrollController,
-        cacheExtent: 1000.0,
-        padding: EdgeInsets.only(top: topPadding, bottom: rootListBottomPadding),
-        itemCount: rootFolders.length,
-        onReorder: (oldIndex, newIndex) {
-          if (newIndex > oldIndex) newIndex--;
-          unawaited(scanner.moveRootPath(oldIndex, newIndex));
-        },
-        itemBuilder: (context, index) {
-          final folder = rootFolders[index];
-          final isSelected = widget.selectedRootPaths.contains(folder.path);
-          final isRootAvailable = scanner.isRootPathAvailable(folder.path);
-          return GestureDetector(
-            key: ValueKey(folder.path),
-            behavior: HitTestBehavior.opaque,
-            onSecondaryTapDown: (details) {
-              widget.onShowFolderBottomSheet(folder, isRoot: true);
-            },
-            onLongPress: () {
-              widget.onToggleRootSelection(folder.path);
-            },
-            child: AnimatedOpacity(
-              opacity: isRootAvailable ? 1.0 : 0.45,
-              duration: const Duration(milliseconds: 180),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal:
-                      MediaQuery.of(context).orientation ==
-                          Orientation.portrait
-                      ? 8
-                      : 16,
-                  vertical: 4,
-                ),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      final isGrid = settings.folderViewMode == FolderViewMode.grid ||
+          settings.folderViewMode == FolderViewMode.hybrid;
+
+      if (isGrid) {
+        rootList = LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final crossAxisCount = getFolderGridCrossAxisCount(width);
+            final childAspectRatio = calculateFolderGridChildAspectRatio(
+              context,
+              width,
+              crossAxisCount,
+            );
+
+            return ReorderableBuilder(
+              scrollController: _localScrollController,
+              onReorder: (ReorderedListFunction reorderedListFunction) {
+                final reordered =
+                    reorderedListFunction(rootFolders) as List<MusicFolder>;
+                final newPaths = reordered.map((f) => f.path).toList();
+                unawaited(scanner.reorderRootPaths(newPaths));
+              },
+              builder: (children) {
+                return GridView(
+                  controller: _localScrollController,
+                  padding: EdgeInsets.only(
+                    top: topPadding,
+                    bottom: rootListBottomPadding,
+                    left: 16,
+                    right: 16,
                   ),
-                  hoverColor: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.06),
-                  enabled: isRootAvailable || isRootSelectionMode,
-                  selected: isSelected,
-                  selectedTileColor: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withValues(alpha: 0.45),
-                  leading: Checkbox(
-                    value: isSelected,
-                    onChanged: (_) =>
-                        widget.onToggleRootSelection(folder.path),
+                  gridDelegate:
+                      SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: childAspectRatio,
                   ),
-                  title: Text(folder.name),
-                  subtitle: Text(
-                    ScannerPathUtils.cleanDisplayPath(folder.path),
+                  children: children,
+                );
+              },
+              children: rootFolders.map((folder) {
+                final isSelected =
+                    widget.selectedRootPaths.contains(folder.path);
+                final isRootAvailable =
+                    scanner.isRootPathAvailable(folder.path);
+                final representativeSong =
+                    scanner.getRepresentativeSongForFolder(folder);
+                final songsCount =
+                    scanner.getSongCountForFolder(folder);
+
+                return AnimatedOpacity(
+                  key: ValueKey('folder_${folder.path}'),
+                  opacity: isRootAvailable ? 1.0 : 0.45,
+                  duration: const Duration(milliseconds: 180),
+                  child: HoverableCard(
+                    child: FolderGridCard(
+                      folder: folder,
+                      songsCount: songsCount,
+                      representativeSong: representativeSong,
+                      isSelected: isSelected,
+                      isSelectionMode: true,
+                      onTap: () =>
+                          widget.onToggleRootSelection(folder.path),
+                      onSecondaryTapDown: (details) {
+                        widget.onShowFolderBottomSheet(folder, isRoot: true);
+                      },
+                    ),
                   ),
-                  onTap: () => widget.onToggleRootSelection(folder.path),
-                  trailing: ReorderableDragStartListener(
-                    index: index,
-                    child: const Icon(Icons.drag_handle),
+                );
+              }).toList(),
+            );
+          },
+        );
+      } else {
+        rootList = ReorderableListView.builder(
+          key: const ValueKey('root_folders_list'),
+          buildDefaultDragHandles: false,
+          scrollController: _localScrollController,
+          cacheExtent: 1000.0,
+          padding:
+              EdgeInsets.only(top: topPadding, bottom: rootListBottomPadding),
+          itemCount: rootFolders.length,
+          onReorder: (oldIndex, newIndex) {
+            if (newIndex > oldIndex) newIndex--;
+            unawaited(scanner.moveRootPath(oldIndex, newIndex));
+          },
+          itemBuilder: (context, index) {
+            final folder = rootFolders[index];
+            final isSelected = widget.selectedRootPaths.contains(folder.path);
+            final isRootAvailable = scanner.isRootPathAvailable(folder.path);
+            return GestureDetector(
+              key: ValueKey(folder.path),
+              behavior: HitTestBehavior.opaque,
+              onSecondaryTapDown: (details) {
+                widget.onShowFolderBottomSheet(folder, isRoot: true);
+              },
+              onLongPress: () {
+                widget.onToggleRootSelection(folder.path);
+              },
+              child: AnimatedOpacity(
+                opacity: isRootAvailable ? 1.0 : 0.45,
+                duration: const Duration(milliseconds: 180),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal:
+                        MediaQuery.of(context).orientation ==
+                            Orientation.portrait
+                        ? 8
+                        : 16,
+                    vertical: 4,
+                  ),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    hoverColor: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.06),
+                    enabled: isRootAvailable || isRootSelectionMode,
+                    selected: isSelected,
+                    selectedTileColor: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withValues(alpha: 0.45),
+                    leading: Checkbox(
+                      value: isSelected,
+                      onChanged: (_) =>
+                          widget.onToggleRootSelection(folder.path),
+                    ),
+                    title: Text(folder.name),
+                    subtitle: Text(
+                      ScannerPathUtils.cleanDisplayPath(folder.path),
+                    ),
+                    onTap: () => widget.onToggleRootSelection(folder.path),
+                    trailing: ReorderableDragStartListener(
+                      index: index,
+                      child: const Icon(Icons.drag_handle),
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
+      }
       rootList = Column(
         children: [
           _buildRootTopHeader(context, isOverlay: false),

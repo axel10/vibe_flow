@@ -1128,6 +1128,13 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     _restartFullRootScan();
   }
 
+  Future<void> reorderRootPaths(List<String> newOrder) async {
+    await _roots.setRootPaths(newOrder);
+    _rebuildDisplayedRootFolders();
+    notifyListeners();
+    _restartFullRootScan();
+  }
+
   Future<bool> _registerPersistentAccess(String path) async {
     debugPrint('[ScannerService] _registerPersistentAccess: path=$path, keys=${_linuxDocumentIds.keys.toList()}');
     if (Platform.isLinux && _linuxFlatpak) {

@@ -50,6 +50,12 @@ class RemoteServersNotifier extends AsyncNotifier<List<RemoteServer>> {
     state = AsyncData(updatedList);
   }
 
+  Future<void> reorderServers(List<RemoteServer> reorderedServers) async {
+    final storage = await ref.read(remoteServerStorageProvider.future);
+    await storage.saveServers(reorderedServers);
+    state = AsyncData(reorderedServers);
+  }
+
   Future<String?> getPassword(String serverId) async {
     final storage = await ref.read(remoteServerStorageProvider.future);
     return storage.getPassword(serverId);
