@@ -15,9 +15,9 @@ import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/playing_equalizer_icon.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
+import '../../player/remote/navidrome_navigation.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/remote_context_menu_utils.dart';
-import 'navidrome_album_detail_page.dart';
 import 'remote_download_manager_page.dart';
 
 class NavidromeArtistDetailPage extends ConsumerWidget {
@@ -593,17 +593,15 @@ class _NavidromeArtistDetailContentState
                     coverArtId: section.coverArt,
                     songs: section.songs,
                     onViewDetails: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => NavidromeAlbumDetailPage(
-                            server: widget.server,
-                            password: widget.password,
-                            albumId: section.id,
-                            albumName: section.name,
-                            artistName: section.artist,
-                            coverArtId: section.coverArt,
-                          ),
-                        ),
+                      NavidromeNavUtils.openAlbum(
+                        context,
+                        ref,
+                        server: widget.server,
+                        password: widget.password,
+                        albumId: section.id,
+                        albumName: section.name,
+                        artistName: section.artist,
+                        coverArtId: section.coverArt,
                       );
                     },
                   );
@@ -621,17 +619,15 @@ class _NavidromeArtistDetailContentState
                     coverArtId: section.coverArt,
                     songs: section.songs,
                     onViewDetails: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => NavidromeAlbumDetailPage(
-                            server: widget.server,
-                            password: widget.password,
-                            albumId: section.id,
-                            albumName: section.name,
-                            artistName: section.artist,
-                            coverArtId: section.coverArt,
-                          ),
-                        ),
+                      NavidromeNavUtils.openAlbum(
+                        context,
+                        ref,
+                        server: widget.server,
+                        password: widget.password,
+                        albumId: section.id,
+                        albumName: section.name,
+                        artistName: section.artist,
+                        coverArtId: section.coverArt,
                       );
                     },
                   );
@@ -642,17 +638,15 @@ class _NavidromeArtistDetailContentState
                     topRight: Radius.circular(16),
                   ),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => NavidromeAlbumDetailPage(
-                          server: widget.server,
-                          password: widget.password,
-                          albumId: section.id,
-                          albumName: section.name,
-                          artistName: section.artist,
-                          coverArtId: section.coverArt,
-                        ),
-                      ),
+                    NavidromeNavUtils.openAlbum(
+                      context,
+                      ref,
+                      server: widget.server,
+                      password: widget.password,
+                      albumId: section.id,
+                      albumName: section.name,
+                      artistName: section.artist,
+                      coverArtId: section.coverArt,
                     );
                   },
                   child: Padding(
@@ -794,17 +788,15 @@ class _NavidromeArtistDetailContentState
         playlist: playlist,
         onViewAlbum: albumSection != null
             ? () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => NavidromeAlbumDetailPage(
-                      server: widget.server,
-                      password: widget.password,
-                      albumId: albumSection.id,
-                      albumName: albumSection.name,
-                      artistName: albumSection.artist,
-                      coverArtId: albumSection.coverArt,
-                    ),
-                  ),
+                NavidromeNavUtils.openAlbum(
+                  context,
+                  ref,
+                  server: widget.server,
+                  password: widget.password,
+                  albumId: albumSection.id,
+                  albumName: albumSection.name,
+                  artistName: albumSection.artist,
+                  coverArtId: albumSection.coverArt,
                 );
               }
             : null,

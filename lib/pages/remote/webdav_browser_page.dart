@@ -23,6 +23,7 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
   final RemoteServer server;
   final String password;
   final String? initialPath;
+  final String? rootPath;
   final bool wrapWithMiniPlayer;
 
   const WebDavBrowserPage({
@@ -30,6 +31,7 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
     required this.server,
     required this.password,
     this.initialPath,
+    this.rootPath,
     this.wrapWithMiniPlayer = false,
   });
 
@@ -52,12 +54,30 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       server: widget.server,
       password: widget.password,
     );
-    _rootPath = widget.initialPath ??
+
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    _rootPath = widget.rootPath ??
+        (isSameServer && session.rootPath != null ? session.rootPath! : null) ??
         (widget.server.customPath?.trim().isNotEmpty == true
             ? widget.server.customPath!
             : '/');
-    _currentPath = _rootPath;
-    _loadDirectory(_currentPath);
+
+    _currentPath = widget.initialPath ??
+        (isSameServer && session.initialPath != null
+            ? session.initialPath!
+            : null) ??
+        _rootPath;
+
+    if (isSameServer &&
+        session.webDavDirectoryCache.containsKey(_currentPath)) {
+      _items = session.webDavDirectoryCache[_currentPath]!;
+      _isLoading = false;
+    } else {
+      _loadDirectory(_currentPath);
+    }
   }
 
   bool get _isAtRoot {
@@ -73,7 +93,30 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     return cleanCurrent == cleanRoot;
   }
 
-  Future<void> _loadDirectory(String path) async {
+  Future<void> _loadDirectory(String path, {bool forceRefresh = false}) async {
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    if (!forceRefresh &&
+        isSameServer &&
+        session.webDavDirectoryCache.containsKey(path)) {
+      setState(() {
+        _currentPath = path;
+        _items = session.webDavDirectoryCache[path]!;
+        _isLoading = false;
+        _error = null;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
+              currentPath: path,
+              rootPath: _rootPath,
+            );
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -105,14 +148,11 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         });
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          final activeSession = ref.read(activeRemoteSessionProvider);
-          if (activeSession != null &&
-              activeSession.server.id == widget.server.id &&
-              activeSession.initialPath != effectivePath) {
-            ref
-                .read(activeRemoteSessionProvider.notifier)
-                .updateInitialPath(effectivePath);
-          }
+          ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
+                currentPath: effectivePath,
+                rootPath: _rootPath,
+                items: list,
+              );
         });
       }
     } catch (e) {
@@ -289,7 +329,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
               tooltip: 'Refresh',
-              onPressed: () => _loadDirectory(_currentPath),
+              onPressed: () => _loadDirectory(_currentPath, forceRefresh: true),
             ),
             IconButton(
               icon: Badge(
@@ -335,7 +375,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                 ),
                                 const SizedBox(height: 16),
                                 FilledButton(
-                                  onPressed: () => _loadDirectory(_currentPath),
+                                  onPressed: () =>
+                                      _loadDirectory(_currentPath, forceRefresh: true),
                                   child: const Text('Retry'),
                                 ),
                               ],
@@ -345,7 +386,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                       : _items.isEmpty
                           ? const Center(child: Text('Folder is empty'))
                           : RefreshIndicator(
-                              onRefresh: () => _loadDirectory(_currentPath),
+                              onRefresh: () =>
+                                  _loadDirectory(_currentPath, forceRefresh: true),
                               child: ListView.builder(
                                 itemCount: _items.length,
                                 itemBuilder: (context, index) {

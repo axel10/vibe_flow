@@ -26,6 +26,9 @@ import 'package:linux_directory_access/linux_directory_access.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'remote/navidrome_library_page.dart';
+import 'remote/navidrome_album_detail_page.dart';
+import 'remote/navidrome_artist_detail_page.dart';
+import 'remote/navidrome_playlist_detail_page.dart';
 import 'remote/webdav_browser_page.dart';
 
 class FoldersPage extends ConsumerStatefulWidget {
@@ -64,7 +67,12 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       _navigatorKey.currentState?.maybePop();
       return true;
     }
-    if (ref.read(activeRemoteSessionProvider) != null) {
+    final session = ref.read(activeRemoteSessionProvider);
+    if (session != null) {
+      if (session.navidromeDetailStack.isNotEmpty) {
+        ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
+        return true;
+      }
       ref.read(activeRemoteSessionProvider.notifier).clear();
       return true;
     }
@@ -822,23 +830,87 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       ),
     );
     final activeRemoteSession = ref.read(activeRemoteSessionProvider);
+    final navidromeDetailStack = ref.watch(
+      activeRemoteSessionProvider.select(
+        (s) => s?.navidromeDetailStack ?? const [],
+      ),
+    );
+
     if (activeRemoteSessionId != null && activeRemoteSession != null) {
-      pages.add(
-        _buildPage(
-          key: ValueKey('remote-page-${activeRemoteSession.server.id}'),
-          child: activeRemoteSession.server.type == RemoteServerType.subsonic
-              ? NavidromeLibraryPage(
+      if (activeRemoteSession.server.type == RemoteServerType.subsonic) {
+        pages.add(
+          _buildPage(
+            key: ValueKey('remote-page-${activeRemoteSession.server.id}'),
+            child: NavidromeLibraryPage(
+              server: activeRemoteSession.server,
+              password: activeRemoteSession.password,
+              initialTabIndex: activeRemoteSession.initialTabIndex,
+            ),
+          ),
+        );
+
+        for (int i = 0; i < navidromeDetailStack.length; i++) {
+          final route = navidromeDetailStack[i];
+          if (route is NavidromeAlbumRoute) {
+            pages.add(
+              _buildPage(
+                key: ValueKey('remote-album-${route.albumId}-$i'),
+                child: NavidromeAlbumDetailPage(
                   server: activeRemoteSession.server,
                   password: activeRemoteSession.password,
-                  initialTabIndex: activeRemoteSession.initialTabIndex,
-                )
-              : WebDavBrowserPage(
-                  server: activeRemoteSession.server,
-                  password: activeRemoteSession.password,
-                  initialPath: activeRemoteSession.initialPath,
+                  albumId: route.albumId,
+                  albumName: route.albumName,
+                  artistName: route.artistName,
+                  coverArtId: route.coverArtId,
                 ),
-        ),
-      );
+              ),
+            );
+          } else if (route is NavidromeArtistRoute) {
+            pages.add(
+              _buildPage(
+                key: ValueKey(
+                    'remote-artist-${route.artistId}_${route.artistName}-$i'),
+                child: NavidromeArtistDetailPage(
+                  server: activeRemoteSession.server,
+                  password: activeRemoteSession.password,
+                  artistId: route.artistId,
+                  artistName: route.artistName,
+                  coverArtId: route.coverArtId,
+                  albumCount: route.albumCount,
+                ),
+              ),
+            );
+          } else if (route is NavidromePlaylistRoute) {
+            pages.add(
+              _buildPage(
+                key: ValueKey('remote-playlist-${route.playlistId}-$i'),
+                child: NavidromePlaylistDetailPage(
+                  server: activeRemoteSession.server,
+                  password: activeRemoteSession.password,
+                  playlistId: route.playlistId,
+                  playlistName: route.playlistName,
+                  coverArtId: route.coverArtId,
+                  songCount: route.songCount,
+                  duration: route.duration,
+                  isStarred: route.isStarred,
+                ),
+              ),
+            );
+          }
+        }
+      } else {
+        pages.add(
+          _buildPage(
+            key: ValueKey('remote-page-${activeRemoteSession.server.id}'),
+            child: WebDavBrowserPage(
+              server: activeRemoteSession.server,
+              password: activeRemoteSession.password,
+              initialPath: activeRemoteSession.initialPath,
+              rootPath: activeRemoteSession.rootPath,
+            ),
+          ),
+        );
+      }
     }
 
     return Navigator(
@@ -846,10 +918,14 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       pages: pages,
       observers: [_heroController],
       onDidRemovePage: (page) {
-        if (activeRemoteSession != null &&
-            page.key ==
-                ValueKey('remote-page-${activeRemoteSession.server.id}')) {
-          ref.read(activeRemoteSessionProvider.notifier).clear();
+        if (activeRemoteSession != null) {
+          final detailStack = activeRemoteSession.navidromeDetailStack;
+          if (detailStack.isNotEmpty) {
+            ref.read(activeRemoteSessionProvider.notifier).popNavidromeDetail();
+          } else if (page.key ==
+              ValueKey('remote-page-${activeRemoteSession.server.id}')) {
+            ref.read(activeRemoteSessionProvider.notifier).clear();
+          }
         } else {
           _goBack(scanner);
         }

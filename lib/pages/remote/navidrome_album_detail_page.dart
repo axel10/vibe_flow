@@ -17,9 +17,9 @@ import '../../widgets/playing_equalizer_icon.dart';
 import '../../dialogs/remote_playlist_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
+import '../../player/remote/navidrome_navigation.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/remote_context_menu_utils.dart';
-import 'navidrome_artist_detail_page.dart';
 import 'remote_download_manager_page.dart';
 
 class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
@@ -337,15 +337,13 @@ class _NavidromeAlbumDetailPageState
                               playlist: _tracks,
                               onViewArtist: () {
                                 if (song.artist != null && song.artist!.isNotEmpty) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => NavidromeArtistDetailPage(
-                                        server: widget.server,
-                                        password: widget.password,
-                                        artistId: '',
-                                        artistName: song.artist!,
-                                      ),
-                                    ),
+                                  NavidromeNavUtils.openArtist(
+                                    context,
+                                    ref,
+                                    server: widget.server,
+                                    password: widget.password,
+                                    artistId: '',
+                                    artistName: song.artist!,
                                   );
                                 }
                               },
@@ -362,15 +360,13 @@ class _NavidromeAlbumDetailPageState
                               playlist: _tracks,
                               onViewArtist: () {
                                 if (song.artist != null && song.artist!.isNotEmpty) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => NavidromeArtistDetailPage(
-                                        server: widget.server,
-                                        password: widget.password,
-                                        artistId: '',
-                                        artistName: song.artist!,
-                                      ),
-                                    ),
+                                  NavidromeNavUtils.openArtist(
+                                    context,
+                                    ref,
+                                    server: widget.server,
+                                    password: widget.password,
+                                    artistId: '',
+                                    artistName: song.artist!,
                                   );
                                 }
                               },
@@ -484,15 +480,13 @@ class _NavidromeAlbumDetailPageState
                                                 playlist: _tracks,
                                                 onViewArtist: () {
                                                   if (song.artist != null && song.artist!.isNotEmpty) {
-                                                    Navigator.of(context).push(
-                                                      MaterialPageRoute(
-                                                        builder: (_) => NavidromeArtistDetailPage(
-                                                          server: widget.server,
-                                                          password: widget.password,
-                                                          artistId: '',
-                                                          artistName: song.artist!,
-                                                        ),
-                                                      ),
+                                                    NavidromeNavUtils.openArtist(
+                                                      context,
+                                                      ref,
+                                                      server: widget.server,
+                                                      password: widget.password,
+                                                      artistId: '',
+                                                      artistName: song.artist!,
                                                     );
                                                   }
                                                 },

@@ -17,7 +17,7 @@ import '../../widgets/remote_artwork_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/remote_context_menu_utils.dart';
 import '../../player/remote/services/remote_download_service.dart';
-import 'navidrome_album_detail_page.dart';
+import '../../player/remote/navidrome_navigation.dart';
 import 'navidrome_artist_detail_page.dart';
 import 'navidrome_playlist_detail_page.dart';
 import 'remote_download_manager_page.dart';
@@ -135,7 +135,23 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     super.dispose();
   }
 
-  Future<void> _loadAlbums() async {
+  Future<void> _loadAlbums({bool forceRefresh = false}) async {
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    if (!forceRefresh &&
+        isSameServer &&
+        session.navidromeAlbums != null &&
+        session.navidromeAlbumSortType == _albumSortType) {
+      setState(() {
+        _albums = session.navidromeAlbums!;
+        _isLoadingAlbums = false;
+        _albumsError = null;
+      });
+      return;
+    }
+
     setState(() {
       _isLoadingAlbums = true;
       _albumsError = null;
@@ -147,6 +163,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         _albums = list;
         _isLoadingAlbums = false;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(activeRemoteSessionProvider.notifier).updateNavidromeAlbums(
+              list,
+              sortType: _albumSortType,
+            );
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -156,7 +179,25 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     }
   }
 
-  Future<void> _loadArtists() async {
+  Future<void> _loadArtists({bool forceRefresh = false}) async {
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    if (!forceRefresh && isSameServer && session.navidromeArtists != null) {
+      setState(() {
+        _artists = session.navidromeArtists!;
+        _starredArtistIds
+          ..clear()
+          ..addAll(session.navidromeStarredArtistIds ?? {});
+        _selectedArtistId = session.navidromeSelectedArtistId ??
+            (_artists.isNotEmpty ? _artists.first['id'] as String? : null);
+        _isLoadingArtists = false;
+        _artistsError = null;
+      });
+      return;
+    }
+
     setState(() {
       _isLoadingArtists = true;
       _artistsError = null;
@@ -172,6 +213,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
       });
       _fetchStarredArtists();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(activeRemoteSessionProvider.notifier).updateNavidromeArtists(
+              artists: list,
+              selectedArtistId: _selectedArtistId,
+            );
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -194,11 +242,29 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             ..clear()
             ..addAll(ids);
         });
+        ref.read(activeRemoteSessionProvider.notifier).updateNavidromeArtists(
+              starredArtistIds: _starredArtistIds,
+            );
       }
     } catch (_) {}
   }
 
-  Future<void> _loadPlaylists() async {
+  Future<void> _loadPlaylists({bool forceRefresh = false}) async {
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    if (!forceRefresh && isSameServer && session.navidromePlaylists != null) {
+      setState(() {
+        _playlists = session.navidromePlaylists!;
+        _selectedPlaylistId =
+            session.navidromeSelectedPlaylistId ?? _starredPlaylistId;
+        _isLoadingPlaylists = false;
+        _playlistsError = null;
+      });
+      return;
+    }
+
     setState(() {
       _isLoadingPlaylists = true;
       _playlistsError = null;
@@ -210,6 +276,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         _playlists = list;
         _isLoadingPlaylists = false;
         _selectedPlaylistId ??= _starredPlaylistId;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref
+            .read(activeRemoteSessionProvider.notifier)
+            .updateNavidromePlaylists(
+              playlists: list,
+              selectedPlaylistId: _selectedPlaylistId,
+            );
       });
     } catch (e) {
       if (!mounted) return;
@@ -295,12 +370,17 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 final created = await _client.createPlaylist(name: name);
                 if (created != null && mounted) {
                   showToast('Created playlist: $name');
-                  await _loadPlaylists();
+                  await _loadPlaylists(forceRefresh: true);
                   final createdId = created['id'] as String?;
                   if (createdId != null) {
                     setState(() {
                       _selectedPlaylistId = createdId;
                     });
+                    ref
+                        .read(activeRemoteSessionProvider.notifier)
+                        .updateNavidromePlaylists(
+                          selectedPlaylistId: createdId,
+                        );
                   }
                 }
               }
@@ -498,6 +578,28 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Refresh',
+            onPressed: () {
+              switch (_tabController.index) {
+                case 0:
+                  _loadAlbums(forceRefresh: true);
+                  break;
+                case 1:
+                  _loadArtists(forceRefresh: true);
+                  break;
+                case 2:
+                  _loadPlaylists(forceRefresh: true);
+                  break;
+                case 3:
+                  if (_searchController.text.isNotEmpty) {
+                    _onSearchChanged(_searchController.text);
+                  }
+                  break;
+              }
+            },
+          ),
           Consumer(
             builder: (context, ref, child) {
               final activeCount = ref.watch(activeDownloadsCountProvider);
@@ -633,7 +735,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                     setState(() {
                       _albumSortType = key;
                     });
-                    _loadAlbums();
+                    _loadAlbums(forceRefresh: true);
                   }
                 },
               ),
@@ -692,7 +794,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                     Text('Error loading albums: $_albumsError'),
                     const SizedBox(height: 12),
                     FilledButton(
-                      onPressed: _loadAlbums,
+                      onPressed: () => _loadAlbums(forceRefresh: true),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -743,7 +845,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           ),
                         )
                       : RefreshIndicator(
-                          onRefresh: _loadAlbums,
+                          onRefresh: () => _loadAlbums(forceRefresh: true),
                           child: GridView.builder(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
                             gridDelegate:
@@ -781,17 +883,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                     artistName: artist,
                                     coverArtId: coverId,
                                     onViewDetails: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NavidromeAlbumDetailPage(
-                                            server: widget.server,
-                                            password: widget.password,
-                                            albumId: albumId,
-                                            albumName: title,
-                                            artistName: artist,
-                                            coverArtId: coverId,
-                                          ),
-                                        ),
+                                      NavidromeNavUtils.openAlbum(
+                                        context,
+                                        ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        albumId: albumId,
+                                        albumName: title,
+                                        artistName: artist,
+                                        coverArtId: coverId,
                                       );
                                     },
                                   );
@@ -808,17 +908,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                     artistName: artist,
                                     coverArtId: coverId,
                                     onViewDetails: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NavidromeAlbumDetailPage(
-                                            server: widget.server,
-                                            password: widget.password,
-                                            albumId: albumId,
-                                            albumName: title,
-                                            artistName: artist,
-                                            coverArtId: coverId,
-                                          ),
-                                        ),
+                                      NavidromeNavUtils.openAlbum(
+                                        context,
+                                        ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        albumId: albumId,
+                                        albumName: title,
+                                        artistName: artist,
+                                        coverArtId: coverId,
                                       );
                                     },
                                   );
@@ -828,17 +926,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NavidromeAlbumDetailPage(
-                                            server: widget.server,
-                                            password: widget.password,
-                                            albumId: albumId,
-                                            albumName: title,
-                                            artistName: artist,
-                                            coverArtId: coverId,
-                                          ),
-                                        ),
+                                      NavidromeNavUtils.openAlbum(
+                                        context,
+                                        ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        albumId: albumId,
+                                        albumName: title,
+                                        artistName: artist,
+                                        coverArtId: coverId,
                                       );
                                     },
                                   child: Ink(
@@ -1017,7 +1113,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             Text('Error loading artists: $_artistsError'),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: _loadArtists,
+              onPressed: () => _loadArtists(forceRefresh: true),
               child: const Text('Retry'),
             ),
           ],
@@ -1164,8 +1260,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isLandscape =
-            MediaQuery.of(context).orientation == Orientation.landscape;
+        final isLandscape = constraints.maxWidth >= 750;
 
         // Ensure a selected artist exists for landscape split view
         final selectedArtist = filteredArtists.firstWhere(
@@ -1175,12 +1270,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         );
 
         if (isLandscape && filteredArtists.isNotEmpty) {
-          // Landscape Split View (similar to local ArtistsTab landscape split view)
+          // Master-Detail Split View for Desktop / Landscape
           return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Left: Artist List Pane
+              // Left: Artist Master List
               SizedBox(
-                width: constraints.maxWidth >= 1100 ? 380 : 320,
+                width: 320,
                 child: Column(
                   children: [
                     buildArtistToolbar(),
@@ -1196,7 +1292,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           ),
                         ),
                         child: RefreshIndicator(
-                          onRefresh: _loadArtists,
+                          onRefresh: () => _loadArtists(forceRefresh: true),
                           child: ListView.builder(
                             padding: const EdgeInsets.all(12),
                             itemCount: filteredArtists.length,
@@ -1211,10 +1307,16 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                   artist: artist,
                                   isSelected: isSelected,
                                   onTap: () {
+                                    final id = artist['id'] as String?;
                                     setState(() {
-                                      _selectedArtistId =
-                                          artist['id'] as String?;
+                                      _selectedArtistId = id;
                                     });
+                                    ref
+                                        .read(
+                                            activeRemoteSessionProvider.notifier)
+                                        .updateNavidromeArtists(
+                                          selectedArtistId: id,
+                                        );
                                   },
                                 ),
                               );
@@ -1277,7 +1379,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _loadArtists,
+                      onRefresh: () => _loadArtists(forceRefresh: true),
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
                         itemCount: filteredArtists.length,
@@ -1290,21 +1392,16 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               artist: artist,
                               isSelected: false,
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => NavidromeArtistDetailPage(
-                                      server: widget.server,
-                                      password: widget.password,
-                                      artistId:
-                                          artist['id'] as String? ?? '',
-                                      artistName: artist['name'] as String? ??
-                                          'Unknown Artist',
-                                      coverArtId:
-                                          artist['coverArt'] as String?,
-                                      albumCount:
-                                          artist['albumCount'] as int?,
-                                    ),
-                                  ),
+                                NavidromeNavUtils.openArtist(
+                                  context,
+                                  ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  artistId: artist['id'] as String? ?? '',
+                                  artistName: artist['name'] as String? ??
+                                      'Unknown Artist',
+                                  coverArtId: artist['coverArt'] as String?,
+                                  albumCount: artist['albumCount'] as int?,
                                 );
                               },
                             ),
@@ -1441,7 +1538,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             Text('Error loading playlists: $_playlistsError'),
             const SizedBox(height: 12),
             FilledButton(
-              onPressed: _loadPlaylists,
+              onPressed: () => _loadPlaylists(forceRefresh: true),
               child: const Text('Retry'),
             ),
           ],
@@ -1517,7 +1614,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             IconButton(
               tooltip: 'Refresh',
               icon: const Icon(Icons.refresh_rounded),
-              onPressed: _loadPlaylists,
+              onPressed: () => _loadPlaylists(forceRefresh: true),
             ),
           ],
         ),
@@ -1569,7 +1666,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           ),
                         ),
                         child: RefreshIndicator(
-                          onRefresh: _loadPlaylists,
+                          onRefresh: () => _loadPlaylists(forceRefresh: true),
                           child: ListView.builder(
                             padding: const EdgeInsets.all(12),
                             itemCount: filteredPlaylists.length,
@@ -1584,10 +1681,16 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                   playlist: pl,
                                   isSelected: isSelected,
                                   onTap: () {
+                                    final id = pl['id'] as String?;
                                     setState(() {
-                                      _selectedPlaylistId =
-                                          pl['id'] as String?;
+                                      _selectedPlaylistId = id;
                                     });
+                                    ref
+                                        .read(
+                                            activeRemoteSessionProvider.notifier)
+                                        .updateNavidromePlaylists(
+                                          selectedPlaylistId: id,
+                                        );
                                   },
                                 ),
                               );
@@ -1630,9 +1733,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             duration: selectedPlaylist['duration'] as int?,
                             isStarred: selectedPlaylist['isStarred'] == true ||
                                 selectedPlaylist['id'] == _starredPlaylistId,
-                            onPlaylistModified: _loadPlaylists,
+                            onPlaylistModified: () =>
+                                _loadPlaylists(forceRefresh: true),
                             onDeleted: () {
-                              _loadPlaylists();
+                              _loadPlaylists(forceRefresh: true);
                             },
                           )
                         : const Center(child: Text('No playlist selected')),
@@ -1660,7 +1764,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _loadPlaylists,
+                      onRefresh: () => _loadPlaylists(forceRefresh: true),
                       child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
                         itemCount: filteredPlaylists.length,
@@ -1673,26 +1777,21 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               playlist: pl,
                               isSelected: false,
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        NavidromePlaylistDetailPage(
-                                      server: widget.server,
-                                      password: widget.password,
-                                      playlistId:
-                                          pl['id'] as String? ?? '',
-                                      playlistName:
-                                          pl['name'] as String? ??
-                                              'Playlist',
-                                      coverArtId:
-                                          pl['coverArt'] as String?,
-                                      songCount: pl['songCount'] as int?,
-                                      duration: pl['duration'] as int?,
-                                      isStarred: pl['isStarred'] == true ||
-                                          pl['id'] == _starredPlaylistId,
-                                      onPlaylistModified: _loadPlaylists,
-                                    ),
-                                  ),
+                                NavidromeNavUtils.openPlaylist(
+                                  context,
+                                  ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  playlistId: pl['id'] as String? ?? '',
+                                  playlistName:
+                                      pl['name'] as String? ?? 'Playlist',
+                                  coverArtId: pl['coverArt'] as String?,
+                                  songCount: pl['songCount'] as int?,
+                                  duration: pl['duration'] as int?,
+                                  isStarred: pl['isStarred'] == true ||
+                                      pl['id'] == _starredPlaylistId,
+                                  onPlaylistModified: () =>
+                                      _loadPlaylists(forceRefresh: true),
                                 );
                               },
                             ),
@@ -1741,8 +1840,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 playlistId: playlistId,
                 playlistName: name,
                 onViewDetails: onTap,
-                onRename: () => _loadPlaylists(),
-                onDelete: () => _loadPlaylists(),
+                onRename: () => _loadPlaylists(forceRefresh: true),
+                onDelete: () => _loadPlaylists(forceRefresh: true),
               );
             },
       onLongPressStart: isStarredItem
@@ -1757,8 +1856,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 playlistId: playlistId,
                 playlistName: name,
                 onViewDetails: onTap,
-                onRename: () => _loadPlaylists(),
-                onDelete: () => _loadPlaylists(),
+                onRename: () => _loadPlaylists(forceRefresh: true),
+                onDelete: () => _loadPlaylists(forceRefresh: true),
               );
             },
       child: Material(
@@ -1933,17 +2032,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               artistId: artist['id'] as String? ?? '',
                               artistName: artist['name'] as String? ?? '',
                               onViewDetails: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => NavidromeArtistDetailPage(
-                                      server: widget.server,
-                                      password: widget.password,
-                                      artistId: artist['id'] as String? ?? '',
-                                      artistName: artist['name'] as String? ?? '',
-                                      coverArtId: artist['coverArt'] as String?,
-                                      albumCount: artist['albumCount'] as int?,
-                                    ),
-                                  ),
+                                NavidromeNavUtils.openArtist(
+                                  context,
+                                  ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  artistId: artist['id'] as String? ?? '',
+                                  artistName: artist['name'] as String? ?? '',
+                                  coverArtId: artist['coverArt'] as String?,
+                                  albumCount: artist['albumCount'] as int?,
                                 );
                               },
                             );
@@ -1958,17 +2055,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               artistId: artist['id'] as String? ?? '',
                               artistName: artist['name'] as String? ?? '',
                               onViewDetails: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => NavidromeArtistDetailPage(
-                                      server: widget.server,
-                                      password: widget.password,
-                                      artistId: artist['id'] as String? ?? '',
-                                      artistName: artist['name'] as String? ?? '',
-                                      coverArtId: artist['coverArt'] as String?,
-                                      albumCount: artist['albumCount'] as int?,
-                                    ),
-                                  ),
+                                NavidromeNavUtils.openArtist(
+                                  context,
+                                  ref,
+                                  server: widget.server,
+                                  password: widget.password,
+                                  artistId: artist['id'] as String? ?? '',
+                                  artistName: artist['name'] as String? ?? '',
+                                  coverArtId: artist['coverArt'] as String?,
+                                  albumCount: artist['albumCount'] as int?,
                                 );
                               },
                             );
@@ -1983,18 +2078,16 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                 ? Text('${artist['albumCount']} albums')
                                 : null,
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => NavidromeArtistDetailPage(
-                                    server: widget.server,
-                                    password: widget.password,
-                                    artistId: artist['id'] as String? ?? '',
-                                    artistName:
-                                        artist['name'] as String? ?? '',
-                                    coverArtId: artist['coverArt'] as String?,
-                                    albumCount: artist['albumCount'] as int?,
-                                  ),
-                                ),
+                              NavidromeNavUtils.openArtist(
+                                context,
+                                ref,
+                                server: widget.server,
+                                password: widget.password,
+                                artistId: artist['id'] as String? ?? '',
+                                artistName:
+                                    artist['name'] as String? ?? '',
+                                coverArtId: artist['coverArt'] as String?,
+                                albumCount: artist['albumCount'] as int?,
                               );
                             },
                           ),
@@ -2041,16 +2134,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                     artistName: artist,
                                     coverArtId: coverId,
                                     onViewDetails: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NavidromeAlbumDetailPage(
-                                            server: widget.server,
-                                            password: widget.password,
-                                            albumId: albumId,
-                                            albumName: title,
-                                            coverArtId: coverId,
-                                          ),
-                                        ),
+                                      NavidromeNavUtils.openAlbum(
+                                        context,
+                                        ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        albumId: albumId,
+                                        albumName: title,
+                                        artistName: artist,
+                                        coverArtId: coverId,
                                       );
                                     },
                                   );
@@ -2067,32 +2159,30 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                     artistName: artist,
                                     coverArtId: coverId,
                                     onViewDetails: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NavidromeAlbumDetailPage(
-                                            server: widget.server,
-                                            password: widget.password,
-                                            albumId: albumId,
-                                            albumName: title,
-                                            coverArtId: coverId,
-                                          ),
-                                        ),
+                                      NavidromeNavUtils.openAlbum(
+                                        context,
+                                        ref,
+                                        server: widget.server,
+                                        password: widget.password,
+                                        albumId: albumId,
+                                        albumName: title,
+                                        artistName: artist,
+                                        coverArtId: coverId,
                                       );
                                     },
                                   );
                                 },
                                 child: InkWell(
                                   onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => NavidromeAlbumDetailPage(
-                                          server: widget.server,
-                                          password: widget.password,
-                                          albumId: albumId,
-                                          albumName: title,
-                                          coverArtId: coverId,
-                                        ),
-                                      ),
+                                    NavidromeNavUtils.openAlbum(
+                                      context,
+                                      ref,
+                                      server: widget.server,
+                                      password: widget.password,
+                                      albumId: albumId,
+                                      albumName: title,
+                                      artistName: artist,
+                                      coverArtId: coverId,
                                     );
                                   },
                                   child: Column(
