@@ -281,7 +281,7 @@ class _MiniSpectrumPainter extends CustomPainter {
 
     // displayCount 控制迷你播放器显示的频段（条形图）数量
     // 增加此数值会让频谱更细腻，减小则更简约
-    const int displayCount = 64;
+    const int displayCount = 80;
     final double barWidth = size.width / displayCount;
     const double gap = 3.0;
 
