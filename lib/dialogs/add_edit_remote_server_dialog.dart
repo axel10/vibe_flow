@@ -203,10 +203,11 @@ class _AddEditRemoteServerDialogState
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 540, maxHeight: 720),
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(20.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -223,13 +224,16 @@ class _AddEditRemoteServerDialogState
                       size: 28,
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      _isEditing ? l10n.editRemoteServer : l10n.addRemoteServer,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Text(
+                        _isEditing ? l10n.editRemoteServer : l10n.addRemoteServer,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.of(context).pop(false),
@@ -309,41 +313,56 @@ class _AddEditRemoteServerDialogState
                           },
                         ),
                         const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _usernameController,
-                                decoration: InputDecoration(
-                                  labelText: l10n.serverUsername,
-                                  prefixIcon: const Icon(Icons.person_outline),
-                                  border: const OutlineInputBorder(),
-                                ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isNarrow = constraints.maxWidth < 360;
+                            final usernameField = TextFormField(
+                              controller: _usernameController,
+                              decoration: InputDecoration(
+                                labelText: l10n.serverUsername,
+                                prefixIcon: const Icon(Icons.person_outline),
+                                border: const OutlineInputBorder(),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  labelText: l10n.serverPassword,
-                                  prefixIcon: const Icon(Icons.lock_outline),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(_obscurePassword
-                                        ? Icons.visibility_off
-                                        : Icons.visibility),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                  ),
-                                  border: const OutlineInputBorder(),
+                            );
+                            final passwordField = TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              decoration: InputDecoration(
+                                labelText: l10n.serverPassword,
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                suffixIcon: IconButton(
+                                  icon: Icon(_obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
                                 ),
+                                border: const OutlineInputBorder(),
                               ),
-                            ),
-                          ],
+                            );
+
+                            if (isNarrow) {
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  usernameField,
+                                  const SizedBox(height: 14),
+                                  passwordField,
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              children: [
+                                Expanded(child: usernameField),
+                                const SizedBox(width: 12),
+                                Expanded(child: passwordField),
+                              ],
+                            );
+                          },
                         ),
                         if (_serverType == RemoteServerType.webdav) ...[
                           const SizedBox(height: 14),
@@ -361,16 +380,41 @@ class _AddEditRemoteServerDialogState
                           const SizedBox(height: 14),
                           DropdownButtonFormField<int?>(
                             initialValue: _maxBitRate,
+                            isExpanded: true,
                             decoration: InputDecoration(
                               labelText: l10n.maxBitRate,
                               prefixIcon: const Icon(Icons.graphic_eq_rounded),
                               border: const OutlineInputBorder(),
                             ),
                             items: const [
-                              DropdownMenuItem(value: null, child: Text('Raw (No Transcoding)')),
-                              DropdownMenuItem(value: 320, child: Text('320 kbps (High Quality)')),
-                              DropdownMenuItem(value: 192, child: Text('192 kbps (Standard)')),
-                              DropdownMenuItem(value: 128, child: Text('128 kbps (Low Bandwidth)')),
+                              DropdownMenuItem(
+                                value: null,
+                                child: Text(
+                                  'Raw (No Transcoding)',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 320,
+                                child: Text(
+                                  '320 kbps (High Quality)',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 192,
+                                child: Text(
+                                  '192 kbps (Standard)',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 128,
+                                child: Text(
+                                  '128 kbps (Low Bandwidth)',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                             onChanged: (val) {
                               setState(() {
@@ -463,10 +507,10 @@ class _AddEditRemoteServerDialogState
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    OutlinedButton.icon(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 360;
+                    final testButton = OutlinedButton.icon(
                       onPressed: _isTesting ? null : _runTestConnection,
                       icon: _isTesting
                           ? const SizedBox(
@@ -475,24 +519,49 @@ class _AddEditRemoteServerDialogState
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.network_ping_rounded),
-                      label: Text(_isTesting
-                          ? l10n.testingConnection
-                          : l10n.testConnection),
-                    ),
-                    Row(
+                      label: Text(
+                        _isTesting
+                            ? l10n.testingConnection
+                            : l10n.testConnection,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                    final actionButtons = Row(
+                      mainAxisSize: isNarrow ? MainAxisSize.max : MainAxisSize.min,
+                      mainAxisAlignment: isNarrow ? MainAxisAlignment.end : MainAxisAlignment.start,
                       children: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: const Text('Cancel'),
+                          child: Text(l10n.cancel),
                         ),
                         const SizedBox(width: 8),
                         FilledButton(
                           onPressed: _saveServer,
-                          child: const Text('Save'),
+                          child: Text(l10n.save),
                         ),
                       ],
-                    ),
-                  ],
+                    );
+
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          testButton,
+                          const SizedBox(height: 10),
+                          actionButtons,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(child: testButton),
+                        const SizedBox(width: 8),
+                        actionButtons,
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

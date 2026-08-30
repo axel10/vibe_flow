@@ -142,11 +142,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     });
     try {
       final list = await _client.getAlbumList(type: _albumSortType, size: 500);
+      if (!mounted) return;
       setState(() {
         _albums = list;
         _isLoadingAlbums = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _albumsError = e.toString();
         _isLoadingAlbums = false;
@@ -161,6 +163,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     });
     try {
       final list = await _client.getArtists();
+      if (!mounted) return;
       setState(() {
         _artists = list;
         _isLoadingArtists = false;
@@ -170,6 +173,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       });
       _fetchStarredArtists();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _artistsError = e.toString();
         _isLoadingArtists = false;
@@ -201,12 +205,14 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     });
     try {
       final list = await _client.getPlaylists();
+      if (!mounted) return;
       setState(() {
         _playlists = list;
         _isLoadingPlaylists = false;
         _selectedPlaylistId ??= _starredPlaylistId;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _playlistsError = e.toString();
         _isLoadingPlaylists = false;

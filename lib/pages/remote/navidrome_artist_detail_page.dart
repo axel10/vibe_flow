@@ -178,6 +178,7 @@ class _NavidromeArtistDetailContentState
 
       final artistMap = await client.getArtist(widget.artistId);
       if (artistMap == null) {
+        if (!mounted) return;
         setState(() {
           _error = 'Artist details not found on server';
           _isLoading = false;
@@ -291,6 +292,7 @@ class _NavidromeArtistDetailContentState
       }
 
       final isStarred = artistMap['starred'] != null;
+      if (!mounted) return;
       setState(() {
         _albumSections = sections;
         _allSongs = accumulatedSongs;
@@ -298,6 +300,7 @@ class _NavidromeArtistDetailContentState
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;

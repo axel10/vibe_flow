@@ -1589,47 +1589,65 @@ class _SharingPageState extends ConsumerState<SharingPage>
             child: ListView(
               padding: EdgeInsets.fromLTRB(20, 16, 20, bottomOffset + 20),
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${servers.length} ${l10n.tabCloudServers}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 380;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: Badge(
-                            isLabelVisible:
-                                ref.watch(activeDownloadsCountProvider) > 0,
-                            label: Text(
-                              '${ref.watch(activeDownloadsCountProvider)}',
+                        Expanded(
+                          child: Text(
+                            '${servers.length} ${l10n.tabCloudServers}',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
-                            child: const Icon(Icons.download_rounded),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          tooltip: l10n.downloadManager,
-                          onPressed: () {
-                            Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const RemoteDownloadManagerPage(),
-                              ),
-                            );
-                          },
                         ),
                         const SizedBox(width: 8),
-                        FilledButton.tonalIcon(
-                          onPressed: () =>
-                              AddEditRemoteServerDialog.show(context),
-                          icon: const Icon(Icons.add_rounded, size: 18),
-                          label: Text(l10n.addRemoteServer),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Badge(
+                                isLabelVisible:
+                                    ref.watch(activeDownloadsCountProvider) > 0,
+                                label: Text(
+                                  '${ref.watch(activeDownloadsCountProvider)}',
+                                ),
+                                child: const Icon(Icons.download_rounded),
+                              ),
+                              tooltip: l10n.downloadManager,
+                              onPressed: () {
+                                Navigator.of(context, rootNavigator: true).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const RemoteDownloadManagerPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 4),
+                            if (isNarrow)
+                              IconButton.filledTonal(
+                                onPressed: () =>
+                                    AddEditRemoteServerDialog.show(context),
+                                icon: const Icon(Icons.add_rounded, size: 20),
+                                tooltip: l10n.addRemoteServer,
+                              )
+                            else
+                              FilledButton.tonalIcon(
+                                onPressed: () =>
+                                    AddEditRemoteServerDialog.show(context),
+                                icon: const Icon(Icons.add_rounded, size: 18),
+                                label: Text(l10n.addRemoteServer),
+                              ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 for (final server in servers)

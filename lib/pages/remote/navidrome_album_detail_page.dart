@@ -90,6 +90,7 @@ class _NavidromeAlbumDetailPageState
       );
       final album = await client.getAlbum(widget.albumId);
       if (album == null) {
+        if (!mounted) return;
         setState(() {
           _error = 'Album details not found';
           _isLoading = false;
@@ -113,6 +114,7 @@ class _NavidromeAlbumDetailPageState
       }
 
       final isStarred = album['starred'] != null;
+      if (!mounted) return;
       setState(() {
         _albumData = album;
         _tracks = parsedTracks;
@@ -120,6 +122,7 @@ class _NavidromeAlbumDetailPageState
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;

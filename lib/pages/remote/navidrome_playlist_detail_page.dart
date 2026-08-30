@@ -209,6 +209,7 @@ class _NavidromePlaylistDetailContentState
           }
         }
 
+        if (!mounted) return;
         setState(() {
           _playlistData = {
             'name': widget.playlistName,
@@ -227,6 +228,7 @@ class _NavidromePlaylistDetailContentState
 
       final pl = await client.getPlaylist(widget.playlistId);
       if (pl == null) {
+        if (!mounted) return;
         setState(() {
           _error = 'Playlist details not found on server';
           _isLoading = false;
@@ -254,6 +256,7 @@ class _NavidromePlaylistDetailContentState
         }
       }
 
+      if (!mounted) return;
       setState(() {
         _playlistData = pl;
         _currentName = pl['name'] as String? ?? widget.playlistName;
@@ -264,6 +267,7 @@ class _NavidromePlaylistDetailContentState
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
