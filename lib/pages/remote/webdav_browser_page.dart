@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:path/path.dart' as p;
-import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/audio/playback_source.dart';
@@ -19,7 +18,6 @@ import '../../player/settings/settings_service.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/folder_helpers.dart';
 import '../../utils/remote_context_menu_utils.dart';
-import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/folder_header_banner.dart';
 import '../../widgets/folder_layout_utils.dart';
 import '../../widgets/folder_grid_card.dart';
@@ -63,6 +61,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   late final TextEditingController _searchController;
   final ScrollController _scrollController = ScrollController();
   final ScrollController _breadcrumbsScrollController = ScrollController();
+  final ValueNotifier<double> _scrollProgress = ValueNotifier<double>(0.0);
+  bool _isCoverVisible = true;
   bool _isSearching = false;
   String _searchQuery = '';
 
@@ -70,6 +70,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _scrollController.addListener(_onScroll);
     _client = WebDavClient(
       server: widget.server,
       password: widget.password,
@@ -105,11 +106,25 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
+  void _onScroll() {
+    final offset = _scrollController.offset;
+    final isVisible = offset < 160.0;
+    final progress = (offset / 160.0).clamp(0.0, 1.0);
+    _scrollProgress.value = progress;
+    if (isVisible != _isCoverVisible) {
+      setState(() {
+        _isCoverVisible = isVisible;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
+    _scrollProgress.dispose();
     super.dispose();
   }
 
@@ -218,6 +233,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     if (_scrollController.hasClients) {
       _scrollController.jumpTo(0);
     }
+    _scrollProgress.value = 0.0;
+    _isCoverVisible = true;
   }
 
   Future<void> _startMetadataExtraction(List<WebDavFile> files, int epoch) async {
@@ -401,53 +418,43 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     _loadDirectory(parent);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final settings = ref.watch(settingsServiceProvider);
-    final viewMode = settings.folderViewMode;
-    final currentMusic = ref.watch(audioCurrentMusicProvider);
-    final isAudioPlaying = ref.watch(audioIsPlayingProvider);
-    final isMacOS = Platform.isMacOS;
-    final bool showCustomTitleBar =
-        Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
-      context,
-      hasPlayingMusic: currentMusic != null,
-    );
-
-    // Current directory audio stats
-    final audioItems = _items.where((i) => i.isAudio).toList();
-    final audioCount = audioItems.length;
-    int totalDurationMs = 0;
-    for (final item in audioItems) {
-      final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
-      final meta = _metadataMap[virtualUri] ?? ref.watch(scannerServiceProvider.select((s) => s.metadataMap[virtualUri]));
-      if (meta?.duration != null) {
-        totalDurationMs += meta!.duration!;
-      }
+  void _handleGoBack() {
+    if (_isAtRoot) {
+      ref.read(activeRemoteSessionProvider.notifier).clear();
+    } else {
+      _navigateToParent();
     }
+  }
 
-    // Banner cover finding logic:
-    // Only search in current directory audio files for an existing thumbnail file. No deep recursive search.
-    String? bannerCoverThumbnailPath;
-    String? bannerCoverVirtualUri;
-    for (final item in audioItems) {
-      final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
-      final meta = _metadataMap[virtualUri] ?? ref.watch(scannerServiceProvider.select((s) => s.metadataMap[virtualUri]));
-      if (meta?.thumbnailPath != null && File(meta!.thumbnailPath!).existsSync()) {
-        bannerCoverThumbnailPath = meta.thumbnailPath;
-        bannerCoverVirtualUri = virtualUri;
-        break;
-      }
+  List<String> get _pathSegments {
+    if (_isAtRoot) return [];
+    var relative = _currentPath;
+    if (_rootPath != '/' && relative.startsWith(_rootPath)) {
+      relative = relative.substring(_rootPath.length);
     }
+    final segments = relative
+        .split('/')
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
+    return segments;
+  }
 
-    // Current folder display name & subtitle
-    final folderDisplayName = _isAtRoot ? widget.server.name : p.basename(_currentPath);
-    final folderDisplaySubtitle = _currentPath;
+  String _buildSegmentPath(int index) {
+    final segments = _pathSegments;
+    final sub = segments.sublist(0, index + 1).join('/');
+    if (_rootPath == '/' || _rootPath.isEmpty) {
+      return '/$sub';
+    }
+    final base = _rootPath.endsWith('/')
+        ? _rootPath.substring(0, _rootPath.length - 1)
+        : _rootPath;
+    return '$base/$sub';
+  }
 
-    // Search filtering within current directory
+  void _locateCurrentSong() {
+    final currentMusic = ref.read(audioCurrentMusicProvider);
+    if (currentMusic == null) return;
+
     final lowercaseQuery = _searchQuery.toLowerCase();
     final List<WebDavFile> displayedItems;
     if (_searchQuery.isEmpty) {
@@ -455,8 +462,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     } else {
       displayedItems = _items.where((item) {
         if (item.name.toLowerCase().contains(lowercaseQuery)) return true;
-        final virtualUri = RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
-        final meta = _metadataMap[virtualUri] ?? ref.read(scannerServiceProvider).metadataMap[virtualUri];
+        final virtualUri =
+            RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+        final meta = _metadataMap[virtualUri] ??
+            ref.read(scannerServiceProvider).metadataMap[virtualUri];
         if (meta != null) {
           if (meta.title.toLowerCase().contains(lowercaseQuery)) return true;
           if (meta.artist.toLowerCase().contains(lowercaseQuery)) return true;
@@ -468,13 +477,159 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
     final matchedFolders = displayedItems.where((i) => i.isDirectory).toList();
     final matchedFiles = displayedItems.where((i) => !i.isDirectory).toList();
-    final noSearchResults = _searchQuery.isNotEmpty && displayedItems.isEmpty && !_isLoading;
+
+    final fileIndex = matchedFiles.indexWhere((f) {
+      final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, f.path);
+      return uri == currentMusic.path;
+    });
+
+    if (fileIndex == -1) {
+      showToast(AppLocalizations.of(context)!.songNotInScannedFolders);
+      return;
+    }
+
+    final settings = ref.read(settingsServiceProvider);
+    final viewMode = settings.folderViewMode;
+    final isFolderGrid =
+        viewMode == FolderViewMode.hybrid || viewMode == FolderViewMode.grid;
+    final isSongGrid = viewMode == FolderViewMode.grid;
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double crossAxisExtent = screenWidth - 32;
+    final int crossAxisCount = getFolderGridCrossAxisCount(crossAxisExtent);
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+    final textScale = MediaQuery.textScalerOf(context).scale(10) / 10;
+    final clampedScale = textScale.clamp(1.0, 1.3);
+    final double textHeight = (isPortrait ? 72.0 : 84.0) * clampedScale;
+    final double cardWidth =
+        (crossAxisExtent - (crossAxisCount - 1) * 16) / crossAxisCount;
+    final double cardHeight = cardWidth + textHeight;
+
+    double fileOffset = 48.0 + 190.0;
+    if (isFolderGrid) {
+      final rows = (matchedFolders.length / crossAxisCount).ceil();
+      fileOffset += rows * (cardHeight + 16);
+    } else {
+      fileOffset += matchedFolders.length * 80.0;
+    }
+
+    if (isSongGrid) {
+      final songRows = (fileIndex / crossAxisCount).floor();
+      fileOffset += songRows * (cardHeight + 16);
+    } else {
+      fileOffset += fileIndex * 80.0;
+    }
+
+    if (_scrollController.hasClients) {
+      final double viewportHeight =
+          _scrollController.position.viewportDimension;
+      double targetOffset = fileOffset -
+          (viewportHeight / 2) +
+          (isSongGrid ? cardHeight / 2 : 40.0);
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      targetOffset = targetOffset.clamp(0.0, maxScroll);
+      _scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final settings = ref.watch(settingsServiceProvider);
+    final viewMode = settings.folderViewMode;
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final isAudioPlaying = ref.watch(audioIsPlayingProvider);
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+    final double headerHeight = 64.0 +
+        (MediaQuery.of(context).padding.top > 0
+            ? MediaQuery.of(context).padding.top
+            : ((Platform.isMacOS || Platform.isWindows || Platform.isLinux)
+                ? 24.0
+                : 0.0));
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
+
+    // Current directory audio stats
+    final audioItems = _items.where((i) => i.isAudio).toList();
+    final audioCount = audioItems.length;
+    int totalDurationMs = 0;
+    for (final item in audioItems) {
+      final virtualUri =
+          RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+      final meta = _metadataMap[virtualUri] ??
+          ref.watch(
+            scannerServiceProvider.select((s) => s.metadataMap[virtualUri]),
+          );
+      if (meta?.duration != null) {
+        totalDurationMs += meta!.duration!;
+      }
+    }
+
+    // Banner cover finding logic:
+    // Only search in current directory audio files for an existing thumbnail file. No deep recursive search.
+    String? bannerCoverThumbnailPath;
+    String? bannerCoverVirtualUri;
+    for (final item in audioItems) {
+      final virtualUri =
+          RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+      final meta = _metadataMap[virtualUri] ??
+          ref.watch(
+            scannerServiceProvider.select((s) => s.metadataMap[virtualUri]),
+          );
+      if (meta?.thumbnailPath != null &&
+          File(meta!.thumbnailPath!).existsSync()) {
+        bannerCoverThumbnailPath = meta.thumbnailPath;
+        bannerCoverVirtualUri = virtualUri;
+        break;
+      }
+    }
+
+    // Current folder display name & subtitle
+    final folderDisplayName =
+        _isAtRoot ? widget.server.name : p.basename(_currentPath);
+    final folderDisplaySubtitle = _currentPath;
+
+    // Search filtering within current directory
+    final lowercaseQuery = _searchQuery.toLowerCase();
+    final List<WebDavFile> displayedItems;
+    if (_searchQuery.isEmpty) {
+      displayedItems = _items;
+    } else {
+      displayedItems = _items.where((item) {
+        if (item.name.toLowerCase().contains(lowercaseQuery)) return true;
+        final virtualUri =
+            RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+        final meta = _metadataMap[virtualUri] ??
+            ref.read(scannerServiceProvider).metadataMap[virtualUri];
+        if (meta != null) {
+          if (meta.title.toLowerCase().contains(lowercaseQuery)) return true;
+          if (meta.artist.toLowerCase().contains(lowercaseQuery)) return true;
+          if (meta.album.toLowerCase().contains(lowercaseQuery)) return true;
+        }
+        return false;
+      }).toList();
+    }
+
+    final matchedFolders = displayedItems.where((i) => i.isDirectory).toList();
+    final matchedFiles = displayedItems.where((i) => !i.isDirectory).toList();
+    final noSearchResults =
+        _searchQuery.isNotEmpty && displayedItems.isEmpty && !_isLoading;
 
     // Build Banner cover widget
     final int hash = _currentPath.hashCode;
     final double hue = (hash.abs() % 360).toDouble();
     final Color startColor = HSLColor.fromAHSL(1.0, hue, 0.65, 0.45).toColor();
-    final Color endColor = HSLColor.fromAHSL(1.0, (hue + 40) % 360, 0.75, 0.35).toColor();
+    final Color endColor =
+        HSLColor.fromAHSL(1.0, (hue + 40) % 360, 0.75, 0.35).toColor();
 
     final Widget bannerCoverWidget = bannerCoverThumbnailPath != null
         ? SongThumbnail(
@@ -496,46 +651,116 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               ),
             ),
             child: const Center(
-              child: Icon(Icons.cloud_queue_rounded, size: 42, color: Colors.white70),
+              child: Icon(Icons.cloud_queue_rounded,
+                  size: 42, color: Colors.white70),
             ),
           );
 
     Widget mainContent;
     if (_isLoading) {
-      mainContent = const Center(child: CircularProgressIndicator());
-    } else if (_error != null) {
-      mainContent = Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 48,
-                color: theme.colorScheme.error,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Error: $_error',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () =>
-                    _loadDirectory(_currentPath, forceRefresh: true),
-                child: const Text('Retry'),
-              ),
-            ],
+      mainContent = CustomScrollView(
+        key: PageStorageKey<String>(
+            'webdav-browser-${widget.server.id}-$_currentPath'),
+        controller: _scrollController,
+        cacheExtent: 1000.0,
+        slivers: [
+          if (!isPortrait)
+            SliverToBoxAdapter(
+              child: SizedBox(height: headerHeight),
+            ),
+          SliverToBoxAdapter(
+            child: _buildBanner(
+              theme: theme,
+              l10n: l10n,
+              title: folderDisplayName,
+              subtitle: folderDisplaySubtitle,
+              audioCount: audioCount,
+              totalDurationMs: totalDurationMs,
+              bannerCoverThumbnailPath: bannerCoverThumbnailPath,
+              bannerCoverWidget: bannerCoverWidget,
+              topHeader: isPortrait ? SizedBox(height: headerHeight) : null,
+            ),
           ),
-        ),
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else if (_error != null) {
+      mainContent = CustomScrollView(
+        key: PageStorageKey<String>(
+            'webdav-browser-${widget.server.id}-$_currentPath'),
+        controller: _scrollController,
+        cacheExtent: 1000.0,
+        slivers: [
+          if (!isPortrait)
+            SliverToBoxAdapter(
+              child: SizedBox(height: headerHeight),
+            ),
+          SliverToBoxAdapter(
+            child: _buildBanner(
+              theme: theme,
+              l10n: l10n,
+              title: folderDisplayName,
+              subtitle: folderDisplaySubtitle,
+              audioCount: audioCount,
+              totalDurationMs: totalDurationMs,
+              bannerCoverThumbnailPath: bannerCoverThumbnailPath,
+              bannerCoverWidget: bannerCoverWidget,
+              topHeader: isPortrait ? SizedBox(height: headerHeight) : null,
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Error: $_error',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () =>
+                          _loadDirectory(_currentPath, forceRefresh: true),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       );
     } else if (_items.isEmpty) {
       mainContent = RefreshIndicator(
         onRefresh: () => _loadDirectory(_currentPath, forceRefresh: true),
         child: CustomScrollView(
+          key: PageStorageKey<String>(
+              'webdav-browser-${widget.server.id}-$_currentPath'),
           controller: _scrollController,
+          cacheExtent: 1000.0,
           slivers: [
+            if (!isPortrait)
+              SliverToBoxAdapter(
+                child: SizedBox(height: headerHeight),
+              ),
             SliverToBoxAdapter(
               child: _buildBanner(
                 theme: theme,
@@ -546,6 +771,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 totalDurationMs: totalDurationMs,
                 bannerCoverThumbnailPath: bannerCoverThumbnailPath,
                 bannerCoverWidget: bannerCoverWidget,
+                topHeader: isPortrait ? SizedBox(height: headerHeight) : null,
               ),
             ),
             const SliverFillRemaining(
@@ -559,8 +785,15 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       mainContent = RefreshIndicator(
         onRefresh: () => _loadDirectory(_currentPath, forceRefresh: true),
         child: CustomScrollView(
+          key: PageStorageKey<String>(
+              'webdav-browser-${widget.server.id}-$_currentPath'),
           controller: _scrollController,
+          cacheExtent: 1000.0,
           slivers: [
+            if (!isPortrait)
+              SliverToBoxAdapter(
+                child: SizedBox(height: headerHeight),
+              ),
             SliverToBoxAdapter(
               child: _buildBanner(
                 theme: theme,
@@ -571,6 +804,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 totalDurationMs: totalDurationMs,
                 bannerCoverThumbnailPath: bannerCoverThumbnailPath,
                 bannerCoverWidget: bannerCoverWidget,
+                topHeader: isPortrait ? SizedBox(height: headerHeight) : null,
               ),
             ),
             if (noSearchResults)
@@ -616,6 +850,35 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       );
     }
 
+    final scaffold = Scaffold(
+      body: SafeArea(
+        top: false,
+        child: Stack(
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints:
+                    const BoxConstraints(maxWidth: folderPageMaxWidth),
+                child: mainContent,
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: folderPageMaxWidth),
+                  child: _buildHeaderNavBar(context, isOverlay: true),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     Widget scaffoldContent = PopScope(
       canPop: _isAtRoot,
       onPopInvokedWithResult: (didPop, result) {
@@ -629,188 +892,13 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           _navigateToParent();
         }
       },
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(_isAtRoot ? Icons.arrow_back_rounded : Icons.arrow_upward_rounded),
-            tooltip: _isAtRoot ? 'Exit' : 'Up to parent folder',
-            onPressed: _isAtRoot
-                ? () => ref.read(activeRemoteSessionProvider.notifier).clear()
-                : _navigateToParent,
-          ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.server.name),
-              Text(
-                'WebDAV Storage',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            // View Mode switcher (List, Grid, Hybrid)
-            PopupMenuButton<FolderViewMode>(
-              icon: Icon(_getViewModeIcon(viewMode)),
-              tooltip: 'View Mode',
-              onSelected: (mode) {
-                ref.read(settingsServiceProvider).folderViewMode = mode;
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: FolderViewMode.list,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.view_list_rounded,
-                        color: viewMode == FolderViewMode.list
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'List View',
-                        style: TextStyle(
-                          fontWeight: viewMode == FolderViewMode.list
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: viewMode == FolderViewMode.list
-                              ? theme.colorScheme.primary
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: FolderViewMode.grid,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.grid_view_rounded,
-                        color: viewMode == FolderViewMode.grid
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Grid View',
-                        style: TextStyle(
-                          fontWeight: viewMode == FolderViewMode.grid
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: viewMode == FolderViewMode.grid
-                              ? theme.colorScheme.primary
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: FolderViewMode.hybrid,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.dashboard_customize_rounded,
-                        color: viewMode == FolderViewMode.hybrid
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Hybrid View',
-                        style: TextStyle(
-                          fontWeight: viewMode == FolderViewMode.hybrid
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: viewMode == FolderViewMode.hybrid
-                              ? theme.colorScheme.primary
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              tooltip: 'Refresh',
-              onPressed: () =>
-                  _loadDirectory(_currentPath, forceRefresh: true),
-            ),
-            IconButton(
-              icon: Badge(
-                isLabelVisible:
-                    ref.watch(activeDownloadsCountProvider) > 0,
-                label:
-                    Text('${ref.watch(activeDownloadsCountProvider)}'),
-                child: const Icon(Icons.download_rounded),
-              ),
-              tooltip: 'Download Manager',
-              onPressed: () {
-                Navigator.of(context, rootNavigator: true).push(
-                  MaterialPageRoute(
-                    builder: (_) => const RemoteDownloadManagerPage(),
-                  ),
-                );
-              },
-            ),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(42.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildBreadcrumbs(theme),
-                const Divider(height: 1),
-              ],
-            ),
-          ),
-        ),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
-            child: mainContent,
-          ),
-        ),
-      ),
+      child: scaffold,
     );
-
-    if (showCustomTitleBar || isMacOS) {
-      scaffoldContent = Material(
-        color: theme.colorScheme.surface,
-        child: Column(
-          children: [
-            if (showCustomTitleBar)
-              DesktopWindowTitleBar(brightness: theme.brightness)
-            else
-              const DragToMoveArea(child: SizedBox(height: 32)),
-            Expanded(child: scaffoldContent),
-          ],
-        ),
-      );
-    }
 
     if (widget.wrapWithMiniPlayer) {
       return MiniPlayerWrapper(child: scaffoldContent);
     }
     return scaffoldContent;
-  }
-
-  IconData _getViewModeIcon(FolderViewMode mode) {
-    switch (mode) {
-      case FolderViewMode.list:
-        return Icons.view_list_rounded;
-      case FolderViewMode.grid:
-        return Icons.grid_view_rounded;
-      case FolderViewMode.hybrid:
-        return Icons.dashboard_customize_rounded;
-    }
   }
 
   Widget _buildBanner({
@@ -822,6 +910,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     required int totalDurationMs,
     required String? bannerCoverThumbnailPath,
     required Widget bannerCoverWidget,
+    Widget? topHeader,
   }) {
     return FolderHeaderBanner(
       title: title,
@@ -830,26 +919,15 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       totalDuration: Duration(milliseconds: totalDurationMs),
       coverImagePath: bannerCoverThumbnailPath,
       coverWidget: bannerCoverWidget,
+      topHeader: topHeader,
       heroTag: 'webdav-cover-$_currentPath',
+      isHeroModeEnabled: _isCoverVisible,
       actionButtons: [
-        FilledButton.icon(
-          onPressed: audioCount > 0 ? () => _playFolder(shuffle: false) : null,
-          icon: const Icon(Icons.play_arrow_rounded, size: 20),
-          label: Text(l10n.playAll),
-          style: FilledButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          onPressed: audioCount > 0 ? () => _playFolder(shuffle: true) : null,
-          icon: const Icon(Icons.shuffle_rounded, size: 18),
-          label: Text(l10n.shufflePlay),
-          style: OutlinedButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          ),
+        FolderPlayActionButtons(
+          totalSongsCount: audioCount,
+          onPlayAll: audioCount > 0 ? () => _playFolder(shuffle: false) : () {},
+          onShufflePlay:
+              audioCount > 0 ? () => _playFolder(shuffle: true) : () {},
         ),
         if (audioCount > 0) ...[
           const SizedBox(width: 8),
@@ -868,7 +946,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       isSearching: _isSearching,
       searchController: _searchController,
       searchQuery: _searchQuery,
-      searchHintText: 'Search in current folder...',
+      searchHintText: l10n.searchInFolderAndSubfolders,
       onSearchQueryChanged: (val) {
         setState(() {
           _searchQuery = val.trim();
@@ -886,82 +964,513 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     );
   }
 
-  Widget _buildBreadcrumbs(ThemeData theme) {
-    final segments = _currentPath
-        .split('/')
-        .where((s) => s.trim().isNotEmpty)
-        .toList();
+  Widget _buildHeaderNavBar(BuildContext context, {bool isOverlay = true}) {
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final settings = ref.watch(settingsServiceProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isPortrait =
+        MediaQuery.of(context).orientation == Orientation.portrait;
+    final activeDownloadsCount = ref.watch(activeDownloadsCountProvider);
 
-    return Container(
-      width: double.infinity,
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _breadcrumbsScrollController,
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () => _loadDirectory(_rootPath),
-                    borderRadius: BorderRadius.circular(6),
+    final lowercaseQuery = _searchQuery.toLowerCase();
+    final List<WebDavFile> displayedItems;
+    if (_searchQuery.isEmpty) {
+      displayedItems = _items;
+    } else {
+      displayedItems = _items.where((item) {
+        if (item.name.toLowerCase().contains(lowercaseQuery)) return true;
+        final virtualUri =
+            RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+        final meta = _metadataMap[virtualUri] ??
+            ref.read(scannerServiceProvider).metadataMap[virtualUri];
+        if (meta != null) {
+          if (meta.title.toLowerCase().contains(lowercaseQuery)) return true;
+          if (meta.artist.toLowerCase().contains(lowercaseQuery)) return true;
+          if (meta.album.toLowerCase().contains(lowercaseQuery)) return true;
+        }
+        return false;
+      }).toList();
+    }
+    final isCurrentMusicInFolder = currentMusic != null &&
+        displayedItems.any((item) =>
+            RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path) ==
+            currentMusic.path);
+
+    return ValueListenableBuilder<double>(
+      valueListenable: _scrollProgress,
+      builder: (context, progressValue, child) {
+        final progress = progressValue.clamp(0.0, 1.0);
+
+        final targetSurface = theme.colorScheme.surface;
+        final navBackgroundColor = isOverlay
+            ? Color.lerp(
+                targetSurface.withValues(alpha: 0.0), targetSurface, progress)!
+            : theme.scaffoldBackgroundColor;
+
+        final overlayIconColor = isDark
+            ? Colors.white
+            : theme.colorScheme.onSurface.withValues(alpha: 0.85);
+        final solidIconColor =
+            theme.colorScheme.onSurface.withValues(alpha: 0.85);
+        final iconColor = isOverlay
+            ? (Color.lerp(overlayIconColor, solidIconColor, progress) ??
+                solidIconColor)
+            : solidIconColor;
+
+        final overlayChevronColor = isDark
+            ? Colors.white.withValues(alpha: 0.6)
+            : theme.colorScheme.onSurface.withValues(alpha: 0.4);
+        final solidChevronColor =
+            theme.colorScheme.onSurface.withValues(alpha: 0.4);
+        final chevronColor = isOverlay
+            ? (Color.lerp(overlayChevronColor, solidChevronColor, progress) ??
+                solidChevronColor)
+            : solidChevronColor;
+
+        final overlayFolderTextColor = isDark
+            ? Colors.white.withValues(alpha: 0.9)
+            : theme.colorScheme.onSurface.withValues(alpha: 0.85);
+        final solidFolderTextColor =
+            theme.colorScheme.onSurface.withValues(alpha: 0.85);
+        final folderTextColor = isOverlay
+            ? (Color.lerp(
+                    overlayFolderTextColor, solidFolderTextColor, progress) ??
+                solidFolderTextColor)
+            : solidFolderTextColor;
+
+        final shadowAlpha = 1.0 - progress;
+        final shadows = (isOverlay && isDark && shadowAlpha > 0.05)
+            ? [
+                Shadow(
+                  offset: const Offset(0, 1),
+                  blurRadius: 4,
+                  color: Colors.black.withValues(alpha: 0.87 * shadowAlpha),
+                ),
+              ]
+            : null;
+
+        final backButton = Material(
+          color: Colors.transparent,
+          child: InkResponse(
+            radius: 18,
+            highlightShape: BoxShape.circle,
+            onTap: _handleGoBack,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                size: 20,
+                color: iconColor,
+                shadows: shadows,
+              ),
+            ),
+          ),
+        );
+
+        final backChevron = Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Icon(
+            Icons.chevron_right_rounded,
+            size: 16,
+            color: chevronColor,
+            shadows: shadows,
+          ),
+        );
+
+        final List<Widget> breadcrumbItems = [];
+
+        // Server root icon
+        breadcrumbItems.add(
+          Material(
+            color: Colors.transparent,
+            child: InkResponse(
+              radius: 18,
+              highlightShape: BoxShape.circle,
+              onTap: () => _loadDirectory(_rootPath),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  Icons.cloud_queue_rounded,
+                  size: 20,
+                  color: iconColor,
+                  shadows: shadows,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        final segments = _pathSegments;
+        if (segments.isEmpty) {
+          breadcrumbItems.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: chevronColor,
+                shadows: shadows,
+              ),
+            ),
+          );
+          breadcrumbItems.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+              child: Text(
+                widget.server.name,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: folderTextColor,
+                  shadows: shadows,
+                ),
+              ),
+            ),
+          );
+        } else {
+          breadcrumbItems.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: chevronColor,
+                shadows: shadows,
+              ),
+            ),
+          );
+          breadcrumbItems.add(
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => _loadDirectory(_rootPath),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                  child: Text(
+                    widget.server.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: folderTextColor,
+                      shadows: shadows,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          for (int i = 0; i < segments.length; i++) {
+            final isLast = i == segments.length - 1;
+            breadcrumbItems.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Icon(
+                  Icons.chevron_right_rounded,
+                  size: 16,
+                  color: chevronColor,
+                  shadows: shadows,
+                ),
+              ),
+            );
+
+            if (isLast) {
+              breadcrumbItems.add(
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+                  child: Text(
+                    segments[i],
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: folderTextColor,
+                      shadows: shadows,
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              final targetPath = _buildSegmentPath(i);
+              breadcrumbItems.add(
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _loadDirectory(targetPath),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 6),
+                      child: Text(
+                        segments[i],
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: folderTextColor,
+                          shadows: shadows,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+        }
+
+        final statusBarHeight = MediaQuery.of(context).padding.top;
+        final isDesktop =
+            Platform.isMacOS || Platform.isWindows || Platform.isLinux;
+        final topPadding = statusBarHeight > 0
+            ? statusBarHeight + 8
+            : (isDesktop ? 44.0 : 8.0);
+
+        return Container(
+          padding: EdgeInsets.only(
+            top: topPadding,
+            bottom: 8,
+            left: 8,
+            right: 8,
+          ),
+          decoration: BoxDecoration(
+            color: navBackgroundColor,
+            border: Border(
+              bottom: BorderSide(
+                color: isOverlay
+                    ? theme.dividerColor.withValues(alpha: 0.12 * progress)
+                    : theme.dividerColor.withValues(alpha: 0.05),
+              ),
+            ),
+            boxShadow: isOverlay && progress > 0.05
+                ? [
+                    BoxShadow(
+                      color: (isDark ? Colors.black : theme.colorScheme.shadow)
+                          .withValues(alpha: 0.1 * progress),
+                      blurRadius: 8 * progress,
+                      offset: Offset(0, 2 * progress),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            children: [
+              backButton,
+              backChevron,
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      controller: _breadcrumbsScrollController,
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      child: ConstrainedBox(
+                        constraints:
+                            BoxConstraints(minWidth: constraints.maxWidth),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Row(children: breadcrumbItems),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (isPortrait)
+                PopupMenuButton<String>(
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    Icons.more_vert_rounded,
+                    size: 20,
+                    color: iconColor,
+                    shadows: shadows,
+                  ),
+                  onSelected: (value) {
+                    if (value == 'locate') {
+                      _locateCurrentSong();
+                    } else if (value == 'view_mode') {
+                      settings.folderViewMode =
+                          switch (settings.folderViewMode) {
+                        FolderViewMode.list => FolderViewMode.hybrid,
+                        FolderViewMode.hybrid => FolderViewMode.grid,
+                        FolderViewMode.grid => FolderViewMode.list,
+                      };
+                    } else if (value == 'refresh') {
+                      _loadDirectory(_currentPath, forceRefresh: true);
+                    } else if (value == 'downloads') {
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RemoteDownloadManagerPage(),
+                        ),
+                      );
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    if (isCurrentMusicInFolder)
+                      PopupMenuItem(
+                        value: 'locate',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.my_location_rounded, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.locateCurrentSong),
+                          ],
+                        ),
+                      ),
+                    PopupMenuItem(
+                      value: 'view_mode',
                       child: Row(
                         children: [
                           Icon(
-                            Icons.cloud_queue_rounded,
-                            size: 16,
-                            color: theme.colorScheme.primary,
+                            switch (settings.folderViewMode) {
+                              FolderViewMode.list => Icons.grid_view_rounded,
+                              FolderViewMode.hybrid =>
+                                Icons.view_module_rounded,
+                              FolderViewMode.grid => Icons.view_list_rounded,
+                            },
+                            size: 20,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 12),
                           Text(
-                            widget.server.name,
-                            style: TextStyle(
-                              fontWeight: _isAtRoot ? FontWeight.bold : FontWeight.w500,
-                              color: _isAtRoot ? theme.colorScheme.primary : null,
-                            ),
+                            switch (settings.folderViewMode) {
+                              FolderViewMode.list => l10n.hybridView,
+                              FolderViewMode.hybrid => l10n.gridView,
+                              FolderViewMode.grid => l10n.listView,
+                            },
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  for (int i = 0; i < segments.length; i++) ...[
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    PopupMenuItem(
+                      value: 'refresh',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.refresh_rounded, size: 20),
+                          const SizedBox(width: 12),
+                          Text(l10n.refreshResults),
+                        ],
+                      ),
                     ),
-                    InkWell(
-                      onTap: () {
-                        final targetPath = '/${segments.sublist(0, i + 1).join('/')}';
-                        _loadDirectory(targetPath);
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                        child: Text(
-                          segments[i],
-                          style: TextStyle(
-                            fontWeight: i == segments.length - 1
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: i == segments.length - 1
-                                ? theme.colorScheme.primary
-                                : null,
+                    PopupMenuItem(
+                      value: 'downloads',
+                      child: Row(
+                        children: [
+                          Badge(
+                            isLabelVisible: activeDownloadsCount > 0,
+                            label: Text('$activeDownloadsCount'),
+                            child: const Icon(Icons.download_rounded, size: 20),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Text(l10n.downloadManager),
+                        ],
                       ),
                     ),
                   ],
+                )
+              else ...[
+                if (isCurrentMusicInFolder) ...[
+                  Material(
+                    color: Colors.transparent,
+                    child: InkResponse(
+                      radius: 18,
+                      highlightShape: BoxShape.circle,
+                      onTap: _locateCurrentSong,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Icon(
+                          Icons.my_location_rounded,
+                          size: 20,
+                          color: iconColor,
+                          shadows: shadows,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
-              ),
-            ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkResponse(
+                    radius: 18,
+                    highlightShape: BoxShape.circle,
+                    onTap: () {
+                      settings.folderViewMode =
+                          switch (settings.folderViewMode) {
+                        FolderViewMode.list => FolderViewMode.hybrid,
+                        FolderViewMode.hybrid => FolderViewMode.grid,
+                        FolderViewMode.grid => FolderViewMode.list,
+                      };
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        switch (settings.folderViewMode) {
+                          FolderViewMode.list => Icons.grid_view_rounded,
+                          FolderViewMode.hybrid =>
+                            Icons.view_module_rounded,
+                          FolderViewMode.grid => Icons.view_list_rounded,
+                        },
+                        size: 20,
+                        color: iconColor,
+                        shadows: shadows,
+                      ),
+                    ),
+                  ),
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkResponse(
+                    radius: 18,
+                    highlightShape: BoxShape.circle,
+                    onTap: () =>
+                        _loadDirectory(_currentPath, forceRefresh: true),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.refresh_rounded,
+                        size: 20,
+                        color: iconColor,
+                        shadows: shadows,
+                      ),
+                    ),
+                  ),
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkResponse(
+                    radius: 18,
+                    highlightShape: BoxShape.circle,
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RemoteDownloadManagerPage(),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Badge(
+                        isLabelVisible: activeDownloadsCount > 0,
+                        label: Text('$activeDownloadsCount'),
+                        child: Icon(
+                          Icons.download_rounded,
+                          size: 20,
+                          color: iconColor,
+                          shadows: shadows,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
