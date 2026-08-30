@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'remote_server_models.dart';
 import 'remote_server_storage.dart';
+import '../../models/music_file.dart';
 import 'clients/subsonic_client.dart';
 import 'clients/webdav_client.dart';
 
@@ -150,6 +151,18 @@ class NavidromePlaylistRoute extends NavidromeDetailRoute {
   int get hashCode => playlistId.hashCode;
 }
 
+class NavidromePlaylistCache {
+  final Map<String, dynamic> playlistData;
+  final List<MusicFile> tracks;
+  final Set<String> starredSongIds;
+
+  const NavidromePlaylistCache({
+    required this.playlistData,
+    required this.tracks,
+    required this.starredSongIds,
+  });
+}
+
 class ActiveRemoteSession {
   final RemoteServer server;
   final String password;
@@ -166,6 +179,12 @@ class ActiveRemoteSession {
   final String? navidromeSelectedArtistId;
   final List<Map<String, dynamic>>? navidromePlaylists;
   final String? navidromeSelectedPlaylistId;
+  final String? navidromePlaylistSearchQuery;
+  final Map<String, NavidromePlaylistCache> navidromePlaylistDetailsCache;
+  final String? navidromeSearchQuery;
+  final List<MusicFile>? navidromeSearchedSongs;
+  final List<Map<String, dynamic>>? navidromeSearchedAlbums;
+  final List<Map<String, dynamic>>? navidromeSearchedArtists;
   final List<NavidromeDetailRoute> navidromeDetailStack;
 
   const ActiveRemoteSession({
@@ -182,6 +201,12 @@ class ActiveRemoteSession {
     this.navidromeSelectedArtistId,
     this.navidromePlaylists,
     this.navidromeSelectedPlaylistId,
+    this.navidromePlaylistSearchQuery,
+    this.navidromePlaylistDetailsCache = const {},
+    this.navidromeSearchQuery,
+    this.navidromeSearchedSongs,
+    this.navidromeSearchedAlbums,
+    this.navidromeSearchedArtists,
     this.navidromeDetailStack = const [],
   });
 
@@ -199,6 +224,12 @@ class ActiveRemoteSession {
     String? navidromeSelectedArtistId,
     List<Map<String, dynamic>>? navidromePlaylists,
     String? navidromeSelectedPlaylistId,
+    String? navidromePlaylistSearchQuery,
+    Map<String, NavidromePlaylistCache>? navidromePlaylistDetailsCache,
+    String? navidromeSearchQuery,
+    List<MusicFile>? navidromeSearchedSongs,
+    List<Map<String, dynamic>>? navidromeSearchedAlbums,
+    List<Map<String, dynamic>>? navidromeSearchedArtists,
     List<NavidromeDetailRoute>? navidromeDetailStack,
   }) {
     return ActiveRemoteSession(
@@ -219,6 +250,17 @@ class ActiveRemoteSession {
       navidromePlaylists: navidromePlaylists ?? this.navidromePlaylists,
       navidromeSelectedPlaylistId:
           navidromeSelectedPlaylistId ?? this.navidromeSelectedPlaylistId,
+      navidromePlaylistSearchQuery:
+          navidromePlaylistSearchQuery ?? this.navidromePlaylistSearchQuery,
+      navidromePlaylistDetailsCache:
+          navidromePlaylistDetailsCache ?? this.navidromePlaylistDetailsCache,
+      navidromeSearchQuery: navidromeSearchQuery ?? this.navidromeSearchQuery,
+      navidromeSearchedSongs:
+          navidromeSearchedSongs ?? this.navidromeSearchedSongs,
+      navidromeSearchedAlbums:
+          navidromeSearchedAlbums ?? this.navidromeSearchedAlbums,
+      navidromeSearchedArtists:
+          navidromeSearchedArtists ?? this.navidromeSearchedArtists,
       navidromeDetailStack: navidromeDetailStack ?? this.navidromeDetailStack,
     );
   }
@@ -300,6 +342,57 @@ class ActiveRemoteSessionNotifier extends Notifier<ActiveRemoteSession?> {
         navidromePlaylists: playlists ?? state!.navidromePlaylists,
         navidromeSelectedPlaylistId:
             selectedPlaylistId ?? state!.navidromeSelectedPlaylistId,
+      );
+    }
+  }
+
+  void updateNavidromePlaylistSearchQuery(String query) {
+    if (state != null) {
+      state = state!.copyWith(navidromePlaylistSearchQuery: query);
+    }
+  }
+
+  void updateNavidromePlaylistDetail({
+    required String playlistId,
+    required Map<String, dynamic> playlistData,
+    required List<MusicFile> tracks,
+    required Set<String> starredSongIds,
+  }) {
+    if (state != null) {
+      final newCache = Map<String, NavidromePlaylistCache>.from(
+        state!.navidromePlaylistDetailsCache,
+      );
+      newCache[playlistId] = NavidromePlaylistCache(
+        playlistData: playlistData,
+        tracks: tracks,
+        starredSongIds: starredSongIds,
+      );
+      state = state!.copyWith(navidromePlaylistDetailsCache: newCache);
+    }
+  }
+
+  void removeNavidromePlaylistDetail(String playlistId) {
+    if (state != null) {
+      final newCache = Map<String, NavidromePlaylistCache>.from(
+        state!.navidromePlaylistDetailsCache,
+      );
+      newCache.remove(playlistId);
+      state = state!.copyWith(navidromePlaylistDetailsCache: newCache);
+    }
+  }
+
+  void updateNavidromeSearch({
+    required String query,
+    required List<MusicFile> songs,
+    required List<Map<String, dynamic>> albums,
+    required List<Map<String, dynamic>> artists,
+  }) {
+    if (state != null) {
+      state = state!.copyWith(
+        navidromeSearchQuery: query,
+        navidromeSearchedSongs: songs,
+        navidromeSearchedAlbums: albums,
+        navidromeSearchedArtists: artists,
       );
     }
   }

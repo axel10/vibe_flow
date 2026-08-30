@@ -102,6 +102,24 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       server: widget.server,
       password: widget.password,
     );
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+    if (isSameServer && session.navidromeSearchQuery != null) {
+      _searchController.text = session.navidromeSearchQuery!;
+      _searchedSongs =
+          List<MusicFile>.from(session.navidromeSearchedSongs ?? const []);
+      _searchedAlbums = List<Map<String, dynamic>>.from(
+        session.navidromeSearchedAlbums ?? const [],
+      );
+      _searchedArtists = List<Map<String, dynamic>>.from(
+        session.navidromeSearchedArtists ?? const [],
+      );
+    }
+    if (isSameServer && session.navidromePlaylistSearchQuery != null) {
+      _playlistSearchQuery = session.navidromePlaylistSearchQuery!;
+      _playlistSearchController.text = session.navidromePlaylistSearchQuery!;
+    }
     _loadAlbums();
     _loadArtists();
     _loadPlaylists();
@@ -490,6 +508,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         _searchedAlbums = [];
         _searchedArtists = [];
       });
+      final activeSession = ref.read(activeRemoteSessionProvider);
+      if (activeSession != null && activeSession.server.id == widget.server.id) {
+        ref.read(activeRemoteSessionProvider.notifier).updateNavidromeSearch(
+              query: '',
+              songs: const [],
+              albums: const [],
+              artists: const [],
+            );
+      }
       return;
     }
 
@@ -519,16 +546,30 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
 
         if (mounted) {
+          final albums = (albumList ?? [])
+              .whereType<Map<String, dynamic>>()
+              .toList();
+          final artists = (artistList ?? [])
+              .whereType<Map<String, dynamic>>()
+              .toList();
+
           setState(() {
             _searchedSongs = songs;
-            _searchedAlbums = (albumList ?? [])
-                .whereType<Map<String, dynamic>>()
-                .toList();
-            _searchedArtists = (artistList ?? [])
-                .whereType<Map<String, dynamic>>()
-                .toList();
+            _searchedAlbums = albums;
+            _searchedArtists = artists;
             _isSearching = false;
           });
+
+          final activeSession = ref.read(activeRemoteSessionProvider);
+          if (activeSession != null &&
+              activeSession.server.id == widget.server.id) {
+            ref.read(activeRemoteSessionProvider.notifier).updateNavidromeSearch(
+                  query: query,
+                  songs: songs,
+                  albums: albums,
+                  artists: artists,
+                );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -1578,6 +1619,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   setState(() {
                     _playlistSearchQuery = val;
                   });
+                  final activeSession = ref.read(activeRemoteSessionProvider);
+                  if (activeSession != null &&
+                      activeSession.server.id == widget.server.id) {
+                    ref
+                        .read(activeRemoteSessionProvider.notifier)
+                        .updateNavidromePlaylistSearchQuery(val);
+                  }
                 },
                 decoration: InputDecoration(
                   hintText: 'Search playlists...',
@@ -1590,6 +1638,14 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             setState(() {
                               _playlistSearchQuery = '';
                             });
+                            final activeSession =
+                                ref.read(activeRemoteSessionProvider);
+                            if (activeSession != null &&
+                                activeSession.server.id == widget.server.id) {
+                              ref
+                                  .read(activeRemoteSessionProvider.notifier)
+                                  .updateNavidromePlaylistSearchQuery('');
+                            }
                           },
                         )
                       : null,

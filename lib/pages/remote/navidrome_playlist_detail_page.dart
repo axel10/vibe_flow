@@ -8,6 +8,7 @@ import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
+import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../player/remote/services/remote_download_service.dart';
@@ -178,7 +179,29 @@ class _NavidromePlaylistDetailContentState
     super.dispose();
   }
 
-  Future<void> _loadPlaylistDetails() async {
+  Future<void> _loadPlaylistDetails({bool forceRefresh = false}) async {
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    if (!forceRefresh && isSameServer) {
+      final cached = session.navidromePlaylistDetailsCache[widget.playlistId];
+      if (cached != null) {
+        setState(() {
+          _playlistData = cached.playlistData;
+          _currentName =
+              cached.playlistData['name'] as String? ?? widget.playlistName;
+          _tracks = cached.tracks;
+          _starredSongIds
+            ..clear()
+            ..addAll(cached.starredSongIds);
+          _isLoading = false;
+          _error = null;
+        });
+        return;
+      }
+    }
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -210,18 +233,35 @@ class _NavidromePlaylistDetailContentState
         }
 
         if (!mounted) return;
+        final data = {
+          'name': widget.playlistName,
+          'songCount': parsedTracks.length,
+          'duration': totalDur,
+        };
         setState(() {
-          _playlistData = {
-            'name': widget.playlistName,
-            'songCount': parsedTracks.length,
-            'duration': totalDur,
-          };
+          _playlistData = data;
           _currentName = widget.playlistName;
           _tracks = parsedTracks;
           _starredSongIds
             ..clear()
             ..addAll(starred);
           _isLoading = false;
+        });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final activeSession = ref.read(activeRemoteSessionProvider);
+          if (activeSession != null &&
+              activeSession.server.id == widget.server.id) {
+            ref
+                .read(activeRemoteSessionProvider.notifier)
+                .updateNavidromePlaylistDetail(
+                  playlistId: widget.playlistId,
+                  playlistData: data,
+                  tracks: parsedTracks,
+                  starredSongIds: starred,
+                );
+          }
         });
         return;
       }
@@ -265,6 +305,22 @@ class _NavidromePlaylistDetailContentState
           ..clear()
           ..addAll(starred);
         _isLoading = false;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final activeSession = ref.read(activeRemoteSessionProvider);
+        if (activeSession != null &&
+            activeSession.server.id == widget.server.id) {
+          ref
+              .read(activeRemoteSessionProvider.notifier)
+              .updateNavidromePlaylistDetail(
+                playlistId: widget.playlistId,
+                playlistData: pl,
+                tracks: parsedTracks,
+                starredSongIds: starred,
+              );
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -344,6 +400,19 @@ class _NavidromePlaylistDetailContentState
       setState(() {
         _tracks.removeAt(index);
       });
+      final activeSession = ref.read(activeRemoteSessionProvider);
+      if (activeSession != null &&
+          activeSession.server.id == widget.server.id &&
+          _playlistData != null) {
+        ref
+            .read(activeRemoteSessionProvider.notifier)
+            .updateNavidromePlaylistDetail(
+              playlistId: widget.playlistId,
+              playlistData: _playlistData!,
+              tracks: _tracks,
+              starredSongIds: _starredSongIds,
+            );
+      }
       widget.onPlaylistModified?.call();
       showToast('Removed "${songToRemove.displayName}" from playlist');
     } else {
@@ -386,7 +455,24 @@ class _NavidromePlaylistDetailContentState
                 if (ok && mounted) {
                   setState(() {
                     _currentName = newName;
+                    if (_playlistData != null) {
+                      _playlistData = Map<String, dynamic>.from(_playlistData!)
+                        ..['name'] = newName;
+                    }
                   });
+                  final activeSession = ref.read(activeRemoteSessionProvider);
+                  if (activeSession != null &&
+                      activeSession.server.id == widget.server.id &&
+                      _playlistData != null) {
+                    ref
+                        .read(activeRemoteSessionProvider.notifier)
+                        .updateNavidromePlaylistDetail(
+                          playlistId: widget.playlistId,
+                          playlistData: _playlistData!,
+                          tracks: _tracks,
+                          starredSongIds: _starredSongIds,
+                        );
+                  }
                   widget.onPlaylistModified?.call();
                 }
               }
@@ -422,6 +508,13 @@ class _NavidromePlaylistDetailContentState
               );
               final ok = await client.deletePlaylist(widget.playlistId);
               if (ok) {
+                final activeSession = ref.read(activeRemoteSessionProvider);
+                if (activeSession != null &&
+                    activeSession.server.id == widget.server.id) {
+                  ref
+                      .read(activeRemoteSessionProvider.notifier)
+                      .removeNavidromePlaylistDetail(widget.playlistId);
+                }
                 showToast('Playlist deleted');
                 widget.onPlaylistModified?.call();
                 widget.onDeleted?.call();
