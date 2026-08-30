@@ -33,12 +33,20 @@ Future<String?> showFolderBottomSheet(
   final selectLabel = l10n.selectFolders;
   final removeLabel = l10n.removeDirectory;
 
-  final selected = await showModalBottomSheet<String>(
-    context: context,
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    isScrollControlled: true,
-    builder: (context) => GestureDetector(
+  final previousScope = ref.read(librarySelectionScopeProvider);
+  ref
+      .read(librarySelectionScopeProvider.notifier)
+      .setScope(LibrarySelectionScope.bottomSheet);
+
+  final String? selected;
+  try {
+    selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.pop(context),
       child: SafeArea(
@@ -201,6 +209,14 @@ Future<String?> showFolderBottomSheet(
       ),
     ),
   );
+  } finally {
+    if (ref.read(librarySelectionScopeProvider) ==
+        LibrarySelectionScope.bottomSheet) {
+      ref
+          .read(librarySelectionScopeProvider.notifier)
+          .setScope(previousScope);
+    }
+  }
 
   if (!context.mounted || selected == null) return null;
 

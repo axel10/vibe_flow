@@ -11,6 +11,8 @@ enum LibrarySelectionScope {
   folderRoot,
   artist,
   album,
+  webdav,
+  bottomSheet,
 }
 
 class LibrarySelectionScopeController extends Notifier<LibrarySelectionScope> {

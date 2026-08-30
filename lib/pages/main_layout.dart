@@ -1108,13 +1108,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final selectionScope = ref.watch(librarySelectionScopeProvider);
     final hideMiniPlayerForSelection =
-        selectionScope == LibrarySelectionScope.folder ||
-        selectionScope == LibrarySelectionScope.folderRoot ||
-        selectionScope == LibrarySelectionScope.library ||
-        selectionScope == LibrarySelectionScope.playlist ||
-        selectionScope == LibrarySelectionScope.artist ||
-        selectionScope == LibrarySelectionScope.album ||
-        selectionScope == LibrarySelectionScope.queue;
+        selectionScope != LibrarySelectionScope.none;
     final isRootSelectionMode =
         selectionScope == LibrarySelectionScope.folderRoot;
     final isPlaylistSelectionMode =
@@ -1452,6 +1446,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                           isPlayback: isPlayback,
                           isHidden:
                               hideBottomBar ||
+                              hideMiniPlayerForSelection ||
                               (isPlayback &&
                                   settings.isImmersiveTabBarEnabled &&
                                   settings.isUserInactive),

@@ -17,6 +17,10 @@ import '../../player/metadata/metadata_database.dart';
 import '../../player/settings/settings_service.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/folder_helpers.dart';
+import '../../utils/remote_context_menu_utils.dart';
+import '../../utils/song_context_menu_utils.dart';
+import '../../widgets/library_selection_panel.dart';
+import '../../widgets/library_selection_scope.dart';
 import '../../widgets/folder_header_banner.dart';
 import '../../widgets/folder_layout_utils.dart';
 import '../../widgets/folder_content_slivers.dart';
@@ -55,6 +59,11 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   List<WebDavFile> _items = [];
   final Map<String, SongMetadata> _metadataMap = {};
   int _loadEpoch = 0;
+
+  // Selection states
+  bool _isSelectionMode = false;
+  final Set<String> _selectedSongPaths = {};
+  final Set<String> _selectedFolderPaths = {};
 
   // Search & Scroll states
   late final TextEditingController _searchController;
@@ -121,6 +130,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
   @override
   void dispose() {
+    ref.read(librarySelectionScopeProvider.notifier).clear();
     _searchController.dispose();
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
@@ -142,6 +152,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   }
 
   Future<void> _loadDirectory(String path, {bool forceRefresh = false}) async {
+    _clearAllSelection();
     final session = ref.read(activeRemoteSessionProvider);
     final isSameServer =
         session != null && session.server.id == widget.server.id;
@@ -427,24 +438,220 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
   }
 
+  void _clearAllSelection() {
+    ref.read(librarySelectionScopeProvider.notifier).clear();
+    if (_isSelectionMode ||
+        _selectedSongPaths.isNotEmpty ||
+        _selectedFolderPaths.isNotEmpty) {
+      setState(() {
+        _isSelectionMode = false;
+        _selectedSongPaths.clear();
+        _selectedFolderPaths.clear();
+      });
+    }
+  }
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      if (!_isSelectionMode) {
+        _selectedSongPaths.clear();
+        _selectedFolderPaths.clear();
+        ref.read(librarySelectionScopeProvider.notifier).clear();
+      } else {
+        ref
+            .read(librarySelectionScopeProvider.notifier)
+            .setScope(LibrarySelectionScope.folder);
+      }
+    });
+  }
+
+  void _toggleSongSelection(String virtualUri) {
+    setState(() {
+      if (_selectedSongPaths.contains(virtualUri)) {
+        _selectedSongPaths.remove(virtualUri);
+      } else {
+        _selectedSongPaths.add(virtualUri);
+      }
+      if (_selectedSongPaths.isEmpty && _selectedFolderPaths.isEmpty) {
+        _isSelectionMode = false;
+        ref.read(librarySelectionScopeProvider.notifier).clear();
+      } else {
+        ref
+            .read(librarySelectionScopeProvider.notifier)
+            .setScope(LibrarySelectionScope.folder);
+      }
+    });
+  }
+
+  void _toggleFolderSelection(String folderPath) {
+    setState(() {
+      if (_selectedFolderPaths.contains(folderPath)) {
+        _selectedFolderPaths.remove(folderPath);
+      } else {
+        _selectedFolderPaths.add(folderPath);
+      }
+      if (_selectedSongPaths.isEmpty && _selectedFolderPaths.isEmpty) {
+        _isSelectionMode = false;
+        ref.read(librarySelectionScopeProvider.notifier).clear();
+      } else {
+        ref
+            .read(librarySelectionScopeProvider.notifier)
+            .setScope(LibrarySelectionScope.folder);
+      }
+    });
+  }
+
+  void _selectAllVisible(List<WebDavFile> displayedItems) {
+    ref
+        .read(librarySelectionScopeProvider.notifier)
+        .setScope(LibrarySelectionScope.folder);
+    setState(() {
+      _isSelectionMode = true;
+      for (final item in displayedItems) {
+        if (item.isDirectory) {
+          _selectedFolderPaths.add(item.path);
+        } else if (item.isAudio) {
+          final uri =
+              RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
+          _selectedSongPaths.add(uri);
+        }
+      }
+    });
+  }
+
+  List<MusicFile> _getSelectedSongs({List<WebDavFile>? sourceList}) {
+    final allAudio = _getAudioFiles(sourceList: sourceList);
+    final songs = <MusicFile>[];
+    for (final song in allAudio) {
+      if (_selectedSongPaths.contains(song.path)) {
+        songs.add(song);
+      }
+    }
+    final seen = <String>{};
+    return songs.where((s) => seen.add(s.path)).toList(growable: false);
+  }
+
+  void _handleSongTap(
+    WebDavFile file,
+    int index,
+    List<MusicFile> allAudio,
+  ) async {
+    final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, file.path);
+    if (_isSelectionMode) {
+      _toggleSongSelection(uri);
+    } else if (file.isAudio) {
+      final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+        file,
+        widget.server,
+        metadata: _metadataMap[uri] ??
+            ref.read(scannerServiceProvider).metadataMap[uri],
+      );
+      final initialIndex = allAudio.indexWhere((s) => s.path == target.path);
+      final audioService = ref.read(audioServiceProvider);
+      await audioService.playPlaylist(
+        allAudio.isNotEmpty ? allAudio : [target],
+        initialIndex: initialIndex >= 0 ? initialIndex : 0,
+        source: PlaybackSource(
+          type: PlaybackSourceType.folder,
+          id: 'webdav-${widget.server.id}-$_currentPath',
+          name: _isAtRoot ? widget.server.name : p.basename(_currentPath),
+        ),
+      );
+    }
+  }
+
+  void _handleSongLongPress(WebDavFile file) {
+    final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, file.path);
+    if (!_isSelectionMode) {
+      _toggleSelectionMode();
+      _toggleSongSelection(uri);
+    } else {
+      _toggleSongSelection(uri);
+    }
+  }
+
+  void _handleSongContextMenu(
+    WebDavFile file,
+    Offset globalPosition,
+    List<MusicFile> allAudio,
+    List<WebDavFile> displayedItems,
+  ) {
+    final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, file.path);
+    final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+      file,
+      widget.server,
+      metadata: _metadataMap[uri] ??
+          ref.read(scannerServiceProvider).metadataMap[uri],
+    );
+    final selectedSongs = _getSelectedSongs(sourceList: displayedItems);
+    final songsToAdd =
+        (_selectedSongPaths.isNotEmpty || _selectedFolderPaths.isNotEmpty) &&
+                selectedSongs.isNotEmpty
+            ? selectedSongs
+            : [target];
+
+    showSongContextMenu(
+      context,
+      globalPosition,
+      song: target,
+      songs: songsToAdd,
+      mode: SongContextMenuMode.full,
+      onAddToPlaylist: () => showAddSongsToPlaylistDialog(
+        context,
+        ref.read(playlistServiceProvider),
+        songsToAdd,
+      ),
+      onPlayNext: () =>
+          ref.read(audioServiceProvider).enqueueNext(songsToAdd),
+      onAddToQueue: () =>
+          ref.read(audioServiceProvider).appendToQueue(songsToAdd),
+    );
+  }
+
+  void _handleShowFolderBottomSheet(WebDavFile folder) {
+    showWebDavFolderBottomSheet(
+      context: context,
+      ref: ref,
+      server: widget.server,
+      password: widget.password,
+      folder: folder,
+      onOpen: () => _openFolder(folder),
+      onMultiSelect: (folderPath) {
+        if (!_isSelectionMode) _toggleSelectionMode();
+        _toggleFolderSelection(folderPath);
+      },
+    );
+  }
+
   void _openFolder(WebDavFile folder) {
+    _clearAllSelection();
     ref.read(activeRemoteSessionProvider.notifier).pushWebDavPath(folder.path);
   }
 
   void _handleGoBack() {
+    if (_isSelectionMode) {
+      _clearAllSelection();
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 
   void _navigateToBreadcrumb(int index) {
+    _clearAllSelection();
     if (index < 0) {
-      ref.read(activeRemoteSessionProvider.notifier).setWebDavPathStack(const []);
+      ref
+          .read(activeRemoteSessionProvider.notifier)
+          .setWebDavPathStack(const []);
       return;
     }
     final targetStack = <String>[];
     for (int i = 0; i <= index; i++) {
       targetStack.add(_buildSegmentPath(i));
     }
-    ref.read(activeRemoteSessionProvider.notifier).setWebDavPathStack(targetStack);
+    ref
+        .read(activeRemoteSessionProvider.notifier)
+        .setWebDavPathStack(targetStack);
   }
 
   List<String> get _pathSegments {
@@ -841,7 +1048,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   viewMode: viewMode,
                   server: widget.server,
                   password: widget.password,
+                  isSelectionMode: _isSelectionMode,
+                  selectedFolderPaths: _selectedFolderPaths,
                   onOpenFolder: (folder) => _openFolder(folder),
+                  onToggleFolderSelection: _toggleFolderSelection,
+                  onToggleSelectionMode: _toggleSelectionMode,
+                  onShowFolderBottomSheet: _handleShowFolderBottomSheet,
                 ),
 
               // 2. Section divider if both folders and files exist
@@ -861,16 +1073,51 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   currentMusicPath: currentMusic?.path,
                   isAudioPlaying: isAudioPlaying,
                   allAudioFiles: _getAudioFiles(sourceList: displayedItems),
+                  isSelectionMode: _isSelectionMode,
+                  selectedSongPaths: _selectedSongPaths,
+                  onSongTap: (file, index) => _handleSongTap(
+                    file,
+                    index,
+                    _getAudioFiles(sourceList: displayedItems),
+                  ),
+                  onSongLongPress: _handleSongLongPress,
+                  onSongSecondaryTapDown: (file, details) =>
+                      _handleSongContextMenu(
+                    file,
+                    details.globalPosition,
+                    _getAudioFiles(sourceList: displayedItems),
+                    displayedItems,
+                  ),
+                  onSongMorePressed: (file, btnContext) {
+                    final box = btnContext.findRenderObject() as RenderBox?;
+                    final pos = box != null
+                        ? box.localToGlobal(
+                            Offset(box.size.width / 2, box.size.height / 2))
+                        : Offset.zero;
+                    _handleSongContextMenu(
+                      file,
+                      pos,
+                      _getAudioFiles(sourceList: displayedItems),
+                      displayedItems,
+                    );
+                  },
                   onDownloadSingle: _downloadSingleAudio,
                   bottomPadding: bottomOffset,
                 ),
 
             ],
-            SliverPadding(padding: EdgeInsets.only(bottom: bottomOffset + 24)),
+            SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: bottomOffset + (_isSelectionMode ? 220.0 : 0.0) + 24,
+              ),
+            ),
           ],
         ),
       );
     }
+
+    final displayedAudio = _getAudioFiles(sourceList: displayedItems);
+    final selectedSongs = _getSelectedSongs(sourceList: displayedItems);
 
     final scaffold = Scaffold(
       body: SafeArea(
@@ -899,10 +1146,66 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 ),
               ),
             ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                reverseDuration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  final offsetAnimation = Tween<Offset>(
+                    begin: const Offset(0, 1.0),
+                    end: Offset.zero,
+                  ).animate(animation);
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
+                },
+                child: _isSelectionMode
+                    ? LibrarySelectionPanel(
+                        key: const ValueKey('webdav-selection-panel'),
+                        selectedSongs: selectedSongs,
+                        allSongs: displayedAudio,
+                        onToggleSelectAll: () {
+                          final isAllSelected = selectedSongs.length ==
+                                  displayedAudio.length &&
+                              displayedAudio.isNotEmpty;
+                          if (isAllSelected) {
+                            _clearAllSelection();
+                          } else {
+                            _selectAllVisible(displayedItems);
+                          }
+                        },
+                        onCancel: _clearAllSelection,
+                      )
+                    : const SizedBox.shrink(
+                        key: ValueKey('webdav-selection-panel-hidden'),
+                      ),
+              ),
+            ),
           ],
         ),
       ),
     );
+
+    if (_isSelectionMode) {
+      final popScoped = PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          _clearAllSelection();
+        },
+        child: scaffold,
+      );
+      if (widget.wrapWithMiniPlayer) {
+        return MiniPlayerWrapper(child: popScoped);
+      }
+      return popScoped;
+    }
 
     if (widget.wrapWithMiniPlayer) {
       return MiniPlayerWrapper(child: scaffold);

@@ -15,6 +15,7 @@ import '../player/remote/proxy/remote_media_resolver.dart';
 import '../player/remote/remote_server_models.dart';
 import '../pages/remote/remote_download_manager_page.dart';
 import '../player/remote/services/remote_download_service.dart';
+import '../widgets/library_selection_scope.dart';
 import 'app_snack_bar.dart';
 import 'song_context_menu_utils.dart';
 
@@ -1695,188 +1696,200 @@ Future<void> _handleWebDavFileMenuSelection({
 }
 
 /// Shows context menu for a remote WebDAV folder.
-Future<void> showWebDavFolderContextMenu({
+/// Shows bottom sheet for a remote WebDAV folder, aligned with showFolderBottomSheet design.
+Future<String?> showWebDavFolderBottomSheet({
   required BuildContext context,
-  required Offset globalPosition,
   required WidgetRef ref,
   required RemoteServer server,
   required String password,
   required WebDavFile folder,
   VoidCallback? onOpen,
+  void Function(String folderPath)? onMultiSelect,
 }) async {
-  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-  if (overlay == null) return;
   final l10n = AppLocalizations.of(context)!;
-  final isMobile = Platform.isAndroid || Platform.isIOS;
+  final theme = Theme.of(context);
   final client = WebDavClient(server: server, password: password);
+  final previousScope = ref.read(librarySelectionScopeProvider);
+  ref
+      .read(librarySelectionScopeProvider.notifier)
+      .setScope(LibrarySelectionScope.bottomSheet);
 
-  if (isMobile) {
-    final selected = await showModalBottomSheet<String>(
+  final String? selected;
+  try {
+    selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       elevation: 0,
       isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Material(
-            color: Theme.of(ctx).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            clipBehavior: Clip.antiAlias,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.folder_rounded,
-                      color: Colors.amber,
-                      size: 28,
+      useRootNavigator: true,
+      builder: (ctx) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(ctx),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Material(
+                    elevation: 16,
+                    color: theme.colorScheme.surface,
+                    shadowColor: Colors.black26,
+                    borderRadius: BorderRadius.circular(24),
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  width: 52,
+                                  height: 52,
+                                  color: theme.colorScheme.primaryContainer
+                                      .withValues(alpha: 0.4),
+                                  child: const Icon(
+                                    Icons.folder_rounded,
+                                    size: 30,
+                                    color: Colors.amber,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      folder.name,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      folder.path,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant
+                                            .withValues(alpha: 0.7),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Divider(height: 1),
+                          const SizedBox(height: 8),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'play_all',
+                            label: l10n.playAll,
+                            icon: Icons.play_arrow_rounded,
+                            iconColor: theme.colorScheme.primary,
+                          ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'shuffle',
+                            label: l10n.shufflePlay,
+                            icon: Icons.shuffle_rounded,
+                          ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'play_next',
+                            label: l10n.playNext,
+                            icon: Icons.queue_play_next_rounded,
+                          ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'add_to_queue',
+                            label: l10n.addToQueue,
+                            icon: Icons.queue_music_rounded,
+                          ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'add_to_playlist',
+                            label: l10n.playlist,
+                            icon: Icons.playlist_add_rounded,
+                          ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'download_folder',
+                            label: l10n.copyAlbumTitle.contains('复制')
+                                ? '下载文件夹全部音频'
+                                : 'Download All Audio in Folder',
+                            icon: Icons.download_rounded,
+                          ),
+                          if (onOpen != null)
+                            _buildWebDavBottomSheetItem(
+                              context: context,
+                              value: 'open',
+                              label: l10n.openFolderLocation.contains('打开')
+                                  ? '打开文件夹'
+                                  : 'Open Folder',
+                              icon: Icons.folder_open_rounded,
+                            ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'multi_select',
+                            label: l10n.selectFolders,
+                            icon: Icons.checklist_rounded,
+                          ),
+                          const Divider(height: 1),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'copy_name',
+                            label: l10n.copyAlbumTitle.contains('复制')
+                                ? '复制文件夹名称'
+                                : 'Copy Folder Name',
+                            icon: Icons.copy_rounded,
+                          ),
+                          _buildWebDavBottomSheetItem(
+                            context: context,
+                            value: 'copy_path',
+                            label: l10n.copyAlbumTitle.contains('复制')
+                                ? '复制文件夹路径'
+                                : 'Copy Folder Path',
+                            icon: Icons.link_rounded,
+                          ),
+                        ],
+                      ),
                     ),
-                    title: Text(
-                      folder.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      folder.path,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
                   ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.play_arrow_rounded),
-                    title: Text(l10n.playAll),
-                    onTap: () => Navigator.pop(ctx, 'play_all'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.shuffle_rounded),
-                    title: Text(l10n.shufflePlay),
-                    onTap: () => Navigator.pop(ctx, 'shuffle'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.queue_play_next_rounded),
-                    title: Text(l10n.playNext),
-                    onTap: () => Navigator.pop(ctx, 'play_next'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.queue_music_rounded),
-                    title: Text(l10n.addToQueue),
-                    onTap: () => Navigator.pop(ctx, 'add_to_queue'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.download_for_offline_rounded),
-                    title: Text(l10n.downloadAllAudio),
-                    onTap: () => Navigator.pop(ctx, 'download_folder'),
-                  ),
-                  if (onOpen != null)
-                    ListTile(
-                      leading: const Icon(Icons.folder_open_rounded),
-                      title: Text(l10n.openFolderLocation.contains('打开') ? '打开文件夹' : 'Open Folder'),
-                      onTap: () => Navigator.pop(ctx, 'open'),
-                    ),
-                  ListTile(
-                    leading: const Icon(Icons.copy_rounded),
-                    title: Text(l10n.copyTitle),
-                    onTap: () => Navigator.pop(ctx, 'copy_name'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.link_rounded),
-                    title: Text(l10n.copyAlbumTitle.contains('复制') ? '复制文件夹路径' : 'Copy Folder Path'),
-                    onTap: () => Navigator.pop(ctx, 'copy_path'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ),
       ),
     );
-
-    if (!context.mounted || selected == null) return;
-    await _handleWebDavFolderMenuSelection(
-      selected: selected,
-      context: context,
-      ref: ref,
-      client: client,
-      server: server,
-      password: password,
-      folder: folder,
-      onOpen: onOpen,
-    );
-    return;
+  } finally {
+    if (ref.read(librarySelectionScopeProvider) ==
+        LibrarySelectionScope.bottomSheet) {
+      ref
+          .read(librarySelectionScopeProvider.notifier)
+          .setScope(previousScope);
+    }
   }
 
-  // Desktop PopupMenu
-  final items = <PopupMenuEntry<String>>[
-    buildContextMenuItem<String>(
-      value: 'play_all',
-      label: l10n.playAll,
-      icon: Icons.play_arrow_rounded,
-      context: context,
-    ),
-    buildContextMenuItem<String>(
-      value: 'shuffle',
-      label: l10n.shufflePlay,
-      icon: Icons.shuffle_rounded,
-      context: context,
-    ),
-    buildContextMenuItem<String>(
-      value: 'play_next',
-      label: l10n.playNext,
-      icon: Icons.queue_play_next_rounded,
-      context: context,
-    ),
-    buildContextMenuItem<String>(
-      value: 'add_to_queue',
-      label: l10n.addToQueue,
-      icon: Icons.queue_music_rounded,
-      context: context,
-    ),
-    const PopupMenuDivider(),
-    buildContextMenuItem<String>(
-      value: 'download_folder',
-      label: l10n.downloadAllAudio,
-      icon: Icons.download_for_offline_rounded,
-      context: context,
-    ),
-    if (onOpen != null) ...[
-      const PopupMenuDivider(),
-      buildContextMenuItem<String>(
-        value: 'open',
-        label: l10n.openFolderLocation.contains('打开') ? '打开文件夹' : 'Open Folder',
-        icon: Icons.folder_open_rounded,
-        context: context,
-      ),
-    ],
-    const PopupMenuDivider(),
-    buildContextMenuItem<String>(
-      value: 'copy_name',
-      label: l10n.copyTitle,
-      icon: Icons.copy_rounded,
-      context: context,
-    ),
-    buildContextMenuItem<String>(
-      value: 'copy_path',
-      label: l10n.copyAlbumTitle.contains('复制') ? '复制文件夹路径' : 'Copy Folder Path',
-      icon: Icons.link_rounded,
-      context: context,
-    ),
-  ];
+  if (!context.mounted || selected == null) return null;
 
-  final selected = await showMenu<String>(
-    context: context,
-    position: RelativeRect.fromRect(
-      Rect.fromPoints(globalPosition, globalPosition),
-      Offset.zero & overlay.size,
-    ),
-    items: items,
-  );
+  if (selected == 'multi_select') {
+    onMultiSelect?.call(folder.path);
+    return selected;
+  }
 
-  if (!context.mounted || selected == null) return;
   await _handleWebDavFolderMenuSelection(
     selected: selected,
     context: context,
@@ -1886,6 +1899,60 @@ Future<void> showWebDavFolderContextMenu({
     password: password,
     folder: folder,
     onOpen: onOpen,
+  );
+
+  return selected;
+}
+
+Widget _buildWebDavBottomSheetItem({
+  required BuildContext context,
+  required String value,
+  required String label,
+  required IconData icon,
+  bool enabled = true,
+  Color? iconColor,
+}) {
+  final theme = Theme.of(context);
+  return ListTile(
+    leading: Icon(
+      icon,
+      color: enabled
+          ? (iconColor ?? theme.colorScheme.onSurfaceVariant)
+          : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+    ),
+    title: Text(
+      label,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: enabled
+            ? (iconColor ?? theme.colorScheme.onSurface)
+            : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+      ),
+    ),
+    enabled: enabled,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    onTap: () => Navigator.pop(context, value),
+  );
+}
+
+/// Shows context menu / bottom sheet for a remote WebDAV folder.
+Future<void> showWebDavFolderContextMenu({
+  required BuildContext context,
+  required Offset globalPosition,
+  required WidgetRef ref,
+  required RemoteServer server,
+  required String password,
+  required WebDavFile folder,
+  VoidCallback? onOpen,
+  void Function(String folderPath)? onMultiSelect,
+}) async {
+  await showWebDavFolderBottomSheet(
+    context: context,
+    ref: ref,
+    server: server,
+    password: password,
+    folder: folder,
+    onOpen: onOpen,
+    onMultiSelect: onMultiSelect,
   );
 }
 
@@ -1953,6 +2020,15 @@ Future<void> _handleWebDavFolderMenuSelection({
         await audio.appendToQueue(trackList);
         showToast(l10n.addedToQueue);
       } else {
+        showToast('No audio files in this folder');
+      }
+      break;
+    case 'add_to_playlist':
+      final trackList = await getAudioFiles();
+      if (trackList.isNotEmpty && context.mounted) {
+        final playlistService = ref.read(playlistServiceProvider);
+        await showAddSongsToPlaylistDialog(context, playlistService, trackList);
+      } else if (context.mounted) {
         showToast('No audio files in this folder');
       }
       break;

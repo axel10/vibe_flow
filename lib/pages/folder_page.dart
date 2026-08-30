@@ -207,6 +207,9 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       if (!_isSelectionMode) {
         _selectedSongPaths.clear();
         _selectedFolderPaths.clear();
+        _librarySelectionScopeController.clear();
+      } else {
+        _librarySelectionScopeController.setScope(LibrarySelectionScope.folder);
       }
     });
 
@@ -489,6 +492,12 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       } else {
         _selectedSongPaths.add(path);
       }
+      if (_selectedSongPaths.isEmpty && _selectedFolderPaths.isEmpty) {
+        _isSelectionMode = false;
+        _librarySelectionScopeController.clear();
+      } else {
+        _librarySelectionScopeController.setScope(LibrarySelectionScope.folder);
+      }
     });
   }
 
@@ -499,10 +508,17 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
       } else {
         _selectedFolderPaths.add(path);
       }
+      if (_selectedSongPaths.isEmpty && _selectedFolderPaths.isEmpty) {
+        _isSelectionMode = false;
+        _librarySelectionScopeController.clear();
+      } else {
+        _librarySelectionScopeController.setScope(LibrarySelectionScope.folder);
+      }
     });
   }
 
   void _selectAllVisible(MusicFolder currentFolder) {
+    _librarySelectionScopeController.setScope(LibrarySelectionScope.folder);
     setState(() {
       _selectedSongPaths
         ..clear()
