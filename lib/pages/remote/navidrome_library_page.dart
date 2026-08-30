@@ -587,6 +587,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
 
     Widget content = PopScope(
       canPop: true,
@@ -676,10 +681,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildAlbumsTab(theme),
-          _buildArtistsTab(theme),
-          _buildPlaylistsTab(theme),
-          _buildSearchTab(theme),
+          _buildAlbumsTab(theme, bottomOffset),
+          _buildArtistsTab(theme, bottomOffset),
+          _buildPlaylistsTab(theme, bottomOffset),
+          _buildSearchTab(theme, bottomOffset),
         ],
       ),
     ),
@@ -707,7 +712,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   // ================= ALBUMS TAB =================
-  Widget _buildAlbumsTab(ThemeData theme) {
+  Widget _buildAlbumsTab(ThemeData theme, double bottomOffset) {
     const sortOptions = [
       {'key': 'alphabeticalByName', 'label': 'All (A-Z)'},
       {'key': 'newest', 'label': 'Recently Added'},
@@ -889,7 +894,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       : RefreshIndicator(
                           onRefresh: () => _loadAlbums(forceRefresh: true),
                           child: GridView.builder(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                            padding:
+                                EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: crossAxisCount,
@@ -1143,7 +1149,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   // ================= ARTISTS TAB =================
-  Widget _buildArtistsTab(ThemeData theme) {
+  Widget _buildArtistsTab(ThemeData theme, double bottomOffset) {
     if (_isLoadingArtists) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1336,7 +1342,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                         child: RefreshIndicator(
                           onRefresh: () => _loadArtists(forceRefresh: true),
                           child: ListView.builder(
-                            padding: const EdgeInsets.all(12),
+                            padding:
+                                EdgeInsets.fromLTRB(12, 12, 12, bottomOffset),
                             itemCount: filteredArtists.length,
                             itemBuilder: (context, index) {
                               final artist = filteredArtists[index];
@@ -1423,7 +1430,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   : RefreshIndicator(
                       onRefresh: () => _loadArtists(forceRefresh: true),
                       child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                        padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
                         itemCount: filteredArtists.length,
                         itemBuilder: (context, index) {
                           final artist = filteredArtists[index];
@@ -1568,7 +1575,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   // ================= PLAYLISTS TAB =================
-  Widget _buildPlaylistsTab(ThemeData theme) {
+  Widget _buildPlaylistsTab(ThemeData theme, double bottomOffset) {
     if (_isLoadingPlaylists) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1725,7 +1732,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                         child: RefreshIndicator(
                           onRefresh: () => _loadPlaylists(forceRefresh: true),
                           child: ListView.builder(
-                            padding: const EdgeInsets.all(12),
+                            padding:
+                                EdgeInsets.fromLTRB(12, 12, 12, bottomOffset),
                             itemCount: filteredPlaylists.length,
                             itemBuilder: (context, index) {
                               final pl = filteredPlaylists[index];
@@ -1823,7 +1831,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   : RefreshIndicator(
                       onRefresh: () => _loadPlaylists(forceRefresh: true),
                       child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                        padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
                         itemCount: filteredPlaylists.length,
                         itemBuilder: (context, index) {
                           final pl = filteredPlaylists[index];
@@ -2024,7 +2032,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   // ================= SEARCH TAB =================
-  Widget _buildSearchTab(ThemeData theme) {
+  Widget _buildSearchTab(ThemeData theme, double bottomOffset) {
     return Column(
       children: [
         Padding(
@@ -2066,7 +2074,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   ),
                 )
               : ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, bottomOffset),
                   children: [
                     if (_searchedArtists.isNotEmpty) ...[
                       Padding(

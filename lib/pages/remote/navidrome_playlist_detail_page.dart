@@ -552,6 +552,10 @@ class _NavidromePlaylistDetailContentState
     final l10n = AppLocalizations.of(context)!;
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final isAudioPlaying = ref.watch(audioIsPlayingProvider);
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
 
     if (_isLoading) {
       return const Center(
@@ -946,7 +950,7 @@ class _NavidromePlaylistDetailContentState
           )
         else
           SliverPadding(
-            padding: const EdgeInsets.only(top: 8, bottom: 80),
+            padding: EdgeInsets.only(top: 8, bottom: bottomOffset),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {

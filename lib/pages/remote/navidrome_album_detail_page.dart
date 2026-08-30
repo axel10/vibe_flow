@@ -165,6 +165,10 @@ class _NavidromeAlbumDetailPageState
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
 
     final albumTitle = (widget.albumName.isNotEmpty && widget.albumName != 'Untitled')
         ? widget.albumName
@@ -504,7 +508,7 @@ class _NavidromeAlbumDetailPageState
                         );
                       },
                     ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                    SliverToBoxAdapter(child: SizedBox(height: bottomOffset)),
                   ],
                 ),
     );

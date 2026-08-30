@@ -105,6 +105,11 @@ class _RemoteDownloadManagerPageState
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
 
     Widget content = Scaffold(
       appBar: AppBar(
@@ -195,12 +200,14 @@ class _RemoteDownloadManagerPageState
                   l10n,
                   downloadingTasks,
                   totalSpeed,
+                  bottomOffset,
                 ),
                 _buildCompletedTab(
                   context,
                   theme,
                   l10n,
                   completedTasks,
+                  bottomOffset,
                 ),
               ],
             ),
@@ -295,6 +302,7 @@ class _RemoteDownloadManagerPageState
     AppLocalizations l10n,
     List<RemoteDownloadTask> tasks,
     double totalSpeed,
+    double bottomOffset,
   ) {
     if (tasks.isEmpty) {
       return Center(
@@ -396,7 +404,7 @@ class _RemoteDownloadManagerPageState
         // Tasks list
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, bottomOffset),
             itemCount: tasks.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
@@ -584,6 +592,7 @@ class _RemoteDownloadManagerPageState
     ThemeData theme,
     AppLocalizations l10n,
     List<RemoteDownloadTask> tasks,
+    double bottomOffset,
   ) {
     if (tasks.isEmpty) {
       return Center(
@@ -645,7 +654,7 @@ class _RemoteDownloadManagerPageState
         ),
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, bottomOffset),
             itemCount: tasks.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {

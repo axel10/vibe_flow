@@ -6,6 +6,7 @@ import 'package:vynody/widgets/playback_hero_card.dart';
 import 'volume_controls.dart';
 import '../pages/main_layout.dart';
 import '../pages/main_layout_riverpod.dart';
+export 'playback_ui_tuning.dart';
 
 class MiniPlayerWrapper extends ConsumerStatefulWidget {
   const MiniPlayerWrapper({super.key, required this.child});

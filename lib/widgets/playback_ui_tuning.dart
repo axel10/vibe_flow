@@ -214,3 +214,49 @@ class PlaybackHeroCardUiTuning {
 
   static const double portraitBottomReservedSpace = 0;
 }
+
+class MiniPlayerUiTuning {
+  MiniPlayerUiTuning._();
+
+  /// 迷你播放器自身高度估计值 (包含阴影与内边距)
+  static const double miniPlayerCardHeight = 74.0;
+
+  /// 迷你播放器底部基础外边距
+  static const double miniPlayerBottomMargin = 20.0;
+
+  /// 列表滚动到底部时预留给卡片上方的呼吸安全间距 (确保完全露出不被卡片顶部与投影遮挡)
+  static const double contentBreathingGap = 32.0;
+
+  /// 无播放状态下的默认底部内边距
+  static const double defaultInactiveBottomPadding = 24.0;
+
+  /// 统一计算列表/网格的底部内边距 (Bottom Inset)
+  /// [hasPlayingMusic]: 是否有正在播放或加载的音乐
+  /// [isSelectionMode]: 是否处于多选模式 (如果有多选工具栏)
+  /// [selectionPanelHeight]: 多选工具栏高度 (默认 0.0)
+  static double getListBottomPadding(
+    BuildContext context, {
+    required bool hasPlayingMusic,
+    bool isSelectionMode = false,
+    double selectionPanelHeight = 0.0,
+  }) {
+    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    double offset = 0.0;
+    if (hasPlayingMusic) {
+      // 竖屏与横屏基准高度 + 呼吸间距 + 底部安全区
+      final baseHeight = isLandscape ? 110.0 : 130.0;
+      offset = baseHeight + contentBreathingGap + safeAreaBottom;
+    } else {
+      offset = defaultInactiveBottomPadding + safeAreaBottom;
+    }
+
+    if (isSelectionMode) {
+      offset += selectionPanelHeight > 0 ? selectionPanelHeight : 100.0;
+    }
+
+    return offset;
+  }
+}

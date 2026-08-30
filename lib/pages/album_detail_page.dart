@@ -266,7 +266,12 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
               ),
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: (currentMusic != null ? 120 : 20) + (_isSelectionMode ? 220.0 : 0.0),
+                  height: MiniPlayerUiTuning.getListBottomPadding(
+                    context,
+                    hasPlayingMusic: currentMusic != null,
+                    isSelectionMode: _isSelectionMode,
+                    selectionPanelHeight: 220.0,
+                  ),
                 ),
               ),
             ],

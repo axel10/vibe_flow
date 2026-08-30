@@ -334,6 +334,10 @@ class _NavidromeArtistDetailContentState
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
     final headerColor = theme.colorScheme.tertiaryContainer.withValues(
       alpha: 0.65,
     );
@@ -552,7 +556,7 @@ class _NavidromeArtistDetailContentState
               _buildAlbumSection(theme, _albumSections[i], currentMusic),
             ],
           ],
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          SliverToBoxAdapter(child: SizedBox(height: bottomOffset)),
         ],
       ),
     );

@@ -273,6 +273,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
+      context,
+      hasPlayingMusic: currentMusic != null,
+    );
 
     Widget content = PopScope(
       canPop: _isAtRoot,
@@ -390,6 +394,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                               onRefresh: () =>
                                   _loadDirectory(_currentPath, forceRefresh: true),
                               child: ListView.builder(
+                                padding:
+                                    EdgeInsets.fromLTRB(0, 0, 0, bottomOffset),
                                 itemCount: _items.length,
                                 itemBuilder: (context, index) {
                                   final item = _items[index];
