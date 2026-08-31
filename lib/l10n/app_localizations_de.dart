@@ -1616,7 +1616,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noMatchingRelease => 'Keine passende Veröffentlichung gefunden';
 
   @override
-  String get noMatchingResults => 'Keine passenden Ergebnisse gefunden';
+  String get noMatchingResults => 'Keine passenden Ergebnisse';
 
   @override
   String get networkConnectionFailed => 'Netzwerkverbindung fehlgeschlagen';
@@ -4211,5 +4211,238 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String yesterdayTime(Object time) {
     return 'Gestern $time';
+  }
+
+  @override
+  String get playlists => 'Playlists';
+
+  @override
+  String get songs => 'Titel';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return 'Playlist erstellt: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => 'Lade Albumtitel...';
+
+  @override
+  String get loadingArtistTracks => 'Lade Künstlertitel...';
+
+  @override
+  String get loadingFolderAudio => 'Lade Ordner-Audio...';
+
+  @override
+  String get noAudioFilesInFolder => 'Keine Audiodateien in diesem Ordner';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return 'Fehler beim Laden des Ordners: $error';
+  }
+
+  @override
+  String get starFailed => 'Favorisieren fehlgeschlagen';
+
+  @override
+  String playAlbumFailed(String error) {
+    return 'Album konnte nicht abgespielt werden: $error';
+  }
+
+  @override
+  String get sortAllAZ => 'Alle (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => 'Kürzlich gespielt';
+
+  @override
+  String get sortMostPlayed => 'Meistgespielt';
+
+  @override
+  String get sortStarred => 'Favorisiert';
+
+  @override
+  String get sortRandom => 'Zufällig';
+
+  @override
+  String get filterAlbums => 'Alben filtern...';
+
+  @override
+  String get filterArtists => 'Künstler filtern...';
+
+  @override
+  String get searchPlaylists => 'Playlists suchen...';
+
+  @override
+  String get searchRemoteHint => 'Titel, Alben, Künstler suchen...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return 'Fehler beim Laden der Alben: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => 'Keine Alben auf dem Server gefunden';
+
+  @override
+  String get noMatchingAlbums => 'Keine passenden Alben';
+
+  @override
+  String get playAlbum => 'Album abspielen';
+
+  @override
+  String get shuffleAlbum => 'Album zufällig abspielen';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return 'Fehler beim Laden der Künstler: $error';
+  }
+
+  @override
+  String get noArtistsFound => 'Keine Künstler gefunden';
+
+  @override
+  String get noMatchingArtists => 'Keine passenden Künstler';
+
+  @override
+  String get noArtistSelected => 'Kein Künstler ausgewählt';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return 'Fehler beim Laden der Playlists: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => 'Keine Playlists gefunden';
+
+  @override
+  String get noMatchingPlaylists => 'Keine passenden Playlists';
+
+  @override
+  String get noPlaylistSelected => 'Keine Playlist ausgewählt';
+
+  @override
+  String get typeToSearch => 'Tippen Sie etwas ein, um zu suchen';
+
+  @override
+  String get albumNotFound => 'Albumdetails nicht gefunden';
+
+  @override
+  String playingTracksCount(int count) {
+    return 'Spiele $count Titel';
+  }
+
+  @override
+  String get artistNotFound => 'Künstlerdetails nicht auf dem Server gefunden';
+
+  @override
+  String get noTracksForArtist => 'Keine Titel für diesen Künstler gefunden';
+
+  @override
+  String get noAlbumsForArtist => 'Keine Alben für diesen Künstler gefunden';
+
+  @override
+  String get playlistNotFound =>
+      'Playlistdetails nicht auf dem Server gefunden';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '„$title“ aus Playlist entfernt';
+  }
+
+  @override
+  String get removeTrackFailed => 'Titel konnte nicht entfernt werden';
+
+  @override
+  String get playlistDeleted => 'Playlist gelöscht';
+
+  @override
+  String get deletePlaylistFailed => 'Playlist konnte nicht gelöscht werden';
+
+  @override
+  String byAuthor(String author) {
+    return 'von $author';
+  }
+
+  @override
+  String get downloadAllTracks => 'Alle herunterladen';
+
+  @override
+  String get downloadFailedGeneric => 'Download fehlgeschlagen';
+
+  @override
+  String downloadPaused(String progress) {
+    return 'Pausiert ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => 'In Warteschlange...';
+
+  @override
+  String get downloadCancelled => 'Abgebrochen';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return 'Datei nicht gefunden unter $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '$count Titel zu „$name“ hinzugefügt';
+  }
+
+  @override
+  String get addToPlaylistFailed =>
+      'Konnte nicht zur Playlist hinzugefügt werden';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return 'Fehler beim Hinzufügen zur Playlist: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return 'Playlist „$name“ mit $count Titeln erstellt';
+  }
+
+  @override
+  String get createServerPlaylistFailed =>
+      'Server-Playlist konnte nicht erstellt werden';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return 'Fehler beim Erstellen der Playlist: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => 'Keine Server-Playlists gefunden';
+
+  @override
+  String get download => 'Herunterladen';
+
+  @override
+  String get resume => 'Fortsetzen';
+
+  @override
+  String get remove => 'Entfernen';
+
+  @override
+  String get refresh => 'Aktualisieren';
+
+  @override
+  String get copyFilePath => 'Dateipfad kopieren';
+
+  @override
+  String get openFolder => 'Ordner öffnen';
+
+  @override
+  String get copyFolderName => 'Ordnernamen kopieren';
+
+  @override
+  String get copyFolderPath => 'Ordnerpfad kopieren';
+
+  @override
+  String errorWithMessage(String error) {
+    return 'Fehler: $error';
   }
 }

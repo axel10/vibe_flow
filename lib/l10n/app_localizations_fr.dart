@@ -1620,7 +1620,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noMatchingRelease => 'Aucune sortie correspondante trouvée';
 
   @override
-  String get noMatchingResults => 'Aucun résultat correspondant trouvé';
+  String get noMatchingResults => 'Aucun résultat correspondant';
 
   @override
   String get networkConnectionFailed => 'Échec de la connexion réseau';
@@ -4220,5 +4220,238 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String yesterdayTime(Object time) {
     return 'Hier $time';
+  }
+
+  @override
+  String get playlists => 'Playlists';
+
+  @override
+  String get songs => 'Morceaux';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return 'Playlist créée : $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => 'Chargement des pistes de l\'album...';
+
+  @override
+  String get loadingArtistTracks => 'Chargement des pistes de l\'artiste...';
+
+  @override
+  String get loadingFolderAudio => 'Chargement de l\'audio du dossier...';
+
+  @override
+  String get noAudioFilesInFolder => 'Aucun fichier audio dans ce dossier';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return 'Échec du chargement du dossier : $error';
+  }
+
+  @override
+  String get starFailed => 'Échec de l\'ajout aux favoris';
+
+  @override
+  String playAlbumFailed(String error) {
+    return 'Échec de la lecture de l\'album : $error';
+  }
+
+  @override
+  String get sortAllAZ => 'Tous (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => 'Récemment écoutés';
+
+  @override
+  String get sortMostPlayed => 'Les plus écoutés';
+
+  @override
+  String get sortStarred => 'Favoris';
+
+  @override
+  String get sortRandom => 'Aléatoire';
+
+  @override
+  String get filterAlbums => 'Filtrer les albums...';
+
+  @override
+  String get filterArtists => 'Filtrer les artistes...';
+
+  @override
+  String get searchPlaylists => 'Rechercher des playlists...';
+
+  @override
+  String get searchRemoteHint => 'Rechercher des titres, albums, artistes...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return 'Erreur lors du chargement des albums : $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => 'Aucun album trouvé sur le serveur';
+
+  @override
+  String get noMatchingAlbums => 'Aucun album correspondant';
+
+  @override
+  String get playAlbum => 'Lire l\'album';
+
+  @override
+  String get shuffleAlbum => 'Lecture aléatoire de l\'album';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return 'Erreur lors du chargement des artistes : $error';
+  }
+
+  @override
+  String get noArtistsFound => 'Aucun artiste trouvé';
+
+  @override
+  String get noMatchingArtists => 'Aucun artiste correspondant';
+
+  @override
+  String get noArtistSelected => 'Aucun artiste sélectionné';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return 'Erreur lors du chargement des playlists : $error';
+  }
+
+  @override
+  String get noPlaylistsFound => 'Aucune playlist trouvée';
+
+  @override
+  String get noMatchingPlaylists => 'Aucune playlist correspondante';
+
+  @override
+  String get noPlaylistSelected => 'Aucune playlist sélectionnée';
+
+  @override
+  String get typeToSearch => 'Tapez quelque chose pour rechercher';
+
+  @override
+  String get albumNotFound => 'Détails de l\'album introuvables';
+
+  @override
+  String playingTracksCount(int count) {
+    return 'Lecture de $count morceaux';
+  }
+
+  @override
+  String get artistNotFound =>
+      'Détails de l\'artiste introuvables sur le serveur';
+
+  @override
+  String get noTracksForArtist => 'Aucun morceau trouvé pour cet artiste';
+
+  @override
+  String get noAlbumsForArtist => 'Aucun album trouvé pour cet artiste';
+
+  @override
+  String get playlistNotFound =>
+      'Détails de la playlist introuvables sur le serveur';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '« $title » retiré de la playlist';
+  }
+
+  @override
+  String get removeTrackFailed => 'Échec de la suppression du morceau';
+
+  @override
+  String get playlistDeleted => 'Playlist supprimée';
+
+  @override
+  String get deletePlaylistFailed => 'Échec de la suppression de la playlist';
+
+  @override
+  String byAuthor(String author) {
+    return 'par $author';
+  }
+
+  @override
+  String get downloadAllTracks => 'Tout télécharger';
+
+  @override
+  String get downloadFailedGeneric => 'Échec du téléchargement';
+
+  @override
+  String downloadPaused(String progress) {
+    return 'En pause ($progress %)';
+  }
+
+  @override
+  String get waitingInQueue => 'En file d\'attente...';
+
+  @override
+  String get downloadCancelled => 'Annulé';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return 'Fichier introuvable à $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '$count morceau(x) ajouté(s) à « $name »';
+  }
+
+  @override
+  String get addToPlaylistFailed => 'Échec de l\'ajout à la playlist';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return 'Erreur lors de l\'ajout à la playlist : $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return 'Playlist « $name » créée avec $count morceau(x)';
+  }
+
+  @override
+  String get createServerPlaylistFailed =>
+      'Échec de la création de la playlist sur le serveur';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return 'Erreur lors de la création de la playlist : $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => 'Aucune playlist de serveur trouvée';
+
+  @override
+  String get download => 'Télécharger';
+
+  @override
+  String get resume => 'Reprendre';
+
+  @override
+  String get remove => 'Supprimer';
+
+  @override
+  String get refresh => 'Actualiser';
+
+  @override
+  String get copyFilePath => 'Copier le chemin du fichier';
+
+  @override
+  String get openFolder => 'Ouvrir le dossier';
+
+  @override
+  String get copyFolderName => 'Copier le nom du dossier';
+
+  @override
+  String get copyFolderPath => 'Copier le chemin du dossier';
+
+  @override
+  String errorWithMessage(String error) {
+    return 'Erreur : $error';
   }
 }

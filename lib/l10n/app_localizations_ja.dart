@@ -1557,7 +1557,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noMatchingRelease => '一致するリリースが見つかりません';
 
   @override
-  String get noMatchingResults => '一致する結果が見つかりません';
+  String get noMatchingResults => '一致する結果がありません';
 
   @override
   String get networkConnectionFailed => 'ネットワーク接続に失敗しました';
@@ -4013,5 +4013,235 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String yesterdayTime(Object time) {
     return '昨日 $time';
+  }
+
+  @override
+  String get playlists => 'プレイリスト';
+
+  @override
+  String get songs => '曲';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return 'プレイリストを作成しました: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => 'アルバムの曲を読み込み中...';
+
+  @override
+  String get loadingArtistTracks => 'アーティストの曲を読み込み中...';
+
+  @override
+  String get loadingFolderAudio => 'フォルダの音声を読み込み中...';
+
+  @override
+  String get noAudioFilesInFolder => 'このフォルダ内に音声ファイルがありません';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return 'フォルダの読み込みに失敗しました: $error';
+  }
+
+  @override
+  String get starFailed => 'お気に入り登録に失敗しました';
+
+  @override
+  String playAlbumFailed(String error) {
+    return 'アルバムの再生に失敗しました: $error';
+  }
+
+  @override
+  String get sortAllAZ => 'すべて (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => '最近再生した曲';
+
+  @override
+  String get sortMostPlayed => '最も再生された曲';
+
+  @override
+  String get sortStarred => 'お気に入り';
+
+  @override
+  String get sortRandom => 'シャッフル';
+
+  @override
+  String get filterAlbums => 'アルバムを絞り込み...';
+
+  @override
+  String get filterArtists => 'アーティストを絞り込み...';
+
+  @override
+  String get searchPlaylists => 'プレイリストを検索...';
+
+  @override
+  String get searchRemoteHint => '曲、アルバム、アーティストを検索...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return 'アルバムの読み込みに失敗しました: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => 'サーバーにアルバムが見つかりません';
+
+  @override
+  String get noMatchingAlbums => '一致するアルバムがありません';
+
+  @override
+  String get playAlbum => 'アルバムを再生';
+
+  @override
+  String get shuffleAlbum => 'アルバムをシャッフル再生';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return 'アーティストの読み込みに失敗しました: $error';
+  }
+
+  @override
+  String get noArtistsFound => 'アーティストが見つかりません';
+
+  @override
+  String get noMatchingArtists => '一致するアーティストがありません';
+
+  @override
+  String get noArtistSelected => 'アーティストが選択されていません';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return 'プレイリストの読み込みに失敗しました: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => 'プレイリストが見つかりません';
+
+  @override
+  String get noMatchingPlaylists => '一致するプレイリストがありません';
+
+  @override
+  String get noPlaylistSelected => 'プレイリストが選択されていません';
+
+  @override
+  String get typeToSearch => '入力して検索を開始';
+
+  @override
+  String get albumNotFound => 'アルバムの詳細が見つかりません';
+
+  @override
+  String playingTracksCount(int count) {
+    return '$count 曲を再生中';
+  }
+
+  @override
+  String get artistNotFound => 'サーバーにアーティストの詳細が見つかりません';
+
+  @override
+  String get noTracksForArtist => 'このアーティストの曲が見つかりません';
+
+  @override
+  String get noAlbumsForArtist => 'このアーティストのアルバムが見つかりません';
+
+  @override
+  String get playlistNotFound => 'サーバーにプレイリストの詳細が見つかりません';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return 'プレイリストから「$title」を削除しました';
+  }
+
+  @override
+  String get removeTrackFailed => '曲の削除に失敗しました';
+
+  @override
+  String get playlistDeleted => 'プレイリストを削除しました';
+
+  @override
+  String get deletePlaylistFailed => 'プレイリストの削除に失敗しました';
+
+  @override
+  String byAuthor(String author) {
+    return '作成者: $author';
+  }
+
+  @override
+  String get downloadAllTracks => 'すべてダウンロード';
+
+  @override
+  String get downloadFailedGeneric => 'ダウンロード失敗';
+
+  @override
+  String downloadPaused(String progress) {
+    return '一時停止中 ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => '待機中...';
+
+  @override
+  String get downloadCancelled => 'キャンセル済み';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return 'ファイルが見つかりません: $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '「$name」に $count 曲を追加しました';
+  }
+
+  @override
+  String get addToPlaylistFailed => 'プレイリストへの追加に失敗しました';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return 'プレイリスト追加エラー: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return 'プレイリスト「$name」を作成し、$count 曲を追加しました';
+  }
+
+  @override
+  String get createServerPlaylistFailed => 'サーバープレイリストの作成に失敗しました';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return 'プレイリスト作成エラー: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => 'サーバープレイリストが見つかりません';
+
+  @override
+  String get download => 'ダウンロード';
+
+  @override
+  String get resume => '再開';
+
+  @override
+  String get remove => '削除';
+
+  @override
+  String get refresh => '更新';
+
+  @override
+  String get copyFilePath => 'ファイルパスをコピー';
+
+  @override
+  String get openFolder => 'フォルダーを開く';
+
+  @override
+  String get copyFolderName => 'フォルダー名をコピー';
+
+  @override
+  String get copyFolderPath => 'フォルダーパスをコピー';
+
+  @override
+  String errorWithMessage(String error) {
+    return 'エラー: $error';
   }
 }

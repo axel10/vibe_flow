@@ -4220,4 +4220,241 @@ class AppLocalizationsEs extends AppLocalizations {
   String yesterdayTime(Object time) {
     return 'Ayer $time';
   }
+
+  @override
+  String get playlists => 'Listas de reproducción';
+
+  @override
+  String get songs => 'Canciones';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return 'Lista de reproducción creada: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => 'Cargando pistas del álbum...';
+
+  @override
+  String get loadingArtistTracks => 'Cargando pistas del artista...';
+
+  @override
+  String get loadingFolderAudio => 'Cargando audio de la carpeta...';
+
+  @override
+  String get noAudioFilesInFolder => 'No hay archivos de audio en esta carpeta';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return 'Error al cargar la carpeta: $error';
+  }
+
+  @override
+  String get starFailed => 'Error al marcar como favorito';
+
+  @override
+  String playAlbumFailed(String error) {
+    return 'Error al reproducir el álbum: $error';
+  }
+
+  @override
+  String get sortAllAZ => 'Todos (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => 'Reproducido recientemente';
+
+  @override
+  String get sortMostPlayed => 'Más reproducidos';
+
+  @override
+  String get sortStarred => 'Favoritos';
+
+  @override
+  String get sortRandom => 'Aleatorio';
+
+  @override
+  String get filterAlbums => 'Filtrar álbumes...';
+
+  @override
+  String get filterArtists => 'Filtrar artistas...';
+
+  @override
+  String get searchPlaylists => 'Buscar listas de reproducción...';
+
+  @override
+  String get searchRemoteHint => 'Buscar canciones, álbumes, artistas...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return 'Error al cargar álbumes: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => 'No se encontraron álbumes en el servidor';
+
+  @override
+  String get noMatchingAlbums => 'No hay álbumes coincidentes';
+
+  @override
+  String get playAlbum => 'Reproducir álbum';
+
+  @override
+  String get shuffleAlbum => 'Reproducir álbum aleatoriamente';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return 'Error al cargar artistas: $error';
+  }
+
+  @override
+  String get noArtistsFound => 'No se encontraron artistas';
+
+  @override
+  String get noMatchingArtists => 'No hay artistas coincidentes';
+
+  @override
+  String get noArtistSelected => 'Ningún artista seleccionado';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return 'Error al cargar listas de reproducción: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => 'No se encontraron listas de reproducción';
+
+  @override
+  String get noMatchingPlaylists =>
+      'No hay listas de reproducción coincidentes';
+
+  @override
+  String get noPlaylistSelected => 'Ninguna lista de reproducción seleccionada';
+
+  @override
+  String get typeToSearch => 'Escriba algo para buscar';
+
+  @override
+  String get albumNotFound => 'No se encontraron detalles del álbum';
+
+  @override
+  String playingTracksCount(int count) {
+    return 'Reproduciendo $count pistas';
+  }
+
+  @override
+  String get artistNotFound =>
+      'No se encontraron detalles del artista en el servidor';
+
+  @override
+  String get noTracksForArtist => 'No se encontraron pistas para este artista';
+
+  @override
+  String get noAlbumsForArtist => 'No se encontraron álbumes para este artista';
+
+  @override
+  String get playlistNotFound =>
+      'No se encontraron detalles de la lista en el servidor';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '«$title» eliminado de la lista de reproducción';
+  }
+
+  @override
+  String get removeTrackFailed => 'Error al eliminar la pista';
+
+  @override
+  String get playlistDeleted => 'Lista de reproducción eliminada';
+
+  @override
+  String get deletePlaylistFailed =>
+      'Error al eliminar la lista de reproducción';
+
+  @override
+  String byAuthor(String author) {
+    return 'por $author';
+  }
+
+  @override
+  String get downloadAllTracks => 'Descargar todo';
+
+  @override
+  String get downloadFailedGeneric => 'Descarga fallida';
+
+  @override
+  String downloadPaused(String progress) {
+    return 'En pausa ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => 'En cola de espera...';
+
+  @override
+  String get downloadCancelled => 'Cancelado';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return 'Archivo no encontrado en $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return 'Se han añadido $count pista(s) a «$name»';
+  }
+
+  @override
+  String get addToPlaylistFailed =>
+      'Error al añadir a la lista de reproducción';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return 'Error al añadir a la lista de reproducción: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return 'Lista de reproducción «$name» creada con $count pista(s)';
+  }
+
+  @override
+  String get createServerPlaylistFailed =>
+      'Error al crear la lista de reproducción en el servidor';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return 'Error al crear la lista de reproducción: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound =>
+      'No se encontraron listas de reproducción del servidor';
+
+  @override
+  String get download => 'Descargar';
+
+  @override
+  String get resume => 'Reanudar';
+
+  @override
+  String get remove => 'Eliminar';
+
+  @override
+  String get refresh => 'Actualizar';
+
+  @override
+  String get copyFilePath => 'Copiar ruta del archivo';
+
+  @override
+  String get openFolder => 'Abrir carpeta';
+
+  @override
+  String get copyFolderName => 'Copiar nombre de carpeta';
+
+  @override
+  String get copyFolderPath => 'Copiar ruta de carpeta';
+
+  @override
+  String errorWithMessage(String error) {
+    return 'Error: $error';
+  }
 }

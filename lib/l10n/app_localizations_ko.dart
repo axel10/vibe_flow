@@ -1559,7 +1559,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noMatchingRelease => '일치하는 릴리스를 찾을 수 없습니다';
 
   @override
-  String get noMatchingResults => '일치하는 결과를 찾을 수 없습니다';
+  String get noMatchingResults => '일치하는 결과가 없습니다';
 
   @override
   String get networkConnectionFailed => '네트워크 연결 실패';
@@ -4016,5 +4016,235 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String yesterdayTime(Object time) {
     return '어제 $time';
+  }
+
+  @override
+  String get playlists => '재생목록';
+
+  @override
+  String get songs => '노래';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return '재생목록 생성됨: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => '앨범 트랙 로딩 중...';
+
+  @override
+  String get loadingArtistTracks => '아티스트 트랙 로딩 중...';
+
+  @override
+  String get loadingFolderAudio => '폴더 오디오 로딩 중...';
+
+  @override
+  String get noAudioFilesInFolder => '이 폴더에 오디오 파일이 없습니다';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return '폴더 로드 실패: $error';
+  }
+
+  @override
+  String get starFailed => '즐겨찾기 실패';
+
+  @override
+  String playAlbumFailed(String error) {
+    return '앨범 재생 실패: $error';
+  }
+
+  @override
+  String get sortAllAZ => '전체 (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => '최근 재생';
+
+  @override
+  String get sortMostPlayed => '가장 많이 재생됨';
+
+  @override
+  String get sortStarred => '즐겨찾기';
+
+  @override
+  String get sortRandom => '무작위';
+
+  @override
+  String get filterAlbums => '앨범 필터링...';
+
+  @override
+  String get filterArtists => '아티스트 필터링...';
+
+  @override
+  String get searchPlaylists => '재생목록 검색...';
+
+  @override
+  String get searchRemoteHint => '노래, 앨범, 아티스트 검색...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return '앨범 로드 실패: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => '서버에서 앨범을 찾을 수 없습니다';
+
+  @override
+  String get noMatchingAlbums => '일치하는 앨범이 없습니다';
+
+  @override
+  String get playAlbum => '앨범 재생';
+
+  @override
+  String get shuffleAlbum => '앨범 셔플 재생';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return '아티스트 로드 실패: $error';
+  }
+
+  @override
+  String get noArtistsFound => '아티스트를 찾을 수 없습니다';
+
+  @override
+  String get noMatchingArtists => '일치하는 아티스트가 없습니다';
+
+  @override
+  String get noArtistSelected => '선택된 아티스트 없음';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return '재생목록 로드 실패: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => '재생목록을 찾을 수 없습니다';
+
+  @override
+  String get noMatchingPlaylists => '일치하는 재생목록이 없습니다';
+
+  @override
+  String get noPlaylistSelected => '선택된 재생목록 없음';
+
+  @override
+  String get typeToSearch => '검색어를 입력하세요';
+
+  @override
+  String get albumNotFound => '앨범 정보를 찾을 수 없습니다';
+
+  @override
+  String playingTracksCount(int count) {
+    return '$count곡 재생 중';
+  }
+
+  @override
+  String get artistNotFound => '서버에서 아티스트 정보를 찾을 수 없습니다';
+
+  @override
+  String get noTracksForArtist => '이 아티스트의 트랙을 찾을 수 없습니다';
+
+  @override
+  String get noAlbumsForArtist => '이 아티스트의 앨범을 찾을 수 없습니다';
+
+  @override
+  String get playlistNotFound => '서버에서 재생목록 정보를 찾을 수 없습니다';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '재생목록에서 \"$title\" 제거됨';
+  }
+
+  @override
+  String get removeTrackFailed => '트랙 제거 실패';
+
+  @override
+  String get playlistDeleted => '재생목록 삭제됨';
+
+  @override
+  String get deletePlaylistFailed => '재생목록 삭제 실패';
+
+  @override
+  String byAuthor(String author) {
+    return '생성자: $author';
+  }
+
+  @override
+  String get downloadAllTracks => '모두 다운로드';
+
+  @override
+  String get downloadFailedGeneric => '다운로드 실패';
+
+  @override
+  String downloadPaused(String progress) {
+    return '일시 중지됨 ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => '대기열 대기 중...';
+
+  @override
+  String get downloadCancelled => '취소됨';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return '파일을 찾을 수 없음: $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '\"$name\"에 $count곡 추가됨';
+  }
+
+  @override
+  String get addToPlaylistFailed => '재생목록에 추가 실패';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return '재생목록 추가 오류: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return '재생목록 \"$name\" 생성됨 ($count곡 추가)';
+  }
+
+  @override
+  String get createServerPlaylistFailed => '서버 재생목록 생성 실패';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return '재생목록 생성 오류: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => '서버 재생목록 없음';
+
+  @override
+  String get download => '다운로드';
+
+  @override
+  String get resume => '재개';
+
+  @override
+  String get remove => '삭제';
+
+  @override
+  String get refresh => '새로고침';
+
+  @override
+  String get copyFilePath => '파일 경로 복사';
+
+  @override
+  String get openFolder => '폴더 열기';
+
+  @override
+  String get copyFolderName => '폴더 이름 복사';
+
+  @override
+  String get copyFolderPath => '폴더 경로 복사';
+
+  @override
+  String errorWithMessage(String error) {
+    return '오류: $error';
   }
 }

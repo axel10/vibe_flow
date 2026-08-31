@@ -485,27 +485,27 @@ class _RemoteDownloadManagerPageState
                 IconButton(
                   icon: const Icon(Icons.pause_rounded, size: 20),
                   visualDensity: VisualDensity.compact,
-                  tooltip: 'Pause',
+                  tooltip: l10n.pause,
                   onPressed: () => notifier.pauseTask(task.id),
                 )
               else if (isPaused)
                 IconButton(
                   icon: const Icon(Icons.play_arrow_rounded, size: 20),
                   visualDensity: VisualDensity.compact,
-                  tooltip: 'Resume',
+                  tooltip: l10n.resume,
                   onPressed: () => notifier.resumeTask(task.id),
                 )
               else if (isFailed)
                 IconButton(
                   icon: const Icon(Icons.replay_rounded, size: 20),
                   visualDensity: VisualDensity.compact,
-                  tooltip: 'Retry',
+                  tooltip: l10n.retry,
                   onPressed: () => notifier.retryTask(task.id),
                 ),
               IconButton(
                 icon: const Icon(Icons.close_rounded, size: 20),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Cancel',
+                tooltip: l10n.cancel,
                 onPressed: () => notifier.cancelTask(task.id),
               ),
             ],
@@ -539,7 +539,7 @@ class _RemoteDownloadManagerPageState
               if (isFailed)
                 Expanded(
                   child: Text(
-                    task.error ?? 'Download failed',
+                    task.error ?? l10n.downloadFailedGeneric,
                     style: TextStyle(
                       fontSize: 11,
                       color: theme.colorScheme.error,
@@ -550,7 +550,7 @@ class _RemoteDownloadManagerPageState
                 )
               else if (isPaused)
                 Text(
-                  'Paused (${(task.progress * 100).toStringAsFixed(0)}%)',
+                  l10n.downloadPaused((task.progress * 100).toStringAsFixed(0)),
                   style: const TextStyle(
                     fontSize: 11,
                     color: Colors.amber,
@@ -558,7 +558,7 @@ class _RemoteDownloadManagerPageState
                 )
               else if (isPending)
                 Text(
-                  'Waiting in queue...',
+                  l10n.waitingInQueue,
                   style: TextStyle(
                     fontSize: 11,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -709,8 +709,8 @@ class _RemoteDownloadManagerPageState
       ),
       subtitle: Text(
         isCancelled
-            ? 'Cancelled'
-            : '${task.song.artist ?? 'Unknown Artist'} · ${_formatBytes(task.bytesDownloaded)}',
+            ? l10n.downloadCancelled
+            : '${task.song.artist ?? l10n.unknownArtist} · ${_formatBytes(task.bytesDownloaded)}',
         style: TextStyle(
           fontSize: 12,
           color: theme.colorScheme.onSurfaceVariant,
@@ -724,7 +724,7 @@ class _RemoteDownloadManagerPageState
           if (!isCancelled) ...[
             IconButton(
               icon: const Icon(Icons.play_arrow_rounded),
-              tooltip: 'Play',
+              tooltip: l10n.play,
               onPressed: () async {
                 final audioService = ref.read(audioServiceProvider);
                 final file = File(task.targetPath);
@@ -738,7 +738,7 @@ class _RemoteDownloadManagerPageState
                   );
                   await audioService.playPlaylist([localSong]);
                 } else {
-                  showToast('File not found at ${task.targetPath}');
+                  showToast(l10n.fileNotFoundAtPath(task.targetPath));
                 }
               },
             ),
@@ -752,7 +752,7 @@ class _RemoteDownloadManagerPageState
           ],
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
-            tooltip: 'Remove',
+            tooltip: l10n.remove,
             onPressed: () {
               notifier.removeTask(task.id);
             },

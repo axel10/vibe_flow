@@ -310,7 +310,7 @@ Future<void> _handleAlbumMenuSelection({
 
   Future<List<MusicFile>> getOrFetchSongs() async {
     if (songs != null && songs.isNotEmpty) return songs;
-    showToast('Loading album tracks...');
+    showToast(l10n.loadingAlbumTracks);
     return await _fetchAlbumTracks(client, server, albumId);
   }
 
@@ -369,7 +369,7 @@ Future<void> _handleAlbumMenuSelection({
       break;
     case 'star':
       final ok = await client.star(albumId: albumId);
-      showToast(ok ? l10n.starredSuccess : 'Star failed');
+      showToast(ok ? l10n.starredSuccess : l10n.starFailed);
       break;
     case 'download':
       final trackList = await getOrFetchSongs();
@@ -694,7 +694,7 @@ Future<void> _handleSongMenuSelection({
       break;
     case 'star':
       final ok = await client.star(id: trackId);
-      showToast(ok ? l10n.starredSuccess : 'Star failed');
+      showToast(ok ? l10n.starredSuccess : l10n.starFailed);
       break;
     case 'download':
       final notifier = ref.read(remoteDownloadTasksProvider.notifier);
@@ -937,7 +937,7 @@ Future<void> _handleArtistMenuSelection({
   final audio = ref.read(audioServiceProvider);
 
   Future<List<MusicFile>> getArtistSongs() async {
-    showToast('Loading artist tracks...');
+    showToast(l10n.loadingArtistTracks);
     return await _fetchArtistTracks(client, server, artistId);
   }
 
@@ -984,7 +984,7 @@ Future<void> _handleArtistMenuSelection({
       break;
     case 'star':
       final ok = await client.star(artistId: artistId);
-      showToast(ok ? l10n.starredSuccess : 'Star failed');
+      showToast(ok ? l10n.starredSuccess : l10n.starFailed);
       break;
     case 'download':
       final trackList = await getArtistSongs();
@@ -1467,7 +1467,7 @@ Future<void> showWebDavFileContextMenu({
                   ),
                   ListTile(
                     leading: const Icon(Icons.link_rounded),
-                    title: Text(l10n.copyAlbumTitle.contains('复制') ? '复制文件路径' : 'Copy File Path'),
+                    title: Text(l10n.copyFilePath),
                     onTap: () => Navigator.pop(ctx, 'copy_path'),
                   ),
                 ],
@@ -1544,7 +1544,7 @@ Future<void> showWebDavFileContextMenu({
     ),
     buildContextMenuItem<String>(
       value: 'copy_path',
-      label: l10n.copyAlbumTitle.contains('复制') ? '复制文件路径' : 'Copy File Path',
+      label: l10n.copyFilePath,
       icon: Icons.link_rounded,
       context: context,
     ),
@@ -1783,18 +1783,14 @@ Future<String?> showWebDavFolderBottomSheet({
                           _buildWebDavBottomSheetItem(
                             context: ctx,
                             value: 'download_folder',
-                            label: l10n.copyAlbumTitle.contains('复制')
-                                ? '下载文件夹全部音频'
-                                : 'Download All Audio in Folder',
+                            label: l10n.downloadAllAudio,
                             icon: Icons.download_rounded,
                           ),
                           if (onOpen != null)
                             _buildWebDavBottomSheetItem(
                               context: ctx,
                               value: 'open',
-                              label: l10n.openFolderLocation.contains('打开')
-                                  ? '打开文件夹'
-                                  : 'Open Folder',
+                              label: l10n.openFolder,
                               icon: Icons.folder_open_rounded,
                             ),
                           _buildWebDavBottomSheetItem(
@@ -1807,17 +1803,13 @@ Future<String?> showWebDavFolderBottomSheet({
                           _buildWebDavBottomSheetItem(
                             context: ctx,
                             value: 'copy_name',
-                            label: l10n.copyAlbumTitle.contains('复制')
-                                ? '复制文件夹名称'
-                                : 'Copy Folder Name',
+                            label: l10n.copyFolderName,
                             icon: Icons.copy_rounded,
                           ),
                           _buildWebDavBottomSheetItem(
                             context: ctx,
                             value: 'copy_path',
-                            label: l10n.copyAlbumTitle.contains('复制')
-                                ? '复制文件夹路径'
-                                : 'Copy Folder Path',
+                            label: l10n.copyFolderPath,
                             icon: Icons.link_rounded,
                           ),
                         ],
@@ -1954,18 +1946,14 @@ Future<void> showWebDavFolderContextMenu({
     const PopupMenuDivider(),
     buildContextMenuItem<String>(
       value: 'download_folder',
-      label: l10n.copyAlbumTitle.contains('复制')
-          ? '下载文件夹全部音频'
-          : 'Download All Audio in Folder',
+      label: l10n.downloadAllAudio,
       icon: Icons.download_rounded,
       context: context,
     ),
     if (onOpen != null)
       buildContextMenuItem<String>(
         value: 'open',
-        label: l10n.openFolderLocation.contains('打开')
-            ? '打开文件夹'
-            : 'Open Folder',
+        label: l10n.openFolder,
         icon: Icons.folder_open_rounded,
         context: context,
       ),
@@ -1979,17 +1967,13 @@ Future<void> showWebDavFolderContextMenu({
     const PopupMenuDivider(),
     buildContextMenuItem<String>(
       value: 'copy_name',
-      label: l10n.copyAlbumTitle.contains('复制')
-          ? '复制文件夹名称'
-          : 'Copy Folder Name',
+      label: l10n.copyFolderName,
       icon: Icons.copy_rounded,
       context: context,
     ),
     buildContextMenuItem<String>(
       value: 'copy_path',
-      label: l10n.copyAlbumTitle.contains('复制')
-          ? '复制文件夹路径'
-          : 'Copy Folder Path',
+      label: l10n.copyFolderPath,
       icon: Icons.link_rounded,
       context: context,
     ),
@@ -2034,7 +2018,7 @@ Future<void> _handleWebDavFolderMenuSelection({
   final audio = ref.read(audioServiceProvider);
 
   Future<List<MusicFile>> getAudioFiles() async {
-    showToast('Loading folder audio...');
+    showToast(l10n.loadingFolderAudio);
     return await fetchWebDavFolderAudioFiles(client, server, folder.path);
   }
 
@@ -2051,7 +2035,7 @@ Future<void> _handleWebDavFolderMenuSelection({
           ),
         );
       } else {
-        showToast('No audio files in this folder');
+        showToast(l10n.noAudioFilesInFolder);
       }
       break;
     case 'shuffle':
@@ -2066,7 +2050,7 @@ Future<void> _handleWebDavFolderMenuSelection({
           ),
         );
       } else {
-        showToast('No audio files in this folder');
+        showToast(l10n.noAudioFilesInFolder);
       }
       break;
     case 'play_next':
@@ -2075,7 +2059,7 @@ Future<void> _handleWebDavFolderMenuSelection({
         await audio.enqueueNext(trackList);
         showToast(l10n.addedToQueue);
       } else {
-        showToast('No audio files in this folder');
+        showToast(l10n.noAudioFilesInFolder);
       }
       break;
     case 'add_to_queue':
@@ -2084,7 +2068,7 @@ Future<void> _handleWebDavFolderMenuSelection({
         await audio.appendToQueue(trackList);
         showToast(l10n.addedToQueue);
       } else {
-        showToast('No audio files in this folder');
+        showToast(l10n.noAudioFilesInFolder);
       }
       break;
     case 'add_to_playlist':
@@ -2093,7 +2077,7 @@ Future<void> _handleWebDavFolderMenuSelection({
         final playlistService = ref.read(playlistServiceProvider);
         await showAddSongsToPlaylistDialog(context, playlistService, trackList);
       } else if (context.mounted) {
-        showToast('No audio files in this folder');
+        showToast(l10n.noAudioFilesInFolder);
       }
       break;
     case 'download_folder':
@@ -2132,7 +2116,7 @@ Future<void> _handleWebDavFolderMenuSelection({
           }
         }
       } catch (e) {
-        showToast('Failed to load folder: $e');
+        showToast(l10n.failedToLoadFolder(e.toString()));
       }
       break;
     case 'open':

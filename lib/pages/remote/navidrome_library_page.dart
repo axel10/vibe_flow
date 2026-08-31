@@ -322,23 +322,24 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
 
   void _showCreatePlaylistDialog() {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Create Playlist'),
+        title: Text(l10n.createNewServerPlaylist),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Playlist Name',
-            hintText: 'Enter playlist name',
+          decoration: InputDecoration(
+            labelText: l10n.playlistName,
+            hintText: l10n.enterPlaylistName,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -347,7 +348,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 Navigator.pop(ctx);
                 final created = await _client.createPlaylist(name: name);
                 if (created != null && mounted) {
-                  showToast('Created playlist: $name');
+                  showToast(l10n.createdPlaylistSuccess(name));
                   await _loadPlaylists(forceRefresh: true);
                   final createdId = created['id'] as String?;
                   if (createdId != null) {
@@ -363,7 +364,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 }
               }
             },
-            child: const Text('Create'),
+            child: Text(l10n.confirm),
           ),
         ],
       ),
@@ -371,8 +372,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   Future<void> _playAlbumDirectly(String albumId, String albumTitle) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
-      showToast('Loading album tracks...');
+      showToast(l10n.loadingAlbumTracks);
       final album = await _client.getAlbum(albumId);
       final songList = album?['song'] as List?;
       if (songList != null && songList.isNotEmpty) {
@@ -400,7 +402,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
       }
     } catch (e) {
-      showToast('Failed to play album: $e');
+      showToast(l10n.playAlbumFailed(e.toString()));
     }
   }
 
@@ -491,6 +493,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
@@ -522,7 +525,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 forceElevated: innerBoxIsScrolled,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back_rounded),
-                  tooltip: 'Exit',
+                  tooltip: l10n.close,
                   onPressed: () {
                     ref.read(activeRemoteSessionProvider.notifier).clear();
                   },
@@ -543,7 +546,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded),
-                    tooltip: 'Refresh',
+                    tooltip: l10n.refresh,
                     onPressed: () {
                       switch (_tabController.index) {
                         case 0:
@@ -573,7 +576,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           label: Text('$activeCount'),
                           child: const Icon(Icons.download_rounded),
                         ),
-                        tooltip: 'Download Manager',
+                        tooltip: l10n.downloadManager,
                         onPressed: () {
                           Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
@@ -589,14 +592,14 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 bottom: _NavidromeHeaderBottom(
                   tabBar: TabBar(
                     controller: _tabController,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.album_rounded), text: 'Albums'),
-                      Tab(icon: Icon(Icons.person_rounded), text: 'Artists'),
+                    tabs: [
+                      Tab(icon: const Icon(Icons.album_rounded), text: l10n.albums),
+                      Tab(icon: const Icon(Icons.person_rounded), text: l10n.artists),
                       Tab(
-                        icon: Icon(Icons.playlist_play_rounded),
-                        text: 'Playlists',
+                        icon: const Icon(Icons.playlist_play_rounded),
+                        text: l10n.playlists,
                       ),
-                      Tab(icon: Icon(Icons.search_rounded), text: 'Search'),
+                      Tab(icon: const Icon(Icons.search_rounded), text: l10n.search),
                     ],
                   ),
                   toolbar: _buildCurrentTabToolbar(theme),
@@ -654,13 +657,14 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   Widget _buildAlbumsToolbar(ThemeData theme) {
-    const sortOptions = [
-      {'key': 'alphabeticalByName', 'label': 'All (A-Z)'},
-      {'key': 'newest', 'label': 'Recently Added'},
-      {'key': 'recent', 'label': 'Recently Played'},
-      {'key': 'frequent', 'label': 'Most Played'},
-      {'key': 'starred', 'label': 'Starred'},
-      {'key': 'random', 'label': 'Random'},
+    final l10n = AppLocalizations.of(context)!;
+    final sortOptions = [
+      {'key': 'alphabeticalByName', 'label': l10n.sortAllAZ},
+      {'key': 'newest', 'label': l10n.sortRecentAdded},
+      {'key': 'recent', 'label': l10n.sortRecentlyPlayed},
+      {'key': 'frequent', 'label': l10n.sortMostPlayed},
+      {'key': 'starred', 'label': l10n.sortStarred},
+      {'key': 'random', 'label': l10n.sortRandom},
     ];
 
     return LayoutBuilder(
@@ -675,7 +679,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             });
           },
           decoration: InputDecoration(
-            hintText: 'Filter albums...',
+            hintText: l10n.filterAlbums,
             prefixIcon: const Icon(Icons.search_rounded, size: 20),
             suffixIcon: _albumSearchQuery.isNotEmpty
                 ? IconButton(
@@ -762,7 +766,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             IconButton(
                               icon: const Icon(Icons.arrow_back_rounded,
                                   size: 20),
-                              tooltip: 'Close search',
+                              tooltip: l10n.closeSearch,
                               onPressed: () {
                                 _albumSearchFocusNode.unfocus();
                                 setState(() {
@@ -787,7 +791,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               icon: const Icon(Icons.search_rounded, size: 18),
-                              tooltip: 'Filter albums',
+                              tooltip: l10n.filterAlbums,
                               onPressed: () {
                                 setState(() {
                                   _isAlbumSearchExpanded = true;
@@ -820,7 +824,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Filter artists...',
+                hintText: l10n.filterArtists,
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
                 suffixIcon: _artistSearchQuery.isNotEmpty
                     ? IconButton(
@@ -883,7 +887,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
               size: 16,
             ),
             label: Text(
-              _artistSortField == 'albumCount' ? 'Albums' : 'A-Z',
+              _artistSortField == 'albumCount' ? l10n.albums : 'A-Z',
               style: const TextStyle(fontSize: 12),
             ),
             onPressed: () {
@@ -908,6 +912,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   Widget _buildPlaylistsToolbar(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: Row(
@@ -928,7 +933,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 }
               },
               decoration: InputDecoration(
-                hintText: 'Search playlists...',
+                hintText: l10n.searchPlaylists,
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _playlistSearchQuery.isNotEmpty
                     ? IconButton(
@@ -962,13 +967,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           ),
           const SizedBox(width: 8),
           IconButton.filledTonal(
-            tooltip: 'Create Playlist',
+            tooltip: l10n.createNewServerPlaylist,
             icon: const Icon(Icons.add_rounded),
             onPressed: _showCreatePlaylistDialog,
           ),
           const SizedBox(width: 4),
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: l10n.refresh,
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => _loadPlaylists(forceRefresh: true),
           ),
@@ -978,6 +983,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   Widget _buildSearchToolbar(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: Column(
@@ -987,7 +993,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             controller: _searchController,
             onChanged: _onSearchChanged,
             decoration: InputDecoration(
-              hintText: 'Search songs, albums, artists...',
+              hintText: l10n.searchRemoteHint,
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
@@ -1018,6 +1024,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   // ================= ALBUMS TAB =================
   Widget _buildAlbumsTab(ThemeData theme, double bottomOffset) {
+    final l10n = AppLocalizations.of(context)!;
     final filteredAlbums = _albums.where((album) {
       if (_albumSearchQuery.isEmpty) return true;
       final q = _albumSearchQuery.toLowerCase();
@@ -1034,11 +1041,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error loading albums: $_albumsError'),
+            Text(l10n.errorLoadingAlbums(_albumsError!)),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => _loadAlbums(forceRefresh: true),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -1072,8 +1079,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 ? Center(
                     child: Text(
                       _albumSearchQuery.isEmpty
-                          ? 'No albums found on server'
-                          : 'No matching albums',
+                          ? l10n.noAlbumsOnServer
+                          : l10n.noMatchingAlbums,
                       style: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -1097,9 +1104,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                         final albumId = album['id'] as String? ?? '';
                         final title = album['title'] as String? ??
                             album['name'] as String? ??
-                            'Untitled';
+                            l10n.unknownAlbum;
                         final artist = album['artist'] as String? ??
-                            'Unknown Artist';
+                            l10n.unknownArtist;
                         final coverId = album['coverArt'] as String?;
                         final songCount = album['songCount'] as int?;
                         final year = album['year'] as int?;
@@ -1119,15 +1126,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               coverArtId: coverId,
                               onViewDetails: () {
                                 NavidromeNavUtils.openAlbum(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  albumId: albumId,
-                                  albumName: title,
-                                  artistName: artist,
-                                  coverArtId: coverId,
-                                );
+                                   context,
+                                   ref,
+                                   server: widget.server,
+                                   password: widget.password,
+                                   albumId: albumId,
+                                   albumName: title,
+                                   artistName: artist,
+                                   coverArtId: coverId,
+                                 );
                               },
                             );
                           },
@@ -1144,15 +1151,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               coverArtId: coverId,
                               onViewDetails: () {
                                 NavidromeNavUtils.openAlbum(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  albumId: albumId,
-                                  albumName: title,
-                                  artistName: artist,
-                                  coverArtId: coverId,
-                                );
+                                   context,
+                                   ref,
+                                   server: widget.server,
+                                   password: widget.password,
+                                   albumId: albumId,
+                                   albumName: title,
+                                   artistName: artist,
+                                   coverArtId: coverId,
+                                 );
                               },
                             );
                           },
@@ -1271,7 +1278,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                                 Expanded(
                                                   child: Text(
                                                     songCount != null
-                                                        ? '$songCount tracks'
+                                                        ? l10n.trackCountShort(songCount)
                                                         : (year != null &&
                                                                 year > 0
                                                             ? '$year'
@@ -1297,7 +1304,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                                   padding: EdgeInsets.zero,
                                                   constraints:
                                                       const BoxConstraints(),
-                                                  tooltip: 'Play Album',
+                                                  tooltip: l10n.playAlbum,
                                                   onPressed: () =>
                                                       _playAlbumDirectly(
                                                     albumId,
@@ -1336,6 +1343,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   // ================= ARTISTS TAB =================
   Widget _buildArtistsTab(ThemeData theme, double bottomOffset) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoadingArtists) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1344,11 +1352,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error loading artists: $_artistsError'),
+            Text(l10n.errorLoadingArtists(_artistsError!)),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => _loadArtists(forceRefresh: true),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -1466,11 +1474,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             password: widget.password,
                             artistId: selectedArtist['id'] as String? ?? '',
                             artistName: selectedArtist['name'] as String? ??
-                                'Unknown Artist',
+                                l10n.unknownArtist,
                             coverArtId: selectedArtist['coverArt'] as String?,
                             albumCount: selectedArtist['albumCount'] as int?,
                           )
-                        : const Center(child: Text('No artist selected')),
+                        : Center(child: Text(l10n.noArtistSelected)),
                   ),
                 ),
               ),
@@ -1483,8 +1491,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             ? Center(
                 child: Text(
                   _artistSearchQuery.isEmpty
-                      ? 'No artists found'
-                      : 'No matching artists',
+                      ? l10n.noArtistsFound
+                      : l10n.noMatchingArtists,
                   style: TextStyle(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -1511,7 +1519,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             password: widget.password,
                             artistId: artist['id'] as String? ?? '',
                             artistName: artist['name'] as String? ??
-                                'Unknown Artist',
+                                l10n.unknownArtist,
                             coverArtId: artist['coverArt'] as String?,
                             albumCount: artist['albumCount'] as int?,
                           );
@@ -1531,7 +1539,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    final name = artist['name'] as String? ?? 'Unknown Artist';
+    final l10n = AppLocalizations.of(context)!;
+    final name = artist['name'] as String? ?? l10n.unknownArtist;
     final albumCount = artist['albumCount'] as int? ?? 0;
     final coverArtId = artist['coverArt'] as String?;
     final artistId = artist['id'] as String? ?? '';
@@ -1631,7 +1640,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '$albumCount albums',
+                        l10n.albumCount(albumCount),
                         style: TextStyle(
                           fontSize: 11,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -1649,7 +1658,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                     size: 20,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  tooltip: 'More',
+                  tooltip: l10n.more,
                   onPressed: () {
                     final box = context.findRenderObject() as RenderBox?;
                     final pos = box != null
@@ -1678,6 +1687,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   // ================= PLAYLISTS TAB =================
   Widget _buildPlaylistsTab(ThemeData theme, double bottomOffset) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoadingPlaylists) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1686,18 +1696,17 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error loading playlists: $_playlistsError'),
+            Text(l10n.errorLoadingPlaylists(_playlistsError!)),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => _loadPlaylists(forceRefresh: true),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
       );
     }
 
-    final l10n = AppLocalizations.of(context)!;
     final starredPlaylist = {
       'id': _starredPlaylistId,
       'name': l10n.starredSongs,
@@ -1804,7 +1813,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                 selectedPlaylist['id'] as String? ?? '',
                             playlistName:
                                 selectedPlaylist['name'] as String? ??
-                                    'Playlist',
+                                    l10n.playlist,
                             coverArtId:
                                 selectedPlaylist['coverArt'] as String?,
                             songCount: selectedPlaylist['songCount'] as int?,
@@ -1817,7 +1826,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                               _loadPlaylists(forceRefresh: true);
                             },
                           )
-                        : const Center(child: Text('No playlist selected')),
+                        : Center(child: Text(l10n.noPlaylistSelected)),
                   ),
                 ),
               ),
@@ -1830,8 +1839,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             ? Center(
                 child: Text(
                   _playlistSearchQuery.isEmpty
-                      ? 'No playlists found'
-                      : 'No matching playlists',
+                      ? l10n.noPlaylistsFound
+                      : l10n.noMatchingPlaylists,
                   style: TextStyle(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -1858,7 +1867,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             password: widget.password,
                             playlistId: pl['id'] as String? ?? '',
                             playlistName:
-                                pl['name'] as String? ?? 'Playlist',
+                                pl['name'] as String? ?? l10n.playlist,
                             coverArtId: pl['coverArt'] as String?,
                             songCount: pl['songCount'] as int?,
                             duration: pl['duration'] as int?,
@@ -1884,7 +1893,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     required VoidCallback onTap,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    final name = playlist['name'] as String? ?? 'Playlist';
+    final name = playlist['name'] as String? ?? l10n.playlist;
     final songCount = playlist['songCount'] as int? ?? 0;
     final durationSec = playlist['duration'] as int? ?? 0;
     final durationMin = durationSec ~/ 60;
@@ -2017,7 +2026,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '$songCount tracks • $durationMin min',
+                        '${l10n.trackCountShort(songCount)} • $durationMin min',
                         style: TextStyle(
                           fontSize: 11,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -2036,7 +2045,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       size: 20,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    tooltip: 'More',
+                    tooltip: l10n.more,
                     onPressed: () {
                       final box = context.findRenderObject() as RenderBox?;
                       final pos = box != null
@@ -2067,14 +2076,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   // ================= SEARCH TAB =================
   Widget _buildSearchTab(ThemeData theme, double bottomOffset) {
+    final l10n = AppLocalizations.of(context)!;
     if (_searchedSongs.isEmpty &&
         _searchedAlbums.isEmpty &&
         _searchedArtists.isEmpty) {
       return Center(
         child: Text(
           _searchController.text.trim().isEmpty
-              ? 'Type something to search'
-              : 'No matching results',
+              ? l10n.typeToSearch
+              : l10n.noMatchingResults,
           style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         ),
       );
@@ -2087,7 +2097,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
-              'Artists (${_searchedArtists.length})',
+              '${l10n.artists} (${_searchedArtists.length})',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -2145,9 +2155,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 leading: const CircleAvatar(
                   child: Icon(Icons.person_rounded),
                 ),
-                title: Text(artist['name'] as String? ?? ''),
+                title: Text(artist['name'] as String? ?? l10n.unknownArtist),
                 subtitle: artist['albumCount'] != null
-                    ? Text('${artist['albumCount']} albums')
+                    ? Text(l10n.albumCount((artist['albumCount'] as num).toInt()))
                     : null,
                 onTap: () {
                   NavidromeNavUtils.openArtist(
@@ -2157,7 +2167,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                     password: widget.password,
                     artistId: artist['id'] as String? ?? '',
                     artistName:
-                        artist['name'] as String? ?? '',
+                        artist['name'] as String? ?? l10n.unknownArtist,
                     coverArtId: artist['coverArt'] as String?,
                     albumCount: artist['albumCount'] as int?,
                   );
@@ -2170,7 +2180,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
-              'Albums (${_searchedAlbums.length})',
+              '${l10n.albums} (${_searchedAlbums.length})',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -2184,9 +2194,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 final albumId = album['id'] as String? ?? '';
                 final title = album['name'] as String? ??
                     album['title'] as String? ??
-                    'Untitled';
+                    l10n.unknownAlbum;
                 final artist =
-                    album['artist'] as String? ?? 'Unknown Artist';
+                    album['artist'] as String? ?? l10n.unknownArtist;
                 final coverId =
                     album['coverArt'] as String?;
 
@@ -2288,7 +2298,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Text(
-              'Songs (${_searchedSongs.length})',
+              '${l10n.songs} (${_searchedSongs.length})',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -2324,7 +2334,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  _buildSongSubtitle(song),
+                  _buildSongSubtitle(song, l10n),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -2340,7 +2350,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     );
   }
 
-  String _buildSongSubtitle(MusicFile song) {
+  String _buildSongSubtitle(MusicFile song, AppLocalizations l10n) {
     final album = song.album?.trim();
     final artist = song.artist?.trim();
     final parts = [
@@ -2350,7 +2360,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     if (parts.isNotEmpty) {
       return parts.join(' - ');
     }
-    return 'Unknown Artist';
+    return l10n.unknownArtist;
   }
 }
 

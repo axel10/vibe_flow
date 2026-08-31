@@ -1539,7 +1539,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noMatchingRelease => '没有找到匹配的 release';
 
   @override
-  String get noMatchingResults => '没有找到匹配结果';
+  String get noMatchingResults => '未找到匹配结果';
 
   @override
   String get networkConnectionFailed => '网络连接失败';
@@ -3950,6 +3950,236 @@ class AppLocalizationsZh extends AppLocalizations {
   String yesterdayTime(Object time) {
     return '昨天 $time';
   }
+
+  @override
+  String get playlists => '歌单';
+
+  @override
+  String get songs => '歌曲';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return '已创建歌单: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => '正在加载专辑曲目...';
+
+  @override
+  String get loadingArtistTracks => '正在加载艺术家歌曲...';
+
+  @override
+  String get loadingFolderAudio => '正在加载文件夹音频...';
+
+  @override
+  String get noAudioFilesInFolder => '该文件夹内没有音频文件';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return '加载文件夹失败: $error';
+  }
+
+  @override
+  String get starFailed => '收藏失败';
+
+  @override
+  String playAlbumFailed(String error) {
+    return '播放专辑失败: $error';
+  }
+
+  @override
+  String get sortAllAZ => '全部 (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => '最近播放';
+
+  @override
+  String get sortMostPlayed => '最多播放';
+
+  @override
+  String get sortStarred => '已收藏';
+
+  @override
+  String get sortRandom => '随机';
+
+  @override
+  String get filterAlbums => '筛选专辑...';
+
+  @override
+  String get filterArtists => '筛选艺术家...';
+
+  @override
+  String get searchPlaylists => '搜索歌单...';
+
+  @override
+  String get searchRemoteHint => '搜索歌曲、专辑、艺术家...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return '加载专辑失败: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => '服务端未找到专辑';
+
+  @override
+  String get noMatchingAlbums => '没有匹配的专辑';
+
+  @override
+  String get playAlbum => '播放专辑';
+
+  @override
+  String get shuffleAlbum => '随机播放专辑';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return '加载艺术家失败: $error';
+  }
+
+  @override
+  String get noArtistsFound => '未找到艺术家';
+
+  @override
+  String get noMatchingArtists => '没有匹配的艺术家';
+
+  @override
+  String get noArtistSelected => '未选择艺术家';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return '加载歌单失败: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => '未找到歌单';
+
+  @override
+  String get noMatchingPlaylists => '没有匹配的歌单';
+
+  @override
+  String get noPlaylistSelected => '未选择歌单';
+
+  @override
+  String get typeToSearch => '输入内容以开始搜索';
+
+  @override
+  String get albumNotFound => '未找到专辑详情';
+
+  @override
+  String playingTracksCount(int count) {
+    return '正在播放 $count 首歌曲';
+  }
+
+  @override
+  String get artistNotFound => '服务端未找到该艺术家详情';
+
+  @override
+  String get noTracksForArtist => '未找到该艺术家的歌曲';
+
+  @override
+  String get noAlbumsForArtist => '未找到该艺术家的专辑';
+
+  @override
+  String get playlistNotFound => '服务端未找到该歌单详情';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '已从歌单移除 \"$title\"';
+  }
+
+  @override
+  String get removeTrackFailed => '移除歌曲失败';
+
+  @override
+  String get playlistDeleted => '歌单已删除';
+
+  @override
+  String get deletePlaylistFailed => '删除歌单失败';
+
+  @override
+  String byAuthor(String author) {
+    return '创建者: $author';
+  }
+
+  @override
+  String get downloadAllTracks => '全部下载';
+
+  @override
+  String get downloadFailedGeneric => '下载失败';
+
+  @override
+  String downloadPaused(String progress) {
+    return '已暂停 ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => '排队等待中...';
+
+  @override
+  String get downloadCancelled => '已取消';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return '未找到文件: $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '已将 $count 首歌曲添加到 \"$name\"';
+  }
+
+  @override
+  String get addToPlaylistFailed => '添加到歌单失败';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return '添加到歌单出错: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return '已创建歌单 \"$name\" 并添加 $count 首歌曲';
+  }
+
+  @override
+  String get createServerPlaylistFailed => '创建服务端歌单失败';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return '创建歌单出错: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => '暂无服务端歌单';
+
+  @override
+  String get download => '下载';
+
+  @override
+  String get resume => '继续';
+
+  @override
+  String get remove => '移除';
+
+  @override
+  String get refresh => '刷新';
+
+  @override
+  String get copyFilePath => '复制文件路径';
+
+  @override
+  String get openFolder => '打开文件夹';
+
+  @override
+  String get copyFolderName => '复制文件夹名称';
+
+  @override
+  String get copyFolderPath => '复制文件夹路径';
+
+  @override
+  String errorWithMessage(String error) {
+    return '错误: $error';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -5487,7 +5717,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get noMatchingRelease => '沒有找到符合的 release';
 
   @override
-  String get noMatchingResults => '沒有找到符合結果';
+  String get noMatchingResults => '未找到匹配結果';
 
   @override
   String get networkConnectionFailed => '網路連線失敗';
@@ -7897,5 +8127,235 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String yesterdayTime(Object time) {
     return '昨天 $time';
+  }
+
+  @override
+  String get playlists => '歌單';
+
+  @override
+  String get songs => '歌曲';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return '已建立歌單: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => '正在載入專輯曲目...';
+
+  @override
+  String get loadingArtistTracks => '正在載入藝術家歌曲...';
+
+  @override
+  String get loadingFolderAudio => '正在載入資料夾音訊...';
+
+  @override
+  String get noAudioFilesInFolder => '該資料夾內沒有音訊檔案';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return '載入資料夾失敗: $error';
+  }
+
+  @override
+  String get starFailed => '收藏失敗';
+
+  @override
+  String playAlbumFailed(String error) {
+    return '播放專輯失敗: $error';
+  }
+
+  @override
+  String get sortAllAZ => '全部 (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => '最近播放';
+
+  @override
+  String get sortMostPlayed => '最多播放';
+
+  @override
+  String get sortStarred => '已收藏';
+
+  @override
+  String get sortRandom => '隨機';
+
+  @override
+  String get filterAlbums => '篩選專輯...';
+
+  @override
+  String get filterArtists => '篩選藝術家...';
+
+  @override
+  String get searchPlaylists => '搜尋歌單...';
+
+  @override
+  String get searchRemoteHint => '搜尋歌曲、專輯、藝術家...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return '載入專輯失敗: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => '伺服端未找到專輯';
+
+  @override
+  String get noMatchingAlbums => '沒有匹配的專輯';
+
+  @override
+  String get playAlbum => '播放專輯';
+
+  @override
+  String get shuffleAlbum => '隨機播放專輯';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return '載入藝術家失敗: $error';
+  }
+
+  @override
+  String get noArtistsFound => '未找到藝術家';
+
+  @override
+  String get noMatchingArtists => '沒有匹配的藝術家';
+
+  @override
+  String get noArtistSelected => '未選擇藝術家';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return '載入歌單失敗: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => '未找到歌單';
+
+  @override
+  String get noMatchingPlaylists => '沒有匹配的歌單';
+
+  @override
+  String get noPlaylistSelected => '未選擇歌單';
+
+  @override
+  String get typeToSearch => '輸入內容以開始搜尋';
+
+  @override
+  String get albumNotFound => '未找到專輯詳情';
+
+  @override
+  String playingTracksCount(int count) {
+    return '正在播放 $count 首歌曲';
+  }
+
+  @override
+  String get artistNotFound => '伺服端未找到該藝術家詳情';
+
+  @override
+  String get noTracksForArtist => '未找到該藝術家的歌曲';
+
+  @override
+  String get noAlbumsForArtist => '未找到該藝術家的專輯';
+
+  @override
+  String get playlistNotFound => '伺服端未找到該歌單詳情';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '已從歌單移除 \"$title\"';
+  }
+
+  @override
+  String get removeTrackFailed => '移除歌曲失敗';
+
+  @override
+  String get playlistDeleted => '歌單已刪除';
+
+  @override
+  String get deletePlaylistFailed => '刪除歌單失敗';
+
+  @override
+  String byAuthor(String author) {
+    return '建立者: $author';
+  }
+
+  @override
+  String get downloadAllTracks => '全部下載';
+
+  @override
+  String get downloadFailedGeneric => '下載失敗';
+
+  @override
+  String downloadPaused(String progress) {
+    return '已暫停 ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => '排隊等待中...';
+
+  @override
+  String get downloadCancelled => '已取消';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return '未找到檔案: $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '已將 $count 首歌曲新增至 \"$name\"';
+  }
+
+  @override
+  String get addToPlaylistFailed => '新增至歌單失敗';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return '新增至歌單出錯: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return '已建立歌單 \"$name\" 並新增 $count 首歌曲';
+  }
+
+  @override
+  String get createServerPlaylistFailed => '建立伺服端歌單失敗';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return '建立歌單出錯: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => '暫無伺服端歌單';
+
+  @override
+  String get download => '下載';
+
+  @override
+  String get resume => '繼續';
+
+  @override
+  String get remove => '移除';
+
+  @override
+  String get refresh => '重新整理';
+
+  @override
+  String get copyFilePath => '複製檔案路徑';
+
+  @override
+  String get openFolder => '打開資料夾';
+
+  @override
+  String get copyFolderName => '複製資料夾名稱';
+
+  @override
+  String get copyFolderPath => '複製資料夾路徑';
+
+  @override
+  String errorWithMessage(String error) {
+    return '錯誤: $error';
   }
 }

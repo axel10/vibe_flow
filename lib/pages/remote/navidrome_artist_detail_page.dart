@@ -40,6 +40,7 @@ class NavidromeArtistDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
@@ -55,7 +56,7 @@ class NavidromeArtistDetailPage extends ConsumerWidget {
               label: Text('${ref.watch(activeDownloadsCountProvider)}'),
               child: const Icon(Icons.download_rounded),
             ),
-            tooltip: 'Download Manager',
+            tooltip: l10n.downloadManager,
             onPressed: () {
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
@@ -179,8 +180,9 @@ class _NavidromeArtistDetailContentState
       final artistMap = await client.getArtist(widget.artistId);
       if (artistMap == null) {
         if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
-          _error = 'Artist details not found on server';
+          _error = l10n.artistNotFound;
           _isLoading = false;
         });
         return;
@@ -227,7 +229,7 @@ class _NavidromeArtistDetailContentState
           final albumId = albumMeta['id'] as String? ?? '';
           final title = albumMeta['title'] as String? ??
               albumMeta['name'] as String? ??
-              'Untitled Album';
+              '';
           final artist = albumMeta['artist'] as String? ?? widget.artistName;
           final coverArt = albumMeta['coverArt'] as String?;
           final year = albumMeta['year'] as int?;
@@ -309,8 +311,9 @@ class _NavidromeArtistDetailContentState
   }
 
   Future<void> _playAll({bool shuffle = false}) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_allSongs.isEmpty) {
-      showToast('No tracks found for this artist');
+      showToast(l10n.noTracksForArtist);
       return;
     }
     final audio = ref.read(audioServiceProvider);
@@ -326,7 +329,7 @@ class _NavidromeArtistDetailContentState
         name: widget.artistName,
       ),
     );
-    showToast('Playing ${_allSongs.length} tracks');
+    showToast(l10n.playingTracksCount(_allSongs.length));
   }
 
   @override
@@ -366,7 +369,7 @@ class _NavidromeArtistDetailContentState
               ),
               const SizedBox(height: 12),
               Text(
-                'Error: $_error',
+                l10n.errorWithMessage(_error!),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),
@@ -374,7 +377,7 @@ class _NavidromeArtistDetailContentState
               FilledButton.icon(
                 onPressed: _loadArtistData,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
+                label: Text(l10n.retry),
               ),
             ],
           ),
@@ -407,7 +410,7 @@ class _NavidromeArtistDetailContentState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ARTIST',
+                    l10n.artistLabel.toUpperCase(),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w700,
@@ -426,9 +429,9 @@ class _NavidromeArtistDetailContentState
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _InfoChip(label: '$totalAlbumCount albums'),
+                      _InfoChip(label: l10n.albumCount(totalAlbumCount)),
                       if (totalSongCount > 0)
-                        _InfoChip(label: '$totalSongCount songs'),
+                        _InfoChip(label: l10n.songCount(totalSongCount)),
                     ],
                   ),
                   if (biography != null && biography.trim().isNotEmpty) ...[
@@ -450,17 +453,16 @@ class _NavidromeArtistDetailContentState
                       FilledButton.icon(
                         onPressed: _allSongs.isNotEmpty ? () => _playAll(shuffle: false) : null,
                         icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                        label: const Text('Play All'),
+                        label: Text(l10n.playAll),
                       ),
                       OutlinedButton.icon(
                         onPressed: _allSongs.isNotEmpty ? () => _playAll(shuffle: true) : null,
                         icon: const Icon(Icons.shuffle_rounded, size: 18),
-                        label: const Text('Shuffle'),
+                        label: Text(l10n.shufflePlay),
                       ),
                       OutlinedButton.icon(
                         onPressed: _allSongs.isNotEmpty
                             ? () async {
-                                final l10n = AppLocalizations.of(context)!;
                                 final notifier = ref.read(
                                     remoteDownloadTasksProvider.notifier);
                                 await notifier.enqueueSubsonicTracks(
@@ -495,11 +497,10 @@ class _NavidromeArtistDetailContentState
                               }
                             : null,
                         icon: const Icon(Icons.download_rounded, size: 18),
-                        label: const Text('Download'),
+                        label: Text(l10n.download),
                       ),
                       OutlinedButton.icon(
                         onPressed: () async {
-                          final l10n = AppLocalizations.of(context)!;
                           final client = SubsonicClient(
                             server: widget.server,
                             password: widget.password,
@@ -542,7 +543,7 @@ class _NavidromeArtistDetailContentState
               hasScrollBody: false,
               child: Center(
                 child: Text(
-                  'No albums found for this artist',
+                  l10n.noAlbumsForArtist,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -567,6 +568,8 @@ class _NavidromeArtistDetailContentState
     _NavidromeAlbumSectionData section,
     MusicFile? currentMusic,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+    final albumTitle = section.name.isNotEmpty ? section.name : l10n.unknownAlbum;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -592,7 +595,7 @@ class _NavidromeArtistDetailContentState
                     server: widget.server,
                     password: widget.password,
                     albumId: section.id,
-                    albumTitle: section.name,
+                    albumTitle: albumTitle,
                     artistName: section.artist,
                     coverArtId: section.coverArt,
                     songs: section.songs,
@@ -603,7 +606,7 @@ class _NavidromeArtistDetailContentState
                         server: widget.server,
                         password: widget.password,
                         albumId: section.id,
-                        albumName: section.name,
+                        albumName: albumTitle,
                         artistName: section.artist,
                         coverArtId: section.coverArt,
                       );
@@ -618,7 +621,7 @@ class _NavidromeArtistDetailContentState
                     server: widget.server,
                     password: widget.password,
                     albumId: section.id,
-                    albumTitle: section.name,
+                    albumTitle: albumTitle,
                     artistName: section.artist,
                     coverArtId: section.coverArt,
                     songs: section.songs,
@@ -629,7 +632,7 @@ class _NavidromeArtistDetailContentState
                         server: widget.server,
                         password: widget.password,
                         albumId: section.id,
-                        albumName: section.name,
+                        albumName: albumTitle,
                         artistName: section.artist,
                         coverArtId: section.coverArt,
                       );
@@ -648,7 +651,7 @@ class _NavidromeArtistDetailContentState
                       server: widget.server,
                       password: widget.password,
                       albumId: section.id,
-                      albumName: section.name,
+                      albumName: albumTitle,
                       artistName: section.artist,
                       coverArtId: section.coverArt,
                     );
@@ -670,7 +673,7 @@ class _NavidromeArtistDetailContentState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                section.name,
+                                albumTitle,
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -682,7 +685,7 @@ class _NavidromeArtistDetailContentState
                                 [
                                   if (section.year != null && section.year! > 0)
                                     '${section.year}',
-                                  '${section.songs.length} tracks',
+                                  l10n.trackCountShort(section.songs.length),
                                 ].join(' • '),
                                 style: TextStyle(
                                   fontSize: 12,
@@ -693,7 +696,7 @@ class _NavidromeArtistDetailContentState
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Play Album',
+                          tooltip: l10n.playAlbum,
                           icon: Icon(
                             Icons.play_circle_filled_rounded,
                             size: 32,
@@ -707,14 +710,14 @@ class _NavidromeArtistDetailContentState
                                     source: PlaybackSource(
                                       type: PlaybackSourceType.album,
                                       id: 'remote-${widget.server.id}-${section.id}',
-                                      name: section.name,
+                                      name: albumTitle,
                                     ),
                                   );
                                 }
                               : null,
                         ),
                         IconButton(
-                          tooltip: 'Shuffle Album',
+                          tooltip: l10n.shuffleAlbum,
                           icon: const Icon(Icons.shuffle_rounded, size: 20),
                           onPressed: section.songs.isNotEmpty
                               ? () async {
@@ -724,7 +727,7 @@ class _NavidromeArtistDetailContentState
                                     source: PlaybackSource(
                                       type: PlaybackSourceType.album,
                                       id: 'remote-${widget.server.id}-${section.id}',
-                                      name: section.name,
+                                      name: albumTitle,
                                     ),
                                   );
                                 }

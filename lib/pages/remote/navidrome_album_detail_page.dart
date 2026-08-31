@@ -91,8 +91,9 @@ class _NavidromeAlbumDetailPageState
       final album = await client.getAlbum(widget.albumId);
       if (album == null) {
         if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
-          _error = 'Album details not found';
+          _error = l10n.albumNotFound;
           _isLoading = false;
         });
         return;
@@ -132,6 +133,7 @@ class _NavidromeAlbumDetailPageState
 
   Future<void> _playAll({bool shuffle = false}) async {
     if (_tracks.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
     final audioService = ref.read(audioServiceProvider);
     final playlist = List<MusicFile>.from(_tracks);
     if (shuffle) {
@@ -145,17 +147,18 @@ class _NavidromeAlbumDetailPageState
         name: widget.albumName,
       ),
     );
-    showToast('Playing ${_tracks.length} tracks');
+    showToast(l10n.playingTracksCount(_tracks.length));
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final coverId = widget.coverArtId ?? _albumData?['coverArt'] as String?;
     final artist = widget.artistName ??
         _albumData?['artist'] as String? ??
-        'Unknown Artist';
+        l10n.unknownArtist;
     final year = _albumData?['year'] as int?;
     final genre = _albumData?['genre'] as String?;
     final headerColor = theme.colorScheme.secondaryContainer.withValues(
@@ -199,7 +202,7 @@ class _NavidromeAlbumDetailPageState
                   label: Text('$activeCount'),
                   child: const Icon(Icons.download_rounded),
                 ),
-                tooltip: 'Download Manager',
+                tooltip: l10n.downloadManager,
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
@@ -233,12 +236,12 @@ class _NavidromeAlbumDetailPageState
                           color: theme.colorScheme.error,
                         ),
                         const SizedBox(height: 12),
-                        Text('Error: $_error', textAlign: TextAlign.center),
+                        Text(l10n.errorWithMessage(_error!), textAlign: TextAlign.center),
                         const SizedBox(height: 16),
                         FilledButton.icon(
                           onPressed: _loadAlbumDetails,
                           icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Retry'),
+                          label: Text(l10n.retry),
                         ),
                       ],
                     ),
@@ -543,7 +546,7 @@ class _NavidromeAlbumDetailPageState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ALBUM',
+          l10n.albumLabel.toUpperCase(),
           style: theme.textTheme.labelMedium?.copyWith(
             color: theme.colorScheme.secondary,
             fontWeight: FontWeight.w700,
@@ -571,7 +574,7 @@ class _NavidromeAlbumDetailPageState
           spacing: 8,
           runSpacing: 8,
           children: [
-            _InfoChip(label: '${_tracks.length} songs'),
+            _InfoChip(label: l10n.songCount(_tracks.length)),
             if (year != null && year > 0) _InfoChip(label: '$year'),
             if (genre != null && genre.isNotEmpty) _InfoChip(label: genre),
           ],
@@ -584,12 +587,12 @@ class _NavidromeAlbumDetailPageState
             FilledButton.icon(
               onPressed: _tracks.isNotEmpty ? () => _playAll(shuffle: false) : null,
               icon: const Icon(Icons.play_arrow_rounded, size: 20),
-              label: const Text('Play All'),
+              label: Text(l10n.playAll),
             ),
             OutlinedButton.icon(
               onPressed: _tracks.isNotEmpty ? () => _playAll(shuffle: true) : null,
               icon: const Icon(Icons.shuffle_rounded, size: 18),
-              label: const Text('Shuffle'),
+              label: Text(l10n.shufflePlay),
             ),
             OutlinedButton.icon(
               onPressed: _tracks.isNotEmpty
@@ -602,12 +605,11 @@ class _NavidromeAlbumDetailPageState
                       )
                   : null,
               icon: const Icon(Icons.playlist_add_rounded, size: 18),
-              label: const Text('Playlist'),
+              label: Text(l10n.addToPlaylist),
             ),
             OutlinedButton.icon(
               onPressed: _tracks.isNotEmpty
                   ? () async {
-                      final l10n = AppLocalizations.of(context)!;
                       final notifier =
                           ref.read(remoteDownloadTasksProvider.notifier);
                       await notifier.enqueueSubsonicTracks(
@@ -616,7 +618,7 @@ class _NavidromeAlbumDetailPageState
                         songs: _tracks,
                         collectionName: widget.albumName,
                       );
-                      if (context.mounted) {
+                      if (mounted) {
                         AppSnackBar.show(
                           context,
                           ref,
@@ -641,7 +643,7 @@ class _NavidromeAlbumDetailPageState
                     }
                   : null,
               icon: const Icon(Icons.download_rounded, size: 18),
-              label: const Text('Download'),
+              label: Text(l10n.download),
             ),
             OutlinedButton.icon(
               onPressed: () async {

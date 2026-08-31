@@ -1680,5 +1680,207 @@
   "justNow": "Just now",
   "minutesAgo": "{minutes}m ago",
   "todayTime": "Today {time}",
-  "yesterdayTime": "Yesterday {time}"
+  "yesterdayTime": "Yesterday {time}",
+  "playlists": "Playlists",
+  "songs": "Songs",
+  "createdPlaylistSuccess": "Created playlist: {name}",
+  "@createdPlaylistSuccess": {
+    "description": "Toast when playlist is created",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingAlbumTracks": "Loading album tracks...",
+  "loadingArtistTracks": "Loading artist tracks...",
+  "loadingFolderAudio": "Loading folder audio...",
+  "noAudioFilesInFolder": "No audio files in this folder",
+  "failedToLoadFolder": "Failed to load folder: {error}",
+  "@failedToLoadFolder": {
+    "description": "Toast when loading remote folder fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "starFailed": "Star failed",
+  "playAlbumFailed": "Failed to play album: {error}",
+  "@playAlbumFailed": {
+    "description": "Toast when playing remote album fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sortAllAZ": "All (A-Z)",
+  "sortRecentlyPlayed": "Recently Played",
+  "sortMostPlayed": "Most Played",
+  "sortStarred": "Starred",
+  "sortRandom": "Random",
+  "filterAlbums": "Filter albums...",
+  "closeSearch": "Close search",
+  "filterArtists": "Filter artists...",
+  "searchPlaylists": "Search playlists...",
+  "searchRemoteHint": "Search songs, albums, artists...",
+  "errorLoadingAlbums": "Error loading albums: {error}",
+  "@errorLoadingAlbums": {
+    "description": "Error text when loading albums fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noAlbumsOnServer": "No albums found on server",
+  "noMatchingAlbums": "No matching albums",
+  "playAlbum": "Play Album",
+  "shuffleAlbum": "Shuffle Album",
+  "errorLoadingArtists": "Error loading artists: {error}",
+  "@errorLoadingArtists": {
+    "description": "Error text when loading artists fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noArtistsFound": "No artists found",
+  "noMatchingArtists": "No matching artists",
+  "noArtistSelected": "No artist selected",
+  "errorLoadingPlaylists": "Error loading playlists: {error}",
+  "@errorLoadingPlaylists": {
+    "description": "Error text when loading playlists fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noPlaylistsFound": "No playlists found",
+  "noMatchingPlaylists": "No matching playlists",
+  "noPlaylistSelected": "No playlist selected",
+  "typeToSearch": "Type something to search",
+  "noMatchingResults": "No matching results",
+  "albumNotFound": "Album details not found",
+  "playingTracksCount": "Playing {count} tracks",
+  "@playingTracksCount": {
+    "description": "Toast when starting playback of multiple tracks",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistNotFound": "Artist details not found on server",
+  "noTracksForArtist": "No tracks found for this artist",
+  "noAlbumsForArtist": "No albums found for this artist",
+  "playlistNotFound": "Playlist details not found on server",
+  "removedFromPlaylistSuccess": "Removed \"{title}\" from playlist",
+  "@removedFromPlaylistSuccess": {
+    "description": "Toast when track is removed from playlist",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "removeTrackFailed": "Failed to remove track",
+  "playlistDeleted": "Playlist deleted",
+  "deletePlaylistFailed": "Failed to delete playlist",
+  "byAuthor": "by {author}",
+  "@byAuthor": {
+    "description": "Playlist author credit",
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadAllTracks": "Download All",
+  "downloadFailedGeneric": "Download failed",
+  "downloadPaused": "Paused ({progress}%)",
+  "@downloadPaused": {
+    "description": "Download task paused label",
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "waitingInQueue": "Waiting in queue...",
+  "downloadCancelled": "Cancelled",
+  "fileNotFoundAtPath": "File not found at {path}",
+  "@fileNotFoundAtPath": {
+    "description": "Toast when downloaded file is not found",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "addedTracksToPlaylistSuccess": "Added {count} track(s) to \"{name}\"",
+  "@addedTracksToPlaylistSuccess": {
+    "description": "Toast when tracks added to existing server playlist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addToPlaylistFailed": "Failed to add to playlist",
+  "errorAddingToPlaylist": "Error adding to playlist: {error}",
+  "@errorAddingToPlaylist": {
+    "description": "Toast when adding to playlist errors",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdPlaylistWithTracksSuccess": "Created playlist \"{name}\" with {count} track(s)",
+  "@createdPlaylistWithTracksSuccess": {
+    "description": "Toast when creating playlist with tracks succeeds",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createServerPlaylistFailed": "Failed to create server playlist",
+  "errorCreatingPlaylist": "Error creating playlist: {error}",
+  "@errorCreatingPlaylist": {
+    "description": "Toast when creating playlist errors",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noServerPlaylistsFound": "No server playlists found",
+  "download": "Download",
+  "resume": "Resume",
+  "remove": "Remove",
+  "refresh": "Refresh",
+  "copyFilePath": "Copy File Path",
+  "openFolder": "Open Folder",
+  "copyFolderName": "Copy Folder Name",
+  "copyFolderPath": "Copy Folder Path",
+  "errorWithMessage": "Error: {error}",
+  "@errorWithMessage": {
+    "description": "Generic error message with prefix",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

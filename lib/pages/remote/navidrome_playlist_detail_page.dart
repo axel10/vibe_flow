@@ -49,6 +49,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final isMacOS = Platform.isMacOS;
     final bool showCustomTitleBar =
@@ -64,7 +65,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
               label: Text('${ref.watch(activeDownloadsCountProvider)}'),
               child: const Icon(Icons.download_rounded),
             ),
-            tooltip: 'Download Manager',
+            tooltip: l10n.downloadManager,
             onPressed: () {
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
@@ -269,8 +270,9 @@ class _NavidromePlaylistDetailContentState
       final pl = await client.getPlaylist(widget.playlistId);
       if (pl == null) {
         if (!mounted) return;
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
-          _error = 'Playlist details not found on server';
+          _error = l10n.playlistNotFound;
           _isLoading = false;
         });
         return;
@@ -333,6 +335,7 @@ class _NavidromePlaylistDetailContentState
 
   Future<void> _playAll({bool shuffle = false}) async {
     if (_tracks.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
     final audioService = ref.read(audioServiceProvider);
     final playlist = List<MusicFile>.from(_tracks);
     if (shuffle) {
@@ -346,7 +349,7 @@ class _NavidromePlaylistDetailContentState
         name: _currentName,
       ),
     );
-    showToast('Playing ${_tracks.length} tracks');
+    showToast(l10n.playingTracksCount(_tracks.length));
   }
 
   Future<void> _downloadAll() async {
@@ -384,6 +387,7 @@ class _NavidromePlaylistDetailContentState
 
   Future<void> _removeTrackAt(int index) async {
     if (index < 0 || index >= _tracks.length) return;
+    final l10n = AppLocalizations.of(context)!;
     final songToRemove = _tracks[index];
 
     final client = SubsonicClient(
@@ -414,9 +418,9 @@ class _NavidromePlaylistDetailContentState
             );
       }
       widget.onPlaylistModified?.call();
-      showToast('Removed "${songToRemove.displayName}" from playlist');
+      showToast(l10n.removedFromPlaylistSuccess(songToRemove.displayName));
     } else {
-      showToast('Failed to remove track');
+      showToast(l10n.removeTrackFailed);
     }
   }
 
@@ -515,11 +519,11 @@ class _NavidromePlaylistDetailContentState
                       .read(activeRemoteSessionProvider.notifier)
                       .removeNavidromePlaylistDetail(widget.playlistId);
                 }
-                showToast('Playlist deleted');
+                showToast(l10n.playlistDeleted);
                 widget.onPlaylistModified?.call();
                 widget.onDeleted?.call();
               } else {
-                showToast('Failed to delete playlist');
+                showToast(l10n.deletePlaylistFailed);
               }
             },
             child: Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
@@ -580,12 +584,12 @@ class _NavidromePlaylistDetailContentState
                 color: theme.colorScheme.error,
               ),
               const SizedBox(height: 12),
-              Text('Error: $_error', textAlign: TextAlign.center),
+              Text(l10n.errorWithMessage(_error!), textAlign: TextAlign.center),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _loadPlaylistDetails,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Retry'),
+                label: Text(l10n.retry),
               ),
             ],
           ),
@@ -628,7 +632,7 @@ class _NavidromePlaylistDetailContentState
                       final coverWidget = Hero(
                         tag: 'navidrome_playlist_${widget.playlistId}',
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
+                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             width: imageSize,
                             height: imageSize,
@@ -709,7 +713,9 @@ class _NavidromePlaylistDetailContentState
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              _isStarredView ? 'FAVORITES' : 'PLAYLIST',
+                              _isStarredView
+                                  ? l10n.favorites.toUpperCase()
+                                  : l10n.playlist.toUpperCase(),
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: _isStarredView
                                     ? Colors.redAccent
@@ -764,7 +770,7 @@ class _NavidromePlaylistDetailContentState
                                   ),
                                 ),
                                 Text(
-                                  'by $owner',
+                                  l10n.byAuthor(owner),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -845,7 +851,7 @@ class _NavidromePlaylistDetailContentState
                     ),
                     const SizedBox(width: 8),
                     IconButton.filledTonal(
-                      tooltip: 'Download All',
+                      tooltip: l10n.downloadAllTracks,
                       onPressed: _tracks.isNotEmpty ? _downloadAll : null,
                       icon: const Icon(Icons.download_rounded, size: 18),
                     ),
@@ -878,13 +884,13 @@ class _NavidromePlaylistDetailContentState
                               ],
                             ),
                           ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'refresh',
                           child: Row(
                             children: [
-                              Icon(Icons.refresh_rounded, size: 18),
-                              SizedBox(width: 12),
-                              Text('Refresh'),
+                              const Icon(Icons.refresh_rounded, size: 18),
+                              const SizedBox(width: 12),
+                              Text(l10n.refresh),
                             ],
                           ),
                         ),

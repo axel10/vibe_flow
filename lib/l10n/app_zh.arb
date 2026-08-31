@@ -2388,5 +2388,207 @@
   "justNow": "刚刚",
   "minutesAgo": "{minutes}分钟前",
   "todayTime": "今天 {time}",
-  "yesterdayTime": "昨天 {time}"
+  "yesterdayTime": "昨天 {time}",
+  "playlists": "歌单",
+  "songs": "歌曲",
+  "createdPlaylistSuccess": "已创建歌单: {name}",
+  "@createdPlaylistSuccess": {
+    "description": "Toast when playlist is created",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingAlbumTracks": "正在加载专辑曲目...",
+  "loadingArtistTracks": "正在加载艺术家歌曲...",
+  "loadingFolderAudio": "正在加载文件夹音频...",
+  "noAudioFilesInFolder": "该文件夹内没有音频文件",
+  "failedToLoadFolder": "加载文件夹失败: {error}",
+  "@failedToLoadFolder": {
+    "description": "Toast when loading remote folder fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "starFailed": "收藏失败",
+  "playAlbumFailed": "播放专辑失败: {error}",
+  "@playAlbumFailed": {
+    "description": "Toast when playing remote album fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sortAllAZ": "全部 (A-Z)",
+  "sortRecentlyPlayed": "最近播放",
+  "sortMostPlayed": "最多播放",
+  "sortStarred": "已收藏",
+  "sortRandom": "随机",
+  "filterAlbums": "筛选专辑...",
+  "closeSearch": "关闭搜索",
+  "filterArtists": "筛选艺术家...",
+  "searchPlaylists": "搜索歌单...",
+  "searchRemoteHint": "搜索歌曲、专辑、艺术家...",
+  "errorLoadingAlbums": "加载专辑失败: {error}",
+  "@errorLoadingAlbums": {
+    "description": "Error text when loading albums fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noAlbumsOnServer": "服务端未找到专辑",
+  "noMatchingAlbums": "没有匹配的专辑",
+  "playAlbum": "播放专辑",
+  "shuffleAlbum": "随机播放专辑",
+  "errorLoadingArtists": "加载艺术家失败: {error}",
+  "@errorLoadingArtists": {
+    "description": "Error text when loading artists fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noArtistsFound": "未找到艺术家",
+  "noMatchingArtists": "没有匹配的艺术家",
+  "noArtistSelected": "未选择艺术家",
+  "errorLoadingPlaylists": "加载歌单失败: {error}",
+  "@errorLoadingPlaylists": {
+    "description": "Error text when loading playlists fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noPlaylistsFound": "未找到歌单",
+  "noMatchingPlaylists": "没有匹配的歌单",
+  "noPlaylistSelected": "未选择歌单",
+  "typeToSearch": "输入内容以开始搜索",
+  "noMatchingResults": "未找到匹配结果",
+  "albumNotFound": "未找到专辑详情",
+  "playingTracksCount": "正在播放 {count} 首歌曲",
+  "@playingTracksCount": {
+    "description": "Toast when starting playback of multiple tracks",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistNotFound": "服务端未找到该艺术家详情",
+  "noTracksForArtist": "未找到该艺术家的歌曲",
+  "noAlbumsForArtist": "未找到该艺术家的专辑",
+  "playlistNotFound": "服务端未找到该歌单详情",
+  "removedFromPlaylistSuccess": "已从歌单移除 \"{title}\"",
+  "@removedFromPlaylistSuccess": {
+    "description": "Toast when track is removed from playlist",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "removeTrackFailed": "移除歌曲失败",
+  "playlistDeleted": "歌单已删除",
+  "deletePlaylistFailed": "删除歌单失败",
+  "byAuthor": "创建者: {author}",
+  "@byAuthor": {
+    "description": "Playlist author credit",
+    "placeholders": {
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "downloadAllTracks": "全部下载",
+  "downloadFailedGeneric": "下载失败",
+  "downloadPaused": "已暂停 ({progress}%)",
+  "@downloadPaused": {
+    "description": "Download task paused label",
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "waitingInQueue": "排队等待中...",
+  "downloadCancelled": "已取消",
+  "fileNotFoundAtPath": "未找到文件: {path}",
+  "@fileNotFoundAtPath": {
+    "description": "Toast when downloaded file is not found",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "addedTracksToPlaylistSuccess": "已将 {count} 首歌曲添加到 \"{name}\"",
+  "@addedTracksToPlaylistSuccess": {
+    "description": "Toast when tracks added to existing server playlist",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addToPlaylistFailed": "添加到歌单失败",
+  "errorAddingToPlaylist": "添加到歌单出错: {error}",
+  "@errorAddingToPlaylist": {
+    "description": "Toast when adding to playlist errors",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createdPlaylistWithTracksSuccess": "已创建歌单 \"{name}\" 并添加 {count} 首歌曲",
+  "@createdPlaylistWithTracksSuccess": {
+    "description": "Toast when creating playlist with tracks succeeds",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createServerPlaylistFailed": "创建服务端歌单失败",
+  "errorCreatingPlaylist": "创建歌单出错: {error}",
+  "@errorCreatingPlaylist": {
+    "description": "Toast when creating playlist errors",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noServerPlaylistsFound": "暂无服务端歌单",
+  "download": "下载",
+  "resume": "继续",
+  "remove": "移除",
+  "refresh": "刷新",
+  "copyFilePath": "复制文件路径",
+  "openFolder": "打开文件夹",
+  "copyFolderName": "复制文件夹名称",
+  "copyFolderPath": "复制文件夹路径",
+  "errorWithMessage": "错误: {error}",
+  "@errorWithMessage": {
+    "description": "Generic error message with prefix",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

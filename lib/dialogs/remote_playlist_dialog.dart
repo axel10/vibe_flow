@@ -120,14 +120,14 @@ class _RemotePlaylistDialogContentState
       );
       if (ok) {
         showToast(
-          'Added ${widget.songs.length} track(s) to "$playlistName"',
+          widget.l10n.addedTracksToPlaylistSuccess(widget.songs.length, playlistName),
         );
         if (mounted) Navigator.pop(context);
       } else {
-        showToast('Failed to add to playlist');
+        showToast(widget.l10n.addToPlaylistFailed);
       }
     } catch (e) {
-      showToast('Error adding to playlist: $e');
+      showToast(widget.l10n.errorAddingToPlaylist(e.toString()));
     }
   }
 
@@ -175,14 +175,14 @@ class _RemotePlaylistDialogContentState
                 );
                 if (created != null) {
                   showToast(
-                    'Created playlist "$name" with ${widget.songs.length} track(s)',
+                    widget.l10n.createdPlaylistWithTracksSuccess(name, widget.songs.length),
                   );
                   if (mounted) Navigator.pop(context);
                 } else {
-                  showToast('Failed to create server playlist');
+                  showToast(widget.l10n.createServerPlaylistFailed);
                 }
               } catch (e) {
-                showToast('Error creating playlist: $e');
+                showToast(widget.l10n.errorCreatingPlaylist(e.toString()));
               }
             },
             child: Text(widget.l10n.createPlaylist),
@@ -236,11 +236,11 @@ class _RemotePlaylistDialogContentState
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Error: $_error', textAlign: TextAlign.center),
+                          Text(widget.l10n.errorWithMessage(_error!), textAlign: TextAlign.center),
                           const SizedBox(height: 8),
                           TextButton(
                             onPressed: _fetchServerPlaylists,
-                            child: const Text('Retry'),
+                            child: Text(widget.l10n.retry),
                           ),
                         ],
                       ),
@@ -262,7 +262,7 @@ class _RemotePlaylistDialogContentState
                           child: _serverPlaylists.isEmpty
                               ? Center(
                                   child: Text(
-                                    'No server playlists found',
+                                    widget.l10n.noServerPlaylistsFound,
                                     style: TextStyle(
                                       color: widget
                                           .theme.colorScheme.onSurfaceVariant,
@@ -274,7 +274,7 @@ class _RemotePlaylistDialogContentState
                                   itemBuilder: (context, index) {
                                     final pl = _serverPlaylists[index];
                                     final name =
-                                        pl['name'] as String? ?? 'Playlist';
+                                        pl['name'] as String? ?? widget.l10n.playlist;
                                     final id = pl['id'] as String? ?? '';
                                     final count = pl['songCount'] as int? ?? 0;
 

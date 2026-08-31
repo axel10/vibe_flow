@@ -1594,7 +1594,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noMatchingRelease => 'No matching release found';
 
   @override
-  String get noMatchingResults => 'No matching results found';
+  String get noMatchingResults => 'No matching results';
 
   @override
   String get networkConnectionFailed => 'Network connection failed';
@@ -4164,5 +4164,235 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String yesterdayTime(Object time) {
     return 'Yesterday $time';
+  }
+
+  @override
+  String get playlists => 'Playlists';
+
+  @override
+  String get songs => 'Songs';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return 'Created playlist: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => 'Loading album tracks...';
+
+  @override
+  String get loadingArtistTracks => 'Loading artist tracks...';
+
+  @override
+  String get loadingFolderAudio => 'Loading folder audio...';
+
+  @override
+  String get noAudioFilesInFolder => 'No audio files in this folder';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return 'Failed to load folder: $error';
+  }
+
+  @override
+  String get starFailed => 'Star failed';
+
+  @override
+  String playAlbumFailed(String error) {
+    return 'Failed to play album: $error';
+  }
+
+  @override
+  String get sortAllAZ => 'All (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => 'Recently Played';
+
+  @override
+  String get sortMostPlayed => 'Most Played';
+
+  @override
+  String get sortStarred => 'Starred';
+
+  @override
+  String get sortRandom => 'Random';
+
+  @override
+  String get filterAlbums => 'Filter albums...';
+
+  @override
+  String get filterArtists => 'Filter artists...';
+
+  @override
+  String get searchPlaylists => 'Search playlists...';
+
+  @override
+  String get searchRemoteHint => 'Search songs, albums, artists...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return 'Error loading albums: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => 'No albums found on server';
+
+  @override
+  String get noMatchingAlbums => 'No matching albums';
+
+  @override
+  String get playAlbum => 'Play Album';
+
+  @override
+  String get shuffleAlbum => 'Shuffle Album';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return 'Error loading artists: $error';
+  }
+
+  @override
+  String get noArtistsFound => 'No artists found';
+
+  @override
+  String get noMatchingArtists => 'No matching artists';
+
+  @override
+  String get noArtistSelected => 'No artist selected';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return 'Error loading playlists: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => 'No playlists found';
+
+  @override
+  String get noMatchingPlaylists => 'No matching playlists';
+
+  @override
+  String get noPlaylistSelected => 'No playlist selected';
+
+  @override
+  String get typeToSearch => 'Type something to search';
+
+  @override
+  String get albumNotFound => 'Album details not found';
+
+  @override
+  String playingTracksCount(int count) {
+    return 'Playing $count tracks';
+  }
+
+  @override
+  String get artistNotFound => 'Artist details not found on server';
+
+  @override
+  String get noTracksForArtist => 'No tracks found for this artist';
+
+  @override
+  String get noAlbumsForArtist => 'No albums found for this artist';
+
+  @override
+  String get playlistNotFound => 'Playlist details not found on server';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return 'Removed \"$title\" from playlist';
+  }
+
+  @override
+  String get removeTrackFailed => 'Failed to remove track';
+
+  @override
+  String get playlistDeleted => 'Playlist deleted';
+
+  @override
+  String get deletePlaylistFailed => 'Failed to delete playlist';
+
+  @override
+  String byAuthor(String author) {
+    return 'by $author';
+  }
+
+  @override
+  String get downloadAllTracks => 'Download All';
+
+  @override
+  String get downloadFailedGeneric => 'Download failed';
+
+  @override
+  String downloadPaused(String progress) {
+    return 'Paused ($progress%)';
+  }
+
+  @override
+  String get waitingInQueue => 'Waiting in queue...';
+
+  @override
+  String get downloadCancelled => 'Cancelled';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return 'File not found at $path';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return 'Added $count track(s) to \"$name\"';
+  }
+
+  @override
+  String get addToPlaylistFailed => 'Failed to add to playlist';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return 'Error adding to playlist: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return 'Created playlist \"$name\" with $count track(s)';
+  }
+
+  @override
+  String get createServerPlaylistFailed => 'Failed to create server playlist';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return 'Error creating playlist: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => 'No server playlists found';
+
+  @override
+  String get download => 'Download';
+
+  @override
+  String get resume => 'Resume';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get copyFilePath => 'Copy File Path';
+
+  @override
+  String get openFolder => 'Open Folder';
+
+  @override
+  String get copyFolderName => 'Copy Folder Name';
+
+  @override
+  String get copyFolderPath => 'Copy Folder Path';
+
+  @override
+  String errorWithMessage(String error) {
+    return 'Error: $error';
   }
 }

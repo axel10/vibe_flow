@@ -3054,7 +3054,7 @@ abstract class AppLocalizations {
   /// No description provided for @noMatchingResults.
   ///
   /// In zh, this message translates to:
-  /// **'没有找到匹配结果'**
+  /// **'未找到匹配结果'**
   String get noMatchingResults;
 
   /// No description provided for @networkConnectionFailed.
@@ -7436,6 +7436,402 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'昨天 {time}'**
   String yesterdayTime(Object time);
+
+  /// No description provided for @playlists.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单'**
+  String get playlists;
+
+  /// No description provided for @songs.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌曲'**
+  String get songs;
+
+  /// Toast when playlist is created
+  ///
+  /// In zh, this message translates to:
+  /// **'已创建歌单: {name}'**
+  String createdPlaylistSuccess(String name);
+
+  /// No description provided for @loadingAlbumTracks.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在加载专辑曲目...'**
+  String get loadingAlbumTracks;
+
+  /// No description provided for @loadingArtistTracks.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在加载艺术家歌曲...'**
+  String get loadingArtistTracks;
+
+  /// No description provided for @loadingFolderAudio.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在加载文件夹音频...'**
+  String get loadingFolderAudio;
+
+  /// No description provided for @noAudioFilesInFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'该文件夹内没有音频文件'**
+  String get noAudioFilesInFolder;
+
+  /// Toast when loading remote folder fails
+  ///
+  /// In zh, this message translates to:
+  /// **'加载文件夹失败: {error}'**
+  String failedToLoadFolder(String error);
+
+  /// No description provided for @starFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'收藏失败'**
+  String get starFailed;
+
+  /// Toast when playing remote album fails
+  ///
+  /// In zh, this message translates to:
+  /// **'播放专辑失败: {error}'**
+  String playAlbumFailed(String error);
+
+  /// No description provided for @sortAllAZ.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部 (A-Z)'**
+  String get sortAllAZ;
+
+  /// No description provided for @sortRecentlyPlayed.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近播放'**
+  String get sortRecentlyPlayed;
+
+  /// No description provided for @sortMostPlayed.
+  ///
+  /// In zh, this message translates to:
+  /// **'最多播放'**
+  String get sortMostPlayed;
+
+  /// No description provided for @sortStarred.
+  ///
+  /// In zh, this message translates to:
+  /// **'已收藏'**
+  String get sortStarred;
+
+  /// No description provided for @sortRandom.
+  ///
+  /// In zh, this message translates to:
+  /// **'随机'**
+  String get sortRandom;
+
+  /// No description provided for @filterAlbums.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选专辑...'**
+  String get filterAlbums;
+
+  /// No description provided for @filterArtists.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选艺术家...'**
+  String get filterArtists;
+
+  /// No description provided for @searchPlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索歌单...'**
+  String get searchPlaylists;
+
+  /// No description provided for @searchRemoteHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索歌曲、专辑、艺术家...'**
+  String get searchRemoteHint;
+
+  /// Error text when loading albums fails
+  ///
+  /// In zh, this message translates to:
+  /// **'加载专辑失败: {error}'**
+  String errorLoadingAlbums(String error);
+
+  /// No description provided for @noAlbumsOnServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务端未找到专辑'**
+  String get noAlbumsOnServer;
+
+  /// No description provided for @noMatchingAlbums.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的专辑'**
+  String get noMatchingAlbums;
+
+  /// No description provided for @playAlbum.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放专辑'**
+  String get playAlbum;
+
+  /// No description provided for @shuffleAlbum.
+  ///
+  /// In zh, this message translates to:
+  /// **'随机播放专辑'**
+  String get shuffleAlbum;
+
+  /// Error text when loading artists fails
+  ///
+  /// In zh, this message translates to:
+  /// **'加载艺术家失败: {error}'**
+  String errorLoadingArtists(String error);
+
+  /// No description provided for @noArtistsFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到艺术家'**
+  String get noArtistsFound;
+
+  /// No description provided for @noMatchingArtists.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的艺术家'**
+  String get noMatchingArtists;
+
+  /// No description provided for @noArtistSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'未选择艺术家'**
+  String get noArtistSelected;
+
+  /// Error text when loading playlists fails
+  ///
+  /// In zh, this message translates to:
+  /// **'加载歌单失败: {error}'**
+  String errorLoadingPlaylists(String error);
+
+  /// No description provided for @noPlaylistsFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到歌单'**
+  String get noPlaylistsFound;
+
+  /// No description provided for @noMatchingPlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的歌单'**
+  String get noMatchingPlaylists;
+
+  /// No description provided for @noPlaylistSelected.
+  ///
+  /// In zh, this message translates to:
+  /// **'未选择歌单'**
+  String get noPlaylistSelected;
+
+  /// No description provided for @typeToSearch.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入内容以开始搜索'**
+  String get typeToSearch;
+
+  /// No description provided for @albumNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到专辑详情'**
+  String get albumNotFound;
+
+  /// Toast when starting playback of multiple tracks
+  ///
+  /// In zh, this message translates to:
+  /// **'正在播放 {count} 首歌曲'**
+  String playingTracksCount(int count);
+
+  /// No description provided for @artistNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务端未找到该艺术家详情'**
+  String get artistNotFound;
+
+  /// No description provided for @noTracksForArtist.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到该艺术家的歌曲'**
+  String get noTracksForArtist;
+
+  /// No description provided for @noAlbumsForArtist.
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到该艺术家的专辑'**
+  String get noAlbumsForArtist;
+
+  /// No description provided for @playlistNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务端未找到该歌单详情'**
+  String get playlistNotFound;
+
+  /// Toast when track is removed from playlist
+  ///
+  /// In zh, this message translates to:
+  /// **'已从歌单移除 \"{title}\"'**
+  String removedFromPlaylistSuccess(String title);
+
+  /// No description provided for @removeTrackFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除歌曲失败'**
+  String get removeTrackFailed;
+
+  /// No description provided for @playlistDeleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌单已删除'**
+  String get playlistDeleted;
+
+  /// No description provided for @deletePlaylistFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除歌单失败'**
+  String get deletePlaylistFailed;
+
+  /// Playlist author credit
+  ///
+  /// In zh, this message translates to:
+  /// **'创建者: {author}'**
+  String byAuthor(String author);
+
+  /// No description provided for @downloadAllTracks.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部下载'**
+  String get downloadAllTracks;
+
+  /// No description provided for @downloadFailedGeneric.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载失败'**
+  String get downloadFailedGeneric;
+
+  /// Download task paused label
+  ///
+  /// In zh, this message translates to:
+  /// **'已暂停 ({progress}%)'**
+  String downloadPaused(String progress);
+
+  /// No description provided for @waitingInQueue.
+  ///
+  /// In zh, this message translates to:
+  /// **'排队等待中...'**
+  String get waitingInQueue;
+
+  /// No description provided for @downloadCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已取消'**
+  String get downloadCancelled;
+
+  /// Toast when downloaded file is not found
+  ///
+  /// In zh, this message translates to:
+  /// **'未找到文件: {path}'**
+  String fileNotFoundAtPath(String path);
+
+  /// Toast when tracks added to existing server playlist
+  ///
+  /// In zh, this message translates to:
+  /// **'已将 {count} 首歌曲添加到 \"{name}\"'**
+  String addedTracksToPlaylistSuccess(int count, String name);
+
+  /// No description provided for @addToPlaylistFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加到歌单失败'**
+  String get addToPlaylistFailed;
+
+  /// Toast when adding to playlist errors
+  ///
+  /// In zh, this message translates to:
+  /// **'添加到歌单出错: {error}'**
+  String errorAddingToPlaylist(String error);
+
+  /// Toast when creating playlist with tracks succeeds
+  ///
+  /// In zh, this message translates to:
+  /// **'已创建歌单 \"{name}\" 并添加 {count} 首歌曲'**
+  String createdPlaylistWithTracksSuccess(String name, int count);
+
+  /// No description provided for @createServerPlaylistFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'创建服务端歌单失败'**
+  String get createServerPlaylistFailed;
+
+  /// Toast when creating playlist errors
+  ///
+  /// In zh, this message translates to:
+  /// **'创建歌单出错: {error}'**
+  String errorCreatingPlaylist(String error);
+
+  /// No description provided for @noServerPlaylistsFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无服务端歌单'**
+  String get noServerPlaylistsFound;
+
+  /// No description provided for @download.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载'**
+  String get download;
+
+  /// No description provided for @resume.
+  ///
+  /// In zh, this message translates to:
+  /// **'继续'**
+  String get resume;
+
+  /// No description provided for @remove.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除'**
+  String get remove;
+
+  /// No description provided for @refresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷新'**
+  String get refresh;
+
+  /// No description provided for @copyFilePath.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制文件路径'**
+  String get copyFilePath;
+
+  /// No description provided for @openFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开文件夹'**
+  String get openFolder;
+
+  /// No description provided for @copyFolderName.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制文件夹名称'**
+  String get copyFolderName;
+
+  /// No description provided for @copyFolderPath.
+  ///
+  /// In zh, this message translates to:
+  /// **'复制文件夹路径'**
+  String get copyFolderPath;
+
+  /// Generic error message with prefix
+  ///
+  /// In zh, this message translates to:
+  /// **'错误: {error}'**
+  String errorWithMessage(String error);
 }
 
 class _AppLocalizationsDelegate

@@ -4178,4 +4178,235 @@ class AppLocalizationsTr extends AppLocalizations {
   String yesterdayTime(Object time) {
     return 'Dün $time';
   }
+
+  @override
+  String get playlists => 'Çalma Listeleri';
+
+  @override
+  String get songs => 'Şarkılar';
+
+  @override
+  String createdPlaylistSuccess(String name) {
+    return 'Çalma listesi oluşturuldu: $name';
+  }
+
+  @override
+  String get loadingAlbumTracks => 'Albüm parçaları yükleniyor...';
+
+  @override
+  String get loadingArtistTracks => 'Sanatçı parçaları yükleniyor...';
+
+  @override
+  String get loadingFolderAudio => 'Klasör sesi yükleniyor...';
+
+  @override
+  String get noAudioFilesInFolder => 'Bu klasörde ses dosyası yok';
+
+  @override
+  String failedToLoadFolder(String error) {
+    return 'Klasör yüklenemedi: $error';
+  }
+
+  @override
+  String get starFailed => 'Yıldızlama başarısız';
+
+  @override
+  String playAlbumFailed(String error) {
+    return 'Albüm çalınamadı: $error';
+  }
+
+  @override
+  String get sortAllAZ => 'Tümü (A-Z)';
+
+  @override
+  String get sortRecentlyPlayed => 'Son Çalınanlar';
+
+  @override
+  String get sortMostPlayed => 'En Çok Çalınanlar';
+
+  @override
+  String get sortStarred => 'Yıldızlı';
+
+  @override
+  String get sortRandom => 'Rastgele';
+
+  @override
+  String get filterAlbums => 'Albümleri filtrele...';
+
+  @override
+  String get filterArtists => 'Sanatçıları filtrele...';
+
+  @override
+  String get searchPlaylists => 'Çalma listelerinde ara...';
+
+  @override
+  String get searchRemoteHint => 'Şarkı, albüm, sanatçı ara...';
+
+  @override
+  String errorLoadingAlbums(String error) {
+    return 'Albümler yüklenirken hata oluştu: $error';
+  }
+
+  @override
+  String get noAlbumsOnServer => 'Sunucuda albüm bulunamadı';
+
+  @override
+  String get noMatchingAlbums => 'Eşleşen albüm yok';
+
+  @override
+  String get playAlbum => 'Albümü Çal';
+
+  @override
+  String get shuffleAlbum => 'Albümü Karışık Çal';
+
+  @override
+  String errorLoadingArtists(String error) {
+    return 'Sanatçılar yüklenirken hata oluştu: $error';
+  }
+
+  @override
+  String get noArtistsFound => 'Sanatçı bulunamadı';
+
+  @override
+  String get noMatchingArtists => 'Eşleşen sanatçı yok';
+
+  @override
+  String get noArtistSelected => 'Sanatçı seçilmedi';
+
+  @override
+  String errorLoadingPlaylists(String error) {
+    return 'Çalma listeleri yüklenirken hata oluştu: $error';
+  }
+
+  @override
+  String get noPlaylistsFound => 'Çalma listesi bulunamadı';
+
+  @override
+  String get noMatchingPlaylists => 'Eşleşen çalma listesi yok';
+
+  @override
+  String get noPlaylistSelected => 'Çalma listesi seçilmedi';
+
+  @override
+  String get typeToSearch => 'Aramak için bir şeyler yazın';
+
+  @override
+  String get albumNotFound => 'Albüm detayları bulunamadı';
+
+  @override
+  String playingTracksCount(int count) {
+    return '$count parça çalınıyor';
+  }
+
+  @override
+  String get artistNotFound => 'Sunucuda sanatçı detayları bulunamadı';
+
+  @override
+  String get noTracksForArtist => 'Bu sanatçı için parça bulunamadı';
+
+  @override
+  String get noAlbumsForArtist => 'Bu sanatçı için albüm bulunamadı';
+
+  @override
+  String get playlistNotFound => 'Sunucuda çalma listesi detayları bulunamadı';
+
+  @override
+  String removedFromPlaylistSuccess(String title) {
+    return '\"$title\" çalma listesinden kaldırıldı';
+  }
+
+  @override
+  String get removeTrackFailed => 'Parça kaldırılamadı';
+
+  @override
+  String get playlistDeleted => 'Çalma listesi silindi';
+
+  @override
+  String get deletePlaylistFailed => 'Çalma listesi silinemedi';
+
+  @override
+  String byAuthor(String author) {
+    return 'oluşturan: $author';
+  }
+
+  @override
+  String get downloadAllTracks => 'Tümünü İndir';
+
+  @override
+  String get downloadFailedGeneric => 'İndirme başarısız';
+
+  @override
+  String downloadPaused(String progress) {
+    return 'Duraklatıldı (%$progress)';
+  }
+
+  @override
+  String get waitingInQueue => 'Kuyrukta bekleniyor...';
+
+  @override
+  String get downloadCancelled => 'İptal edildi';
+
+  @override
+  String fileNotFoundAtPath(String path) {
+    return '$path konumunda dosya bulunamadı';
+  }
+
+  @override
+  String addedTracksToPlaylistSuccess(int count, String name) {
+    return '\"$name\" listesine $count parça eklendi';
+  }
+
+  @override
+  String get addToPlaylistFailed => 'Çalma listesine eklenemedi';
+
+  @override
+  String errorAddingToPlaylist(String error) {
+    return 'Çalma listesine eklenirken hata: $error';
+  }
+
+  @override
+  String createdPlaylistWithTracksSuccess(String name, int count) {
+    return '\"$name\" çalma listesi $count parça ile oluşturuldu';
+  }
+
+  @override
+  String get createServerPlaylistFailed =>
+      'Sunucu çalma listesi oluşturulamadı';
+
+  @override
+  String errorCreatingPlaylist(String error) {
+    return 'Çalma listesi oluşturulurken hata: $error';
+  }
+
+  @override
+  String get noServerPlaylistsFound => 'Sunucu çalma listesi bulunamadı';
+
+  @override
+  String get download => 'İndir';
+
+  @override
+  String get resume => 'Devam Et';
+
+  @override
+  String get remove => 'Kaldır';
+
+  @override
+  String get refresh => 'Yenile';
+
+  @override
+  String get copyFilePath => 'Dosya Yolunu Kopyala';
+
+  @override
+  String get openFolder => 'Klasörü Aç';
+
+  @override
+  String get copyFolderName => 'Klasör Adını Kopyala';
+
+  @override
+  String get copyFolderPath => 'Klasör Yolunu Kopyala';
+
+  @override
+  String errorWithMessage(String error) {
+    return 'Hata: $error';
+  }
 }
