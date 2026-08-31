@@ -72,59 +72,53 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
               constraints: const BoxConstraints(maxWidth: 580),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: widget.isPlayback
-                          ? (isDark ? 0.22 : 0.08)
-                          : (isDark ? 0.40 : 0.12),
-                    ),
-                    blurRadius: widget.isPlayback ? 20 : 28,
-                    offset: const Offset(0, 8),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: widget.isPlayback
-                          ? (isDark ? 0.10 : 0.04)
-                          : (isDark ? 0.20 : 0.06),
-                    ),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ],
+                boxShadow: widget.isPlayback
+                    ? const []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.40 : 0.12,
+                          ),
+                          blurRadius: 28,
+                          offset: const Offset(0, 8),
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.20 : 0.06,
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                          spreadRadius: 0,
+                        ),
+                      ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(28),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(
-                    sigmaX: widget.isPlayback ? 28 : 24,
-                    sigmaY: widget.isPlayback ? 28 : 24,
+                    sigmaX: widget.isPlayback ? 0 : 24,
+                    sigmaY: widget.isPlayback ? 0 : 24,
                   ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,
                     decoration: BoxDecoration(
                       color: widget.isPlayback
-                          ? (isDark
-                              ? Colors.black.withValues(alpha: 0.22)
-                              : Colors.white.withValues(alpha: 0.32))
+                          ? Colors.transparent
                           : theme.colorScheme.surface.withValues(
                               alpha: isDark ? 0.82 : 0.88,
                             ),
                       borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                        color: (isDark
-                                ? Colors.white
-                                : (widget.isPlayback ? Colors.white : Colors.black))
-                            .withValues(
-                              alpha: widget.isPlayback
-                                  ? (isDark ? 0.16 : 0.28)
-                                  : (isDark ? 0.12 : 0.08),
+                      border: widget.isPlayback
+                          ? null
+                          : Border.all(
+                              color: (isDark ? Colors.white : Colors.black)
+                                  .withValues(
+                                    alpha: isDark ? 0.12 : 0.08,
+                                  ),
+                              width: 0.8,
                             ),
-                        width: 0.8,
-                      ),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -507,11 +501,9 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = theme.colorScheme.primary;
+    final activeColor = isPlayback ? Colors.white : theme.colorScheme.primary;
     final inactiveColor = isPlayback
-        ? (isDark
-            ? Colors.white.withValues(alpha: 0.70)
-            : Colors.black.withValues(alpha: 0.65))
+        ? Colors.white.withValues(alpha: 0.65)
         : (isDark ? Colors.white60 : Colors.black54);
 
     return AppTooltip(
@@ -533,12 +525,10 @@ class _TabButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 color: isSelected
                     ? (isPlayback
-                        ? (isDark
-                            ? Colors.white.withValues(alpha: 0.18)
-                            : Colors.white.withValues(alpha: 0.40))
-                        : (theme.colorScheme.primaryContainer.withValues(
+                        ? Colors.white.withValues(alpha: 0.20)
+                        : theme.colorScheme.primaryContainer.withValues(
                             alpha: isDark ? 0.45 : 0.7,
-                          )))
+                          ))
                     : Colors.transparent,
               ),
               child: Icon(
