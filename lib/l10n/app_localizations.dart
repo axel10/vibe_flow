@@ -5364,7 +5364,7 @@ abstract class AppLocalizations {
   /// No description provided for @receiveDirectoryNotSetWarning.
   ///
   /// In zh, this message translates to:
-  /// **'未设置接收文件保存目录时将无法接收文件，建议先设置。'**
+  /// **'安卓接收文件需要先选择接收目录，请点击设置。'**
   String get receiveDirectoryNotSetWarning;
 
   /// No description provided for @receiveDirectoryNoWritePermission.

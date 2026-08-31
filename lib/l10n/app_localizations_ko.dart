@@ -2841,7 +2841,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get receiveDirectoryNotSetWarning =>
-      '파일을 수신하려면 수신 디렉토리를 설정해야 합니다. 설정해주세요.';
+      'Android에서 파일을 수신하려면 먼저 수신 디렉터리를 선택해야 합니다. 탭하여 설정하세요.';
 
   @override
   String get receiveDirectoryNoWritePermission =>

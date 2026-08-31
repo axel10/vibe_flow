@@ -2799,7 +2799,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lanSharingDefaultOffHint => '默认关闭，开启后会请求局域网权限';
 
   @override
-  String get receiveDirectoryNotSetWarning => '未设置接收文件保存目录时将无法接收文件，建议先设置。';
+  String get receiveDirectoryNotSetWarning => '安卓接收文件需要先选择接收目录，请点击设置。';
 
   @override
   String get receiveDirectoryNoWritePermission => '当前保存目录无写入权限，请重新设置';
@@ -6978,7 +6978,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get lanSharingDefaultOffHint => '預設關閉，開啟後會請求區域網路權限';
 
   @override
-  String get receiveDirectoryNotSetWarning => '未設定接收檔案儲存目錄時將無法接收檔案，建議先設定。';
+  String get receiveDirectoryNotSetWarning => '安卓接收檔案需要先選擇接收目錄，請點擊設定。';
 
   @override
   String get receiveDirectoryNoWritePermission => '目前儲存目錄無寫入權限，請重新設定';

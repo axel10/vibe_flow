@@ -1191,7 +1191,7 @@
   },
   "lanSharingRunningStatus": "ローカルIP: {ip}（ポート: {port}）",
   "lanSharingDefaultOffHint": "デフォルトでは無効です。有効にするとローカルネットワーク権限を要求します。",
-  "receiveDirectoryNotSetWarning": "ファイルを受信するには受信ディレクトリを設定する必要があります。設定してください。",
+  "receiveDirectoryNotSetWarning": "Androidでファイルを受信するには、まず受信ディレクトリを選択する必要があります。タップして設定してください。",
   "receiveDirectoryNoWritePermission": "現在の保存先ディレクトリへの書き込み権限がありません。再設定してください。",
   "restoreDefaultDirectory": "デフォルトディレクトリに戻す",
   "chooseOtherDirectory": "他のディレクトリを選択",

@@ -745,8 +745,11 @@ class _SharingPageState extends ConsumerState<SharingPage>
     final currentFolderPath = settings.lanSharingFolderPath.isNotEmpty
         ? settings.lanSharingFolderPath
         : ref.watch(sharingServiceProvider).sharingFolderPath;
-    final isReceiveDirWarning = !_isFolderWritable ||
-        (Platform.isAndroid && !settings.hasLanSharingFolderPath);
+    final isInternalDir = Platform.isAndroid &&
+        (!settings.hasLanSharingFolderPath ||
+            currentFolderPath.startsWith('/data/user/') ||
+            currentFolderPath.startsWith('/data/data/'));
+    final isReceiveDirWarning = !_isFolderWritable || isInternalDir;
 
     return Align(
       alignment: Alignment.topCenter,
@@ -1028,8 +1031,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
                                         ),
                                       ],
                                     ),
-                                  ] else if (Platform.isAndroid &&
-                                      !settings.hasLanSharingFolderPath) ...[
+                                  ] else if (isInternalDir) ...[
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [

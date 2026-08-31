@@ -2840,7 +2840,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get receiveDirectoryNotSetWarning =>
-      'ファイルを受信するには受信ディレクトリを設定する必要があります。設定してください。';
+      'Androidでファイルを受信するには、まず受信ディレクトリを選択する必要があります。タップして設定してください。';
 
   @override
   String get receiveDirectoryNoWritePermission =>

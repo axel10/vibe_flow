@@ -2936,7 +2936,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get receiveDirectoryNotSetWarning =>
-      'A receive directory must be set to receive files. Please set one.';
+      'Android requires selecting a receive directory first. Please tap to set.';
 
   @override
   String get receiveDirectoryNoWritePermission =>

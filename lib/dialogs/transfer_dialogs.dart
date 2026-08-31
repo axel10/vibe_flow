@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oktoast/oktoast.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
@@ -25,86 +30,124 @@ void showIncomingTransferDialog(BuildContext context, IncomingTransferRequest re
 
       return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45)),
-          ),
-          title: Row(
-            children: [
-              Icon(Icons.share, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              Text(
-                l10n.incomingTransferRequestTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+        child: Consumer(
+          builder: (context, ref, _) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45)),
               ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.incomingTransferFrom(request.senderName),
-                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
+              title: Row(
+                children: [
+                  Icon(Icons.share, color: theme.colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text(
+                    l10n.incomingTransferRequestTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.maxFinite,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      fileNames,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.incomingTransferFrom(request.senderName),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.maxFinite,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l10n.fileSizeMb(sizeMb),
-                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fileNames,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          l10n.fileSizeMb(sizeMb),
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.receiveFileHint,
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6), fontSize: 11),
+                  ),
+                ],
+              ),
+              actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              actions: [
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    request.onDecision(false);
+                  },
+                  child: Text(l10n.reject),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.receiveFileHint,
-                style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6), fontSize: 11),
-              ),
-            ],
-          ),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          actions: [
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                request.onDecision(false);
-              },
-              child: Text(l10n.reject),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                request.onDecision(true);
-              },
-              child: Text(l10n.accept, style: const TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
+                const SizedBox(width: 8),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () async {
+                    if (Platform.isAndroid) {
+                      final settings = ref.read(settingsServiceProvider);
+                      final sharingService = ref.read(sharingServiceProvider);
+                      final currentPath = settings.lanSharingFolderPath.isNotEmpty
+                          ? settings.lanSharingFolderPath
+                          : sharingService.sharingFolderPath;
+
+                      bool isInternal = false;
+                      if (!settings.hasLanSharingFolderPath) {
+                        isInternal = true;
+                      } else {
+                        try {
+                          final docDir = await getApplicationDocumentsDirectory();
+                          if (p.isWithin(docDir.path, currentPath) ||
+                              p.equals(docDir.path, currentPath) ||
+                              currentPath.startsWith('/data/user/') ||
+                              currentPath.startsWith('/data/data/')) {
+                            isInternal = true;
+                          }
+                        } catch (_) {}
+                      }
+
+                      if (isInternal) {
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                        }
+                        request.onDecision(false);
+                        showToast(l10n.receiveDirectoryNotSetWarning);
+                        return;
+                      }
+                    }
+
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                    request.onDecision(true);
+                  },
+                  child: Text(l10n.accept, style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
         ),
       );
     },

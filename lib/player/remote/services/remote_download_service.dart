@@ -127,18 +127,49 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
   }
 
   /// Ensures the destination download directory is writable.
-  /// If not writable (or unmapped on Android), prompts the user to select/grant a folder.
+  /// If not writable, or if on Android and the target is an internal folder, prompts the user to select/grant an external folder.
   /// Returns `true` if ready and writable, or `false` if user cancelled.
   Future<bool> ensureDownloadFolderWritable() async {
     final sharingService = ref.read(sharingServiceProvider);
+    final settings = ref.read(settingsServiceProvider);
     final currentPath = await getDownloadFolderPath();
 
-    final isWritable = await sharingService.checkSharingFolderWritable(currentPath);
-    if (isWritable) {
+    bool needsPicker = false;
+    if (Platform.isAndroid) {
+      if (!settings.hasLanSharingFolderPath) {
+        needsPicker = true;
+      } else {
+        try {
+          final docDir = await getApplicationDocumentsDirectory();
+          if (p.isWithin(docDir.path, currentPath) ||
+              p.equals(docDir.path, currentPath) ||
+              currentPath.startsWith('/data/user/') ||
+              currentPath.startsWith('/data/data/')) {
+            needsPicker = true;
+          }
+        } catch (_) {}
+
+        if (!needsPicker) {
+          final isWritable =
+              await sharingService.checkSharingFolderWritable(currentPath);
+          if (!isWritable) {
+            needsPicker = true;
+          }
+        }
+      }
+    } else {
+      final isWritable =
+          await sharingService.checkSharingFolderWritable(currentPath);
+      if (!isWritable) {
+        needsPicker = true;
+      }
+    }
+
+    if (!needsPicker) {
       return true;
     }
 
-    // Directory is not writable or unmapped on Android
+    // Directory is internal, not writable, or unmapped on Android
     if (Platform.isAndroid) {
       final androidOutputDirectory = await ref
           .read(transcodeServiceProvider)

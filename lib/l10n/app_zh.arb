@@ -1609,7 +1609,7 @@
   },
   "lanSharingRunningStatus": "本机 IP: {ip}（端口: {port}）",
   "lanSharingDefaultOffHint": "默认关闭，开启后会请求局域网权限",
-  "receiveDirectoryNotSetWarning": "未设置接收文件保存目录时将无法接收文件，建议先设置。",
+  "receiveDirectoryNotSetWarning": "安卓接收文件需要先选择接收目录，请点击设置。",
   "receiveDirectoryNoWritePermission": "当前保存目录无写入权限，请重新设置",
   "restoreDefaultDirectory": "恢复默认目录",
   "chooseOtherDirectory": "选择其他目录",

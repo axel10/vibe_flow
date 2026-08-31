@@ -578,10 +578,6 @@ class SharingService {
     }
   }
 
-  Future<bool> _isSharingFolderValid() async {
-    return await checkSharingFolderWritable();
-  }
-
   Future<void> _cleanObsoleteIosPaths() async {
     if (!Platform.isIOS) return;
     final scanner = _ref.read(scannerServiceProvider);
@@ -1096,34 +1092,6 @@ class SharingService {
         lyricsPackage: map['lyrics_package'] as Map<String, dynamic>?,
       );
     }).toList();
-
-    if (Platform.isAndroid &&
-        !_ref.read(settingsServiceProvider).hasLanSharingFolderPath) {
-      _ref
-          .read(sharingWarningProvider.notifier)
-          .setWarning('有设备尝试向您发送文件，但您尚未设置接收文件保存目录，请先设置。');
-
-      request.response.statusCode = HttpStatus.ok;
-      request.response.write(
-        jsonEncode({'accepted': false, 'reason': '接收端设备未设置文件保存目录'}),
-      );
-      await request.response.close();
-      return;
-    }
-
-    final folderExists = await _isSharingFolderValid();
-    if (!folderExists) {
-      _ref
-          .read(sharingWarningProvider.notifier)
-          .setWarning('接收文件保存目录不存在或无写入权限，请重新设置。');
-
-      request.response.statusCode = HttpStatus.ok;
-      request.response.write(
-        jsonEncode({'accepted': false, 'reason': '接收端文件保存目录不可写或无权限'}),
-      );
-      await request.response.close();
-      return;
-    }
 
     if (files.isEmpty) {
       request.response.statusCode = HttpStatus.badRequest;
