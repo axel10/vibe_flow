@@ -583,6 +583,7 @@
   "resetOnboardingDesc": "清除首次啟動引導狀態，下次啟動應用程式時重新顯示新手引導。",
   "songProperties": "歌曲屬性",
   "failedToLoadDetails": "無法取得詳細資訊",
+  "remoteAudioNotCachedHint": "此歌曲位於雲端且未完全快取，播放或下載後可解析完整聲學參數。",
   "noPropertiesAvailable": "暫無歌曲詳細屬性",
   "detailFilePath": "檔案路徑",
   "detailFormat": "格式",

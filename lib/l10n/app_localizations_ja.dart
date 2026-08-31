@@ -1862,13 +1862,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resetOnboardingDesc => 'オンボーディング状態をクリアします。次回起動時にウェルカムガイドが再表示されます。';
 
   @override
-  String get songProperties => '曲のプロパティ';
+  String get songProperties => '楽曲のプロパティ';
 
   @override
   String get failedToLoadDetails => '詳細の読み込みに失敗しました';
 
   @override
-  String get noPropertiesAvailable => '利用可能なプロパティがありません';
+  String get remoteAudioNotCachedHint =>
+      'この曲はクラウド上にあり、ローカルにキャッシュされていません。再生またはダウンロードすると完全な音声パラメータを表示できます。';
+
+  @override
+  String get noPropertiesAvailable => '楽曲の詳細プロパティがありません';
 
   @override
   String get detailFilePath => 'ファイルパス';

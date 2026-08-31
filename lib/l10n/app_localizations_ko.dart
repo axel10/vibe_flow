@@ -1864,10 +1864,14 @@ class AppLocalizationsKo extends AppLocalizations {
   String get resetOnboardingDesc => '온보딩 상태를 지웁니다. 다음 시작 시 환영 가이드가 다시 표시됩니다.';
 
   @override
-  String get songProperties => '노래 속성';
+  String get songProperties => '곡 속성';
 
   @override
   String get failedToLoadDetails => '세부 정보를 불러오지 못했습니다';
+
+  @override
+  String get remoteAudioNotCachedHint =>
+      '이 트랙은 클라우드에 있으며 로컬에 캐시되지 않았습니다. 재생하거나 다운로드하여 전체 오디오 속성을 확인하세요.';
 
   @override
   String get noPropertiesAvailable => '사용 가능한 속성이 없습니다';

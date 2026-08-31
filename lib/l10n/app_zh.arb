@@ -1252,6 +1252,7 @@
   "resetOnboardingDesc": "清除首次启动引导状态，下次启动应用时重新显示新手引导。",
   "songProperties": "歌曲属性",
   "failedToLoadDetails": "无法获取详细信息",
+  "remoteAudioNotCachedHint": "此歌曲位于云端且未完全缓存，播放或下载后可解析完整声学参数。",
   "noPropertiesAvailable": "暂无歌曲详细属性",
   "detailFilePath": "文件路径",
   "detailFormat": "格式",

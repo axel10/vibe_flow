@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audio_core/audio_core.dart';
+import 'package:path/path.dart' as p;
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/audio/audio_service.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/widgets/song_thumbnail.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 
@@ -31,11 +35,54 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
   void initState() {
     super.initState();
     final audioService = ref.read(audioServiceProvider);
-    _detailsFuture = audioService.getAudioDetails(path: widget.song.path);
+    _detailsFuture = _loadDetails(audioService);
+  }
+
+  Future<AudioDetails> _loadDetails(AudioService audioService) async {
+    try {
+      return await audioService.getAudioDetails(path: widget.song.path);
+    } catch (_) {
+      // Gracefully construct fallback audio details from existing MusicFile metadata
+      var ext = p.extension(widget.song.path).replaceAll('.', '').toLowerCase();
+      if (ext.contains('?')) ext = ext.split('?').first;
+      if (ext.isEmpty) {
+        ext = p.extension(widget.song.name).replaceAll('.', '').toLowerCase();
+      }
+      final formatName = ext.isNotEmpty ? ext : '';
+      String codecName = formatName;
+      if (formatName == 'mp3' || formatName == 'mpeg') {
+        codecName = 'mp3';
+      } else if (formatName == 'm4a' || formatName == 'mp4') {
+        codecName = 'aac';
+      }
+
+      final duration = widget.song.durationMillis != null && widget.song.durationMillis! > 0
+          ? Duration(milliseconds: widget.song.durationMillis!)
+          : Duration.zero;
+
+      int fileSize = 0;
+      try {
+        final localFile = File(widget.song.path);
+        if (localFile.existsSync()) {
+          fileSize = localFile.lengthSync();
+        }
+      } catch (_) {}
+
+      return AudioDetails(
+        formatName: formatName,
+        codecName: codecName,
+        duration: duration,
+        bitrate: 0,
+        sampleRate: 0,
+        channels: 0,
+        bitrateMode: '',
+        fileSize: fileSize,
+      );
+    }
   }
 
   String _formatFileSize(int bytes) {
-    if (bytes <= 0) return '0 B';
+    if (bytes <= 0) return '—';
     const suffixes = ['B', 'KB', 'MB', 'GB'];
     var i = 0;
     double size = bytes.toDouble();
@@ -47,6 +94,7 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
   }
 
   String _formatDuration(Duration duration) {
+    if (duration <= Duration.zero) return '—';
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
@@ -57,6 +105,7 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
   }
 
   String _formatChannels(int channels, AppLocalizations l10n) {
+    if (channels <= 0) return '—';
     if (channels == 1) {
       return l10n.detailMono;
     } else if (channels == 2) {
@@ -86,42 +135,6 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
               );
             }
 
-            if (snapshot.hasError) {
-              return SizedBox(
-                height: 200,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        color: theme.colorScheme.error,
-                        size: 48,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        l10n.failedToLoadDetails,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          snapshot.error.toString(),
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-
             final details = snapshot.data;
             if (details == null) {
               return SizedBox(
@@ -134,6 +147,9 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
               );
             }
 
+            final isRemote = RemoteMediaResolver.isRemoteUri(widget.song.path);
+            final isUncachedCloud = isRemote && details.bitrate == 0 && details.sampleRate == 0;
+
             final rows = [
               _DetailRow(
                 label: l10n.detailFilePath,
@@ -142,31 +158,31 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
               ),
               _DetailRow(
                 label: l10n.detailFormat,
-                value: details.formatName.toUpperCase(),
+                value: details.formatName.isNotEmpty ? details.formatName.toUpperCase() : '—',
               ),
               _DetailRow(
                 label: l10n.detailCodec,
-                value: details.codecName.toUpperCase(),
+                value: details.codecName.isNotEmpty ? details.codecName.toUpperCase() : '—',
               ),
               _DetailRow(
                 label: l10n.detailDuration,
-                value: _formatDuration(details.duration),
+                value: details.duration > Duration.zero ? _formatDuration(details.duration) : '—',
               ),
               _DetailRow(
                 label: l10n.detailFileSize,
-                value: _formatFileSize(details.fileSize),
+                value: details.fileSize > 0 ? _formatFileSize(details.fileSize) : '—',
               ),
               _DetailRow(
                 label: l10n.detailBitrate,
-                value: '${(details.bitrate / 1000).round()} kbps',
+                value: details.bitrate > 0 ? '${(details.bitrate / 1000).round()} kbps' : '—',
               ),
               _DetailRow(
                 label: l10n.detailSampleRate,
-                value: '${details.sampleRate} Hz',
+                value: details.sampleRate > 0 ? '${details.sampleRate} Hz' : '—',
               ),
               _DetailRow(
                 label: l10n.detailChannels,
-                value: _formatChannels(details.channels, l10n),
+                value: details.channels > 0 ? _formatChannels(details.channels, l10n) : '—',
               ),
               if (details.bitDepth != null && details.bitDepth! > 0)
                 _DetailRow(
@@ -238,6 +254,34 @@ class _SongDetailsDialogState extends ConsumerState<_SongDetailsDialog> {
                   const SizedBox(height: 8),
                   // Attributes table
                   ...rows,
+                  if (isUncachedCloud) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              l10n.remoteAudioNotCachedHint,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             );

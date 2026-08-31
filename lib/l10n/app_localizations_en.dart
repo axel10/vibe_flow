@@ -1911,6 +1911,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToLoadDetails => 'Failed to load details';
 
   @override
+  String get remoteAudioNotCachedHint =>
+      'This track is in the cloud and not cached locally. Stream or download it to view full audio properties.';
+
+  @override
   String get noPropertiesAvailable => 'No properties available';
 
   @override

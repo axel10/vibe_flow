@@ -742,6 +742,7 @@
   "resetOnboardingDesc": "Der Einführungsguide wird beim nächsten Start erneut angezeigt.",
   "songProperties": "Song-Eigenschaften",
   "failedToLoadDetails": "Details konnten nicht geladen werden",
+  "remoteAudioNotCachedHint": "Dieser Titel befindet sich in der Cloud und ist nicht lokal zwischengespeichert. Streamen oder laden Sie ihn herunter, um alle Audioeigenschaften anzuzeigen.",
   "noPropertiesAvailable": "Keine detaillierten Eigenschaften verfügbar",
   "detailFilePath": "Dateipfad",
   "detailFormat": "Format",

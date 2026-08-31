@@ -742,6 +742,7 @@
   "resetOnboardingDesc": "Le guide de bienvenue sera réaffiché au prochain démarrage.",
   "songProperties": "Propriétés de la chanson",
   "failedToLoadDetails": "Impossible de charger les détails",
+  "remoteAudioNotCachedHint": "Ce morceau est dans le cloud et n'est pas mis en cache localement. Écoutez-le ou téléchargez-le pour afficher les propriétés audio complètes.",
   "noPropertiesAvailable": "Aucune propriété disponible",
   "detailFilePath": "Chemin du fichier",
   "detailFormat": "Format",

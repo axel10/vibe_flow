@@ -1848,6 +1848,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get failedToLoadDetails => '无法获取详细信息';
 
   @override
+  String get remoteAudioNotCachedHint => '此歌曲位于云端且未完全缓存，播放或下载后可解析完整声学参数。';
+
+  @override
   String get noPropertiesAvailable => '暂无歌曲详细属性';
 
   @override
@@ -6024,6 +6027,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get failedToLoadDetails => '無法取得詳細資訊';
+
+  @override
+  String get remoteAudioNotCachedHint => '此歌曲位於雲端且未完全快取，播放或下載後可解析完整聲學參數。';
 
   @override
   String get noPropertiesAvailable => '暫無歌曲詳細屬性';

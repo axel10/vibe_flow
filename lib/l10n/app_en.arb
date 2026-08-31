@@ -747,6 +747,7 @@
   "resetOnboardingDesc": "Clear the onboarding status. The welcome guide will be shown again on next startup.",
   "songProperties": "Song Properties",
   "failedToLoadDetails": "Failed to load details",
+  "remoteAudioNotCachedHint": "This track is in the cloud and not cached locally. Stream or download it to view full audio properties.",
   "noPropertiesAvailable": "No properties available",
   "detailFilePath": "File Path",
   "detailFormat": "Format",

@@ -742,6 +742,7 @@
   "resetOnboardingDesc": "Limpiar el estado de la guía de inicio. Se volverá a mostrar al reiniciar la aplicación.",
   "songProperties": "Propiedades de la canción",
   "failedToLoadDetails": "No se pudieron cargar los detalles",
+  "remoteAudioNotCachedHint": "Esta pista está en la nube y no está en caché local. Transmítela o descárgala para ver las propiedades de audio completas.",
   "noPropertiesAvailable": "No hay propiedades detalladas disponibles",
   "detailFilePath": "Ruta del archivo",
   "detailFormat": "Formato",

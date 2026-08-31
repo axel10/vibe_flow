@@ -1934,6 +1934,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get failedToLoadDetails => 'Details konnten nicht geladen werden';
 
   @override
+  String get remoteAudioNotCachedHint =>
+      'Dieser Titel befindet sich in der Cloud und ist nicht lokal zwischengespeichert. Streamen oder laden Sie ihn herunter, um alle Audioeigenschaften anzuzeigen.';
+
+  @override
   String get noPropertiesAvailable =>
       'Keine detaillierten Eigenschaften verfügbar';
 

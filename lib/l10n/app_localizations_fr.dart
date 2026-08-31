@@ -1939,6 +1939,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get failedToLoadDetails => 'Impossible de charger les détails';
 
   @override
+  String get remoteAudioNotCachedHint =>
+      'Ce morceau est dans le cloud et n\'est pas mis en cache localement. Écoutez-le ou téléchargez-le pour afficher les propriétés audio complètes.';
+
+  @override
   String get noPropertiesAvailable => 'Aucune propriété disponible';
 
   @override

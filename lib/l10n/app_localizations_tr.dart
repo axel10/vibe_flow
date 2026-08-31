@@ -1917,6 +1917,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get failedToLoadDetails => 'Ayrıntılar alınamadı';
 
   @override
+  String get remoteAudioNotCachedHint =>
+      'Bu parça bulutta ve yerel olarak önbelleğe alınmamış. Tüm ses özelliklerini görmek için parçayı çalın veya indirin.';
+
+  @override
   String get noPropertiesAvailable => 'Ayrıntılı şarkı özelliği bulunamadı';
 
   @override

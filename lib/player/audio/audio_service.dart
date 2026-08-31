@@ -2591,6 +2591,19 @@ class AudioService extends Notifier<AudioSnapshot> {
   }
 
   Future<AudioDetails> getAudioDetails({required String path}) async {
+    if (RemoteMediaResolver.isRemoteUri(path)) {
+      final info = RemoteMediaResolver.parseUri(path);
+      if (info != null) {
+        final cacheKey = '${info.serverId}:${info.trackIdOrPath}';
+        final isCached = await _player.streamCacheManager.isTrackCached(cacheKey);
+        if (isCached) {
+          final cacheFile = await _player.streamCacheManager.getCacheFile(cacheKey);
+          if (await cacheFile.exists()) {
+            return _player.engine.getAudioDetails(path: cacheFile.path);
+          }
+        }
+      }
+    }
     return _player.engine.getAudioDetails(path: path);
   }
 

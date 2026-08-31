@@ -3609,6 +3609,12 @@ abstract class AppLocalizations {
   /// **'无法获取详细信息'**
   String get failedToLoadDetails;
 
+  /// No description provided for @remoteAudioNotCachedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'此歌曲位于云端且未完全缓存，播放或下载后可解析完整声学参数。'**
+  String get remoteAudioNotCachedHint;
+
   /// No description provided for @noPropertiesAvailable.
   ///
   /// In zh, this message translates to:

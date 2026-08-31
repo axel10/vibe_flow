@@ -820,6 +820,7 @@
   "resetOnboardingDesc": "İlk açılış rehberi durumunu sıfırlar. Uygulama bir sonraki başlatmada başlangıç rehberini tekrar gösterir.",
   "songProperties": "Şarkı Özellikleri",
   "failedToLoadDetails": "Ayrıntılar alınamadı",
+  "remoteAudioNotCachedHint": "Bu parça bulutta ve yerel olarak önbelleğe alınmamış. Tüm ses özelliklerini görmek için parçayı çalın veya indirin.",
   "noPropertiesAvailable": "Ayrıntılı şarkı özelliği bulunamadı",
   "detailFilePath": "Dosya Yolu",
   "detailFormat": "Format",
