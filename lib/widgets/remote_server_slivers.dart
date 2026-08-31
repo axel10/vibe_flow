@@ -368,6 +368,7 @@ class RemoteServersSectionHeaderSliver extends StatelessWidget {
 class RemoteServersSliver extends ConsumerWidget {
   final List<RemoteServer> servers;
   final FolderViewMode viewMode;
+  final bool isSortMode;
   final void Function(RemoteServer server) onOpenServer;
   final double bottomPadding;
 
@@ -375,6 +376,7 @@ class RemoteServersSliver extends ConsumerWidget {
     super.key,
     required this.servers,
     required this.viewMode,
+    this.isSortMode = false,
     required this.onOpenServer,
     this.bottomPadding = 160.0,
   });
@@ -399,6 +401,59 @@ class RemoteServersSliver extends ConsumerWidget {
             crossAxisCount,
           );
 
+          if (isSortMode) {
+            return SliverPadding(
+              padding: EdgeInsets.only(
+                top: 8,
+                bottom: bottomPadding,
+                left: 16,
+                right: 16,
+              ),
+              sliver: SliverToBoxAdapter(
+                child: ReorderableBuilder(
+                  onReorder: (ReorderedListFunction reorderedListFunction) {
+                    final reordered =
+                        reorderedListFunction(servers) as List<RemoteServer>;
+                    ref
+                        .read(remoteServersProvider.notifier)
+                        .reorderServers(reordered);
+                  },
+                  builder: (children) {
+                    return GridView(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: childAspectRatio,
+                      ),
+                      children: children,
+                    );
+                  },
+                  children: servers.map((server) {
+                    return HoverableCard(
+                      key: ValueKey('server_${server.id}'),
+                      child: RemoteServerGridCard(
+                        server: server,
+                        onTap: null,
+                        onSecondaryTapDown: (details) {
+                          showRemoteServerContextMenu(
+                            context: context,
+                            position: details.globalPosition,
+                            server: server,
+                            ref: ref,
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          }
+
           return SliverPadding(
             padding: EdgeInsets.only(
               top: 8,
@@ -406,32 +461,17 @@ class RemoteServersSliver extends ConsumerWidget {
               left: 16,
               right: 16,
             ),
-            sliver: SliverToBoxAdapter(
-              child: ReorderableBuilder(
-                onReorder: (ReorderedListFunction reorderedListFunction) {
-                  final reordered =
-                      reorderedListFunction(servers) as List<RemoteServer>;
-                  ref
-                      .read(remoteServersProvider.notifier)
-                      .reorderServers(reordered);
-                },
-                builder: (children) {
-                  return GridView(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: childAspectRatio,
-                    ),
-                    children: children,
-                  );
-                },
-                children: servers.map((server) {
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final server = servers[index];
                   return HoverableCard(
-                    key: ValueKey('server_${server.id}'),
                     child: RemoteServerGridCard(
                       server: server,
                       onTap: () => onOpenServer(server),
@@ -445,7 +485,8 @@ class RemoteServersSliver extends ConsumerWidget {
                       },
                     ),
                   );
-                }).toList(),
+                },
+                childCount: servers.length,
               ),
             ),
           );
@@ -454,6 +495,59 @@ class RemoteServersSliver extends ConsumerWidget {
     } else {
       final isPortrait =
           MediaQuery.of(context).orientation == Orientation.portrait;
+
+      if (isSortMode) {
+        return SliverPadding(
+          padding: EdgeInsets.only(top: 0, bottom: bottomPadding),
+          sliver: SliverReorderableList(
+            itemCount: servers.length,
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) newIndex--;
+              final reordered = List<RemoteServer>.from(servers);
+              final item = reordered.removeAt(oldIndex);
+              reordered.insert(newIndex, item);
+              ref
+                  .read(remoteServersProvider.notifier)
+                  .reorderServers(reordered);
+            },
+            itemBuilder: (context, index) {
+              final server = servers[index];
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('sort_server_${server.id}'),
+                index: index,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isPortrait ? 8 : 16,
+                    vertical: 4,
+                  ),
+                  child: RemoteServerListTile(
+                    server: server,
+                    onTap: null,
+                    trailing: ReorderableDragStartListener(
+                      index: index,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.drag_handle_rounded,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ),
+                    onSecondaryTapDown: (details) {
+                      showRemoteServerContextMenu(
+                        context: context,
+                        position: details.globalPosition,
+                        server: server,
+                        ref: ref,
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
 
       return SliverPadding(
         padding: EdgeInsets.only(top: 0, bottom: bottomPadding),
@@ -671,6 +765,7 @@ class RemoteServerListTile extends StatelessWidget {
   final VoidCallback? onLongPress;
   final void Function(LongPressStartDetails)? onLongPressStart;
   final void Function(TapDownDetails)? onSecondaryTapDown;
+  final Widget? trailing;
 
   const RemoteServerListTile({
     super.key,
@@ -679,6 +774,7 @@ class RemoteServerListTile extends StatelessWidget {
     this.onLongPress,
     this.onLongPressStart,
     this.onSecondaryTapDown,
+    this.trailing,
   });
 
   @override
@@ -792,11 +888,12 @@ class RemoteServerListTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 13,
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                ),
+                trailing ??
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 13,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
               ],
             ),
           ),

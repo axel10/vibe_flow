@@ -341,14 +341,22 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
                   child: Row(
                     children: [
                       Icon(
-                        Icons.sort,
+                        widget.isSortActive ? Icons.check_rounded : Icons.sort,
                         size: 20,
                         color: widget.isSortActive
                             ? Theme.of(context).colorScheme.primary
                             : null,
                       ),
                       const SizedBox(width: 12),
-                      Text(l10n.sort),
+                      Text(
+                        l10n.sort,
+                        style: widget.isSortActive
+                            ? TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              )
+                            : null,
+                      ),
                     ],
                   ),
                 ),
@@ -425,7 +433,10 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
               ),
             ),
             Material(
-              color: Colors.transparent,
+              color: widget.isSortActive
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
               child: InkResponse(
                 radius: 18,
                 highlightShape: BoxShape.circle,
@@ -433,7 +444,7 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
                 child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: Icon(
-                    Icons.sort,
+                    widget.isSortActive ? Icons.check_rounded : Icons.sort,
                     size: 20,
                     color: widget.isSortActive
                         ? Theme.of(context).colorScheme.primary

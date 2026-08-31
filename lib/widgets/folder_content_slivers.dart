@@ -114,6 +114,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
   final FolderViewMode viewMode;
   final ScannerService scanner;
   final bool isSelectionMode;
+  final bool isSortMode;
   final Set<String> selectedFolderPaths;
   final bool isRoot;
   final bool showSystemMedia;
@@ -133,6 +134,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
     required this.viewMode,
     required this.scanner,
     this.isSelectionMode = false,
+    this.isSortMode = false,
     this.selectedFolderPaths = const {},
     this.isRoot = false,
     this.showSystemMedia = false,
@@ -170,7 +172,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
 
           final paddingBottom = bottomPadding ?? (isRoot ? 160.0 : 0.0);
 
-          if (isRoot) {
+          if (isRoot && isSortMode && !isSelectionMode) {
             final List<MusicFolder> allFoldersWithSystem = [];
             final systemFolder = scanner.systemMediaFolder ??
                 MusicFolder(
@@ -237,15 +239,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
                             representativeSong: representativeSong,
                             subtitle:
                                 hasPermission ? null : systemMediaSubtitle,
-                            onTap: () async {
-                              if (!hasPermission) {
-                                await scanner
-                                    .checkAndRequestPermissions();
-                              }
-                              if (context.mounted) {
-                                onNavigateTo(systemFolder);
-                              }
-                            },
+                            onTap: null,
                           ),
                         ),
                       );
@@ -253,8 +247,6 @@ class FolderSubfoldersSliver extends StatelessWidget {
 
                     final isAvailable =
                         scanner.isRootPathAvailable(folder.path);
-                    final isSelected =
-                        selectedFolderPaths.contains(folder.path);
                     final representativeSong =
                         scanner.getRepresentativeSongForFolder(folder);
                     final songsCount =
@@ -269,22 +261,9 @@ class FolderSubfoldersSliver extends StatelessWidget {
                           folder: folder,
                           songsCount: songsCount,
                           representativeSong: representativeSong,
-                          isSelected: isSelected,
-                          isSelectionMode: isSelectionMode,
-                          onTap: isSelectionMode
-                              ? () =>
-                                  onToggleFolderSelection?.call(folder.path)
-                              : (isAvailable
-                                  ? () => onNavigateTo(folder)
-                                  : null),
-                          onLongPress: () {
-                            if (!isSelectionMode) {
-                              onToggleSelectionMode?.call();
-                              onToggleFolderSelection?.call(folder.path);
-                            } else {
-                              onToggleFolderSelection?.call(folder.path);
-                            }
-                          },
+                          isSelected: false,
+                          isSelectionMode: false,
+                          onTap: null,
                           onSecondaryTapDown: (details) {
                             onShowFolderContextMenu?.call(
                               folder,
@@ -337,14 +316,16 @@ class FolderSubfoldersSliver extends StatelessWidget {
                           songsCount: songsCount,
                           representativeSong: representativeSong,
                           subtitle: hasPermission ? null : systemMediaSubtitle,
-                          onTap: () async {
-                            if (!hasPermission) {
-                              await scanner.checkAndRequestPermissions();
-                            }
-                            if (context.mounted) {
-                              onNavigateTo(systemFolder);
-                            }
-                          },
+                          onTap: isSelectionMode
+                              ? null
+                              : () async {
+                                  if (!hasPermission) {
+                                    await scanner.checkAndRequestPermissions();
+                                  }
+                                  if (context.mounted) {
+                                    onNavigateTo(systemFolder);
+                                  }
+                                },
                         ),
                       ),
                     );
@@ -375,10 +356,10 @@ class FolderSubfoldersSliver extends StatelessWidget {
                             ? () => onToggleFolderSelection?.call(folder.path)
                             : (isAvailable ? () => onNavigateTo(folder) : null),
                         onLongPress: () {
-                          if (!isSelectionMode) {
+                          if (!isSelectionMode && !isSortMode) {
                             onToggleSelectionMode?.call();
                             onToggleFolderSelection?.call(folder.path);
-                          } else {
+                          } else if (isSelectionMode) {
                             onToggleFolderSelection?.call(folder.path);
                           }
                         },
@@ -406,6 +387,103 @@ class FolderSubfoldersSliver extends StatelessWidget {
       }
 
       final paddingBottom = bottomPadding ?? (isRoot ? 160.0 : 0.0);
+      final isPortrait =
+          MediaQuery.of(context).orientation == Orientation.portrait;
+
+      if (isRoot && isSortMode && !isSelectionMode) {
+        return SliverPadding(
+          padding: EdgeInsets.only(top: isRoot ? 0 : 8, bottom: paddingBottom),
+          sliver: SliverReorderableList(
+            itemCount: totalItemCount,
+            onReorder: (oldIndex, newIndex) {
+              if (showSystemMedia && (oldIndex == 0 || newIndex == 0)) return;
+              final realOld = showSystemMedia ? oldIndex - 1 : oldIndex;
+              var realNew = showSystemMedia ? newIndex - 1 : newIndex;
+              if (realNew > realOld) realNew--;
+              unawaited(scanner.moveRootPath(realOld, realNew));
+            },
+            itemBuilder: (context, index) {
+              if (showSystemMedia && index == 0) {
+                final systemFolder = scanner.systemMediaFolder ??
+                    MusicFolder(
+                      path: 'system',
+                      name: systemMediaTitle ?? '',
+                    );
+                final songsCount =
+                    scanner.getSongCountForFolder(systemFolder);
+                final representativeSong =
+                    scanner.getRepresentativeSongForFolder(systemFolder);
+
+                return ReorderableDelayedDragStartListener(
+                  key: const ValueKey('folder_system'),
+                  index: index,
+                  enabled: false,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isPortrait ? 8 : 16,
+                      vertical: 4,
+                    ),
+                    child: FolderListTile(
+                      folder: systemFolder,
+                      songsCount: songsCount,
+                      representativeSong: representativeSong,
+                      subtitle: hasPermission ? null : systemMediaSubtitle,
+                      onTap: null,
+                    ),
+                  ),
+                );
+              }
+
+              final folderIndex = showSystemMedia ? index - 1 : index;
+              final folder = folders[folderIndex];
+              final isAvailable = scanner.isRootPathAvailable(folder.path);
+              final representativeSong =
+                  scanner.getRepresentativeSongForFolder(folder);
+              final songsCount = scanner.getSongCountForFolder(folder);
+
+              return ReorderableDelayedDragStartListener(
+                key: ValueKey('sort_folder_${folder.path}'),
+                index: index,
+                child: AnimatedOpacity(
+                  opacity: isAvailable ? 1.0 : 0.45,
+                  duration: const Duration(milliseconds: 180),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isPortrait ? 8 : 16,
+                      vertical: 4,
+                    ),
+                    child: FolderListTile(
+                      folder: folder,
+                      songsCount: songsCount,
+                      representativeSong: representativeSong,
+                      isSelected: false,
+                      isSelectionMode: false,
+                      onTap: null,
+                      trailing: ReorderableDragStartListener(
+                        index: index,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(
+                            Icons.drag_handle_rounded,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                      onSecondaryTapDown: (details) {
+                        onShowFolderContextMenu?.call(
+                          folder,
+                          details.globalPosition,
+                          isRoot: isRoot,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
 
       return SliverPadding(
         padding: EdgeInsets.only(top: isRoot ? 0 : 8, bottom: paddingBottom),
@@ -422,8 +500,6 @@ class FolderSubfoldersSliver extends StatelessWidget {
                     scanner.getSongCountForFolder(systemFolder);
                 final representativeSong =
                     scanner.getRepresentativeSongForFolder(systemFolder);
-                final isPortrait =
-                    MediaQuery.of(context).orientation == Orientation.portrait;
 
                 return AnimatedOpacity(
                   opacity: 1.0,
@@ -438,14 +514,16 @@ class FolderSubfoldersSliver extends StatelessWidget {
                       songsCount: songsCount,
                       representativeSong: representativeSong,
                       subtitle: hasPermission ? null : systemMediaSubtitle,
-                      onTap: () async {
-                        if (!hasPermission) {
-                          await scanner.checkAndRequestPermissions();
-                        }
-                        if (context.mounted) {
-                          onNavigateTo(systemFolder);
-                        }
-                      },
+                      onTap: isSelectionMode
+                          ? null
+                          : () async {
+                              if (!hasPermission) {
+                                await scanner.checkAndRequestPermissions();
+                              }
+                              if (context.mounted) {
+                                onNavigateTo(systemFolder);
+                              }
+                            },
                     ),
                   ),
                 );
@@ -461,9 +539,6 @@ class FolderSubfoldersSliver extends StatelessWidget {
               final songsCount = isRoot
                   ? scanner.getSongCountForFolder(folder)
                   : folder.allSongs.length;
-
-              final isPortrait =
-                  MediaQuery.of(context).orientation == Orientation.portrait;
 
               return AnimatedOpacity(
                 opacity: isAvailable ? 1.0 : 0.45,
@@ -483,10 +558,10 @@ class FolderSubfoldersSliver extends StatelessWidget {
                         ? () => onToggleFolderSelection?.call(folder.path)
                         : (isAvailable ? () => onNavigateTo(folder) : null),
                     onLongPress: () {
-                      if (!isSelectionMode) {
+                      if (!isSelectionMode && !isSortMode) {
                         onToggleSelectionMode?.call();
                         onToggleFolderSelection?.call(folder.path);
-                      } else {
+                      } else if (isSelectionMode) {
                         onToggleFolderSelection?.call(folder.path);
                       }
                     },

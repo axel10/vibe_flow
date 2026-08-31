@@ -42,6 +42,7 @@ class FoldersPage extends ConsumerStatefulWidget {
 
 class FoldersPageState extends ConsumerState<FoldersPage> {
   bool _isSelectionMode = false;
+  bool _isRootSortMode = false;
   final Set<String> _selectedSongPaths = {};
   final Set<String> _selectedFolderPaths = {};
   final Set<String> _selectedRootPaths = {};
@@ -63,6 +64,12 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   bool handleBackPressed() {
+    if (_isRootSortMode) {
+      setState(() {
+        _isRootSortMode = false;
+      });
+      return true;
+    }
     if (_navigatorKey.currentState?.canPop() ?? false) {
       _navigatorKey.currentState?.maybePop();
       return true;
@@ -226,7 +233,26 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     );
   }
 
+  void _toggleRootSortMode() {
+    setState(() {
+      _isRootSortMode = !_isRootSortMode;
+      if (_isRootSortMode) {
+        _isSelectionMode = false;
+        _selectedSongPaths.clear();
+        _selectedFolderPaths.clear();
+        _selectedRootPaths.clear();
+        _setFolderSelectionMode(false);
+        _librarySelectionScopeController.clear();
+      }
+    });
+  }
+
   void _toggleRootSelectionMode() {
+    if (_isRootSortMode) {
+      setState(() {
+        _isRootSortMode = false;
+      });
+    }
     final enabled =
         ref.read(librarySelectionScopeProvider) !=
         LibrarySelectionScope.folderRoot;
@@ -240,7 +266,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     }
   }
 
-  void _clearAllSelection() {
+  void _clearAllSelection({bool clearSortMode = true}) {
     final shouldClearSongSelection =
         _isSelectionMode ||
         _selectedSongPaths.isNotEmpty ||
@@ -250,13 +276,18 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
         LibrarySelectionScope.folderRoot;
     final shouldClearRootSelection =
         isRootSelectionMode || _selectedRootPaths.isNotEmpty;
-    if (!shouldClearSongSelection && !shouldClearRootSelection) return;
+    if (!shouldClearSongSelection &&
+        !shouldClearRootSelection &&
+        (!clearSortMode || !_isRootSortMode)) return;
 
     setState(() {
       _isSelectionMode = false;
       _selectedSongPaths.clear();
       _selectedFolderPaths.clear();
       _selectedRootPaths.clear();
+      if (clearSortMode) {
+        _isRootSortMode = false;
+      }
     });
     _setFolderSelectionMode(false);
     _librarySelectionScopeController.clear();
@@ -745,10 +776,12 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
         child: FolderRootView(
           onOpenPlayback: widget.onOpenPlayback,
           isSelectionMode: _isSelectionMode,
+          isSortMode: _isRootSortMode,
           selectedRootPaths: _selectedRootPaths,
           onPickFolder: () => _pickFolder(scanner),
           onToggleRootSelection: _toggleRootSelection,
           onToggleRootSelectionMode: _toggleRootSelectionMode,
+          onToggleSortMode: _toggleRootSortMode,
           onDeleteSelectedRootFolders: () =>
               _deleteSelectedRootFolders(scanner),
           onNavigateTo: (folder) => _navigateTo(folder, scanner),
