@@ -312,6 +312,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
     // 3. Concurrently extract metadata with pool of 3
     final Map<String, SongMetadata> newMetas = {};
+    DateTime lastUiUpdate = DateTime.now();
     await WebDavMetadataHelper.processBatchMetadata(
       files: unparsedFiles,
       server: widget.server,
@@ -322,10 +323,22 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         if (!mounted || _loadEpoch != epoch) return;
         _metadataMap[virtualUri] = meta;
         newMetas[virtualUri] = meta;
-        ref.read(scannerServiceProvider).updateMetadataForPath(meta);
-        setState(() {});
+        ref.read(scannerServiceProvider).updateMetadataForPath(
+          meta,
+          notify: false,
+          syncTree: false,
+        );
+        final now = DateTime.now();
+        if (now.difference(lastUiUpdate).inMilliseconds > 150) {
+          lastUiUpdate = now;
+          setState(() {});
+        }
       },
     );
+
+    if (mounted && _loadEpoch == epoch) {
+      setState(() {});
+    }
 
     if (newMetas.isNotEmpty && mounted && _loadEpoch == epoch) {
       ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(

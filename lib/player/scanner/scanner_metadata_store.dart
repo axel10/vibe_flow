@@ -246,7 +246,12 @@ class ScannerMetadataStore {
       _onAlbumMetadataMutated();
     }
 
-    if (syncTree) {
+    final isRemote = metadata.path.startsWith('webdav://') ||
+        metadata.path.startsWith('subsonic://') ||
+        metadata.path.startsWith('http://') ||
+        metadata.path.startsWith('https://');
+
+    if (syncTree && !isRemote) {
       for (final root in _rootFolders()) {
         _updateMusicFileInFolder(
           root,
@@ -390,7 +395,11 @@ class ScannerMetadataStore {
       }
     }
     for (final subFolder in folder.subFolders) {
-      _updateMusicFileInFolder(subFolder, metadata, artworkBytes: artworkBytes);
+      _updateMusicFileInFolder(
+        subFolder,
+        metadata,
+        artworkBytes: artworkBytes,
+      );
     }
   }
 

@@ -3609,9 +3609,19 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  void updateMetadataForPath(SongMetadata metadata, {Uint8List? artworkBytes}) {
+  void updateMetadataForPath(
+    SongMetadata metadata, {
+    Uint8List? artworkBytes,
+    bool notify = true,
+    bool syncTree = true,
+  }) {
     _failedThumbnailPaths.remove(metadata.path);
-    _metadataStore.updateMetadataForPath(metadata, artworkBytes: artworkBytes);
+    _metadataStore.updateMetadataForPath(
+      metadata,
+      artworkBytes: artworkBytes,
+      notify: notify,
+      syncTree: syncTree,
+    );
   }
 
   void _emitScanProgress(

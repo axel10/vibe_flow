@@ -371,9 +371,20 @@ class PlaybackQueueProcessor {
             if (info != null) {
               try {
                 final rawKey = '${info.serverId}:${info.trackIdOrPath}';
-                final decodedKey = '${info.serverId}:${Uri.decodeFull(info.trackIdOrPath)}';
-                final encodedKey = '${info.serverId}:${Uri.encodeFull(info.trackIdOrPath)}';
-                for (final key in {rawKey, decodedKey, encodedKey}) {
+                String? decodedPath;
+                try {
+                  decodedPath = Uri.decodeFull(info.trackIdOrPath);
+                } catch (_) {}
+                String? encodedPath;
+                try {
+                  encodedPath = Uri.encodeFull(info.trackIdOrPath);
+                } catch (_) {}
+                final keys = <String>{
+                  rawKey,
+                  if (decodedPath != null) '${info.serverId}:$decodedPath',
+                  if (encodedPath != null) '${info.serverId}:$encodedPath',
+                };
+                for (final key in keys) {
                   final cacheFile = await player.streamCacheManager.getCacheFile(key);
                   if (await cacheFile.exists() && (await cacheFile.length()) > 0) {
                     final cachedResult = await MetadataHelper.processRemoteCachedMetadata(
@@ -509,11 +520,11 @@ class PlaybackQueueProcessor {
             await db.insertOrUpdateSong(meta);
           }
         }
-        }
-
-        // Small delay between songs to keep main thread snappy
-        await Future.delayed(const Duration(milliseconds: 300));
       }
+    }
+
+    // Small delay between songs to keep main thread snappy
+    await Future.delayed(const Duration(milliseconds: 300));
     } catch (e) {
       debugPrint('Error processing background song ${song.path}: $e');
     }
