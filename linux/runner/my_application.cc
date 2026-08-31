@@ -50,10 +50,15 @@ static void setup_app_icon_and_desktop(GtkWindow* window) {
           "[Desktop Entry]\n"
           "Type=Application\n"
           "Name=Vynody\n"
-          "Exec=%s\n"
+          "Comment=A beautiful and robust cross-platform music player built with Flutter\n"
+          "Exec=%s %%U\n"
           "Icon=%s\n"
+          "Terminal=false\n"
+          "StartupNotify=true\n"
+          "Categories=AudioVideo;Audio;Player;Music;\n"
+          "Keywords=music;audio;player;lyrics;tags;flac;mp3;lrc;\n"
           "StartupWMClass=%s\n"
-          "Terminal=false\n",
+          "MimeType=audio/aac;audio/x-aac;audio/vnd.dlna.adts;audio/m4a;audio/mp4;audio/x-m4a;audio/mpeg;audio/mpg;audio/mpeg3;audio/mp3;audio/x-mp3;audio/x-mpeg;audio/x-mpeg3;audio/ogg;audio/x-ogg;audio/opus;audio/x-opus;audio/wav;audio/x-wav;audio/flac;audio/x-flac;audio/x-aiff;audio/aiff;audio/x-caf;audio/midi;audio/x-midi;audio/webm;\n",
           exe_path, icon_path, APPLICATION_ID);
 
       g_file_set_contents(desktop_path, content, -1, nullptr);

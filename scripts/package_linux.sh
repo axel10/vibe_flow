@@ -62,13 +62,14 @@ Version=1.0
 Type=Application
 Name=$APP_NAME
 Comment=$APP_DESCRIPTION
-Exec=/usr/bin/$APP_SLUG
+Exec=/usr/bin/$APP_SLUG %U
 Icon=$APP_SLUG
 Terminal=false
 StartupNotify=true
 Categories=AudioVideo;Audio;Player;Music;
 Keywords=music;audio;player;lyrics;tags;flac;mp3;lrc;
 StartupWMClass=$APP_ID
+MimeType=audio/aac;audio/x-aac;audio/vnd.dlna.adts;audio/m4a;audio/mp4;audio/x-m4a;audio/mpeg;audio/mpg;audio/mpeg3;audio/mp3;audio/x-mp3;audio/x-mpeg;audio/x-mpeg3;audio/ogg;audio/x-ogg;audio/opus;audio/x-opus;audio/wav;audio/x-wav;audio/flac;audio/x-flac;audio/x-aiff;audio/aiff;audio/x-caf;audio/midi;audio/x-midi;audio/webm;
 EOF
 
 DEB_ARCH="$(dpkg --print-architecture)"
@@ -157,13 +158,14 @@ Version=1.0
 Type=Application
 Name=$APP_NAME
 Comment=$APP_DESCRIPTION
-Exec=$BINARY_NAME
+Exec=$BINARY_NAME %U
 Icon=$APP_SLUG
 Terminal=false
 StartupNotify=true
 Categories=AudioVideo;Audio;Player;Music;
 Keywords=music;audio;player;lyrics;tags;flac;mp3;lrc;
 StartupWMClass=$APP_ID
+MimeType=audio/aac;audio/x-aac;audio/vnd.dlna.adts;audio/m4a;audio/mp4;audio/x-m4a;audio/mpeg;audio/mpg;audio/mpeg3;audio/mp3;audio/x-mp3;audio/x-mpeg;audio/x-mpeg3;audio/ogg;audio/x-ogg;audio/opus;audio/x-opus;audio/wav;audio/x-wav;audio/flac;audio/x-flac;audio/x-aiff;audio/aiff;audio/x-caf;audio/midi;audio/x-midi;audio/webm;
 EOF
   chmod 0644 "$APPIMAGE_STAGE_DIR/$APP_ID.desktop"
   
