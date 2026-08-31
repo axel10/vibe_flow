@@ -1315,6 +1315,8 @@ class _SharingPageState extends ConsumerState<SharingPage>
                             ),
                             title: Text(
                               device.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: device.isOnline
                                     ? theme.colorScheme.onSurface
@@ -1326,12 +1328,16 @@ class _SharingPageState extends ConsumerState<SharingPage>
                             ),
                             subtitle: Row(
                               children: [
-                                Text(
-                                  device.ip,
-                                  style: TextStyle(
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.4),
-                                    fontSize: 11,
+                                Flexible(
+                                  child: Text(
+                                    device.ip,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.4),
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),

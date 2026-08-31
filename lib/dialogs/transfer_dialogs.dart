@@ -41,9 +41,11 @@ void showIncomingTransferDialog(BuildContext context, IncomingTransferRequest re
                 children: [
                   Icon(Icons.share, color: theme.colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text(
-                    l10n.incomingTransferRequestTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      l10n.incomingTransferRequestTitle,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -484,9 +486,11 @@ Future<String?> showConflictDialog(BuildContext context, String fileName) {
             children: [
               Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error),
               const SizedBox(width: 12),
-              Text(
-                l10n.fileConflictTitle,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Expanded(
+                child: Text(
+                  l10n.fileConflictTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ),
             ],
           ),
