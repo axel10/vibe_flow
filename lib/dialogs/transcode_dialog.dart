@@ -59,6 +59,7 @@ Future<void> showTranscodeDialog(
 
   final summary = await showModalBottomSheet<TranscodeSubmitSummary>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) => TranscodeDialog(songs: songs),

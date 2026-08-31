@@ -750,6 +750,7 @@ Future<void> _showAlbumContextMenu(
 
     final selected = await showModalBottomSheet<String>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
       isScrollControlled: true,

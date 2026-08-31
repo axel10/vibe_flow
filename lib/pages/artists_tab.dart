@@ -795,6 +795,7 @@ Future<void> _showArtistContextMenuForArtist(
 
   final selected = await showModalBottomSheet<String>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     elevation: 0,
     isScrollControlled: true,

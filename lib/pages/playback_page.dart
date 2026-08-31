@@ -302,6 +302,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => const EqualizerPanel(),
@@ -311,6 +312,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
   void _showSleepTimerSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => const SleepTimerSheet(),
@@ -337,6 +339,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     final popped =
         await showModalBottomSheet<(MusicBrainzTagSelectionResult, bool)>(
           context: context,
+          useRootNavigator: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (context) => SongTagCompletionSheet(
@@ -754,6 +757,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
   void _showPlaylistModeSelector(BuildContext context, AudioService audio) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => const PlaylistModeSheet(),

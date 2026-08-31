@@ -269,6 +269,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
   void _showPlaylistOptions(BuildContext context, Playlist playlist) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -304,6 +305,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (context) => SafeArea(
         child: ConstrainedBox(
@@ -367,6 +369,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       builder: (context) => SafeArea(
         child: ConstrainedBox(

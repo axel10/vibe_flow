@@ -32,6 +32,7 @@ Future<SongTagEditResult?> showSongTagEditSheet(
 }) {
   return showModalBottomSheet<SongTagEditResult>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (context) => SongTagEditSheet(song: song),
@@ -149,6 +150,7 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
 
     final action = await showModalBottomSheet<String>(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return BackdropFilter(
