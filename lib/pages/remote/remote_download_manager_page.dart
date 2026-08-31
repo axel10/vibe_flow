@@ -142,16 +142,17 @@ class _RemoteDownloadManagerPageState
         surfaceTintColor: Colors.transparent,
         title: Text(l10n.downloadManager),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.folder_outlined),
-            tooltip: l10n.downloadFolder,
-            onPressed: () async {
-              final notifier =
-                  ref.read(remoteDownloadTasksProvider.notifier);
-              final folder = await notifier.getDownloadFolderPath();
-              await openFolderLocation(folder);
-            },
-          ),
+          if (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+            IconButton(
+              icon: const Icon(Icons.folder_outlined),
+              tooltip: l10n.downloadFolder,
+              onPressed: () async {
+                final notifier =
+                    ref.read(remoteDownloadTasksProvider.notifier);
+                final folder = await notifier.getDownloadFolderPath();
+                await openFolderLocation(folder);
+              },
+            ),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -748,7 +749,10 @@ class _RemoteDownloadManagerPageState
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!isCancelled)
+          if (!isCancelled &&
+              (Platform.isWindows ||
+                  Platform.isMacOS ||
+                  Platform.isLinux))
             IconButton(
               icon: const Icon(Icons.folder_open_rounded),
               tooltip: l10n.openFolderLocation,
