@@ -77,14 +77,18 @@ class AppContextMenu {
                 : defaultIconColor.withValues(alpha: 0.4),
           ),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: textStyle ??
-                theme.textTheme.bodyMedium?.copyWith(
-                  color: enabled
-                      ? theme.colorScheme.onSurface
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textStyle ??
+                  theme.textTheme.bodyMedium?.copyWith(
+                    color: enabled
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
+            ),
           ),
         ],
       ),

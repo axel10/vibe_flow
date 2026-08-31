@@ -640,6 +640,56 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           ref.read(audioServiceProvider).enqueueNext(songsToAdd),
       onAddToQueue: () =>
           ref.read(audioServiceProvider).appendToQueue(songsToAdd),
+      onDownload: () {
+        if (songsToAdd.length > 1) {
+          final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+          final webDavFiles = <WebDavFile>[];
+          for (final song in songsToAdd) {
+            final uriInfo = RemoteMediaResolver.parseUri(song.path);
+            final remotePath = (uriInfo != null &&
+                    uriInfo.type == RemoteServerType.webdav)
+                ? uriInfo.trackIdOrPath
+                : null;
+            if (remotePath != null) {
+              webDavFiles.add(WebDavFile(
+                path: remotePath,
+                name: p.basename(remotePath),
+                isDirectory: false,
+                contentLength: 0,
+              ));
+            }
+          }
+          if (webDavFiles.isNotEmpty && mounted) {
+            notifier.enqueueWebDavFiles(
+              server: widget.server,
+              password: widget.password,
+              files: webDavFiles,
+            );
+            AppSnackBar.show(
+              context,
+              ref,
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context)!
+                      .batchAddedToDownloadQueue(webDavFiles.length),
+                ),
+                action: SnackBarAction(
+                  label: AppLocalizations.of(context)!.viewDownloadProgress,
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RemoteDownloadManagerPage(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          }
+        } else {
+          _downloadSingleAudio(file);
+        }
+      },
     );
   }
 

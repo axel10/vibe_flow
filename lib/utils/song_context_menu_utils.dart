@@ -116,6 +116,7 @@ Future<void> showSongContextMenu(
   VoidCallback? onAddToQueue,
   VoidCallback? onRemoveFromQueue,
   VoidCallback? onRemoveFromPlaylist,
+  VoidCallback? onDownload,
 }) async {
   final l10n = AppLocalizations.of(context)!;
 
@@ -157,6 +158,16 @@ Future<void> showSongContextMenu(
       ),
     );
   }
+  if (onDownload != null) {
+    items.add(
+      buildContextMenuItem<String>(
+        value: 'download',
+        label: l10n.download,
+        icon: Icons.download_rounded,
+        context: context,
+      ),
+    );
+  }
   if (onRemoveFromQueue != null) {
     items.add(
       buildContextMenuItem<String>(
@@ -181,6 +192,7 @@ Future<void> showSongContextMenu(
   final hasPlaybackActions =
       onPlayNext != null ||
       onAddToQueue != null ||
+      onDownload != null ||
       onRemoveFromQueue != null ||
       onRemoveFromPlaylist != null;
 
@@ -318,6 +330,9 @@ Future<void> showSongContextMenu(
     case 'add_to_queue':
       onAddToQueue?.call();
       break;
+    case 'download':
+      onDownload?.call();
+      break;
     case 'remove_from_queue':
       onRemoveFromQueue?.call();
       break;
@@ -431,8 +446,9 @@ PopupMenuItem<T> buildContextMenuItem<T>({
 Future<void> showSongBottomSheet(
   BuildContext context,
   WidgetRef ref,
-  MusicFile song,
-) async {
+  MusicFile song, {
+  VoidCallback? onDownload,
+}) async {
   final l10n = AppLocalizations.of(context)!;
   final theme = Theme.of(context);
   final audio = ref.read(audioServiceProvider);
@@ -535,6 +551,13 @@ Future<void> showSongBottomSheet(
                           label: l10n.addToQueue,
                           icon: Icons.queue_music_rounded,
                         ),
+                        if (onDownload != null)
+                          _buildBottomSheetItem(
+                            context: context,
+                            value: 'download',
+                            label: l10n.download,
+                            icon: Icons.download_rounded,
+                          ),
                         _buildBottomSheetItem(
                           context: context,
                           value: 'add_to_playlist',
@@ -598,6 +621,9 @@ Future<void> showSongBottomSheet(
       break;
     case 'add_to_queue':
       await audio.appendToQueue([song]);
+      break;
+    case 'download':
+      onDownload?.call();
       break;
     case 'add_to_playlist':
       await showAddSongsToPlaylistDialog(context, playlistService, [song]);

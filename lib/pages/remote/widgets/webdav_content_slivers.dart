@@ -65,25 +65,6 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
       );
     }
 
-    void openBottomSheet(WebDavFile folder) {
-      if (onShowFolderBottomSheet != null) {
-        onShowFolderBottomSheet!(folder);
-      } else {
-        showWebDavFolderBottomSheet(
-          context: context,
-          ref: ref,
-          server: server,
-          password: password,
-          folder: folder,
-          onOpen: () => onOpenFolder(folder),
-          onMultiSelect: (path) {
-            if (!isSelectionMode) onToggleSelectionMode?.call();
-            onToggleFolderSelection?.call(path);
-          },
-        );
-      }
-    }
-
     if (isGrid) {
       return SliverLayoutBuilder(
         builder: (context, constraints) {
@@ -165,27 +146,21 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
                   enableHero: false,
                   isSelected: isSelected,
                   isSelectionMode: isSelectionMode,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Builder(
-                        builder: (btnContext) {
-                          return IconButton(
-                            icon: const Icon(Icons.more_vert_rounded, size: 20),
-                            tooltip: 'More',
-                            onPressed: () {
-                              final box = btnContext.findRenderObject() as RenderBox?;
-                              final pos = box != null
-                                  ? box.localToGlobal(
-                                      Offset(box.size.width / 2, box.size.height / 2))
-                                  : Offset.zero;
-                              openContextMenu(folder, pos);
-                            },
-                          );
+                  trailing: Builder(
+                    builder: (btnContext) {
+                      return IconButton(
+                        icon: const Icon(Icons.more_vert_rounded, size: 20),
+                        tooltip: 'More',
+                        onPressed: () {
+                          final box = btnContext.findRenderObject() as RenderBox?;
+                          final pos = box != null
+                              ? box.localToGlobal(
+                                  Offset(box.size.width / 2, box.size.height / 2))
+                              : Offset.zero;
+                          openContextMenu(folder, pos);
                         },
-                      ),
-                      const Icon(Icons.chevron_right_rounded, size: 18),
-                    ],
+                      );
+                    },
                   ),
                   onTap: isSelectionMode
                       ? () => onToggleFolderSelection?.call(folder.path)
@@ -613,7 +588,7 @@ class WebDavSongGridCard extends ConsumerWidget {
   }
 }
 
-/// Rich List Tile widget for a WebDAV Song / Audio File, aligned with SongTile design.
+/// Rich List Tile widget for a WebDAV Song / Audio File, aligned with SongTile & FolderListTile design.
 class WebDavSongListTile extends ConsumerWidget {
   final WebDavFile file;
   final RemoteServer server;
@@ -651,6 +626,7 @@ class WebDavSongListTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final isAudio = file.isAudio;
     final remoteUri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
     final isCurrent = currentMusicPath == remoteUri;
@@ -686,162 +662,225 @@ class WebDavSongListTile extends ConsumerWidget {
     if (sizeStr.isNotEmpty) techParts.add(sizeStr);
     final techInfoStr = techParts.join(' | ');
 
-    Widget leadingWidget;
+    Widget leadingContent;
     if (isAudio) {
-      leadingWidget = ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox(
-          width: 52,
-          height: 52,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              SongThumbnail(
-                path: remoteUri,
-                thumbnailPath: metadata?.thumbnailPath,
-                size: 52.0,
-              ),
-              if (isCurrent)
-                Container(
-                  color: Colors.black45,
-                  child: Center(
-                    child: PlayingEqualizerIcon(
-                      color: Colors.white,
-                      size: 18,
-                      isPlaying: isAudioPlaying,
-                    ),
-                  ),
-                ),
-              if (isSelectionMode)
-                Container(
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? theme.colorScheme.primaryContainer
-                            .withValues(alpha: 0.7)
-                        : Colors.black38,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      isSelected
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_off_rounded,
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : Colors.white70,
-                      size: 24,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
+      leadingContent = SongThumbnail(
+        path: remoteUri,
+        thumbnailPath: metadata?.thumbnailPath,
+        size: 56.0,
+        borderRadius: BorderRadius.zero,
       );
     } else {
-      leadingWidget = Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          Icons.insert_drive_file_outlined,
-          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          size: 26,
+      leadingContent = Container(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        child: Center(
+          child: Icon(
+            Icons.insert_drive_file_outlined,
+            size: 26,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
         ),
       );
     }
 
+    final leadingWidget = SizedBox(
+      width: 56,
+      height: 56,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Opacity(
+              opacity: isSelectionMode ? (isSelected ? 0.5 : 0.7) : 1.0,
+              child: leadingContent,
+            ),
+          ),
+          if (isCurrent)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                color: Colors.black45,
+                child: Center(
+                  child: PlayingEqualizerIcon(
+                    color: Colors.white,
+                    size: 18,
+                    isPlaying: isAudioPlaying,
+                  ),
+                ),
+              ),
+            ),
+          if (isSelectionMode)
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => onTap?.call(),
+                    fillColor: WidgetStateProperty.all(Colors.white),
+                    checkColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    final trailingWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isAudio && !isPortrait)
+          IconButton(
+            icon: Icon(
+              Icons.download_rounded,
+              size: 22,
+              color: isCurrent ? theme.colorScheme.primary : null,
+            ),
+            tooltip: 'Download',
+            onPressed: onDownload,
+          ),
+        Builder(
+          builder: (btnContext) {
+            return IconButton(
+              icon: Icon(
+                Icons.more_vert_rounded,
+                size: 20,
+                color: isCurrent ? theme.colorScheme.primary : null,
+              ),
+              tooltip: 'More',
+              onPressed: () {
+                onMorePressed?.call(btnContext);
+              },
+            );
+          },
+        ),
+      ],
+    );
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: onSecondaryTapDown,
-      onLongPress: onLongPress,
-      child: ListTile(
-        leading: leadingWidget,
-        title: Text(
-          titleText,
-          style: TextStyle(
-            color: isCurrent
-                ? theme.colorScheme.primary
-                : (isAudio
-                    ? null
-                    : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
-            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: isSelectionMode && isSelected
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
         ),
-        subtitle: isAudio
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            enableFeedback: false,
+            onTap: onTap,
+            onLongPress: onLongPress,
+            hoverColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isPortrait ? 12 : 16,
+                vertical: 8,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (artistAlbumStr != null) ...[
-                    Text(
-                      artistAlbumStr,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isCurrent
-                            ? theme.colorScheme.primary.withValues(alpha: 0.85)
-                            : theme.colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  leadingWidget,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            if (isCurrent) ...[
+                              PlayingEqualizerIcon(
+                                color: theme.colorScheme.primary,
+                                size: 14,
+                                isPlaying: isAudioPlaying,
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Expanded(
+                              child: Text(
+                                titleText,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: isCurrent
+                                      ? theme.colorScheme.primary
+                                      : (isAudio
+                                          ? theme.colorScheme.onSurface
+                                          : theme.colorScheme.onSurfaceVariant
+                                              .withValues(alpha: 0.6)),
+                                  fontWeight: isCurrent
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        if (isAudio) ...[
+                          if (artistAlbumStr != null) ...[
+                            Text(
+                              artistAlbumStr,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 12,
+                                color: isCurrent
+                                    ? theme.colorScheme.primary
+                                        .withValues(alpha: 0.85)
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1),
+                          ],
+                          Text(
+                            techInfoStr,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: isCurrent
+                                  ? theme.colorScheme.primary
+                                      .withValues(alpha: 0.7)
+                                  : theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.75),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ] else ...[
+                          Text(
+                            sizeStr,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 12,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(height: 1),
-                  ],
-                  Text(
-                    techInfoStr,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isCurrent
-                          ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                          : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(width: 16),
+                  trailingWidget,
                 ],
-              )
-            : Text(
-                sizeStr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
               ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isAudio)
-              IconButton(
-                icon: Icon(
-                  Icons.download_rounded,
-                  size: 22,
-                  color: isCurrent ? theme.colorScheme.primary : null,
-                ),
-                tooltip: 'Download',
-                onPressed: onDownload,
-              ),
-            Builder(
-              builder: (btnContext) {
-                return IconButton(
-                  icon: Icon(
-                    Icons.more_vert_rounded,
-                    size: 20,
-                    color: isCurrent ? theme.colorScheme.primary : null,
-                  ),
-                  tooltip: 'More',
-                  onPressed: () {
-                    onMorePressed?.call(btnContext);
-                  },
-                );
-              },
             ),
-          ],
+          ),
         ),
-        onTap: onTap,
       ),
     );
   }
