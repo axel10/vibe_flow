@@ -480,6 +480,7 @@
   "clearArtwork": "Clear Cover",
   "editSongTagsDescription": "You can save changes only in the app, or write them back to the source file as well.",
   "artistLabel": "Artist",
+  "albumArtistLabel": "Album Artist",
   "albumLabel": "Album",
   "trackNumberLabel": "Track Number",
   "trackNumberMustBeInteger": "Track number must be an integer",

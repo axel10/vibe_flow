@@ -1253,6 +1253,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get artistLabel => '아티스트';
 
   @override
+  String get albumArtistLabel => '앨범 아티스트';
+
+  @override
   String get albumLabel => '앨범';
 
   @override

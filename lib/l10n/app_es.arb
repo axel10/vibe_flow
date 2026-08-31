@@ -475,6 +475,7 @@
   "clearArtwork": "Limpiar carátula",
   "editSongTagsDescription": "Puedes guardar los cambios solo en la app o también escribirlos en el archivo fuente.",
   "artistLabel": "Artista",
+  "albumArtistLabel": "Artista del álbum",
   "albumLabel": "Álbum",
   "trackNumberLabel": "Número de pista",
   "trackNumberMustBeInteger": "El número de pista debe ser un entero",

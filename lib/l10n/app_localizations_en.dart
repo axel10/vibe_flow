@@ -1274,6 +1274,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artistLabel => 'Artist';
 
   @override
+  String get albumArtistLabel => 'Album Artist';
+
+  @override
   String get albumLabel => 'Album';
 
   @override

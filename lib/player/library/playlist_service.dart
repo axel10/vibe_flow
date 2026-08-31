@@ -392,6 +392,7 @@ class PlaylistService extends ChangeNotifier {
         playlist.songs[i] = song.copyWith(
           title: metadata.title,
           artist: metadata.artist,
+          albumArtist: metadata.albumArtist,
           album: metadata.album,
           trackNumber: metadata.trackNumber,
           thumbnailPath: isArtworkCleared ? null : (metadata.thumbnailPath ?? song.thumbnailPath),

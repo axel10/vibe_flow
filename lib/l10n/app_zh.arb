@@ -968,6 +968,7 @@
   "clearArtwork": "清除封面",
   "editSongTagsDescription": "修改后可以只保存到 App，也可以同步写回源文件。",
   "artistLabel": "艺术家",
+  "albumArtistLabel": "专辑艺术家",
   "albumLabel": "专辑",
   "trackNumberLabel": "曲目号",
   "trackNumberMustBeInteger": "曲目号必须是整数",

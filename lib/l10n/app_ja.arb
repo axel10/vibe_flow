@@ -475,6 +475,7 @@
   "clearArtwork": "カバーをクリア",
   "editSongTagsDescription": "変更内容はアプリ内のみに保存するか、ソースファイルにも書き戻すことができます。",
   "artistLabel": "アーティスト",
+  "albumArtistLabel": "アルバムアーティスト",
   "albumLabel": "アルバム",
   "trackNumberLabel": "トラック番号",
   "trackNumberMustBeInteger": "トラック番号は整数である必要があります",

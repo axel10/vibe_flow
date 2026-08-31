@@ -475,6 +475,7 @@
   "clearArtwork": "Effacer la pochette",
   "editSongTagsDescription": "Vous pouvez sauvegarder les modifications uniquement dans l'application ou les écrire dans le fichier source.",
   "artistLabel": "Artiste",
+  "albumArtistLabel": "Artiste de l'album",
   "albumLabel": "Album",
   "trackNumberLabel": "Numéro de piste",
   "trackNumberMustBeInteger": "Le numéro de piste doit être un entier",

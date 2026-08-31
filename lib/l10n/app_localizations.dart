@@ -2481,6 +2481,12 @@ abstract class AppLocalizations {
   /// **'艺术家'**
   String get artistLabel;
 
+  /// No description provided for @albumArtistLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'专辑艺术家'**
+  String get albumArtistLabel;
+
   /// No description provided for @albumLabel.
   ///
   /// In zh, this message translates to:

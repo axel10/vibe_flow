@@ -51,6 +51,7 @@ class SongTagEditSheet extends StatefulWidget {
 class _SongTagEditSheetState extends State<SongTagEditSheet> {
   late final TextEditingController _titleController;
   late final TextEditingController _artistController;
+  late final TextEditingController _albumArtistController;
   late final TextEditingController _albumController;
   late final TextEditingController _trackNumberController;
 
@@ -71,6 +72,9 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
     );
     _artistController = TextEditingController(
       text: widget.song.artist?.trim() ?? '',
+    );
+    _albumArtistController = TextEditingController(
+      text: widget.song.albumArtist?.trim() ?? '',
     );
     _albumController = TextEditingController(
       text: widget.song.album?.trim() ?? '',
@@ -216,6 +220,7 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
   void dispose() {
     _titleController.dispose();
     _artistController.dispose();
+    _albumArtistController.dispose();
     _albumController.dispose();
     _trackNumberController.dispose();
     super.dispose();
@@ -246,6 +251,7 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
       filePath: widget.song.path,
       title: _titleController.text.trim(),
       artist: _artistController.text.trim(),
+      albumArtist: _albumArtistController.text.trim(),
       album: _albumController.text.trim(),
       trackNumber: trackNumber,
       clearTrackNumber: trackNumberText.isEmpty,
@@ -434,6 +440,13 @@ class _SongTagEditSheetState extends State<SongTagEditSheet> {
                           controller: _artistController,
                           label: l10n.artistLabel,
                           icon: Icons.person_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildField(
+                          context: context,
+                          controller: _albumArtistController,
+                          label: l10n.albumArtistLabel,
+                          icon: Icons.groups_rounded,
                         ),
                         const SizedBox(height: 12),
                         _buildField(

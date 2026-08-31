@@ -1278,6 +1278,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get artistLabel => 'Sanatçı';
 
   @override
+  String get albumArtistLabel => 'Albüm Sanatçısı';
+
+  @override
   String get albumLabel => 'Albüm';
 
   @override

@@ -1241,6 +1241,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get artistLabel => '艺术家';
 
   @override
+  String get albumArtistLabel => '专辑艺术家';
+
+  @override
   String get albumLabel => '专辑';
 
   @override
@@ -5420,6 +5423,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get artistLabel => '藝術家';
+
+  @override
+  String get albumArtistLabel => '專輯藝術家';
 
   @override
   String get albumLabel => '專輯';

@@ -182,6 +182,7 @@ class _ArtistGroup {
         name: metadata.path.split(RegExp(r'[\\/]+')).last,
         title: metadata.title,
         artist: metadata.artist,
+        albumArtist: metadata.albumArtist,
         album: metadata.album,
         trackNumber: metadata.trackNumber,
         id: metadata.id,

@@ -723,6 +723,7 @@ class AudioService extends Notifier<AudioSnapshot> {
     return song.copyWith(
       title: metadata.title,
       artist: metadata.artist,
+      albumArtist: metadata.albumArtist,
       album: metadata.album,
       trackNumber: metadata.trackNumber,
       thumbnailPath: metadata.thumbnailPath,

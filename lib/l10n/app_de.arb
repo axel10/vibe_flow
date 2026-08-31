@@ -475,6 +475,7 @@
   "clearArtwork": "Cover entfernen",
   "editSongTagsDescription": "Änderungen können nur in der App oder auch in der Quelldatei gespeichert werden.",
   "artistLabel": "Künstler",
+  "albumArtistLabel": "Album-Künstler",
   "albumLabel": "Album",
   "trackNumberLabel": "Titelnummer",
   "trackNumberMustBeInteger": "Die Titelnummer muss eine ganze Zahl sein",

@@ -1249,6 +1249,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get artistLabel => 'アーティスト';
 
   @override
+  String get albumArtistLabel => 'アルバムアーティスト';
+
+  @override
   String get albumLabel => 'アルバム';
 
   @override

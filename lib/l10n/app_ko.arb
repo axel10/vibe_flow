@@ -475,6 +475,7 @@
   "clearArtwork": "커버 지우기",
   "editSongTagsDescription": "앱에만 변경사항을 저장하거나 소스 파일에도 다시 쓸 수 있습니다.",
   "artistLabel": "아티스트",
+  "albumArtistLabel": "앨범 아티스트",
   "albumLabel": "앨범",
   "trackNumberLabel": "트랙 번호",
   "trackNumberMustBeInteger": "트랙 번호는 정수여야 합니다",

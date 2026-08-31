@@ -123,7 +123,7 @@ class MetadataHelper {
       title: metadata.title,
       artist: metadata.artist,
       album: metadata.album,
-      albumArtist: metadata.albumArtist,
+      albumArtist: metadata.albumArtist ?? '',
       trackNumber: metadata.trackNumber,
       genres: metadata.genres ?? const <String>[],
       lyrics: lyrics,
@@ -168,6 +168,7 @@ class MetadataHelper {
     required String title,
     required String artist,
     required String album,
+    String? albumArtist,
     int? duration,
     int? trackNumber,
     bool clearTrackNumber = false,
@@ -300,6 +301,9 @@ class MetadataHelper {
       var updated = base.copyWith(
         title: _resolveText(title, base.title),
         artist: _resolveText(artist, base.artist),
+        albumArtist: albumArtist == null
+            ? base.albumArtist
+            : (albumArtist.trim().isEmpty ? null : albumArtist.trim()),
         album: _resolveText(album, base.album),
         duration: duration ?? base.duration,
         trackNumber: clearTrackNumber ? null : (trackNumber ?? base.trackNumber),

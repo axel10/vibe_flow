@@ -539,6 +539,7 @@
   "clearArtwork": "Kapağı Temizle",
   "editSongTagsDescription": "Değişiklikleri yalnızca uygulamaya kaydedebilir veya kaynak ses dosyasına da yazabilirsiniz.",
   "artistLabel": "Sanatçı",
+  "albumArtistLabel": "Albüm Sanatçısı",
   "albumLabel": "Albüm",
   "trackNumberLabel": "Parça Numarası",
   "trackNumberMustBeInteger": "Parça numarası bir tam sayı olmalıdır",
