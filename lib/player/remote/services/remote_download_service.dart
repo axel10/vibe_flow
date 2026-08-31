@@ -241,7 +241,49 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     required MusicFile song,
     required String baseFolder,
     RemoteServer? server,
+    String? webDavPath,
   }) async {
+    // 1. For WebDAV, preserve the exact directory hierarchy from the server
+    String? resolvedWebDavPath = webDavPath;
+    if (resolvedWebDavPath == null || resolvedWebDavPath.isEmpty) {
+      final info = RemoteMediaResolver.parseUri(song.path);
+      if (info != null && info.type == RemoteServerType.webdav) {
+        resolvedWebDavPath = info.trackIdOrPath;
+      }
+    }
+
+    if (resolvedWebDavPath != null && resolvedWebDavPath.isNotEmpty) {
+      var relPath = resolvedWebDavPath.trim();
+      try {
+        relPath = Uri.decodeFull(relPath);
+      } catch (_) {}
+
+      // Strip server customPath prefix if present (e.g. /dav or /webdav)
+      if (server?.customPath != null &&
+          server!.customPath!.trim().isNotEmpty &&
+          server.customPath!.trim() != '/') {
+        final cleanCustom =
+            server.customPath!.trim().replaceAll(RegExp(r'/+$'), '');
+        if (relPath == cleanCustom) {
+          relPath = '';
+        } else if (relPath.startsWith('$cleanCustom/')) {
+          relPath = relPath.substring(cleanCustom.length);
+        }
+      }
+
+      final segments = relPath
+          .split('/')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .map((s) => _sanitize(s, fallback: 'file'))
+          .toList();
+
+      if (segments.isNotEmpty) {
+        return p.joinAll([baseFolder, ...segments]);
+      }
+    }
+
+    // 2. Subsonic / generic remote tracks: organize by Artist / Album / Track
     final artist = _sanitize(song.artist, fallback: 'Unknown Artist');
     final album = _sanitize(song.album, fallback: 'Unknown Album');
     final trackNum = song.trackNumber;
@@ -261,12 +303,6 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     }
 
     final filename = '$trackPrefix$title$ext';
-
-    // If artist & album are unknown and it's a webdav server, organize under WebDAV folder
-    if (artist == 'Unknown Artist' && album == 'Unknown Album' && server != null) {
-      return p.join(baseFolder, 'WebDAV', _sanitize(server.name), filename);
-    }
-
     return p.join(baseFolder, artist, album, filename);
   }
 
@@ -405,6 +441,7 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
       song: song,
       baseFolder: baseFolder,
       server: server,
+      webDavPath: file.path,
     );
 
     final taskId = 'webdav_${server.id}_${file.path.hashCode}';

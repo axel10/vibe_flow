@@ -1376,6 +1376,33 @@ Future<List<MusicFile>> fetchWebDavFolderAudioFiles(
   }
 }
 
+/// Helper to recursively fetch all audio files in a WebDAV directory and its subdirectories.
+Future<List<WebDavFile>> fetchAllWebDavAudioFilesRecursive(
+  WebDavClient client,
+  String folderPath, {
+  int maxDepth = 10,
+}) async {
+  final List<WebDavFile> result = [];
+  final List<String> queue = [folderPath];
+  int depth = 0;
+
+  while (queue.isNotEmpty && depth < maxDepth) {
+    depth++;
+    final current = queue.removeAt(0);
+    try {
+      final items = await client.listFiles(current);
+      for (final item in items) {
+        if (item.isDirectory) {
+          queue.add(item.path);
+        } else if (item.isAudio) {
+          result.add(item);
+        }
+      }
+    } catch (_) {}
+  }
+  return result;
+}
+
 /// Shows context menu for a remote WebDAV file (audio or generic file).
 Future<void> showWebDavFileContextMenu({
   required BuildContext context,
@@ -2082,8 +2109,8 @@ Future<void> _handleWebDavFolderMenuSelection({
       break;
     case 'download_folder':
       try {
-        final list = await client.listFiles(folder.path);
-        final audioItems = list.where((i) => !i.isDirectory && i.isAudio).toList();
+        final audioItems =
+            await fetchAllWebDavAudioFilesRecursive(client, folder.path);
         if (audioItems.isEmpty) {
           showToast(l10n.noActiveDownloads);
           return;
