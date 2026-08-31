@@ -118,7 +118,8 @@ class SongTile extends ConsumerWidget {
         builder: (buttonContext) {
           return IconButton(
             icon: Icon(
-              Icons.more_vert,
+              Icons.more_vert_rounded,
+              size: 20,
               color: isCurrent && !isMissing
                   ? theme.colorScheme.primary
                   : null,

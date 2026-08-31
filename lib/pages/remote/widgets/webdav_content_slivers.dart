@@ -128,7 +128,12 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
     } else {
       final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
       return SliverPadding(
-        padding: const EdgeInsets.only(top: 8, bottom: 8),
+        padding: EdgeInsets.only(
+          top: 8,
+          bottom: 8,
+          left: isPortrait ? 4 : 8,
+          right: isPortrait ? 4 : 8,
+        ),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
@@ -136,8 +141,7 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
               final isSelected = selectedFolderPaths.contains(folder.path);
 
               return Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isPortrait ? 8 : 16,
+                padding: const EdgeInsets.symmetric(
                   vertical: 4,
                 ),
                 child: FolderListTile(
@@ -203,7 +207,6 @@ class WebDavSongsSliver extends ConsumerWidget {
   final void Function(WebDavFile)? onSongLongPress;
   final void Function(WebDavFile, TapDownDetails)? onSongSecondaryTapDown;
   final void Function(WebDavFile, BuildContext)? onSongMorePressed;
-  final void Function(WebDavFile) onDownloadSingle;
   final double bottomPadding;
 
   const WebDavSongsSliver({
@@ -222,7 +225,6 @@ class WebDavSongsSliver extends ConsumerWidget {
     this.onSongLongPress,
     this.onSongSecondaryTapDown,
     this.onSongMorePressed,
-    required this.onDownloadSingle,
     required this.bottomPadding,
   });
 
@@ -290,7 +292,12 @@ class WebDavSongsSliver extends ConsumerWidget {
     } else {
       final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
       return SliverPadding(
-        padding: const EdgeInsets.only(top: 8, bottom: 8),
+        padding: EdgeInsets.only(
+          top: 8,
+          bottom: 8,
+          left: isPortrait ? 4 : 8,
+          right: isPortrait ? 4 : 8,
+        ),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
@@ -301,8 +308,7 @@ class WebDavSongsSliver extends ConsumerWidget {
               final isSelected = selectedSongPaths.contains(uri);
 
               return Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isPortrait ? 8 : 16,
+                padding: const EdgeInsets.symmetric(
                   vertical: 4,
                 ),
                 child: WebDavSongListTile(
@@ -320,7 +326,6 @@ class WebDavSongsSliver extends ConsumerWidget {
                   onSecondaryTapDown: (details) =>
                       onSongSecondaryTapDown?.call(file, details),
                   onMorePressed: (ctx) => onSongMorePressed?.call(file, ctx),
-                  onDownload: () => onDownloadSingle(file),
                 ),
               );
             },
@@ -603,7 +608,6 @@ class WebDavSongListTile extends ConsumerWidget {
   final VoidCallback? onLongPress;
   final void Function(TapDownDetails)? onSecondaryTapDown;
   final void Function(BuildContext)? onMorePressed;
-  final VoidCallback onDownload;
 
   const WebDavSongListTile({
     super.key,
@@ -620,7 +624,6 @@ class WebDavSongListTile extends ConsumerWidget {
     this.onLongPress,
     this.onSecondaryTapDown,
     this.onMorePressed,
-    required this.onDownload,
   });
 
   @override
@@ -733,35 +736,20 @@ class WebDavSongListTile extends ConsumerWidget {
       ),
     );
 
-    final trailingWidget = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isAudio && !isPortrait)
-          IconButton(
-            icon: Icon(
-              Icons.download_rounded,
-              size: 22,
-              color: isCurrent ? theme.colorScheme.primary : null,
-            ),
-            tooltip: 'Download',
-            onPressed: onDownload,
+    final trailingWidget = Builder(
+      builder: (btnContext) {
+        return IconButton(
+          icon: Icon(
+            Icons.more_vert_rounded,
+            size: 20,
+            color: isCurrent ? theme.colorScheme.primary : null,
           ),
-        Builder(
-          builder: (btnContext) {
-            return IconButton(
-              icon: Icon(
-                Icons.more_vert_rounded,
-                size: 20,
-                color: isCurrent ? theme.colorScheme.primary : null,
-              ),
-              tooltip: 'More',
-              onPressed: () {
-                onMorePressed?.call(btnContext);
-              },
-            );
+          tooltip: 'More',
+          onPressed: () {
+            onMorePressed?.call(btnContext);
           },
-        ),
-      ],
+        );
+      },
     );
 
     return GestureDetector(

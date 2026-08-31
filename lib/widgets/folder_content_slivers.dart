@@ -392,7 +392,12 @@ class FolderSubfoldersSliver extends StatelessWidget {
 
       if (isRoot && isSortMode && !isSelectionMode) {
         return SliverPadding(
-          padding: EdgeInsets.only(top: isRoot ? 0 : 8, bottom: paddingBottom),
+          padding: EdgeInsets.only(
+            top: isRoot ? 0 : 8,
+            bottom: paddingBottom,
+            left: isPortrait ? 4 : 8,
+            right: isPortrait ? 4 : 8,
+          ),
           sliver: SliverReorderableList(
             itemCount: totalItemCount,
             onReorder: (oldIndex, newIndex) {
@@ -419,8 +424,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
                   index: index,
                   enabled: false,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isPortrait ? 8 : 16,
+                    padding: const EdgeInsets.symmetric(
                       vertical: 4,
                     ),
                     child: FolderListTile(
@@ -448,8 +452,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
                   opacity: isAvailable ? 1.0 : 0.45,
                   duration: const Duration(milliseconds: 180),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isPortrait ? 8 : 16,
+                    padding: const EdgeInsets.symmetric(
                       vertical: 4,
                     ),
                     child: FolderListTile(
@@ -486,7 +489,12 @@ class FolderSubfoldersSliver extends StatelessWidget {
       }
 
       return SliverPadding(
-        padding: EdgeInsets.only(top: isRoot ? 0 : 8, bottom: paddingBottom),
+        padding: EdgeInsets.only(
+          top: isRoot ? 0 : 8,
+          bottom: paddingBottom,
+          left: isPortrait ? 4 : 8,
+          right: isPortrait ? 4 : 8,
+        ),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
@@ -505,8 +513,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
                   opacity: 1.0,
                   duration: const Duration(milliseconds: 180),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isPortrait ? 8 : 16,
+                    padding: const EdgeInsets.symmetric(
                       vertical: 4,
                     ),
                     child: FolderListTile(
@@ -544,8 +551,7 @@ class FolderSubfoldersSliver extends StatelessWidget {
                 opacity: isAvailable ? 1.0 : 0.45,
                 duration: const Duration(milliseconds: 180),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isPortrait ? 8 : 16,
+                  padding: const EdgeInsets.symmetric(
                     vertical: 4,
                   ),
                   child: FolderListTile(
@@ -683,7 +689,12 @@ class FolderSongsSliver extends StatelessWidget {
           MediaQuery.of(context).orientation == Orientation.portrait;
 
       return SliverPadding(
-        padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
+        padding: EdgeInsets.only(
+          top: topPadding,
+          bottom: bottomPadding,
+          left: isPortrait ? 4 : 8,
+          right: isPortrait ? 4 : 8,
+        ),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, fileIndex) {
@@ -698,8 +709,7 @@ class FolderSongsSliver extends StatelessWidget {
                   onSongSecondaryTapDown(file, details);
                 },
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isPortrait ? 8 : 16,
+                  padding: const EdgeInsets.symmetric(
                     vertical: 4,
                   ),
                   child: SongTile(

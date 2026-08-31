@@ -253,8 +253,8 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
       padding: EdgeInsets.only(
         top: topPadding,
         bottom: 8,
-        left: 8,
-        right: 8,
+        left: isPortrait ? 8 : 16,
+        right: isPortrait ? 16 : 24,
       ),
       decoration: BoxDecoration(
         color: navBackgroundColor,
@@ -303,8 +303,6 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
           const SizedBox(width: 8),
           if (isPortrait)
             PopupMenuButton<String>(
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(),
               icon: Icon(
                 Icons.more_vert_rounded,
                 size: 20,
@@ -387,72 +385,58 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
             )
           else ...[
             if (currentMusic != null) ...[
-              Material(
-                color: Colors.transparent,
-                child: InkResponse(
-                  radius: 18,
-                  highlightShape: BoxShape.circle,
-                  onTap: widget.onLocateCurrentSong,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.my_location_rounded,
-                      size: 20,
-                      color: iconColor,
-                      shadows: shadows,
-                    ),
-                  ),
+              IconButton(
+                tooltip: l10n.locateCurrentSong,
+                icon: Icon(
+                  Icons.my_location_rounded,
+                  size: 20,
+                  color: iconColor,
+                  shadows: shadows,
                 ),
+                onPressed: widget.onLocateCurrentSong,
               ),
             ],
-            Material(
-              color: Colors.transparent,
-              child: InkResponse(
-                radius: 18,
-                highlightShape: BoxShape.circle,
-                onTap: () {
-                  settings.folderViewMode = switch (settings.folderViewMode) {
-                    FolderViewMode.list => FolderViewMode.hybrid,
-                    FolderViewMode.hybrid => FolderViewMode.grid,
-                    FolderViewMode.grid => FolderViewMode.list,
-                  };
+            IconButton(
+              tooltip: switch (settings.folderViewMode) {
+                FolderViewMode.list => l10n.hybridView,
+                FolderViewMode.hybrid => l10n.gridView,
+                FolderViewMode.grid => l10n.listView,
+              },
+              icon: Icon(
+                switch (settings.folderViewMode) {
+                  FolderViewMode.list => Icons.grid_view_rounded,
+                  FolderViewMode.hybrid => Icons.view_module_rounded,
+                  FolderViewMode.grid => Icons.view_list_rounded,
                 },
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(
-                    switch (settings.folderViewMode) {
-                      FolderViewMode.list => Icons.grid_view_rounded,
-                      FolderViewMode.hybrid => Icons.view_module_rounded,
-                      FolderViewMode.grid => Icons.view_list_rounded,
-                    },
-                    size: 20,
-                    color: iconColor,
-                    shadows: shadows,
-                  ),
-                ),
+                size: 20,
+                color: iconColor,
+                shadows: shadows,
               ),
+              onPressed: () {
+                settings.folderViewMode = switch (settings.folderViewMode) {
+                  FolderViewMode.list => FolderViewMode.hybrid,
+                  FolderViewMode.hybrid => FolderViewMode.grid,
+                  FolderViewMode.grid => FolderViewMode.list,
+                };
+              },
             ),
-            Material(
-              color: widget.isSortActive
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(18),
-              child: InkResponse(
-                radius: 18,
-                highlightShape: BoxShape.circle,
-                onTap: widget.onSortPressed,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(
-                    widget.isSortActive ? Icons.check_rounded : Icons.sort,
-                    size: 20,
-                    color: widget.isSortActive
-                        ? Theme.of(context).colorScheme.primary
-                        : iconColor,
-                    shadows: widget.isSortActive ? null : shadows,
-                  ),
-                ),
+            IconButton(
+              tooltip: l10n.sort,
+              style: widget.isSortActive
+                  ? IconButton.styleFrom(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.primaryContainer,
+                    )
+                  : null,
+              icon: Icon(
+                widget.isSortActive ? Icons.check_rounded : Icons.sort,
+                size: 20,
+                color: widget.isSortActive
+                    ? Theme.of(context).colorScheme.primary
+                    : iconColor,
+                shadows: widget.isSortActive ? null : shadows,
               ),
+              onPressed: widget.onSortPressed,
             ),
           ],
         ],

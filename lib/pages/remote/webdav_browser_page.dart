@@ -1185,7 +1185,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                       displayedItems,
                     );
                   },
-                  onDownloadSingle: _downloadSingleAudio,
                   bottomPadding: bottomOffset,
                 ),
 
@@ -1776,8 +1775,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           padding: EdgeInsets.only(
             top: topPadding,
             bottom: 8,
-            left: 8,
-            right: 8,
+            left: isPortrait ? 8 : 16,
+            right: isPortrait ? 16 : 24,
           ),
           decoration: BoxDecoration(
             color: navBackgroundColor,
@@ -1825,8 +1824,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               const SizedBox(width: 8),
               if (isPortrait)
                 PopupMenuButton<String>(
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(),
                   icon: Icon(
                     Icons.more_vert_rounded,
                     size: 20,
@@ -1917,97 +1914,72 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 )
               else ...[
                 if (isCurrentMusicInFolder) ...[
-                  Material(
-                    color: Colors.transparent,
-                    child: InkResponse(
-                      radius: 18,
-                      highlightShape: BoxShape.circle,
-                      onTap: _locateCurrentSong,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Icon(
-                          Icons.my_location_rounded,
-                          size: 20,
-                          color: iconColor,
-                          shadows: shadows,
-                        ),
-                      ),
+                  IconButton(
+                    tooltip: l10n.locateCurrentSong,
+                    icon: Icon(
+                      Icons.my_location_rounded,
+                      size: 20,
+                      color: iconColor,
+                      shadows: shadows,
                     ),
+                    onPressed: _locateCurrentSong,
                   ),
                 ],
-                Material(
-                  color: Colors.transparent,
-                  child: InkResponse(
-                    radius: 18,
-                    highlightShape: BoxShape.circle,
-                    onTap: () {
-                      settings.folderViewMode =
-                          switch (settings.folderViewMode) {
-                        FolderViewMode.list => FolderViewMode.hybrid,
-                        FolderViewMode.hybrid => FolderViewMode.grid,
-                        FolderViewMode.grid => FolderViewMode.list,
-                      };
+                IconButton(
+                  tooltip: switch (settings.folderViewMode) {
+                    FolderViewMode.list => l10n.hybridView,
+                    FolderViewMode.hybrid => l10n.gridView,
+                    FolderViewMode.grid => l10n.listView,
+                  },
+                  icon: Icon(
+                    switch (settings.folderViewMode) {
+                      FolderViewMode.list => Icons.grid_view_rounded,
+                      FolderViewMode.hybrid => Icons.view_module_rounded,
+                      FolderViewMode.grid => Icons.view_list_rounded,
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
+                    size: 20,
+                    color: iconColor,
+                    shadows: shadows,
+                  ),
+                  onPressed: () {
+                    settings.folderViewMode =
                         switch (settings.folderViewMode) {
-                          FolderViewMode.list => Icons.grid_view_rounded,
-                          FolderViewMode.hybrid =>
-                            Icons.view_module_rounded,
-                          FolderViewMode.grid => Icons.view_list_rounded,
-                        },
-                        size: 20,
-                        color: iconColor,
-                        shadows: shadows,
-                      ),
-                    ),
-                  ),
+                      FolderViewMode.list => FolderViewMode.hybrid,
+                      FolderViewMode.hybrid => FolderViewMode.grid,
+                      FolderViewMode.grid => FolderViewMode.list,
+                    };
+                  },
                 ),
-                Material(
-                  color: Colors.transparent,
-                  child: InkResponse(
-                    radius: 18,
-                    highlightShape: BoxShape.circle,
-                    onTap: () =>
-                        _loadDirectory(_currentPath, forceRefresh: true),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        Icons.refresh_rounded,
-                        size: 20,
-                        color: iconColor,
-                        shadows: shadows,
-                      ),
-                    ),
+                IconButton(
+                  tooltip: l10n.refreshResults,
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    size: 20,
+                    color: iconColor,
+                    shadows: shadows,
                   ),
+                  onPressed: () =>
+                      _loadDirectory(_currentPath, forceRefresh: true),
                 ),
-                Material(
-                  color: Colors.transparent,
-                  child: InkResponse(
-                    radius: 18,
-                    highlightShape: BoxShape.circle,
-                    onTap: () {
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(
-                          builder: (_) => const RemoteDownloadManagerPage(),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Badge(
-                        isLabelVisible: activeDownloadsCount > 0,
-                        label: Text('$activeDownloadsCount'),
-                        child: Icon(
-                          Icons.download_rounded,
-                          size: 20,
-                          color: iconColor,
-                          shadows: shadows,
-                        ),
-                      ),
+                IconButton(
+                  tooltip: l10n.downloadManager,
+                  icon: Badge(
+                    isLabelVisible: activeDownloadsCount > 0,
+                    label: Text('$activeDownloadsCount'),
+                    child: Icon(
+                      Icons.download_rounded,
+                      size: 20,
+                      color: iconColor,
+                      shadows: shadows,
                     ),
                   ),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RemoteDownloadManagerPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ],
