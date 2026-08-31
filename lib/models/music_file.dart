@@ -14,6 +14,7 @@ abstract class MusicFile with _$MusicFile {
     required String name,
     String? title,
     String? artist,
+    String? albumArtist,
     String? album,
     int? trackNumber,
     int? id, // System Media Library ID
@@ -87,6 +88,7 @@ abstract class MusicFile with _$MusicFile {
         other.name == name &&
         other.title == title &&
         other.artist == artist &&
+        other.albumArtist == albumArtist &&
         other.album == album &&
         other.trackNumber == trackNumber &&
         other.id == id &&
@@ -111,6 +113,7 @@ abstract class MusicFile with _$MusicFile {
         name,
         title,
         artist,
+        albumArtist,
         album,
         trackNumber,
         id,

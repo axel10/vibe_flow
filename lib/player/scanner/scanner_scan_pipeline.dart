@@ -190,6 +190,7 @@ class ScannerScanPipeline {
     String? fallbackTitle,
     String? fallbackAlbum,
     String? fallbackArtist,
+    String? fallbackAlbumArtist,
     int? fallbackDuration,
     int? fallbackTrackNumber,
   }) {
@@ -226,6 +227,10 @@ class ScannerScanPipeline {
           (hasError ? _cleanText(existing?.artist) : null) ??
           _cleanText(fallbackArtist) ??
           'Unknown Artist',
+      albumArtist:
+          _cleanText(result['albumArtist'] as String?) ??
+          (hasError ? _cleanText(existing?.albumArtist) : null) ??
+          _cleanText(fallbackAlbumArtist),
       duration:
           result['duration'] as int? ?? existing?.duration ?? fallbackDuration,
       trackNumber:

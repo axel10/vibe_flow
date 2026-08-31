@@ -3243,6 +3243,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     String? fallbackTitle,
     String? fallbackAlbum,
     String? fallbackArtist,
+    String? fallbackAlbumArtist,
     int? fallbackDuration,
     int? fallbackTrackNumber,
   }) {
@@ -3255,6 +3256,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       fallbackTitle: fallbackTitle,
       fallbackAlbum: fallbackAlbum,
       fallbackArtist: fallbackArtist,
+      fallbackAlbumArtist: fallbackAlbumArtist,
       fallbackDuration: fallbackDuration,
       fallbackTrackNumber: fallbackTrackNumber,
     );

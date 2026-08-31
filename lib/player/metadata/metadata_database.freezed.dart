@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SongMetadata implements DiagnosticableTreeMixin {
 
- int? get id; int? get mediaId; String get path; String get title; String get album; String get artist; int? get duration; String? get artworkPath; String? get thumbnailPath; int? get artworkWidth; int? get artworkHeight; int? get trackNumber; int? get sourceFlags; Uint8List? get themeColorsBlob; Uint8List? get waveformBlob; int? get lastModifiedTime; int? get metadataTextScanned; int? get metadataImgScanned; int? get createdAt; int? get deletedAt; List<String>? get genres; bool get isAppModified;
+ int? get id; int? get mediaId; String get path; String get title; String get album; String get artist; String? get albumArtist; int? get duration; String? get artworkPath; String? get thumbnailPath; int? get artworkWidth; int? get artworkHeight; int? get trackNumber; int? get sourceFlags; Uint8List? get themeColorsBlob; Uint8List? get waveformBlob; int? get lastModifiedTime; int? get metadataTextScanned; int? get metadataImgScanned; int? get createdAt; int? get deletedAt; List<String>? get genres; bool get isAppModified;
 /// Create a copy of SongMetadata
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,21 +26,21 @@ $SongMetadataCopyWith<SongMetadata> get copyWith => _$SongMetadataCopyWithImpl<S
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SongMetadata'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('mediaId', mediaId))..add(DiagnosticsProperty('path', path))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('album', album))..add(DiagnosticsProperty('artist', artist))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('artworkPath', artworkPath))..add(DiagnosticsProperty('thumbnailPath', thumbnailPath))..add(DiagnosticsProperty('artworkWidth', artworkWidth))..add(DiagnosticsProperty('artworkHeight', artworkHeight))..add(DiagnosticsProperty('trackNumber', trackNumber))..add(DiagnosticsProperty('sourceFlags', sourceFlags))..add(DiagnosticsProperty('themeColorsBlob', themeColorsBlob))..add(DiagnosticsProperty('waveformBlob', waveformBlob))..add(DiagnosticsProperty('lastModifiedTime', lastModifiedTime))..add(DiagnosticsProperty('metadataTextScanned', metadataTextScanned))..add(DiagnosticsProperty('metadataImgScanned', metadataImgScanned))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('deletedAt', deletedAt))..add(DiagnosticsProperty('genres', genres))..add(DiagnosticsProperty('isAppModified', isAppModified));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('mediaId', mediaId))..add(DiagnosticsProperty('path', path))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('album', album))..add(DiagnosticsProperty('artist', artist))..add(DiagnosticsProperty('albumArtist', albumArtist))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('artworkPath', artworkPath))..add(DiagnosticsProperty('thumbnailPath', thumbnailPath))..add(DiagnosticsProperty('artworkWidth', artworkWidth))..add(DiagnosticsProperty('artworkHeight', artworkHeight))..add(DiagnosticsProperty('trackNumber', trackNumber))..add(DiagnosticsProperty('sourceFlags', sourceFlags))..add(DiagnosticsProperty('themeColorsBlob', themeColorsBlob))..add(DiagnosticsProperty('waveformBlob', waveformBlob))..add(DiagnosticsProperty('lastModifiedTime', lastModifiedTime))..add(DiagnosticsProperty('metadataTextScanned', metadataTextScanned))..add(DiagnosticsProperty('metadataImgScanned', metadataImgScanned))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('deletedAt', deletedAt))..add(DiagnosticsProperty('genres', genres))..add(DiagnosticsProperty('isAppModified', isAppModified));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SongMetadata&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaId, mediaId) || other.mediaId == mediaId)&&(identical(other.path, path) || other.path == path)&&(identical(other.title, title) || other.title == title)&&(identical(other.album, album) || other.album == album)&&(identical(other.artist, artist) || other.artist == artist)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.artworkPath, artworkPath) || other.artworkPath == artworkPath)&&(identical(other.thumbnailPath, thumbnailPath) || other.thumbnailPath == thumbnailPath)&&(identical(other.artworkWidth, artworkWidth) || other.artworkWidth == artworkWidth)&&(identical(other.artworkHeight, artworkHeight) || other.artworkHeight == artworkHeight)&&(identical(other.trackNumber, trackNumber) || other.trackNumber == trackNumber)&&(identical(other.sourceFlags, sourceFlags) || other.sourceFlags == sourceFlags)&&const DeepCollectionEquality().equals(other.themeColorsBlob, themeColorsBlob)&&const DeepCollectionEquality().equals(other.waveformBlob, waveformBlob)&&(identical(other.lastModifiedTime, lastModifiedTime) || other.lastModifiedTime == lastModifiedTime)&&(identical(other.metadataTextScanned, metadataTextScanned) || other.metadataTextScanned == metadataTextScanned)&&(identical(other.metadataImgScanned, metadataImgScanned) || other.metadataImgScanned == metadataImgScanned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.isAppModified, isAppModified) || other.isAppModified == isAppModified));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SongMetadata&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaId, mediaId) || other.mediaId == mediaId)&&(identical(other.path, path) || other.path == path)&&(identical(other.title, title) || other.title == title)&&(identical(other.album, album) || other.album == album)&&(identical(other.artist, artist) || other.artist == artist)&&(identical(other.albumArtist, albumArtist) || other.albumArtist == albumArtist)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.artworkPath, artworkPath) || other.artworkPath == artworkPath)&&(identical(other.thumbnailPath, thumbnailPath) || other.thumbnailPath == thumbnailPath)&&(identical(other.artworkWidth, artworkWidth) || other.artworkWidth == artworkWidth)&&(identical(other.artworkHeight, artworkHeight) || other.artworkHeight == artworkHeight)&&(identical(other.trackNumber, trackNumber) || other.trackNumber == trackNumber)&&(identical(other.sourceFlags, sourceFlags) || other.sourceFlags == sourceFlags)&&const DeepCollectionEquality().equals(other.themeColorsBlob, themeColorsBlob)&&const DeepCollectionEquality().equals(other.waveformBlob, waveformBlob)&&(identical(other.lastModifiedTime, lastModifiedTime) || other.lastModifiedTime == lastModifiedTime)&&(identical(other.metadataTextScanned, metadataTextScanned) || other.metadataTextScanned == metadataTextScanned)&&(identical(other.metadataImgScanned, metadataImgScanned) || other.metadataImgScanned == metadataImgScanned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.isAppModified, isAppModified) || other.isAppModified == isAppModified));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,mediaId,path,title,album,artist,duration,artworkPath,thumbnailPath,artworkWidth,artworkHeight,trackNumber,sourceFlags,const DeepCollectionEquality().hash(themeColorsBlob),const DeepCollectionEquality().hash(waveformBlob),lastModifiedTime,metadataTextScanned,metadataImgScanned,createdAt,deletedAt,const DeepCollectionEquality().hash(genres),isAppModified]);
+int get hashCode => Object.hashAll([runtimeType,id,mediaId,path,title,album,artist,albumArtist,duration,artworkPath,thumbnailPath,artworkWidth,artworkHeight,trackNumber,sourceFlags,const DeepCollectionEquality().hash(themeColorsBlob),const DeepCollectionEquality().hash(waveformBlob),lastModifiedTime,metadataTextScanned,metadataImgScanned,createdAt,deletedAt,const DeepCollectionEquality().hash(genres),isAppModified]);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SongMetadata(id: $id, mediaId: $mediaId, path: $path, title: $title, album: $album, artist: $artist, duration: $duration, artworkPath: $artworkPath, thumbnailPath: $thumbnailPath, artworkWidth: $artworkWidth, artworkHeight: $artworkHeight, trackNumber: $trackNumber, sourceFlags: $sourceFlags, themeColorsBlob: $themeColorsBlob, waveformBlob: $waveformBlob, lastModifiedTime: $lastModifiedTime, metadataTextScanned: $metadataTextScanned, metadataImgScanned: $metadataImgScanned, createdAt: $createdAt, deletedAt: $deletedAt, genres: $genres, isAppModified: $isAppModified)';
+  return 'SongMetadata(id: $id, mediaId: $mediaId, path: $path, title: $title, album: $album, artist: $artist, albumArtist: $albumArtist, duration: $duration, artworkPath: $artworkPath, thumbnailPath: $thumbnailPath, artworkWidth: $artworkWidth, artworkHeight: $artworkHeight, trackNumber: $trackNumber, sourceFlags: $sourceFlags, themeColorsBlob: $themeColorsBlob, waveformBlob: $waveformBlob, lastModifiedTime: $lastModifiedTime, metadataTextScanned: $metadataTextScanned, metadataImgScanned: $metadataImgScanned, createdAt: $createdAt, deletedAt: $deletedAt, genres: $genres, isAppModified: $isAppModified)';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $SongMetadataCopyWith<$Res>  {
   factory $SongMetadataCopyWith(SongMetadata value, $Res Function(SongMetadata) _then) = _$SongMetadataCopyWithImpl;
 @useResult
 $Res call({
- int? id, int? mediaId, String path, String title, String album, String artist, int? duration, String? artworkPath, String? thumbnailPath, int? artworkWidth, int? artworkHeight, int? trackNumber, int? sourceFlags, Uint8List? themeColorsBlob, Uint8List? waveformBlob, int? lastModifiedTime, int? metadataTextScanned, int? metadataImgScanned, int? createdAt, int? deletedAt, List<String>? genres, bool isAppModified
+ int? id, int? mediaId, String path, String title, String album, String artist, String? albumArtist, int? duration, String? artworkPath, String? thumbnailPath, int? artworkWidth, int? artworkHeight, int? trackNumber, int? sourceFlags, Uint8List? themeColorsBlob, Uint8List? waveformBlob, int? lastModifiedTime, int? metadataTextScanned, int? metadataImgScanned, int? createdAt, int? deletedAt, List<String>? genres, bool isAppModified
 });
 
 
@@ -68,7 +68,7 @@ class _$SongMetadataCopyWithImpl<$Res>
 
 /// Create a copy of SongMetadata
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? mediaId = freezed,Object? path = null,Object? title = null,Object? album = null,Object? artist = null,Object? duration = freezed,Object? artworkPath = freezed,Object? thumbnailPath = freezed,Object? artworkWidth = freezed,Object? artworkHeight = freezed,Object? trackNumber = freezed,Object? sourceFlags = freezed,Object? themeColorsBlob = freezed,Object? waveformBlob = freezed,Object? lastModifiedTime = freezed,Object? metadataTextScanned = freezed,Object? metadataImgScanned = freezed,Object? createdAt = freezed,Object? deletedAt = freezed,Object? genres = freezed,Object? isAppModified = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? mediaId = freezed,Object? path = null,Object? title = null,Object? album = null,Object? artist = null,Object? albumArtist = freezed,Object? duration = freezed,Object? artworkPath = freezed,Object? thumbnailPath = freezed,Object? artworkWidth = freezed,Object? artworkHeight = freezed,Object? trackNumber = freezed,Object? sourceFlags = freezed,Object? themeColorsBlob = freezed,Object? waveformBlob = freezed,Object? lastModifiedTime = freezed,Object? metadataTextScanned = freezed,Object? metadataImgScanned = freezed,Object? createdAt = freezed,Object? deletedAt = freezed,Object? genres = freezed,Object? isAppModified = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,mediaId: freezed == mediaId ? _self.mediaId : mediaId // ignore: cast_nullable_to_non_nullable
@@ -76,7 +76,8 @@ as int?,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_n
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,album: null == album ? _self.album : album // ignore: cast_nullable_to_non_nullable
 as String,artist: null == artist ? _self.artist : artist // ignore: cast_nullable_to_non_nullable
-as String,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as String,albumArtist: freezed == albumArtist ? _self.albumArtist : albumArtist // ignore: cast_nullable_to_non_nullable
+as String?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as int?,artworkPath: freezed == artworkPath ? _self.artworkPath : artworkPath // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailPath: freezed == thumbnailPath ? _self.thumbnailPath : thumbnailPath // ignore: cast_nullable_to_non_nullable
 as String?,artworkWidth: freezed == artworkWidth ? _self.artworkWidth : artworkWidth // ignore: cast_nullable_to_non_nullable
@@ -177,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? mediaId,  String path,  String title,  String album,  String artist,  int? duration,  String? artworkPath,  String? thumbnailPath,  int? artworkWidth,  int? artworkHeight,  int? trackNumber,  int? sourceFlags,  Uint8List? themeColorsBlob,  Uint8List? waveformBlob,  int? lastModifiedTime,  int? metadataTextScanned,  int? metadataImgScanned,  int? createdAt,  int? deletedAt,  List<String>? genres,  bool isAppModified)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int? id,  int? mediaId,  String path,  String title,  String album,  String artist,  String? albumArtist,  int? duration,  String? artworkPath,  String? thumbnailPath,  int? artworkWidth,  int? artworkHeight,  int? trackNumber,  int? sourceFlags,  Uint8List? themeColorsBlob,  Uint8List? waveformBlob,  int? lastModifiedTime,  int? metadataTextScanned,  int? metadataImgScanned,  int? createdAt,  int? deletedAt,  List<String>? genres,  bool isAppModified)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SongMetadata() when $default != null:
-return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.artist,_that.duration,_that.artworkPath,_that.thumbnailPath,_that.artworkWidth,_that.artworkHeight,_that.trackNumber,_that.sourceFlags,_that.themeColorsBlob,_that.waveformBlob,_that.lastModifiedTime,_that.metadataTextScanned,_that.metadataImgScanned,_that.createdAt,_that.deletedAt,_that.genres,_that.isAppModified);case _:
+return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.artist,_that.albumArtist,_that.duration,_that.artworkPath,_that.thumbnailPath,_that.artworkWidth,_that.artworkHeight,_that.trackNumber,_that.sourceFlags,_that.themeColorsBlob,_that.waveformBlob,_that.lastModifiedTime,_that.metadataTextScanned,_that.metadataImgScanned,_that.createdAt,_that.deletedAt,_that.genres,_that.isAppModified);case _:
   return orElse();
 
 }
@@ -198,10 +199,10 @@ return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? mediaId,  String path,  String title,  String album,  String artist,  int? duration,  String? artworkPath,  String? thumbnailPath,  int? artworkWidth,  int? artworkHeight,  int? trackNumber,  int? sourceFlags,  Uint8List? themeColorsBlob,  Uint8List? waveformBlob,  int? lastModifiedTime,  int? metadataTextScanned,  int? metadataImgScanned,  int? createdAt,  int? deletedAt,  List<String>? genres,  bool isAppModified)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int? id,  int? mediaId,  String path,  String title,  String album,  String artist,  String? albumArtist,  int? duration,  String? artworkPath,  String? thumbnailPath,  int? artworkWidth,  int? artworkHeight,  int? trackNumber,  int? sourceFlags,  Uint8List? themeColorsBlob,  Uint8List? waveformBlob,  int? lastModifiedTime,  int? metadataTextScanned,  int? metadataImgScanned,  int? createdAt,  int? deletedAt,  List<String>? genres,  bool isAppModified)  $default,) {final _that = this;
 switch (_that) {
 case _SongMetadata():
-return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.artist,_that.duration,_that.artworkPath,_that.thumbnailPath,_that.artworkWidth,_that.artworkHeight,_that.trackNumber,_that.sourceFlags,_that.themeColorsBlob,_that.waveformBlob,_that.lastModifiedTime,_that.metadataTextScanned,_that.metadataImgScanned,_that.createdAt,_that.deletedAt,_that.genres,_that.isAppModified);case _:
+return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.artist,_that.albumArtist,_that.duration,_that.artworkPath,_that.thumbnailPath,_that.artworkWidth,_that.artworkHeight,_that.trackNumber,_that.sourceFlags,_that.themeColorsBlob,_that.waveformBlob,_that.lastModifiedTime,_that.metadataTextScanned,_that.metadataImgScanned,_that.createdAt,_that.deletedAt,_that.genres,_that.isAppModified);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -218,10 +219,10 @@ return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? mediaId,  String path,  String title,  String album,  String artist,  int? duration,  String? artworkPath,  String? thumbnailPath,  int? artworkWidth,  int? artworkHeight,  int? trackNumber,  int? sourceFlags,  Uint8List? themeColorsBlob,  Uint8List? waveformBlob,  int? lastModifiedTime,  int? metadataTextScanned,  int? metadataImgScanned,  int? createdAt,  int? deletedAt,  List<String>? genres,  bool isAppModified)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int? id,  int? mediaId,  String path,  String title,  String album,  String artist,  String? albumArtist,  int? duration,  String? artworkPath,  String? thumbnailPath,  int? artworkWidth,  int? artworkHeight,  int? trackNumber,  int? sourceFlags,  Uint8List? themeColorsBlob,  Uint8List? waveformBlob,  int? lastModifiedTime,  int? metadataTextScanned,  int? metadataImgScanned,  int? createdAt,  int? deletedAt,  List<String>? genres,  bool isAppModified)?  $default,) {final _that = this;
 switch (_that) {
 case _SongMetadata() when $default != null:
-return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.artist,_that.duration,_that.artworkPath,_that.thumbnailPath,_that.artworkWidth,_that.artworkHeight,_that.trackNumber,_that.sourceFlags,_that.themeColorsBlob,_that.waveformBlob,_that.lastModifiedTime,_that.metadataTextScanned,_that.metadataImgScanned,_that.createdAt,_that.deletedAt,_that.genres,_that.isAppModified);case _:
+return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.artist,_that.albumArtist,_that.duration,_that.artworkPath,_that.thumbnailPath,_that.artworkWidth,_that.artworkHeight,_that.trackNumber,_that.sourceFlags,_that.themeColorsBlob,_that.waveformBlob,_that.lastModifiedTime,_that.metadataTextScanned,_that.metadataImgScanned,_that.createdAt,_that.deletedAt,_that.genres,_that.isAppModified);case _:
   return null;
 
 }
@@ -233,7 +234,7 @@ return $default(_that.id,_that.mediaId,_that.path,_that.title,_that.album,_that.
 
 
 class _SongMetadata extends SongMetadata with DiagnosticableTreeMixin {
-  const _SongMetadata({this.id, this.mediaId, required this.path, required this.title, required this.album, required this.artist, this.duration, this.artworkPath, this.thumbnailPath, this.artworkWidth, this.artworkHeight, this.trackNumber, this.sourceFlags, this.themeColorsBlob, this.waveformBlob, this.lastModifiedTime, this.metadataTextScanned, this.metadataImgScanned, this.createdAt, this.deletedAt, final  List<String>? genres, this.isAppModified = false}): _genres = genres,super._();
+  const _SongMetadata({this.id, this.mediaId, required this.path, required this.title, required this.album, required this.artist, this.albumArtist, this.duration, this.artworkPath, this.thumbnailPath, this.artworkWidth, this.artworkHeight, this.trackNumber, this.sourceFlags, this.themeColorsBlob, this.waveformBlob, this.lastModifiedTime, this.metadataTextScanned, this.metadataImgScanned, this.createdAt, this.deletedAt, final  List<String>? genres, this.isAppModified = false}): _genres = genres,super._();
   
 
 @override final  int? id;
@@ -242,6 +243,7 @@ class _SongMetadata extends SongMetadata with DiagnosticableTreeMixin {
 @override final  String title;
 @override final  String album;
 @override final  String artist;
+@override final  String? albumArtist;
 @override final  int? duration;
 @override final  String? artworkPath;
 @override final  String? thumbnailPath;
@@ -278,21 +280,21 @@ _$SongMetadataCopyWith<_SongMetadata> get copyWith => __$SongMetadataCopyWithImp
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   properties
     ..add(DiagnosticsProperty('type', 'SongMetadata'))
-    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('mediaId', mediaId))..add(DiagnosticsProperty('path', path))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('album', album))..add(DiagnosticsProperty('artist', artist))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('artworkPath', artworkPath))..add(DiagnosticsProperty('thumbnailPath', thumbnailPath))..add(DiagnosticsProperty('artworkWidth', artworkWidth))..add(DiagnosticsProperty('artworkHeight', artworkHeight))..add(DiagnosticsProperty('trackNumber', trackNumber))..add(DiagnosticsProperty('sourceFlags', sourceFlags))..add(DiagnosticsProperty('themeColorsBlob', themeColorsBlob))..add(DiagnosticsProperty('waveformBlob', waveformBlob))..add(DiagnosticsProperty('lastModifiedTime', lastModifiedTime))..add(DiagnosticsProperty('metadataTextScanned', metadataTextScanned))..add(DiagnosticsProperty('metadataImgScanned', metadataImgScanned))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('deletedAt', deletedAt))..add(DiagnosticsProperty('genres', genres))..add(DiagnosticsProperty('isAppModified', isAppModified));
+    ..add(DiagnosticsProperty('id', id))..add(DiagnosticsProperty('mediaId', mediaId))..add(DiagnosticsProperty('path', path))..add(DiagnosticsProperty('title', title))..add(DiagnosticsProperty('album', album))..add(DiagnosticsProperty('artist', artist))..add(DiagnosticsProperty('albumArtist', albumArtist))..add(DiagnosticsProperty('duration', duration))..add(DiagnosticsProperty('artworkPath', artworkPath))..add(DiagnosticsProperty('thumbnailPath', thumbnailPath))..add(DiagnosticsProperty('artworkWidth', artworkWidth))..add(DiagnosticsProperty('artworkHeight', artworkHeight))..add(DiagnosticsProperty('trackNumber', trackNumber))..add(DiagnosticsProperty('sourceFlags', sourceFlags))..add(DiagnosticsProperty('themeColorsBlob', themeColorsBlob))..add(DiagnosticsProperty('waveformBlob', waveformBlob))..add(DiagnosticsProperty('lastModifiedTime', lastModifiedTime))..add(DiagnosticsProperty('metadataTextScanned', metadataTextScanned))..add(DiagnosticsProperty('metadataImgScanned', metadataImgScanned))..add(DiagnosticsProperty('createdAt', createdAt))..add(DiagnosticsProperty('deletedAt', deletedAt))..add(DiagnosticsProperty('genres', genres))..add(DiagnosticsProperty('isAppModified', isAppModified));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SongMetadata&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaId, mediaId) || other.mediaId == mediaId)&&(identical(other.path, path) || other.path == path)&&(identical(other.title, title) || other.title == title)&&(identical(other.album, album) || other.album == album)&&(identical(other.artist, artist) || other.artist == artist)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.artworkPath, artworkPath) || other.artworkPath == artworkPath)&&(identical(other.thumbnailPath, thumbnailPath) || other.thumbnailPath == thumbnailPath)&&(identical(other.artworkWidth, artworkWidth) || other.artworkWidth == artworkWidth)&&(identical(other.artworkHeight, artworkHeight) || other.artworkHeight == artworkHeight)&&(identical(other.trackNumber, trackNumber) || other.trackNumber == trackNumber)&&(identical(other.sourceFlags, sourceFlags) || other.sourceFlags == sourceFlags)&&const DeepCollectionEquality().equals(other.themeColorsBlob, themeColorsBlob)&&const DeepCollectionEquality().equals(other.waveformBlob, waveformBlob)&&(identical(other.lastModifiedTime, lastModifiedTime) || other.lastModifiedTime == lastModifiedTime)&&(identical(other.metadataTextScanned, metadataTextScanned) || other.metadataTextScanned == metadataTextScanned)&&(identical(other.metadataImgScanned, metadataImgScanned) || other.metadataImgScanned == metadataImgScanned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.isAppModified, isAppModified) || other.isAppModified == isAppModified));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SongMetadata&&(identical(other.id, id) || other.id == id)&&(identical(other.mediaId, mediaId) || other.mediaId == mediaId)&&(identical(other.path, path) || other.path == path)&&(identical(other.title, title) || other.title == title)&&(identical(other.album, album) || other.album == album)&&(identical(other.artist, artist) || other.artist == artist)&&(identical(other.albumArtist, albumArtist) || other.albumArtist == albumArtist)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.artworkPath, artworkPath) || other.artworkPath == artworkPath)&&(identical(other.thumbnailPath, thumbnailPath) || other.thumbnailPath == thumbnailPath)&&(identical(other.artworkWidth, artworkWidth) || other.artworkWidth == artworkWidth)&&(identical(other.artworkHeight, artworkHeight) || other.artworkHeight == artworkHeight)&&(identical(other.trackNumber, trackNumber) || other.trackNumber == trackNumber)&&(identical(other.sourceFlags, sourceFlags) || other.sourceFlags == sourceFlags)&&const DeepCollectionEquality().equals(other.themeColorsBlob, themeColorsBlob)&&const DeepCollectionEquality().equals(other.waveformBlob, waveformBlob)&&(identical(other.lastModifiedTime, lastModifiedTime) || other.lastModifiedTime == lastModifiedTime)&&(identical(other.metadataTextScanned, metadataTextScanned) || other.metadataTextScanned == metadataTextScanned)&&(identical(other.metadataImgScanned, metadataImgScanned) || other.metadataImgScanned == metadataImgScanned)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.deletedAt, deletedAt) || other.deletedAt == deletedAt)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.isAppModified, isAppModified) || other.isAppModified == isAppModified));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,id,mediaId,path,title,album,artist,duration,artworkPath,thumbnailPath,artworkWidth,artworkHeight,trackNumber,sourceFlags,const DeepCollectionEquality().hash(themeColorsBlob),const DeepCollectionEquality().hash(waveformBlob),lastModifiedTime,metadataTextScanned,metadataImgScanned,createdAt,deletedAt,const DeepCollectionEquality().hash(_genres),isAppModified]);
+int get hashCode => Object.hashAll([runtimeType,id,mediaId,path,title,album,artist,albumArtist,duration,artworkPath,thumbnailPath,artworkWidth,artworkHeight,trackNumber,sourceFlags,const DeepCollectionEquality().hash(themeColorsBlob),const DeepCollectionEquality().hash(waveformBlob),lastModifiedTime,metadataTextScanned,metadataImgScanned,createdAt,deletedAt,const DeepCollectionEquality().hash(_genres),isAppModified]);
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'SongMetadata(id: $id, mediaId: $mediaId, path: $path, title: $title, album: $album, artist: $artist, duration: $duration, artworkPath: $artworkPath, thumbnailPath: $thumbnailPath, artworkWidth: $artworkWidth, artworkHeight: $artworkHeight, trackNumber: $trackNumber, sourceFlags: $sourceFlags, themeColorsBlob: $themeColorsBlob, waveformBlob: $waveformBlob, lastModifiedTime: $lastModifiedTime, metadataTextScanned: $metadataTextScanned, metadataImgScanned: $metadataImgScanned, createdAt: $createdAt, deletedAt: $deletedAt, genres: $genres, isAppModified: $isAppModified)';
+  return 'SongMetadata(id: $id, mediaId: $mediaId, path: $path, title: $title, album: $album, artist: $artist, albumArtist: $albumArtist, duration: $duration, artworkPath: $artworkPath, thumbnailPath: $thumbnailPath, artworkWidth: $artworkWidth, artworkHeight: $artworkHeight, trackNumber: $trackNumber, sourceFlags: $sourceFlags, themeColorsBlob: $themeColorsBlob, waveformBlob: $waveformBlob, lastModifiedTime: $lastModifiedTime, metadataTextScanned: $metadataTextScanned, metadataImgScanned: $metadataImgScanned, createdAt: $createdAt, deletedAt: $deletedAt, genres: $genres, isAppModified: $isAppModified)';
 }
 
 
@@ -303,7 +305,7 @@ abstract mixin class _$SongMetadataCopyWith<$Res> implements $SongMetadataCopyWi
   factory _$SongMetadataCopyWith(_SongMetadata value, $Res Function(_SongMetadata) _then) = __$SongMetadataCopyWithImpl;
 @override @useResult
 $Res call({
- int? id, int? mediaId, String path, String title, String album, String artist, int? duration, String? artworkPath, String? thumbnailPath, int? artworkWidth, int? artworkHeight, int? trackNumber, int? sourceFlags, Uint8List? themeColorsBlob, Uint8List? waveformBlob, int? lastModifiedTime, int? metadataTextScanned, int? metadataImgScanned, int? createdAt, int? deletedAt, List<String>? genres, bool isAppModified
+ int? id, int? mediaId, String path, String title, String album, String artist, String? albumArtist, int? duration, String? artworkPath, String? thumbnailPath, int? artworkWidth, int? artworkHeight, int? trackNumber, int? sourceFlags, Uint8List? themeColorsBlob, Uint8List? waveformBlob, int? lastModifiedTime, int? metadataTextScanned, int? metadataImgScanned, int? createdAt, int? deletedAt, List<String>? genres, bool isAppModified
 });
 
 
@@ -320,7 +322,7 @@ class __$SongMetadataCopyWithImpl<$Res>
 
 /// Create a copy of SongMetadata
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? mediaId = freezed,Object? path = null,Object? title = null,Object? album = null,Object? artist = null,Object? duration = freezed,Object? artworkPath = freezed,Object? thumbnailPath = freezed,Object? artworkWidth = freezed,Object? artworkHeight = freezed,Object? trackNumber = freezed,Object? sourceFlags = freezed,Object? themeColorsBlob = freezed,Object? waveformBlob = freezed,Object? lastModifiedTime = freezed,Object? metadataTextScanned = freezed,Object? metadataImgScanned = freezed,Object? createdAt = freezed,Object? deletedAt = freezed,Object? genres = freezed,Object? isAppModified = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? mediaId = freezed,Object? path = null,Object? title = null,Object? album = null,Object? artist = null,Object? albumArtist = freezed,Object? duration = freezed,Object? artworkPath = freezed,Object? thumbnailPath = freezed,Object? artworkWidth = freezed,Object? artworkHeight = freezed,Object? trackNumber = freezed,Object? sourceFlags = freezed,Object? themeColorsBlob = freezed,Object? waveformBlob = freezed,Object? lastModifiedTime = freezed,Object? metadataTextScanned = freezed,Object? metadataImgScanned = freezed,Object? createdAt = freezed,Object? deletedAt = freezed,Object? genres = freezed,Object? isAppModified = null,}) {
   return _then(_SongMetadata(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int?,mediaId: freezed == mediaId ? _self.mediaId : mediaId // ignore: cast_nullable_to_non_nullable
@@ -328,7 +330,8 @@ as int?,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_n
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,album: null == album ? _self.album : album // ignore: cast_nullable_to_non_nullable
 as String,artist: null == artist ? _self.artist : artist // ignore: cast_nullable_to_non_nullable
-as String,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as String,albumArtist: freezed == albumArtist ? _self.albumArtist : albumArtist // ignore: cast_nullable_to_non_nullable
+as String?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as int?,artworkPath: freezed == artworkPath ? _self.artworkPath : artworkPath // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailPath: freezed == thumbnailPath ? _self.thumbnailPath : thumbnailPath // ignore: cast_nullable_to_non_nullable
 as String?,artworkWidth: freezed == artworkWidth ? _self.artworkWidth : artworkWidth // ignore: cast_nullable_to_non_nullable

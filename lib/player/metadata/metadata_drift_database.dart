@@ -21,7 +21,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
   static final MetadataDriftDatabase instance = MetadataDriftDatabase._();
 
   @override
-  int get schemaVersion => 32;
+  int get schemaVersion => 33;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -374,6 +374,10 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
           CREATE INDEX IF NOT EXISTS idx_remote_songs_server_id
           ON remote_songs(serverId)
         ''');
+      }
+      if (from < 33) {
+        await _addColumnIfMissing(m, 'songs', 'albumArtist', 'TEXT');
+        await _addColumnIfMissing(m, 'remote_songs', 'albumArtist', 'TEXT');
       }
     },
   );
@@ -2155,6 +2159,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       title: row.read<String?>('title') ?? 'Unknown',
       album: row.read<String?>('album') ?? 'Unknown',
       artist: row.read<String?>('artist') ?? 'Unknown',
+      albumArtist: row.read<String?>('albumArtist'),
       duration: row.read<int?>('duration'),
       artworkPath: row.read<String?>('artworkPath'),
       thumbnailPath: row.read<String?>('thumbnailPath'),
@@ -2182,6 +2187,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       title: row.title ?? 'Unknown',
       album: row.album ?? 'Unknown',
       artist: row.artist ?? 'Unknown',
+      albumArtist: row.albumArtist,
       duration: row.duration,
       artworkPath: row.artworkPath,
       thumbnailPath: row.thumbnailPath,
@@ -2211,6 +2217,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       title: Value(song.title),
       album: Value(song.album),
       artist: Value(song.artist),
+      albumArtist: Value(song.albumArtist),
       duration: Value(song.duration),
       artworkPath: Value(song.artworkPath),
       thumbnailPath: Value(song.thumbnailPath),
@@ -2266,6 +2273,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       title: Value(song.title),
       album: Value(song.album),
       artist: Value(song.artist),
+      albumArtist: Value(song.albumArtist),
       duration: Value(song.duration),
       artworkPath: Value(song.artworkPath),
       thumbnailPath: Value(song.thumbnailPath),
@@ -2291,6 +2299,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       title: row.read<String?>('title') ?? 'Unknown',
       album: row.read<String?>('album') ?? 'Unknown',
       artist: row.read<String?>('artist') ?? 'Unknown',
+      albumArtist: row.read<String?>('albumArtist'),
       duration: row.read<int?>('duration'),
       artworkPath: row.read<String?>('artworkPath'),
       thumbnailPath: row.read<String?>('thumbnailPath'),
@@ -2311,6 +2320,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       title: row.title ?? 'Unknown',
       album: row.album ?? 'Unknown',
       artist: row.artist ?? 'Unknown',
+      albumArtist: row.albumArtist,
       duration: row.duration,
       artworkPath: row.artworkPath,
       thumbnailPath: row.thumbnailPath,
@@ -2731,6 +2741,7 @@ class Songs extends Table {
   TextColumn get title => text().nullable().named('title')();
   TextColumn get album => text().nullable().named('album')();
   TextColumn get artist => text().nullable().named('artist')();
+  TextColumn get albumArtist => text().nullable().named('albumArtist')();
   IntColumn get duration => integer().nullable().named('duration')();
   TextColumn get artworkPath => text().nullable().named('artworkPath')();
   TextColumn get thumbnailPath => text().nullable().named('thumbnailPath')();
@@ -2922,6 +2933,7 @@ class RemoteSongs extends Table {
   TextColumn get title => text().nullable().named('title')();
   TextColumn get album => text().nullable().named('album')();
   TextColumn get artist => text().nullable().named('artist')();
+  TextColumn get albumArtist => text().nullable().named('albumArtist')();
   IntColumn get duration => integer().nullable().named('duration')();
   TextColumn get artworkPath => text().nullable().named('artworkPath')();
   TextColumn get thumbnailPath => text().nullable().named('thumbnailPath')();

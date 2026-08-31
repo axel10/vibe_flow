@@ -13,7 +13,7 @@ final albumLibraryProvider = StreamProvider<List<AlbumSummary>>((ref) async* {
 });
 
 List<AlbumSummary> buildAlbumSummaries(Iterable<SongMetadata> songs) {
-  final groups = <String, List<MusicFile>>{};
+  final validEntries = <(SongMetadata, MusicFile)>[];
 
   for (final metadata in songs) {
     final flags = metadata.sourceFlags ?? 0;
@@ -25,10 +25,15 @@ List<AlbumSummary> buildAlbumSummaries(Iterable<SongMetadata> songs) {
       metadata.album,
       fallback: 'Unknown Album',
     );
+    final rawAlbumArtist = metadata.albumArtist?.trim();
     final artist = _cleanMetadataText(
       metadata.artist,
       fallback: 'Unknown Artist',
     );
+    final albumArtist = (rawAlbumArtist != null && rawAlbumArtist.isNotEmpty)
+        ? rawAlbumArtist
+        : null;
+
     final song = MusicFile(
       path: path,
       name: p.basename(path),
@@ -37,6 +42,7 @@ List<AlbumSummary> buildAlbumSummaries(Iterable<SongMetadata> songs) {
         fallback: 'Unknown',
       ),
       artist: artist,
+      albumArtist: albumArtist,
       album: title,
       trackNumber: metadata.trackNumber,
       id: metadata.id,
@@ -48,8 +54,52 @@ List<AlbumSummary> buildAlbumSummaries(Iterable<SongMetadata> songs) {
       lastModifiedTime: metadata.lastModifiedTime,
     );
 
-    final key = '${title.toLowerCase()}::${artist.toLowerCase()}';
+    validEntries.add((metadata, song));
+  }
+
+  // Pre-group by directory and album to determine effective album artist if missing
+  final folderAlbumToArtist = <String, String>{};
+  final folderAlbumArtists = <String, Map<String, int>>{};
+
+  for (final (_, song) in validEntries) {
+    final dir = p.dirname(song.path).toLowerCase();
+    final albumKey = (song.album ?? 'Unknown Album').toLowerCase();
+    final folderAlbumKey = '$dir::$albumKey';
+
+    final declaredAlbumArtist = song.albumArtist?.trim();
+    if (declaredAlbumArtist != null && declaredAlbumArtist.isNotEmpty) {
+      folderAlbumToArtist[folderAlbumKey] = declaredAlbumArtist;
+    } else {
+      final counts = folderAlbumArtists.putIfAbsent(folderAlbumKey, () => <String, int>{});
+      final trackArtist = song.artist ?? 'Unknown Artist';
+      counts[trackArtist] = (counts[trackArtist] ?? 0) + 1;
+    }
+  }
+
+  final groups = <String, List<MusicFile>>{};
+  final groupArtists = <String, String>{};
+
+  for (final (_, song) in validEntries) {
+    final dir = p.dirname(song.path).toLowerCase();
+    final title = song.album ?? 'Unknown Album';
+    final albumKey = title.toLowerCase();
+    final folderAlbumKey = '$dir::$albumKey';
+
+    String effectiveArtist;
+    if (song.albumArtist != null && song.albumArtist!.trim().isNotEmpty) {
+      effectiveArtist = song.albumArtist!.trim();
+    } else if (folderAlbumToArtist.containsKey(folderAlbumKey)) {
+      effectiveArtist = folderAlbumToArtist[folderAlbumKey]!;
+    } else if (folderAlbumArtists.containsKey(folderAlbumKey) && folderAlbumArtists[folderAlbumKey]!.isNotEmpty) {
+      final counts = folderAlbumArtists[folderAlbumKey]!;
+      effectiveArtist = counts.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+    } else {
+      effectiveArtist = song.artist ?? 'Unknown Artist';
+    }
+
+    final key = '${title.toLowerCase()}::${effectiveArtist.toLowerCase()}';
     (groups[key] ??= []).add(song);
+    groupArtists[key] = effectiveArtist;
   }
 
   final albums = groups.entries.map((entry) {
@@ -63,10 +113,15 @@ List<AlbumSummary> buildAlbumSummaries(Iterable<SongMetadata> songs) {
       (sum, song) => sum + (song.durationMillis ?? 0),
     );
 
+    final albumArtist = groupArtists[entry.key] ??
+        sortedSongs.first.albumArtist ??
+        sortedSongs.first.artist ??
+        'Unknown Artist';
+
     return AlbumSummary(
       id: entry.key,
       title: sortedSongs.first.album ?? 'Unknown Album',
-      artist: sortedSongs.first.artist ?? 'Unknown Artist',
+      artist: albumArtist,
       songs: sortedSongs,
       representativeSong: representativeSong,
       totalDurationMillis: totalDurationMillis,

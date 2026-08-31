@@ -68,6 +68,17 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _albumArtistMeta = const VerificationMeta(
+    'albumArtist',
+  );
+  @override
+  late final GeneratedColumn<String> albumArtist = GeneratedColumn<String>(
+    'albumArtist',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _durationMeta = const VerificationMeta(
     'duration',
   );
@@ -265,6 +276,7 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
     title,
     album,
     artist,
+    albumArtist,
     duration,
     artworkPath,
     thumbnailPath,
@@ -328,6 +340,15 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
       context.handle(
         _artistMeta,
         artist.isAcceptableOrUnknown(data['artist']!, _artistMeta),
+      );
+    }
+    if (data.containsKey('albumArtist')) {
+      context.handle(
+        _albumArtistMeta,
+        albumArtist.isAcceptableOrUnknown(
+          data['albumArtist']!,
+          _albumArtistMeta,
+        ),
       );
     }
     if (data.containsKey('duration')) {
@@ -504,6 +525,10 @@ class $SongsTable extends Songs with TableInfo<$SongsTable, Song> {
         DriftSqlType.string,
         data['${effectivePrefix}artist'],
       ),
+      albumArtist: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}albumArtist'],
+      ),
       duration: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}duration'],
@@ -588,6 +613,7 @@ class Song extends DataClass implements Insertable<Song> {
   final String? title;
   final String? album;
   final String? artist;
+  final String? albumArtist;
   final int? duration;
   final String? artworkPath;
   final String? thumbnailPath;
@@ -612,6 +638,7 @@ class Song extends DataClass implements Insertable<Song> {
     this.title,
     this.album,
     this.artist,
+    this.albumArtist,
     this.duration,
     this.artworkPath,
     this.thumbnailPath,
@@ -646,6 +673,9 @@ class Song extends DataClass implements Insertable<Song> {
     }
     if (!nullToAbsent || artist != null) {
       map['artist'] = Variable<String>(artist);
+    }
+    if (!nullToAbsent || albumArtist != null) {
+      map['albumArtist'] = Variable<String>(albumArtist);
     }
     if (!nullToAbsent || duration != null) {
       map['duration'] = Variable<int>(duration);
@@ -717,6 +747,9 @@ class Song extends DataClass implements Insertable<Song> {
       artist: artist == null && nullToAbsent
           ? const Value.absent()
           : Value(artist),
+      albumArtist: albumArtist == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumArtist),
       duration: duration == null && nullToAbsent
           ? const Value.absent()
           : Value(duration),
@@ -782,6 +815,7 @@ class Song extends DataClass implements Insertable<Song> {
       title: serializer.fromJson<String?>(json['title']),
       album: serializer.fromJson<String?>(json['album']),
       artist: serializer.fromJson<String?>(json['artist']),
+      albumArtist: serializer.fromJson<String?>(json['albumArtist']),
       duration: serializer.fromJson<int?>(json['duration']),
       artworkPath: serializer.fromJson<String?>(json['artworkPath']),
       thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
@@ -815,6 +849,7 @@ class Song extends DataClass implements Insertable<Song> {
       'title': serializer.toJson<String?>(title),
       'album': serializer.toJson<String?>(album),
       'artist': serializer.toJson<String?>(artist),
+      'albumArtist': serializer.toJson<String?>(albumArtist),
       'duration': serializer.toJson<int?>(duration),
       'artworkPath': serializer.toJson<String?>(artworkPath),
       'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
@@ -844,6 +879,7 @@ class Song extends DataClass implements Insertable<Song> {
     Value<String?> title = const Value.absent(),
     Value<String?> album = const Value.absent(),
     Value<String?> artist = const Value.absent(),
+    Value<String?> albumArtist = const Value.absent(),
     Value<int?> duration = const Value.absent(),
     Value<String?> artworkPath = const Value.absent(),
     Value<String?> thumbnailPath = const Value.absent(),
@@ -868,6 +904,7 @@ class Song extends DataClass implements Insertable<Song> {
     title: title.present ? title.value : this.title,
     album: album.present ? album.value : this.album,
     artist: artist.present ? artist.value : this.artist,
+    albumArtist: albumArtist.present ? albumArtist.value : this.albumArtist,
     duration: duration.present ? duration.value : this.duration,
     artworkPath: artworkPath.present ? artworkPath.value : this.artworkPath,
     thumbnailPath: thumbnailPath.present
@@ -908,6 +945,9 @@ class Song extends DataClass implements Insertable<Song> {
       title: data.title.present ? data.title.value : this.title,
       album: data.album.present ? data.album.value : this.album,
       artist: data.artist.present ? data.artist.value : this.artist,
+      albumArtist: data.albumArtist.present
+          ? data.albumArtist.value
+          : this.albumArtist,
       duration: data.duration.present ? data.duration.value : this.duration,
       artworkPath: data.artworkPath.present
           ? data.artworkPath.value
@@ -963,6 +1003,7 @@ class Song extends DataClass implements Insertable<Song> {
           ..write('title: $title, ')
           ..write('album: $album, ')
           ..write('artist: $artist, ')
+          ..write('albumArtist: $albumArtist, ')
           ..write('duration: $duration, ')
           ..write('artworkPath: $artworkPath, ')
           ..write('thumbnailPath: $thumbnailPath, ')
@@ -992,6 +1033,7 @@ class Song extends DataClass implements Insertable<Song> {
     title,
     album,
     artist,
+    albumArtist,
     duration,
     artworkPath,
     thumbnailPath,
@@ -1020,6 +1062,7 @@ class Song extends DataClass implements Insertable<Song> {
           other.title == this.title &&
           other.album == this.album &&
           other.artist == this.artist &&
+          other.albumArtist == this.albumArtist &&
           other.duration == this.duration &&
           other.artworkPath == this.artworkPath &&
           other.thumbnailPath == this.thumbnailPath &&
@@ -1049,6 +1092,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
   final Value<String?> title;
   final Value<String?> album;
   final Value<String?> artist;
+  final Value<String?> albumArtist;
   final Value<int?> duration;
   final Value<String?> artworkPath;
   final Value<String?> thumbnailPath;
@@ -1073,6 +1117,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.title = const Value.absent(),
     this.album = const Value.absent(),
     this.artist = const Value.absent(),
+    this.albumArtist = const Value.absent(),
     this.duration = const Value.absent(),
     this.artworkPath = const Value.absent(),
     this.thumbnailPath = const Value.absent(),
@@ -1098,6 +1143,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     this.title = const Value.absent(),
     this.album = const Value.absent(),
     this.artist = const Value.absent(),
+    this.albumArtist = const Value.absent(),
     this.duration = const Value.absent(),
     this.artworkPath = const Value.absent(),
     this.thumbnailPath = const Value.absent(),
@@ -1123,6 +1169,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     Expression<String>? title,
     Expression<String>? album,
     Expression<String>? artist,
+    Expression<String>? albumArtist,
     Expression<int>? duration,
     Expression<String>? artworkPath,
     Expression<String>? thumbnailPath,
@@ -1148,6 +1195,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
       if (title != null) 'title': title,
       if (album != null) 'album': album,
       if (artist != null) 'artist': artist,
+      if (albumArtist != null) 'albumArtist': albumArtist,
       if (duration != null) 'duration': duration,
       if (artworkPath != null) 'artworkPath': artworkPath,
       if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
@@ -1177,6 +1225,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
     Value<String?>? title,
     Value<String?>? album,
     Value<String?>? artist,
+    Value<String?>? albumArtist,
     Value<int?>? duration,
     Value<String?>? artworkPath,
     Value<String?>? thumbnailPath,
@@ -1202,6 +1251,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
       title: title ?? this.title,
       album: album ?? this.album,
       artist: artist ?? this.artist,
+      albumArtist: albumArtist ?? this.albumArtist,
       duration: duration ?? this.duration,
       artworkPath: artworkPath ?? this.artworkPath,
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
@@ -1243,6 +1293,9 @@ class SongsCompanion extends UpdateCompanion<Song> {
     }
     if (artist.present) {
       map['artist'] = Variable<String>(artist.value);
+    }
+    if (albumArtist.present) {
+      map['albumArtist'] = Variable<String>(albumArtist.value);
     }
     if (duration.present) {
       map['duration'] = Variable<int>(duration.value);
@@ -1309,6 +1362,7 @@ class SongsCompanion extends UpdateCompanion<Song> {
           ..write('title: $title, ')
           ..write('album: $album, ')
           ..write('artist: $artist, ')
+          ..write('albumArtist: $albumArtist, ')
           ..write('duration: $duration, ')
           ..write('artworkPath: $artworkPath, ')
           ..write('thumbnailPath: $thumbnailPath, ')
@@ -5951,6 +6005,17 @@ class $RemoteSongsTable extends RemoteSongs
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _albumArtistMeta = const VerificationMeta(
+    'albumArtist',
+  );
+  @override
+  late final GeneratedColumn<String> albumArtist = GeneratedColumn<String>(
+    'albumArtist',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _durationMeta = const VerificationMeta(
     'duration',
   );
@@ -6125,6 +6190,7 @@ class $RemoteSongsTable extends RemoteSongs
     title,
     album,
     artist,
+    albumArtist,
     duration,
     artworkPath,
     thumbnailPath,
@@ -6196,6 +6262,15 @@ class $RemoteSongsTable extends RemoteSongs
       context.handle(
         _artistMeta,
         artist.isAcceptableOrUnknown(data['artist']!, _artistMeta),
+      );
+    }
+    if (data.containsKey('albumArtist')) {
+      context.handle(
+        _albumArtistMeta,
+        albumArtist.isAcceptableOrUnknown(
+          data['albumArtist']!,
+          _albumArtistMeta,
+        ),
       );
     }
     if (data.containsKey('duration')) {
@@ -6349,6 +6424,10 @@ class $RemoteSongsTable extends RemoteSongs
         DriftSqlType.string,
         data['${effectivePrefix}artist'],
       ),
+      albumArtist: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}albumArtist'],
+      ),
       duration: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}duration'],
@@ -6426,6 +6505,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
   final String? title;
   final String? album;
   final String? artist;
+  final String? albumArtist;
   final int? duration;
   final String? artworkPath;
   final String? thumbnailPath;
@@ -6449,6 +6529,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
     this.title,
     this.album,
     this.artist,
+    this.albumArtist,
     this.duration,
     this.artworkPath,
     this.thumbnailPath,
@@ -6480,6 +6561,9 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
     }
     if (!nullToAbsent || artist != null) {
       map['artist'] = Variable<String>(artist);
+    }
+    if (!nullToAbsent || albumArtist != null) {
+      map['albumArtist'] = Variable<String>(albumArtist);
     }
     if (!nullToAbsent || duration != null) {
       map['duration'] = Variable<int>(duration);
@@ -6544,6 +6628,9 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
       artist: artist == null && nullToAbsent
           ? const Value.absent()
           : Value(artist),
+      albumArtist: albumArtist == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumArtist),
       duration: duration == null && nullToAbsent
           ? const Value.absent()
           : Value(duration),
@@ -6605,6 +6692,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
       title: serializer.fromJson<String?>(json['title']),
       album: serializer.fromJson<String?>(json['album']),
       artist: serializer.fromJson<String?>(json['artist']),
+      albumArtist: serializer.fromJson<String?>(json['albumArtist']),
       duration: serializer.fromJson<int?>(json['duration']),
       artworkPath: serializer.fromJson<String?>(json['artworkPath']),
       thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
@@ -6633,6 +6721,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
       'title': serializer.toJson<String?>(title),
       'album': serializer.toJson<String?>(album),
       'artist': serializer.toJson<String?>(artist),
+      'albumArtist': serializer.toJson<String?>(albumArtist),
       'duration': serializer.toJson<int?>(duration),
       'artworkPath': serializer.toJson<String?>(artworkPath),
       'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
@@ -6659,6 +6748,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
     Value<String?> title = const Value.absent(),
     Value<String?> album = const Value.absent(),
     Value<String?> artist = const Value.absent(),
+    Value<String?> albumArtist = const Value.absent(),
     Value<int?> duration = const Value.absent(),
     Value<String?> artworkPath = const Value.absent(),
     Value<String?> thumbnailPath = const Value.absent(),
@@ -6682,6 +6772,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
     title: title.present ? title.value : this.title,
     album: album.present ? album.value : this.album,
     artist: artist.present ? artist.value : this.artist,
+    albumArtist: albumArtist.present ? albumArtist.value : this.albumArtist,
     duration: duration.present ? duration.value : this.duration,
     artworkPath: artworkPath.present ? artworkPath.value : this.artworkPath,
     thumbnailPath: thumbnailPath.present
@@ -6717,6 +6808,9 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
       title: data.title.present ? data.title.value : this.title,
       album: data.album.present ? data.album.value : this.album,
       artist: data.artist.present ? data.artist.value : this.artist,
+      albumArtist: data.albumArtist.present
+          ? data.albumArtist.value
+          : this.albumArtist,
       duration: data.duration.present ? data.duration.value : this.duration,
       artworkPath: data.artworkPath.present
           ? data.artworkPath.value
@@ -6763,6 +6857,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
           ..write('title: $title, ')
           ..write('album: $album, ')
           ..write('artist: $artist, ')
+          ..write('albumArtist: $albumArtist, ')
           ..write('duration: $duration, ')
           ..write('artworkPath: $artworkPath, ')
           ..write('thumbnailPath: $thumbnailPath, ')
@@ -6791,6 +6886,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
     title,
     album,
     artist,
+    albumArtist,
     duration,
     artworkPath,
     thumbnailPath,
@@ -6818,6 +6914,7 @@ class RemoteSong extends DataClass implements Insertable<RemoteSong> {
           other.title == this.title &&
           other.album == this.album &&
           other.artist == this.artist &&
+          other.albumArtist == this.albumArtist &&
           other.duration == this.duration &&
           other.artworkPath == this.artworkPath &&
           other.thumbnailPath == this.thumbnailPath &&
@@ -6846,6 +6943,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
   final Value<String?> title;
   final Value<String?> album;
   final Value<String?> artist;
+  final Value<String?> albumArtist;
   final Value<int?> duration;
   final Value<String?> artworkPath;
   final Value<String?> thumbnailPath;
@@ -6869,6 +6967,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
     this.title = const Value.absent(),
     this.album = const Value.absent(),
     this.artist = const Value.absent(),
+    this.albumArtist = const Value.absent(),
     this.duration = const Value.absent(),
     this.artworkPath = const Value.absent(),
     this.thumbnailPath = const Value.absent(),
@@ -6893,6 +6992,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
     this.title = const Value.absent(),
     this.album = const Value.absent(),
     this.artist = const Value.absent(),
+    this.albumArtist = const Value.absent(),
     this.duration = const Value.absent(),
     this.artworkPath = const Value.absent(),
     this.thumbnailPath = const Value.absent(),
@@ -6919,6 +7019,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
     Expression<String>? title,
     Expression<String>? album,
     Expression<String>? artist,
+    Expression<String>? albumArtist,
     Expression<int>? duration,
     Expression<String>? artworkPath,
     Expression<String>? thumbnailPath,
@@ -6943,6 +7044,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
       if (title != null) 'title': title,
       if (album != null) 'album': album,
       if (artist != null) 'artist': artist,
+      if (albumArtist != null) 'albumArtist': albumArtist,
       if (duration != null) 'duration': duration,
       if (artworkPath != null) 'artworkPath': artworkPath,
       if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
@@ -6969,6 +7071,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
     Value<String?>? title,
     Value<String?>? album,
     Value<String?>? artist,
+    Value<String?>? albumArtist,
     Value<int?>? duration,
     Value<String?>? artworkPath,
     Value<String?>? thumbnailPath,
@@ -6993,6 +7096,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
       title: title ?? this.title,
       album: album ?? this.album,
       artist: artist ?? this.artist,
+      albumArtist: albumArtist ?? this.albumArtist,
       duration: duration ?? this.duration,
       artworkPath: artworkPath ?? this.artworkPath,
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
@@ -7034,6 +7138,9 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
     }
     if (artist.present) {
       map['artist'] = Variable<String>(artist.value);
+    }
+    if (albumArtist.present) {
+      map['albumArtist'] = Variable<String>(albumArtist.value);
     }
     if (duration.present) {
       map['duration'] = Variable<int>(duration.value);
@@ -7093,6 +7200,7 @@ class RemoteSongsCompanion extends UpdateCompanion<RemoteSong> {
           ..write('title: $title, ')
           ..write('album: $album, ')
           ..write('artist: $artist, ')
+          ..write('albumArtist: $albumArtist, ')
           ..write('duration: $duration, ')
           ..write('artworkPath: $artworkPath, ')
           ..write('thumbnailPath: $thumbnailPath, ')
@@ -7159,6 +7267,7 @@ typedef $$SongsTableCreateCompanionBuilder =
       Value<String?> title,
       Value<String?> album,
       Value<String?> artist,
+      Value<String?> albumArtist,
       Value<int?> duration,
       Value<String?> artworkPath,
       Value<String?> thumbnailPath,
@@ -7185,6 +7294,7 @@ typedef $$SongsTableUpdateCompanionBuilder =
       Value<String?> title,
       Value<String?> album,
       Value<String?> artist,
+      Value<String?> albumArtist,
       Value<int?> duration,
       Value<String?> artworkPath,
       Value<String?> thumbnailPath,
@@ -7240,6 +7350,11 @@ class $$SongsTableFilterComposer
 
   ColumnFilters<String> get artist => $composableBuilder(
     column: $table.artist,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get albumArtist => $composableBuilder(
+    column: $table.albumArtist,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7368,6 +7483,11 @@ class $$SongsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get albumArtist => $composableBuilder(
+    column: $table.albumArtist,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get duration => $composableBuilder(
     column: $table.duration,
     builder: (column) => ColumnOrderings(column),
@@ -7481,6 +7601,11 @@ class $$SongsTableAnnotationComposer
   GeneratedColumn<String> get artist =>
       $composableBuilder(column: $table.artist, builder: (column) => column);
 
+  GeneratedColumn<String> get albumArtist => $composableBuilder(
+    column: $table.albumArtist,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get duration =>
       $composableBuilder(column: $table.duration, builder: (column) => column);
 
@@ -7593,6 +7718,7 @@ class $$SongsTableTableManager
                 Value<String?> title = const Value.absent(),
                 Value<String?> album = const Value.absent(),
                 Value<String?> artist = const Value.absent(),
+                Value<String?> albumArtist = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<String?> artworkPath = const Value.absent(),
                 Value<String?> thumbnailPath = const Value.absent(),
@@ -7617,6 +7743,7 @@ class $$SongsTableTableManager
                 title: title,
                 album: album,
                 artist: artist,
+                albumArtist: albumArtist,
                 duration: duration,
                 artworkPath: artworkPath,
                 thumbnailPath: thumbnailPath,
@@ -7643,6 +7770,7 @@ class $$SongsTableTableManager
                 Value<String?> title = const Value.absent(),
                 Value<String?> album = const Value.absent(),
                 Value<String?> artist = const Value.absent(),
+                Value<String?> albumArtist = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<String?> artworkPath = const Value.absent(),
                 Value<String?> thumbnailPath = const Value.absent(),
@@ -7667,6 +7795,7 @@ class $$SongsTableTableManager
                 title: title,
                 album: album,
                 artist: artist,
+                albumArtist: albumArtist,
                 duration: duration,
                 artworkPath: artworkPath,
                 thumbnailPath: thumbnailPath,
@@ -10069,6 +10198,7 @@ typedef $$RemoteSongsTableCreateCompanionBuilder =
       Value<String?> title,
       Value<String?> album,
       Value<String?> artist,
+      Value<String?> albumArtist,
       Value<int?> duration,
       Value<String?> artworkPath,
       Value<String?> thumbnailPath,
@@ -10094,6 +10224,7 @@ typedef $$RemoteSongsTableUpdateCompanionBuilder =
       Value<String?> title,
       Value<String?> album,
       Value<String?> artist,
+      Value<String?> albumArtist,
       Value<int?> duration,
       Value<String?> artworkPath,
       Value<String?> thumbnailPath,
@@ -10152,6 +10283,11 @@ class $$RemoteSongsTableFilterComposer
 
   ColumnFilters<String> get artist => $composableBuilder(
     column: $table.artist,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get albumArtist => $composableBuilder(
+    column: $table.albumArtist,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10275,6 +10411,11 @@ class $$RemoteSongsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get albumArtist => $composableBuilder(
+    column: $table.albumArtist,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get duration => $composableBuilder(
     column: $table.duration,
     builder: (column) => ColumnOrderings(column),
@@ -10382,6 +10523,11 @@ class $$RemoteSongsTableAnnotationComposer
 
   GeneratedColumn<String> get artist =>
       $composableBuilder(column: $table.artist, builder: (column) => column);
+
+  GeneratedColumn<String> get albumArtist => $composableBuilder(
+    column: $table.albumArtist,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get duration =>
       $composableBuilder(column: $table.duration, builder: (column) => column);
@@ -10491,6 +10637,7 @@ class $$RemoteSongsTableTableManager
                 Value<String?> title = const Value.absent(),
                 Value<String?> album = const Value.absent(),
                 Value<String?> artist = const Value.absent(),
+                Value<String?> albumArtist = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<String?> artworkPath = const Value.absent(),
                 Value<String?> thumbnailPath = const Value.absent(),
@@ -10514,6 +10661,7 @@ class $$RemoteSongsTableTableManager
                 title: title,
                 album: album,
                 artist: artist,
+                albumArtist: albumArtist,
                 duration: duration,
                 artworkPath: artworkPath,
                 thumbnailPath: thumbnailPath,
@@ -10539,6 +10687,7 @@ class $$RemoteSongsTableTableManager
                 Value<String?> title = const Value.absent(),
                 Value<String?> album = const Value.absent(),
                 Value<String?> artist = const Value.absent(),
+                Value<String?> albumArtist = const Value.absent(),
                 Value<int?> duration = const Value.absent(),
                 Value<String?> artworkPath = const Value.absent(),
                 Value<String?> thumbnailPath = const Value.absent(),
@@ -10562,6 +10711,7 @@ class $$RemoteSongsTableTableManager
                 title: title,
                 album: album,
                 artist: artist,
+                albumArtist: albumArtist,
                 duration: duration,
                 artworkPath: artworkPath,
                 thumbnailPath: thumbnailPath,

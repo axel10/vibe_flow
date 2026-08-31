@@ -262,7 +262,7 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                     albumSections[i].songs,
                     source: PlaybackSource(
                       type: PlaybackSourceType.album,
-                      id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
+                      id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.albumArtist ?? albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
                       name: albumSections[i].title,
                     ),
                   ),
@@ -270,7 +270,7 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                     List.of(albumSections[i].songs)..shuffle(),
                     source: PlaybackSource(
                       type: PlaybackSourceType.album,
-                      id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
+                      id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.albumArtist ?? albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
                       name: albumSections[i].title,
                     ),
                   ),

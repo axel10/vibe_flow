@@ -123,6 +123,7 @@ class MetadataHelper {
       title: metadata.title,
       artist: metadata.artist,
       album: metadata.album,
+      albumArtist: metadata.albumArtist,
       trackNumber: metadata.trackNumber,
       genres: metadata.genres ?? const <String>[],
       lyrics: lyrics,
@@ -542,6 +543,7 @@ class MetadataHelper {
       String? title;
       String? album;
       String? artist;
+      String? albumArtist;
       int? duration;
       int? trackNumber;
 
@@ -559,6 +561,7 @@ class MetadataHelper {
         title = metadata.title;
         album = metadata.album;
         artist = metadata.artist;
+        albumArtist = metadata.albumArtist;
         duration = metadata.duration?.inMilliseconds;
         trackNumber = metadata.trackNumber;
         artworkData = metadata.pictures.isNotEmpty
@@ -674,6 +677,7 @@ class MetadataHelper {
         title: title ?? p.basenameWithoutExtension(filePath),
         album: album ?? 'Unknown Album',
         artist: artist ?? 'Unknown Artist',
+        albumArtist: albumArtist ?? existing?.albumArtist,
         duration: duration,
         artworkPath: artworkPath,
         thumbnailPath: thumbnailPath,
@@ -967,6 +971,20 @@ class MetadataHelper {
     }
   }
 
+  static String? _extractAlbumArtist(taglib.TagLibFile tagFile) {
+    try {
+      final props = tagFile.properties;
+      final val = props[taglib.TagProperties.albumArtist]?.firstOrNull ??
+          props['ALBUM ARTIST']?.firstOrNull ??
+          props['ALBUM_ARTIST']?.firstOrNull;
+      final trimmed = val?.trim();
+      if (trimmed != null && trimmed.isNotEmpty) {
+        return trimmed;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   static TagLibMetadata readMetadataIsolate(String path) {
     if (!taglib.TagLibFile.isSupported) {
       throw UnsupportedError('TagLib is not supported.');
@@ -979,6 +997,7 @@ class MetadataHelper {
       final title = tagFile.title;
       final artist = tagFile.artist;
       final album = tagFile.album;
+      final albumArtist = _extractAlbumArtist(tagFile);
       final duration = tagFile.duration;
       final trackNumber = tagFile.track;
       final hasArtwork = tagFile.hasCover;
@@ -987,6 +1006,7 @@ class MetadataHelper {
         title: title.isNotEmpty ? title : null,
         album: album.isNotEmpty ? album : null,
         artist: artist.isNotEmpty ? artist : null,
+        albumArtist: albumArtist,
         duration: duration.inMilliseconds > 0 ? duration : null,
         trackNumber: trackNumber > 0 ? trackNumber : null,
         hasArtwork: hasArtwork,
@@ -1009,6 +1029,7 @@ class MetadataHelper {
       final title = tagFile.title;
       final artist = tagFile.artist;
       final album = tagFile.album;
+      final albumArtist = _extractAlbumArtist(tagFile);
       final duration = tagFile.duration;
       final trackNumber = tagFile.track;
       final hasArtwork = tagFile.hasCover;
@@ -1018,6 +1039,7 @@ class MetadataHelper {
         title: title.isNotEmpty ? title : null,
         album: album.isNotEmpty ? album : null,
         artist: artist.isNotEmpty ? artist : null,
+        albumArtist: albumArtist,
         duration: duration.inMilliseconds > 0 ? duration : null,
         trackNumber: trackNumber > 0 ? trackNumber : null,
         hasArtwork: hasArtwork,
@@ -1049,6 +1071,7 @@ class MetadataHelper {
       final title = tagFile.title;
       final artist = tagFile.artist;
       final album = tagFile.album;
+      final albumArtist = _extractAlbumArtist(tagFile);
       final duration = tagFile.duration;
       final trackNumber = tagFile.track;
       final hasArtwork = tagFile.hasCover;
@@ -1057,6 +1080,7 @@ class MetadataHelper {
         title: title.isNotEmpty ? title : null,
         album: album.isNotEmpty ? album : null,
         artist: artist.isNotEmpty ? artist : null,
+        albumArtist: albumArtist,
         duration: duration.inMilliseconds > 0 ? duration : null,
         trackNumber: trackNumber > 0 ? trackNumber : null,
         hasArtwork: hasArtwork,
@@ -1088,6 +1112,7 @@ class MetadataHelper {
       final title = tagFile.title;
       final artist = tagFile.artist;
       final album = tagFile.album;
+      final albumArtist = _extractAlbumArtist(tagFile);
       final duration = tagFile.duration;
       final trackNumber = tagFile.track;
       final hasArtwork = tagFile.hasCover;
@@ -1097,6 +1122,7 @@ class MetadataHelper {
         title: title.isNotEmpty ? title : null,
         album: album.isNotEmpty ? album : null,
         artist: artist.isNotEmpty ? artist : null,
+        albumArtist: albumArtist,
         duration: duration.inMilliseconds > 0 ? duration : null,
         trackNumber: trackNumber > 0 ? trackNumber : null,
         hasArtwork: hasArtwork,
@@ -1205,6 +1231,7 @@ class MetadataHelper {
           final title = tagFile.title;
           final artist = tagFile.artist;
           final album = tagFile.album;
+          final albumArtist = _extractAlbumArtist(tagFile);
           final duration = tagFile.duration.inMilliseconds;
           final trackNumber = tagFile.track;
           final hasArtwork = tagFile.hasCover;
@@ -1216,6 +1243,7 @@ class MetadataHelper {
             'title': title.isNotEmpty ? title : null,
             'album': album.isNotEmpty ? album : null,
             'artist': artist.isNotEmpty ? artist : null,
+            'albumArtist': albumArtist,
             'duration': duration > 0 ? duration : null,
             'trackNumber': trackNumber > 0 ? trackNumber : null,
             'lastModifiedTime': lastModified,
@@ -1530,6 +1558,7 @@ class TagLibMetadata {
   final String? title;
   final String? album;
   final String? artist;
+  final String? albumArtist;
   final Duration? duration;
   final int? trackNumber;
   final bool hasArtwork;
@@ -1539,6 +1568,7 @@ class TagLibMetadata {
     this.title,
     this.album,
     this.artist,
+    this.albumArtist,
     this.duration,
     this.trackNumber,
     required this.hasArtwork,
