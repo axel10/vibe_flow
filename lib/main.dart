@@ -90,9 +90,10 @@ Future<void> _handleFileOpenArgs(
     }
 
     // 检查文件是否存在
-    final exists = File(path).existsSync();
+    final exists = path.startsWith('content://') || File(path).existsSync();
+    final isMusic = path.startsWith('content://') || MusicFileUtils.isMusicFilePath(path);
     AppLog.log(
-      '[external-open] inspect path=$path exists=$exists isMusic=${MusicFileUtils.isMusicFilePath(path)}',
+      '[external-open] inspect path=$path exists=$exists isMusic=$isMusic',
       mirrorToConsole: true,
     );
     if (!exists) {
@@ -100,7 +101,7 @@ Future<void> _handleFileOpenArgs(
     }
 
     // 如果是支持的音频文件
-    if (MusicFileUtils.isMusicFilePath(path)) {
+    if (isMusic) {
       AppLog.log(
         '[external-open] playFile begin path=$path',
         mirrorToConsole: true,
@@ -204,22 +205,22 @@ void main(List<String> args) async {
         });
       }
 
-      if (Platform.isMacOS) {
+      if (Platform.isMacOS || Platform.isAndroid) {
         AppLog.log(
-          '[macOS-Dart] registering macOS file opener channel',
+          '[file-opener] registering file opener channel for ${Platform.operatingSystem}',
           mirrorToConsole: true,
         );
         const fileOpenerChannel = MethodChannel('vynody/file_opener');
         fileOpenerChannel.setMethodCallHandler((call) async {
           AppLog.log(
-            '[macOS-Dart] received method call: method=${call.method} args=${call.arguments}',
+            '[file-opener] received method call: method=${call.method} args=${call.arguments}',
             mirrorToConsole: true,
           );
           if (call.method == 'onOpenFiles') {
             final List<dynamic> rawArgs = call.arguments;
             final argsList = rawArgs.cast<String>();
             AppLog.log(
-              '[macOS-Dart] onOpenFiles processing args=$argsList count=${argsList.length}',
+              '[file-opener] onOpenFiles processing args=$argsList count=${argsList.length}',
               mirrorToConsole: true,
             );
             queueFileOpen(argsList);
@@ -228,27 +229,27 @@ void main(List<String> args) async {
 
         try {
           AppLog.log(
-            '[macOS-Dart] invoking getPendingFiles...',
+            '[file-opener] invoking getPendingFiles...',
             mirrorToConsole: true,
           );
           final List<dynamic>? pending = await fileOpenerChannel.invokeMethod(
             'getPendingFiles',
           );
           AppLog.log(
-            '[macOS-Dart] getPendingFiles returned: $pending',
+            '[file-opener] getPendingFiles returned: $pending',
             mirrorToConsole: true,
           );
           if (pending != null && pending.isNotEmpty) {
             final argsList = pending.cast<String>();
             AppLog.log(
-              '[macOS-Dart] queueing pending files=$argsList',
+              '[file-opener] queueing pending files=$argsList',
               mirrorToConsole: true,
             );
             queueFileOpen(argsList);
           }
         } catch (e) {
           AppLog.log(
-            '[macOS-Dart] failed to get macOS pending files: $e',
+            '[file-opener] failed to get pending files: $e',
             mirrorToConsole: true,
           );
         }

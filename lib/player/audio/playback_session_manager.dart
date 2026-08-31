@@ -111,6 +111,7 @@ class PlaybackSessionManager {
   static Future<bool> songExists(String path) async {
     if (path.trim().isEmpty) return false;
     if (RemoteMediaResolver.isRemoteUri(path)) return true;
+    if (path.startsWith('content://')) return true;
     return File(path).exists();
   }
 

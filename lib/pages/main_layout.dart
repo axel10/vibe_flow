@@ -449,8 +449,8 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       }
 
       // 文件存在性校验
-      final exists = File(path).existsSync();
-      final isMusic = MusicFileUtils.isMusicFilePath(path);
+      final exists = path.startsWith('content://') || File(path).existsSync();
+      final isMusic = path.startsWith('content://') || MusicFileUtils.isMusicFilePath(path);
       debugPrint(
         '[external-open] _handleArgs inspect path=$path exists=$exists isMusic=$isMusic',
       );
