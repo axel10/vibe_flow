@@ -5,7 +5,6 @@ import 'package:oktoast/oktoast.dart';
 import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import '../../player/sharing/sharing_riverpod.dart';
@@ -406,7 +405,7 @@ class _RemoteDownloadManagerPageState
           child: ListView.separated(
             padding: EdgeInsets.fromLTRB(16, 12, 16, bottomOffset),
             itemCount: tasks.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final task = tasks[index];
               return _buildDownloadingTaskCard(context, theme, l10n, task);
@@ -656,7 +655,7 @@ class _RemoteDownloadManagerPageState
           child: ListView.separated(
             padding: EdgeInsets.fromLTRB(16, 12, 16, bottomOffset),
             itemCount: tasks.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final task = tasks[index];
               return _buildCompletedTaskTile(context, theme, l10n, task);
@@ -721,27 +720,7 @@ class _RemoteDownloadManagerPageState
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!isCancelled) ...[
-            IconButton(
-              icon: const Icon(Icons.play_arrow_rounded),
-              tooltip: l10n.play,
-              onPressed: () async {
-                final audioService = ref.read(audioServiceProvider);
-                final file = File(task.targetPath);
-                if (file.existsSync()) {
-                  final localSong = MusicFile(
-                    path: task.targetPath,
-                    name: p.basename(task.targetPath),
-                    title: task.song.title ?? task.song.name,
-                    artist: task.song.artist,
-                    album: task.song.album,
-                  );
-                  await audioService.playPlaylist([localSong]);
-                } else {
-                  showToast(l10n.fileNotFoundAtPath(task.targetPath));
-                }
-              },
-            ),
+          if (!isCancelled)
             IconButton(
               icon: const Icon(Icons.folder_open_rounded),
               tooltip: l10n.openFolderLocation,
@@ -749,7 +728,6 @@ class _RemoteDownloadManagerPageState
                 await openFolderLocation(p.dirname(task.targetPath));
               },
             ),
-          ],
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
             tooltip: l10n.remove,
