@@ -586,7 +586,15 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
           if (targetFile.existsSync()) {
             targetFile.deleteSync();
           }
-          tempFile.renameSync(task.targetPath);
+          try {
+            tempFile.renameSync(task.targetPath);
+          } on FileSystemException {
+            // Handle cross-device link (errno 18 / EXDEV) when moving between different drives/volumes
+            tempFile.copySync(task.targetPath);
+            try {
+              tempFile.deleteSync();
+            } catch (_) {}
+          }
           savedSuccessfully = true;
         } catch (e) {
           savedSuccessfully = false;
