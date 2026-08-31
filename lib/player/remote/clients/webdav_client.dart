@@ -113,12 +113,11 @@ class WebDavClient {
       };
 
   static String safeEncodeUrl(String url) {
-    if (url.contains(' ') || url.contains('[') || url.contains(']') || url.contains('{') || url.contains('}')) {
-      try {
-        return Uri.encodeFull(url);
-      } catch (_) {}
+    try {
+      return Uri.encodeFull(url);
+    } catch (_) {
+      return url;
     }
-    return url;
   }
 
   String buildStreamUrl(String relativePath) {
@@ -131,6 +130,7 @@ class WebDavClient {
       path = '/$path';
     }
     final parsedBase = Uri.tryParse(baseUrl) ?? Uri.tryParse(Uri.encodeFull(baseUrl));
+    String rawUrl;
     if (parsedBase != null) {
       final authPrefix = includeAuth && server.username.isNotEmpty
           ? '${Uri.encodeComponent(server.username)}${password.isNotEmpty ? ':${Uri.encodeComponent(password)}' : ''}@'
@@ -140,13 +140,17 @@ class WebDavClient {
       if (parsedBase.path.isNotEmpty && parsedBase.path != '/') {
         final basePath = parsedBase.path.replaceAll(RegExp(r'/+$'), '');
         if (path == basePath || path.startsWith('$basePath/')) {
-          return '$origin$path';
+          rawUrl = '$origin$path';
+        } else {
+          rawUrl = '$origin$basePath$path';
         }
-        return '$origin$basePath$path';
+      } else {
+        rawUrl = '$origin$path';
       }
-      return '$origin$path';
+    } else {
+      rawUrl = '$baseUrl$path';
     }
-    return '$baseUrl$path';
+    return safeEncodeUrl(rawUrl);
   }
 
   /// Attempts a PROPFIND Depth: 0 request against a specific path.

@@ -122,6 +122,10 @@ void main() {
       expect(client.authHeaders['Authorization'], startsWith('Basic '));
       expect(client.buildFullUrl('/Music/Song.flac'),
           'https://dav.example.com/remote.php/webdav/Music/Song.flac');
+      expect(client.buildFullUrl('/Music/that girl.mp3'),
+          'https://dav.example.com/remote.php/webdav/Music/that%20girl.mp3');
+      expect(client.buildFullUrl('/Music/影山ヒロノブ - HEATS.mp3'),
+          Uri.encodeFull('https://dav.example.com/remote.php/webdav/Music/影山ヒロノブ - HEATS.mp3'));
     });
 
     test('parsePropfindXml parses directories and audio files correctly', () {

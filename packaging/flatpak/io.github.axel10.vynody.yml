@@ -65,8 +65,8 @@ modules:
         url: https://github.com/axel10/vynody.git
         tag: 1.7.1 # Replace with the latest tag or commit hash when releasing
       - type: file
-        url: https://github.com/axel10/audio_core/releases/download/0.6/ffmpeg_lib_linux.tar.gz
-        sha256: 256593a6acaf54b6e0252aae96051246a0d400bc673cf02e32fafd2d24880d6c
+        url: https://github.com/axel10/audio_core/releases/download/0.7/ffmpeg_lib_linux.tar.gz
+        sha256: 69e7f0fa3756128506af7f2c2dd7016c2e4f708d1b177726110cfe90e440372b
         dest-filename: ffmpeg_lib_linux.tar.gz
       
       # Include pub-sources.json and cargo-sources.json generated via the helper script
