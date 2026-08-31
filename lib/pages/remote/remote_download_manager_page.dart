@@ -6,8 +6,10 @@ import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/audio/audio_riverpod.dart';
+import '../../player/metadata/metadata_helper.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import '../../player/sharing/sharing_riverpod.dart';
+import '../../transcode/transcode_riverpod.dart';
 import '../../utils/file_selector_helper.dart';
 import '../../utils/song_context_menu_utils.dart';
 import '../../widgets/desktop_window_title_bar.dart';
@@ -68,6 +70,30 @@ class _RemoteDownloadManagerPageState
   Future<void> _changeDownloadFolder() async {
     final l10n = AppLocalizations.of(context)!;
     final sharingService = ref.read(sharingServiceProvider);
+
+    if (Platform.isAndroid) {
+      final androidOutputDirectory = await ref
+          .read(transcodeServiceProvider)
+          .pickAndroidOutputDirectory();
+      if (androidOutputDirectory != null && mounted) {
+        await AndroidSafStorageHelper.saveMapping(
+          androidOutputDirectory.displayPath,
+          androidOutputDirectory.treeUri,
+        );
+        await sharingService.updateSharingFolderPath(
+          androidOutputDirectory.displayPath,
+        );
+        showToast(
+          l10n.receiveDirectoryUpdated(androidOutputDirectory.displayPath),
+        );
+        setState(() {
+          _downloadPathFuture =
+              Future.value(androidOutputDirectory.displayPath);
+        });
+      }
+      return;
+    }
+
     final dirPath =
         await FileSelectorHelper.pickDirectory(lockParentWindow: false);
     if (dirPath != null && mounted) {

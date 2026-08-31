@@ -1,11 +1,16 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import '../../../models/music_file.dart';
+import '../../../transcode/transcode_riverpod.dart';
+import '../../../utils/file_selector_helper.dart';
 import '../../audio/audio_riverpod.dart';
+import '../../metadata/metadata_helper.dart';
 import '../../sharing/sharing_riverpod.dart';
 import '../clients/subsonic_client.dart';
 import '../clients/webdav_client.dart';
@@ -82,7 +87,7 @@ class RemoteDownloadTask {
       bytesDownloaded: bytesDownloaded ?? this.bytesDownloaded,
       totalBytes: totalBytes ?? this.totalBytes,
       speedBytesPerSec: speedBytesPerSec ?? this.speedBytesPerSec,
-      error: error ?? this.error,
+      error: error,
       createdAt: createdAt,
       completedAt: completedAt ?? this.completedAt,
     );
@@ -90,12 +95,15 @@ class RemoteDownloadTask {
 }
 
 class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
-  static const int _maxConcurrent = 2;
+  static const int _maxConcurrent = 3;
 
   final Dio _dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(minutes: 10),
+      sendTimeout: const Duration(seconds: 30),
+      followRedirects: true,
+      maxRedirects: 5,
     ),
   );
 
@@ -116,6 +124,80 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     }
     final sharingService = ref.read(sharingServiceProvider);
     return await sharingService.getDefaultSharingFolderPath();
+  }
+
+  /// Ensures the destination download directory is writable.
+  /// If not writable (or unmapped on Android), prompts the user to select/grant a folder.
+  /// Returns `true` if ready and writable, or `false` if user cancelled.
+  Future<bool> ensureDownloadFolderWritable() async {
+    final sharingService = ref.read(sharingServiceProvider);
+    final currentPath = await getDownloadFolderPath();
+
+    final isWritable = await sharingService.checkSharingFolderWritable(currentPath);
+    if (isWritable) {
+      return true;
+    }
+
+    // Directory is not writable or unmapped on Android
+    if (Platform.isAndroid) {
+      final androidOutputDirectory = await ref
+          .read(transcodeServiceProvider)
+          .pickAndroidOutputDirectory();
+      if (androidOutputDirectory != null) {
+        await AndroidSafStorageHelper.saveMapping(
+          androidOutputDirectory.displayPath,
+          androidOutputDirectory.treeUri,
+        );
+        await sharingService.updateSharingFolderPath(
+          androidOutputDirectory.displayPath,
+        );
+        final scanner = ref.read(scannerServiceProvider);
+        await scanner.ready;
+        if (!scanner.rootPaths.any((p0) => p.equals(p0, androidOutputDirectory.displayPath))) {
+          await scanner.addRootPath(androidOutputDirectory.displayPath);
+        }
+        return true;
+      }
+      return false;
+    } else {
+      final dirPath = await FileSelectorHelper.pickDirectory(lockParentWindow: false);
+      if (dirPath != null) {
+        await sharingService.updateSharingFolderPath(dirPath);
+        final scanner = ref.read(scannerServiceProvider);
+        await scanner.ready;
+        if (!scanner.rootPaths.any((p0) => p.equals(p0, dirPath))) {
+          await scanner.addRootPath(dirPath);
+        }
+        return true;
+      }
+      return false;
+    }
+  }
+
+  Future<bool> _checkFileExistsLocally(String targetPath) async {
+    try {
+      final targetFile = File(targetPath);
+      if (targetFile.existsSync() && targetFile.lengthSync() > 0) {
+        return true;
+      }
+    } catch (_) {}
+
+    if (Platform.isAndroid) {
+      final mapping = await AndroidSafStorageHelper.findBestMapping(targetPath);
+      if (mapping != null) {
+        String relativePath = '';
+        try {
+          relativePath = p.relative(targetPath, from: mapping.key);
+        } catch (_) {
+          relativePath = p.basename(targetPath);
+        }
+        return await AndroidSafStorageHelper.fileExists(
+          mapping.value,
+          relativePath,
+        );
+      }
+    }
+    return false;
   }
 
   String _sanitize(String? input, {String fallback = 'Unknown'}) {
@@ -163,7 +245,13 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     required String password,
     required MusicFile song,
     String? trackId,
+    bool skipWritableCheck = false,
   }) async {
+    if (!skipWritableCheck) {
+      final ready = await ensureDownloadFolderWritable();
+      if (!ready) return null;
+    }
+
     final client = SubsonicClient(server: server, password: password);
     final baseFolder = await getDownloadFolderPath();
 
@@ -199,8 +287,16 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     }
 
     // Check if target file already exists locally
-    final targetFile = File(targetPath);
-    if (targetFile.existsSync() && targetFile.lengthSync() > 0) {
+    final exists = await _checkFileExistsLocally(targetPath);
+    if (exists) {
+      int fileSize = 0;
+      try {
+        final targetFile = File(targetPath);
+        if (targetFile.existsSync()) {
+          fileSize = targetFile.lengthSync();
+        }
+      } catch (_) {}
+
       final task = RemoteDownloadTask(
         id: taskId,
         server: server,
@@ -209,8 +305,8 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
         downloadUrl: client.buildDownloadUrl(actualTrackId),
         targetPath: targetPath,
         status: RemoteDownloadStatus.completed,
-        bytesDownloaded: targetFile.lengthSync(),
-        totalBytes: targetFile.lengthSync(),
+        bytesDownloaded: fileSize,
+        totalBytes: fileSize,
         completedAt: DateTime.now(),
       );
       state = [task, ...state];
@@ -240,12 +336,16 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     required List<MusicFile> songs,
     String? collectionName,
   }) async {
+    final ready = await ensureDownloadFolderWritable();
+    if (!ready) return [];
+
     final List<RemoteDownloadTask> enqueued = [];
     for (final song in songs) {
       final task = await enqueueSubsonicTrack(
         server: server,
         password: password,
         song: song,
+        skipWritableCheck: true,
       );
       if (task != null) {
         enqueued.add(task);
@@ -259,7 +359,13 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     required RemoteServer server,
     required String password,
     required WebDavFile file,
+    bool skipWritableCheck = false,
   }) async {
+    if (!skipWritableCheck) {
+      final ready = await ensureDownloadFolderWritable();
+      if (!ready) return null;
+    }
+
     final client = WebDavClient(server: server, password: password);
     final baseFolder = await getDownloadFolderPath();
     final song = RemoteMediaResolver.buildMusicFileFromWebDav(file, server);
@@ -289,8 +395,16 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     }
 
     // Check if target file already exists locally
-    final targetFile = File(targetPath);
-    if (targetFile.existsSync() && targetFile.lengthSync() > 0) {
+    final exists = await _checkFileExistsLocally(targetPath);
+    if (exists) {
+      int fileSize = file.contentLength;
+      try {
+        final targetFile = File(targetPath);
+        if (targetFile.existsSync()) {
+          fileSize = targetFile.lengthSync();
+        }
+      } catch (_) {}
+
       final task = RemoteDownloadTask(
         id: taskId,
         server: server,
@@ -300,8 +414,8 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
         headers: client.authHeaders,
         targetPath: targetPath,
         status: RemoteDownloadStatus.completed,
-        bytesDownloaded: targetFile.lengthSync(),
-        totalBytes: targetFile.lengthSync(),
+        bytesDownloaded: fileSize,
+        totalBytes: fileSize,
         completedAt: DateTime.now(),
       );
       state = [task, ...state];
@@ -332,6 +446,9 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
     required String password,
     required List<WebDavFile> files,
   }) async {
+    final ready = await ensureDownloadFolderWritable();
+    if (!ready) return [];
+
     final List<RemoteDownloadTask> enqueued = [];
     for (final file in files) {
       if (!file.isDirectory && file.isAudio) {
@@ -339,6 +456,7 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
           server: server,
           password: password,
           file: file,
+          skipWritableCheck: true,
         );
         if (task != null) {
           enqueued.add(task);
@@ -379,16 +497,14 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
           error: null,
         ));
 
-    final targetFile = File(task.targetPath);
-    final tempPath = '${task.targetPath}.part';
+    // Download into app temporary cache directory first (safe on all platforms)
+    final tempDir = await getTemporaryDirectory();
+    final tempFileName =
+        'vynody_dl_${task.id.hashCode}_${DateTime.now().millisecondsSinceEpoch}.part';
+    final tempPath = p.join(tempDir.path, tempFileName);
     final tempFile = File(tempPath);
 
     try {
-      final dir = targetFile.parent;
-      if (!dir.existsSync()) {
-        dir.createSync(recursive: true);
-      }
-
       await _dio.download(
         task.downloadUrl,
         tempPath,
@@ -426,31 +542,106 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
       );
 
       if (tempFile.existsSync() && tempFile.lengthSync() > 0) {
-        if (targetFile.existsSync()) {
-          targetFile.deleteSync();
+        bool savedSuccessfully = false;
+        String? saveError;
+
+        // 1. Try standard file write first (desktop, iOS, app-internal directories)
+        try {
+          final targetFile = File(task.targetPath);
+          final dir = targetFile.parent;
+          if (!dir.existsSync()) {
+            dir.createSync(recursive: true);
+          }
+          if (targetFile.existsSync()) {
+            targetFile.deleteSync();
+          }
+          tempFile.renameSync(task.targetPath);
+          savedSuccessfully = true;
+        } catch (e) {
+          savedSuccessfully = false;
+          saveError = e.toString();
         }
-        tempFile.renameSync(task.targetPath);
 
-        // Ensure base directory is registered with scanner
-        final baseFolder = await getDownloadFolderPath();
-        final scanner = ref.read(scannerServiceProvider);
-        await scanner.ready;
-        if (!scanner.rootPaths.any((path) => p.equals(path, baseFolder))) {
-          await scanner.addRootPath(baseFolder);
+        // 2. If standard write failed and on Android, try SAF
+        if (!savedSuccessfully && Platform.isAndroid) {
+          try {
+            final mapping = await AndroidSafStorageHelper.findBestMapping(task.targetPath);
+            if (mapping != null) {
+              final rootDisplayPath = mapping.key;
+              final treeUri = mapping.value;
+              String relativePath = '';
+              try {
+                relativePath = p.relative(task.targetPath, from: rootDisplayPath);
+              } catch (_) {
+                relativePath = p.basename(task.targetPath);
+              }
+
+              const methodChannel = MethodChannel('com.example.audio_converter/saf');
+              final result = await methodChannel.invokeMapMethod<String, Object?>(
+                'saveFileToDirectory',
+                <String, Object?>{
+                  'treeUri': treeUri,
+                  'sourcePath': tempFile.path,
+                  'fileName': relativePath.replaceAll('\\', '/'),
+                  'overwrite': true,
+                },
+              );
+              final savedUri = result?['savedUri']?.toString();
+              if (savedUri != null && savedUri.isNotEmpty) {
+                savedSuccessfully = true;
+                saveError = null;
+              } else {
+                saveError = result?['error']?.toString() ?? 'SAF save failed';
+              }
+            } else {
+              saveError = 'No SAF folder permission mapped for: ${task.targetPath}';
+            }
+          } catch (e) {
+            saveError = 'SAF save error: $e';
+          }
         }
 
-        _cancelTokens.remove(task.id);
-        _lastBytesMap.remove(task.id);
-        _lastTimeMap.remove(task.id);
+        if (savedSuccessfully) {
+          // Ensure base directory is registered with scanner
+          final baseFolder = await getDownloadFolderPath();
+          final scanner = ref.read(scannerServiceProvider);
+          await scanner.ready;
+          if (!scanner.rootPaths.any((path) => p.equals(path, baseFolder))) {
+            await scanner.addRootPath(baseFolder);
+          }
 
-        _updateTask(task.id, (t) => t.copyWith(
-              status: RemoteDownloadStatus.completed,
-              bytesDownloaded: t.totalBytes > 0 ? t.totalBytes : tempFile.lengthSync(),
-              speedBytesPerSec: 0,
-              completedAt: DateTime.now(),
-            ));
+          _cancelTokens.remove(task.id);
+          _lastBytesMap.remove(task.id);
+          _lastTimeMap.remove(task.id);
+
+          int finalSize = task.totalBytes;
+          try {
+            final targetFile = File(task.targetPath);
+            if (targetFile.existsSync()) {
+              finalSize = targetFile.lengthSync();
+            }
+          } catch (_) {}
+
+          _updateTask(task.id, (t) => t.copyWith(
+                status: RemoteDownloadStatus.completed,
+                bytesDownloaded: finalSize > 0 ? finalSize : t.totalBytes,
+                speedBytesPerSec: 0,
+                completedAt: DateTime.now(),
+              ));
+        } else {
+          _cancelTokens.remove(task.id);
+          _updateTask(task.id, (t) => t.copyWith(
+                status: RemoteDownloadStatus.failed,
+                error: saveError ?? 'Failed to save downloaded file to storage',
+                speedBytesPerSec: 0,
+              ));
+        }
       } else {
-        if (tempFile.existsSync()) tempFile.deleteSync();
+        if (tempFile.existsSync()) {
+          try {
+            tempFile.deleteSync();
+          } catch (_) {}
+        }
         _cancelTokens.remove(task.id);
         _updateTask(task.id, (t) => t.copyWith(
               status: RemoteDownloadStatus.failed,
@@ -480,6 +671,12 @@ class RemoteDownloadNotifier extends Notifier<List<RemoteDownloadTask>> {
       _cancelTokens.remove(task.id);
       _lastBytesMap.remove(task.id);
       _lastTimeMap.remove(task.id);
+    } finally {
+      if (tempFile.existsSync()) {
+        try {
+          tempFile.deleteSync();
+        } catch (_) {}
+      }
     }
 
     _processQueue();
