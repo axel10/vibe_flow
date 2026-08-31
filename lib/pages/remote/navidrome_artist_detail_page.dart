@@ -48,6 +48,8 @@ class NavidromeArtistDetailPage extends ConsumerWidget {
 
     Widget content = Scaffold(
       appBar: AppBar(
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         title: Text(artistName),
         actions: [
           IconButton(

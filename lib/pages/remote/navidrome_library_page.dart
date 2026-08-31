@@ -522,7 +522,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 floating: true,
                 snap: false,
                 pinned: false,
-                forceElevated: innerBoxIsScrolled,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: theme.colorScheme.surface,
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back_rounded),
                   tooltip: l10n.close,

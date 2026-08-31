@@ -112,6 +112,8 @@ class _RemoteDownloadManagerPageState
 
     Widget content = Scaffold(
       appBar: AppBar(
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         title: Text(l10n.downloadManager),
         actions: [
           IconButton(

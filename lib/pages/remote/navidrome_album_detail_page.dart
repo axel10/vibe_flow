@@ -181,6 +181,8 @@ class _NavidromeAlbumDetailPageState
 
     Widget content = Scaffold(
       appBar: AppBar(
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         title: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           child: _isCoverVisible
