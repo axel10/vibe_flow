@@ -1636,67 +1636,40 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         );
 
         final List<Widget> breadcrumbItems = [];
+        final segments = _pathSegments;
 
-        // Server root icon
-        breadcrumbItems.add(
-          Material(
-            color: Colors.transparent,
-            child: InkResponse(
-              radius: 18,
-              highlightShape: BoxShape.circle,
-              onTap: () => _navigateToBreadcrumb(-1),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  Icons.cloud_queue_rounded,
-                  size: 20,
-                  color: iconColor,
-                  shadows: shadows,
-                ),
+        // Server root (Icon + Name)
+        final rootContent = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.cloud_queue_rounded,
+              size: 18,
+              color: iconColor,
+              shadows: shadows,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              widget.server.name,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight:
+                    segments.isEmpty ? FontWeight.bold : FontWeight.w500,
+                color: folderTextColor,
+                shadows: shadows,
               ),
             ),
-          ),
+          ],
         );
 
-        final segments = _pathSegments;
         if (segments.isEmpty) {
           breadcrumbItems.add(
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: Icon(
-                Icons.chevron_right_rounded,
-                size: 16,
-                color: chevronColor,
-                shadows: shadows,
-              ),
-            ),
-          );
-          breadcrumbItems.add(
-            Padding(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-              child: Text(
-                widget.server.name,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: folderTextColor,
-                  shadows: shadows,
-                ),
-              ),
+              child: rootContent,
             ),
           );
         } else {
-          breadcrumbItems.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: Icon(
-                Icons.chevron_right_rounded,
-                size: 16,
-                color: chevronColor,
-                shadows: shadows,
-              ),
-            ),
-          );
           breadcrumbItems.add(
             Material(
               color: Colors.transparent,
@@ -1706,15 +1679,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-                  child: Text(
-                    widget.server.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: folderTextColor,
-                      shadows: shadows,
-                    ),
-                  ),
+                  child: rootContent,
                 ),
               ),
             ),
