@@ -446,6 +446,14 @@ class RemoteServersSliver extends ConsumerWidget {
                             ref: ref,
                           );
                         },
+                        onLongPressStart: (details) {
+                          showRemoteServerContextMenu(
+                            context: context,
+                            position: details.globalPosition,
+                            server: server,
+                            ref: ref,
+                          );
+                        },
                       ),
                     );
                   }).toList(),
@@ -476,6 +484,14 @@ class RemoteServersSliver extends ConsumerWidget {
                       server: server,
                       onTap: () => onOpenServer(server),
                       onSecondaryTapDown: (details) {
+                        showRemoteServerContextMenu(
+                          context: context,
+                          position: details.globalPosition,
+                          server: server,
+                          ref: ref,
+                        );
+                      },
+                      onLongPressStart: (details) {
                         showRemoteServerContextMenu(
                           context: context,
                           position: details.globalPosition,
@@ -534,6 +550,14 @@ class RemoteServersSliver extends ConsumerWidget {
                       ),
                     ),
                     onSecondaryTapDown: (details) {
+                      showRemoteServerContextMenu(
+                        context: context,
+                        position: details.globalPosition,
+                        server: server,
+                        ref: ref,
+                      );
+                    },
+                    onLongPressStart: (details) {
                       showRemoteServerContextMenu(
                         context: context,
                         position: details.globalPosition,
@@ -624,6 +648,7 @@ class RemoteServerGridCard extends StatelessWidget {
     final typeLabel = isSubsonic ? 'Navidrome' : 'WebDAV';
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: onSecondaryTapDown,
       onLongPressStart: onLongPressStart,
       onLongPress: onLongPress,
