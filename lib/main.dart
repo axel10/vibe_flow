@@ -176,7 +176,7 @@ void main(List<String> args) async {
         details: <String, Object?>{'args': args.length},
       );
 
-      if (Platform.isWindows) {
+      if (Platform.isWindows || Platform.isLinux) {
         AppLog.log(
           'registering single instance handler',
           mirrorToConsole: true,

@@ -10,6 +10,7 @@
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
+  FlMethodChannel* single_instance_channel;
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
@@ -163,7 +164,48 @@ static void my_application_activate(GApplication* application) {
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
+  FlBinaryMessenger* messenger =
+      fl_engine_get_binary_messenger(fl_view_get_engine(view));
+  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();
+  self->single_instance_channel = fl_method_channel_new(
+      messenger, "vynody/single_instance", FL_METHOD_CODEC(codec));
+
   gtk_widget_grab_focus(GTK_WIDGET(view));
+}
+
+// Implements GApplication::open.
+static void my_application_open(GApplication* application,
+                                GFile** files,
+                                gint n_files,
+                                const gchar* hint) {
+  MyApplication* self = MY_APPLICATION(application);
+
+  GList* windows = gtk_application_get_windows(GTK_APPLICATION(application));
+  if (windows != nullptr) {
+    gtk_window_present(GTK_WINDOW(windows->data));
+  }
+
+  if (self->single_instance_channel != nullptr && n_files > 0) {
+    g_autoptr(FlValue) args_list = fl_value_new_list();
+    for (gint i = 0; i < n_files; i++) {
+      g_autofree gchar* path = g_file_get_path(files[i]);
+      if (path != nullptr) {
+        fl_value_append_take(args_list, fl_value_new_string(path));
+      } else {
+        g_autofree gchar* uri = g_file_get_uri(files[i]);
+        if (uri != nullptr) {
+          fl_value_append_take(args_list, fl_value_new_string(uri));
+        }
+      }
+    }
+    if (fl_value_get_length(args_list) > 0) {
+      fl_method_channel_invoke_method(
+          self->single_instance_channel,
+          "onSecondInstance",
+          args_list,
+          nullptr, nullptr, nullptr);
+    }
+  }
 }
 
 // Implements GApplication::local_command_line.
@@ -181,9 +223,26 @@ static gboolean my_application_local_command_line(GApplication* application,
     return TRUE;
   }
 
-  g_application_activate(application);
-  *exit_status = 0;
+  if (g_application_get_is_remote(application)) {
+    int argc = g_strv_length(*arguments);
+    if (argc > 1) {
+      GFile** files = g_new(GFile*, argc - 1);
+      for (int i = 1; i < argc; i++) {
+        files[i - 1] = g_file_new_for_commandline_arg((*arguments)[i]);
+      }
+      g_application_open(application, files, argc - 1, "");
+      for (int i = 0; i < argc - 1; i++) {
+        g_object_unref(files[i]);
+      }
+      g_free(files);
+    } else {
+      g_application_activate(application);
+    }
+  } else {
+    g_application_activate(application);
+  }
 
+  *exit_status = 0;
   return TRUE;
 }
 
@@ -208,12 +267,14 @@ static void my_application_shutdown(GApplication* application) {
 // Implements GObject::dispose.
 static void my_application_dispose(GObject* object) {
   MyApplication* self = MY_APPLICATION(object);
+  g_clear_object(&self->single_instance_channel);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 
 static void my_application_class_init(MyApplicationClass* klass) {
   G_APPLICATION_CLASS(klass)->activate = my_application_activate;
+  G_APPLICATION_CLASS(klass)->open = my_application_open;
   G_APPLICATION_CLASS(klass)->local_command_line =
       my_application_local_command_line;
   G_APPLICATION_CLASS(klass)->startup = my_application_startup;
@@ -232,5 +293,5 @@ MyApplication* my_application_new() {
 
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID, "flags",
-                                     G_APPLICATION_FLAGS_NONE, nullptr));
+                                     G_APPLICATION_HANDLES_OPEN, nullptr));
 }
