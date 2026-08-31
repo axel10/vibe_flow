@@ -514,7 +514,12 @@ class RemoteServersSliver extends ConsumerWidget {
 
       if (isSortMode) {
         return SliverPadding(
-          padding: EdgeInsets.only(top: 0, bottom: bottomPadding),
+          padding: EdgeInsets.only(
+            top: 0,
+            bottom: bottomPadding,
+            left: isPortrait ? 4 : 8,
+            right: isPortrait ? 4 : 8,
+          ),
           sliver: SliverReorderableList(
             itemCount: servers.length,
             onReorder: (oldIndex, newIndex) {
@@ -532,8 +537,7 @@ class RemoteServersSliver extends ConsumerWidget {
                 key: ValueKey('sort_server_${server.id}'),
                 index: index,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isPortrait ? 8 : 16,
+                  padding: const EdgeInsets.symmetric(
                     vertical: 4,
                   ),
                   child: RemoteServerListTile(
@@ -574,14 +578,18 @@ class RemoteServersSliver extends ConsumerWidget {
       }
 
       return SliverPadding(
-        padding: EdgeInsets.only(top: 0, bottom: bottomPadding),
+        padding: EdgeInsets.only(
+          top: 0,
+          bottom: bottomPadding,
+          left: isPortrait ? 4 : 8,
+          right: isPortrait ? 4 : 8,
+        ),
         sliver: SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final server = servers[index];
               return Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isPortrait ? 8 : 16,
+                padding: const EdgeInsets.symmetric(
                   vertical: 4,
                 ),
                 child: RemoteServerListTile(
