@@ -1403,16 +1403,21 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _searchController,
-            onChanged: _onSearchChanged,
-            decoration: InputDecoration(
-              hintText: l10n.searchRemoteHint,
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: _searchController.text.isNotEmpty
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        decoration: InputDecoration(
+          hintText: l10n.searchRemoteHint,
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: _isSearching
+              ? const UnconstrainedBox(
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : (_searchController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear_rounded),
                       onPressed: () {
@@ -1420,21 +1425,18 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                         _onSearchChanged('');
                       },
                     )
-                  : null,
-              filled: true,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
+                  : null),
+          filled: true,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
           ),
-          if (_isSearching) const LinearProgressIndicator(),
-        ],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
       ),
     );
   }
