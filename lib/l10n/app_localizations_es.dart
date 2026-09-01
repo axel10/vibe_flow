@@ -4494,4 +4494,72 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noSongsInPlaylist => 'No hay canciones en la lista';
+
+  @override
+  String get sendPlaylistsToDeviceAction => 'Enviar listas al dispositivo';
+
+  @override
+  String get pullPlaylistsFromDeviceAction =>
+      'Obtener listas de este dispositivo';
+
+  @override
+  String get selectPlaylistsToSend => 'Seleccionar listas para enviar';
+
+  @override
+  String sendPlaylistsSuccess(int count) {
+    return '$count lista(s) enviada(s) con éxito';
+  }
+
+  @override
+  String pullPlaylistsSuccess(int count) {
+    return '$count lista(s) importada(s) con éxito';
+  }
+
+  @override
+  String sendPlaylistsFailed(String error) {
+    return 'Error al enviar listas: $error';
+  }
+
+  @override
+  String pullPlaylistsFailed(String error) {
+    return 'Error al obtener listas: $error';
+  }
+
+  @override
+  String syncingPlaylistsToDevice(String device) {
+    return 'Enviando listas a «$device»...';
+  }
+
+  @override
+  String syncingPlaylistsFromDevice(String device) {
+    return 'Obteniendo listas de «$device»...';
+  }
+
+  @override
+  String get incomingPlaylistImportTitle =>
+      'Solicitud de listas de reproducción';
+
+  @override
+  String get incomingPlaylistExportTitle =>
+      'Solicitud de exportación de listas';
+
+  @override
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  ) {
+    return 'El dispositivo «$senderName» desea enviarle $count listas ($songsCount canciones).';
+  }
+
+  @override
+  String incomingPlaylistExportFrom(String senderName) {
+    return 'El dispositivo «$senderName» solicitó leer y sincronizar sus listas.';
+  }
+
+  @override
+  String get noPlaylistsAvailable => 'No hay listas disponibles';
+
+  @override
+  String get playlistRequestRejected => 'La solicitud de listas fue rechazada';
 }

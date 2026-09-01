@@ -8,7 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/sharing/sharing_service.dart';
 import 'package:vynody/player/sharing/sharing_riverpod.dart';
+import 'package:vynody/player/library/playlist_service.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
+import 'package:vynody/utils/playlist_name.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 
 void showIncomingTransferDialog(BuildContext context, IncomingTransferRequest request) {
@@ -230,6 +232,267 @@ void showIncomingLyricsDialog(BuildContext context, IncomingLyricsRequest reques
             ),
           ],
         ),
+      );
+    },
+  );
+}
+
+void showIncomingPlaylistDialog(
+  BuildContext context,
+  IncomingPlaylistRequest request,
+) {
+  final theme = Theme.of(context);
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      final l10n = AppLocalizations.of(context)!;
+      final isExport =
+          request.type == IncomingPlaylistRequestType.exportPlaylists;
+      final title = isExport
+          ? l10n.incomingPlaylistExportTitle
+          : l10n.incomingPlaylistImportTitle;
+      final message = isExport
+          ? l10n.incomingPlaylistExportFrom(request.senderName)
+          : l10n.incomingPlaylistImportFrom(
+              request.senderName,
+              request.playlistCount,
+              request.songsCount,
+            );
+
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+            ),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.playlist_play_rounded,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          actionsPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+          actions: [
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                request.onDecision(false);
+              },
+              child: Text(l10n.reject),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                request.onDecision(true);
+              },
+              child: Text(
+                l10n.accept,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+Future<List<Playlist>?> showSelectPlaylistsDialog(
+  BuildContext context,
+  List<Playlist> playlists,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final theme = Theme.of(context);
+  final validPlaylists = playlists.where((p) => p.songs.isNotEmpty).toList();
+
+  if (validPlaylists.isEmpty) {
+    showToast(l10n.noPlaylistsAvailable);
+    return null;
+  }
+
+  final selectedIds = <String>{...validPlaylists.map((p) => p.id)};
+
+  return showModalBottomSheet<List<Playlist>>(
+    context: context,
+    useRootNavigator: true,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          final isAllSelected = selectedIds.length == validPlaylists.length;
+
+          return SafeArea(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16.0,
+                  horizontal: 16.0,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.playlist_play_rounded, size: 24),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            l10n.selectPlaylistsToSend,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              if (isAllSelected) {
+                                selectedIds.clear();
+                              } else {
+                                selectedIds.addAll(
+                                  validPlaylists.map((p) => p.id),
+                                );
+                              }
+                            });
+                          },
+                          child: Text(
+                            isAllSelected ? l10n.deselectAll : l10n.selectAll,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 1),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: validPlaylists.length,
+                        itemBuilder: (context, index) {
+                          final playlist = validPlaylists[index];
+                          final isSelected = selectedIds.contains(playlist.id);
+                          final isFavorite =
+                              playlist.id == PlaylistService.favoritePlaylistId;
+
+                          return CheckboxListTile(
+                            value: isSelected,
+                            activeColor: theme.colorScheme.primary,
+                            title: Text(
+                              localizedPlaylistName(context, playlist),
+                            ),
+                            subtitle: Text(
+                              l10n.songCount(playlist.songs.length),
+                            ),
+                            secondary: Icon(
+                              isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.queue_music,
+                              color: isFavorite ? Colors.redAccent : null,
+                            ),
+                            onChanged: (val) {
+                              setState(() {
+                                if (val == true) {
+                                  selectedIds.add(playlist.id);
+                                } else {
+                                  selectedIds.remove(playlist.id);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(null),
+                            child: Text(l10n.cancel),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: selectedIds.isEmpty
+                                ? null
+                                : () {
+                                    final chosen = validPlaylists
+                                        .where(
+                                          (p) => selectedIds.contains(p.id),
+                                        )
+                                        .toList();
+                                    Navigator.of(context).pop(chosen);
+                                  },
+                            child: Text(l10n.confirm),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       );
     },
   );

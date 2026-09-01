@@ -280,8 +280,12 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
       if (filePaths == null || filePaths.isEmpty || !context.mounted) return;
 
       final playlistService = ref.read(playlistServiceProvider);
+      final scannerRoots = ref.read(scannerServiceProvider).rootPaths;
       final l10n = AppLocalizations.of(context)!;
-      final imported = await playlistService.importPlaylistsFromM3u(filePaths);
+      final imported = await playlistService.importPlaylistsFromM3u(
+        filePaths,
+        rootPaths: scannerRoots,
+      );
 
       if (!context.mounted) return;
       if (imported.isNotEmpty) {
@@ -321,7 +325,11 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
 
     try {
       final playlistService = ref.read(playlistServiceProvider);
-      final m3uContent = playlistService.exportPlaylistToM3u(playlist);
+      final scannerRoots = ref.read(scannerServiceProvider).rootPaths;
+      final m3uContent = playlistService.exportPlaylistToM3u(
+        playlist,
+        rootPaths: scannerRoots,
+      );
       final bytes = Uint8List.fromList(utf8.encode(m3uContent));
       final safeName = playlist.name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
       final suggestedName = '$safeName.m3u8';

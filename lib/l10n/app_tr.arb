@@ -1799,5 +1799,20 @@
   "exportPlaylistSuccess": "Çalma listesi başarıyla dışa aktarıldı",
   "importPlaylistFailed": "Çalma listesi içe aktarılamadı: {error}",
   "exportPlaylistFailed": "Çalma listesi dışa aktarılamadı: {error}",
-  "noSongsInPlaylist": "Çalma listesinde şarkı yok"
+  "noSongsInPlaylist": "Çalma listesinde şarkı yok",
+  "sendPlaylistsToDeviceAction": "Çalma Listelerini Cihaza Gönder",
+  "pullPlaylistsFromDeviceAction": "Bu Cihazdan Çalma Listelerini Al",
+  "selectPlaylistsToSend": "Gönderilecek Çalma Listelerini Seç",
+  "sendPlaylistsSuccess": "{count} çalma listesi başarıyla gönderildi",
+  "pullPlaylistsSuccess": "{count} çalma listesi başarıyla içe aktarıldı",
+  "sendPlaylistsFailed": "Çalma listeleri gönderilemedi: {error}",
+  "pullPlaylistsFailed": "Çalma listeleri alınamadı: {error}",
+  "syncingPlaylistsToDevice": "Çalma listeleri \"{device}\" cihazına gönderiliyor...",
+  "syncingPlaylistsFromDevice": "Çalma listeleri \"{device}\" cihazından alınıyor...",
+  "incomingPlaylistImportTitle": "Çalma Listesi Paylaşım İsteği",
+  "incomingPlaylistExportTitle": "Çalma Listesi Dışa Aktarma İsteği",
+  "incomingPlaylistImportFrom": "\"{senderName}\" cihazı size {count} çalma listesi ({songsCount} şarkı) göndermek istiyor.",
+  "incomingPlaylistExportFrom": "\"{senderName}\" cihazı çalma listelerinizi okumak ve senkronize etmek istiyor.",
+  "noPlaylistsAvailable": "Kullanılabilir çalma listesi yok",
+  "playlistRequestRejected": "Çalma listesi isteği karşı tarafça reddedildi"
 }

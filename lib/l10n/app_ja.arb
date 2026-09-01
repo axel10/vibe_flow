@@ -1774,5 +1774,20 @@
   "exportPlaylistSuccess": "プレイリストをエクスポートしました",
   "importPlaylistFailed": "プレイリストのインポートに失敗しました: {error}",
   "exportPlaylistFailed": "プレイリストのエクスポートに失敗しました: {error}",
-  "noSongsInPlaylist": "プレイリストに曲がありません"
+  "noSongsInPlaylist": "プレイリストに曲がありません",
+  "sendPlaylistsToDeviceAction": "デバイスにプレイリストを送信",
+  "pullPlaylistsFromDeviceAction": "デバイスからプレイリストを取得",
+  "selectPlaylistsToSend": "送信するプレイリストを選択",
+  "sendPlaylistsSuccess": "{count} 個のプレイリストを送信しました",
+  "pullPlaylistsSuccess": "{count} 個のプレイリストをインポートしました",
+  "sendPlaylistsFailed": "プレイリストの送信に失敗しました: {error}",
+  "pullPlaylistsFailed": "プレイリストの取得に失敗しました: {error}",
+  "syncingPlaylistsToDevice": "「{device}」へプレイリストを送信中...",
+  "syncingPlaylistsFromDevice": "「{device}」からプレイリストを取得中...",
+  "incomingPlaylistImportTitle": "プレイリスト共有リクエストを受信",
+  "incomingPlaylistExportTitle": "プレイリストエクスポートリクエストを受信",
+  "incomingPlaylistImportFrom": "デバイス「{senderName}」から {count} 個のプレイリスト（計 {songsCount} 曲）が送信されようとしています。",
+  "incomingPlaylistExportFrom": "デバイス「{senderName}」があなたのプレイリストの読み取りと同期をリクエストしています。",
+  "noPlaylistsAvailable": "利用可能なプレイリストがありません",
+  "playlistRequestRejected": "プレイリストリクエストは相手に拒否されました"
 }

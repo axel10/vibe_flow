@@ -7892,6 +7892,100 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'播放列表中没有歌曲'**
   String get noSongsInPlaylist;
+
+  /// Action to send playlists to LAN device
+  ///
+  /// In zh, this message translates to:
+  /// **'发送播放列表到设备'**
+  String get sendPlaylistsToDeviceAction;
+
+  /// Action to pull playlists from LAN device
+  ///
+  /// In zh, this message translates to:
+  /// **'从该设备拉取播放列表'**
+  String get pullPlaylistsFromDeviceAction;
+
+  /// Dialog title for selecting playlists to send
+  ///
+  /// In zh, this message translates to:
+  /// **'选择要发送的播放列表'**
+  String get selectPlaylistsToSend;
+
+  /// Send playlists success message
+  ///
+  /// In zh, this message translates to:
+  /// **'成功发送 {count} 个播放列表'**
+  String sendPlaylistsSuccess(int count);
+
+  /// Pull playlists success message
+  ///
+  /// In zh, this message translates to:
+  /// **'成功导入 {count} 个播放列表'**
+  String pullPlaylistsSuccess(int count);
+
+  /// Send playlists failed message
+  ///
+  /// In zh, this message translates to:
+  /// **'发送播放列表失败: {error}'**
+  String sendPlaylistsFailed(String error);
+
+  /// Pull playlists failed message
+  ///
+  /// In zh, this message translates to:
+  /// **'拉取播放列表失败: {error}'**
+  String pullPlaylistsFailed(String error);
+
+  /// Toast when starting to send playlists to device
+  ///
+  /// In zh, this message translates to:
+  /// **'正在发送播放列表到“{device}”...'**
+  String syncingPlaylistsToDevice(String device);
+
+  /// Toast when starting to pull playlists from device
+  ///
+  /// In zh, this message translates to:
+  /// **'正在从“{device}”拉取播放列表...'**
+  String syncingPlaylistsFromDevice(String device);
+
+  /// Title for incoming playlist import prompt
+  ///
+  /// In zh, this message translates to:
+  /// **'收到播放列表共享请求'**
+  String get incomingPlaylistImportTitle;
+
+  /// Title for incoming playlist export prompt
+  ///
+  /// In zh, this message translates to:
+  /// **'收到播放列表导出请求'**
+  String get incomingPlaylistExportTitle;
+
+  /// Message for incoming playlist import prompt
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 “{senderName}” 请求向您发送 {count} 个播放列表（共 {songsCount} 首歌曲）。'**
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  );
+
+  /// Message for incoming playlist export prompt
+  ///
+  /// In zh, this message translates to:
+  /// **'设备 “{senderName}” 申请读取并同步您设备上的播放列表。'**
+  String incomingPlaylistExportFrom(String senderName);
+
+  /// Empty state when no playlists are available
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无可用播放列表'**
+  String get noPlaylistsAvailable;
+
+  /// Toast when playlist request is rejected
+  ///
+  /// In zh, this message translates to:
+  /// **'播放列表共享请求已被对方拒绝'**
+  String get playlistRequestRejected;
 }
 
 class _AppLocalizationsDelegate

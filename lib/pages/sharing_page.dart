@@ -608,6 +608,55 @@ class _SharingPageState extends ConsumerState<SharingPage>
     }
   }
 
+  Future<void> _handleSendPlaylistsToDevice(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final playlistService = ref.read(playlistServiceProvider);
+      final playlists = playlistService.playlists;
+      if (playlists.isEmpty || !playlists.any((p) => p.songs.isNotEmpty)) {
+        showToast(l10n.noPlaylistsAvailable);
+        return;
+      }
+
+      final selectedPlaylists = await showSelectPlaylistsDialog(
+        context,
+        playlists,
+      );
+      if (selectedPlaylists == null || selectedPlaylists.isEmpty) return;
+
+      showToast(l10n.syncingPlaylistsToDevice(device.name));
+      final service = ref.read(sharingServiceProvider);
+      final stats = await service.sendPlaylistsToDevice(
+        device,
+        selectedPlaylists,
+      );
+      final importedCount =
+          stats['imported_playlists'] ?? selectedPlaylists.length;
+      showToast(l10n.sendPlaylistsSuccess(importedCount));
+    } catch (e) {
+      final errorMsg = e.toString().contains('rejected')
+          ? l10n.playlistRequestRejected
+          : e.toString();
+      showToast(l10n.sendPlaylistsFailed(errorMsg));
+    }
+  }
+
+  Future<void> _handlePullPlaylistsFromDevice(LanDevice device) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      showToast(l10n.syncingPlaylistsFromDevice(device.name));
+      final service = ref.read(sharingServiceProvider);
+      final stats = await service.pullPlaylistsFromDevice(device);
+      final importedCount = stats['imported_playlists'] ?? 0;
+      showToast(l10n.pullPlaylistsSuccess(importedCount));
+    } catch (e) {
+      final errorMsg = e.toString().contains('rejected')
+          ? l10n.playlistRequestRejected
+          : e.toString();
+      showToast(l10n.pullPlaylistsFailed(errorMsg));
+    }
+  }
+
   IconData _getPlatformIcon(String type) {
     switch (type.toLowerCase()) {
       case 'macos':
@@ -1394,6 +1443,10 @@ class _SharingPageState extends ConsumerState<SharingPage>
                                             _handleSendFiles(device);
                                           } else if (value == 'folder') {
                                             _handleSendFolder(device);
+                                          } else if (value == 'send_playlist') {
+                                            _handleSendPlaylistsToDevice(device);
+                                          } else if (value == 'pull_playlist') {
+                                            _handlePullPlaylistsFromDevice(device);
                                           } else if (value == 'sync_to') {
                                             _handleSyncLyricsToDevice(device);
                                           } else if (value == 'sync_from') {
@@ -1445,6 +1498,41 @@ class _SharingPageState extends ConsumerState<SharingPage>
                                                     ),
                                                     const SizedBox(width: 8),
                                                     Text(l10n.sendFolder),
+                                                  ],
+                                                ),
+                                              ),
+                                              const PopupMenuDivider(),
+                                              PopupMenuItem<String>(
+                                                value: 'send_playlist',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.playlist_add_check_rounded,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      l10n.sendPlaylistsToDeviceAction,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              PopupMenuItem<String>(
+                                                value: 'pull_playlist',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.playlist_play_rounded,
+                                                      size: 18,
+                                                      color:
+                                                          theme.colorScheme.primary,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      l10n.pullPlaylistsFromDeviceAction,
+                                                    ),
                                                   ],
                                                 ),
                                               ),

@@ -4284,4 +4284,69 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noSongsInPlaylist => '재생목록에 곡이 없습니다';
+
+  @override
+  String get sendPlaylistsToDeviceAction => '기기로 재생목록 전송';
+
+  @override
+  String get pullPlaylistsFromDeviceAction => '이 기기에서 재생목록 가져오기';
+
+  @override
+  String get selectPlaylistsToSend => '전송할 재생목록 선택';
+
+  @override
+  String sendPlaylistsSuccess(int count) {
+    return '$count개의 재생목록을 전송했습니다';
+  }
+
+  @override
+  String pullPlaylistsSuccess(int count) {
+    return '$count개의 재생목록을 가져왔습니다';
+  }
+
+  @override
+  String sendPlaylistsFailed(String error) {
+    return '재생목록 전송 실패: $error';
+  }
+
+  @override
+  String pullPlaylistsFailed(String error) {
+    return '재생목록 가져오기 실패: $error';
+  }
+
+  @override
+  String syncingPlaylistsToDevice(String device) {
+    return '\"$device\" 기기로 재생목록 전송 중...';
+  }
+
+  @override
+  String syncingPlaylistsFromDevice(String device) {
+    return '\"$device\" 기기에서 재생목록 가져오는 중...';
+  }
+
+  @override
+  String get incomingPlaylistImportTitle => '재생목록 공유 요청 수신';
+
+  @override
+  String get incomingPlaylistExportTitle => '재생목록 내보내기 요청 수신';
+
+  @override
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  ) {
+    return '\"$senderName\" 기기에서 $count개의 재생목록(총 $songsCount곡)을 보내려고 합니다.';
+  }
+
+  @override
+  String incomingPlaylistExportFrom(String senderName) {
+    return '\"$senderName\" 기기에서 재생목록 읽기 및 동기화를 요청했습니다.';
+  }
+
+  @override
+  String get noPlaylistsAvailable => '사용 가능한 재생목록이 없습니다';
+
+  @override
+  String get playlistRequestRejected => '상대방이 재생목록 공유 요청을 거절했습니다';
 }

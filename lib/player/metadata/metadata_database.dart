@@ -608,6 +608,18 @@ class MetadataDatabase {
     Iterable<String> paths,
   ) => _db.getSongMetadataByPaths(paths);
 
+  Future<List<SongMetadata>> findSongsByPathSuffix(String suffix) =>
+      _db.findSongsByPathSuffix(suffix);
+
+  Future<List<SongMetadata>> findRemoteSongsByRemoteId(String remoteId) =>
+      _db.findRemoteSongsByRemoteId(remoteId);
+
+  Future<List<SongMetadata>> findSongsByTitleAndArtist({
+    required String title,
+    String? artist,
+  }) =>
+      _db.findSongsByTitleAndArtist(title: title, artist: artist);
+
   Future<void> recordSongPlayback({
     required String songPath,
     required int playedAt,

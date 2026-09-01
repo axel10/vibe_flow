@@ -20,6 +20,8 @@ import 'remote_control/remote_control_service.dart';
 import 'security/tls_certificate_service.dart';
 import 'package:vynody/main.dart';
 import 'package:vynody/dialogs/transfer_dialogs.dart';
+import 'package:vynody/player/library/playlist_service.dart';
+import 'package:vynody/utils/m3u_utils.dart';
 
 /// Formats an IP address or hostname for use in HTTP URLs.
 /// If [host] is an IPv6 address containing colons and not already enclosed in brackets,
@@ -71,6 +73,39 @@ final incomingLyricsRequestProvider =
     NotifierProvider<IncomingLyricsRequestNotifier, IncomingLyricsRequest?>(
       IncomingLyricsRequestNotifier.new,
     );
+
+enum IncomingPlaylistRequestType { importPlaylists, exportPlaylists }
+
+class IncomingPlaylistRequest {
+  final String senderId;
+  final String senderName;
+  final IncomingPlaylistRequestType type;
+  final int playlistCount;
+  final int songsCount;
+  final void Function(bool accepted) onDecision;
+
+  IncomingPlaylistRequest({
+    required this.senderId,
+    required this.senderName,
+    required this.type,
+    this.playlistCount = 0,
+    this.songsCount = 0,
+    required this.onDecision,
+  });
+}
+
+class IncomingPlaylistRequestNotifier
+    extends Notifier<IncomingPlaylistRequest?> {
+  @override
+  IncomingPlaylistRequest? build() => null;
+  void setRequest(IncomingPlaylistRequest? request) => state = request;
+}
+
+final incomingPlaylistRequestProvider =
+    NotifierProvider<
+      IncomingPlaylistRequestNotifier,
+      IncomingPlaylistRequest?
+    >(IncomingPlaylistRequestNotifier.new);
 
 class SharingWarningNotifier extends Notifier<String?> {
   @override
@@ -1030,6 +1065,10 @@ class SharingService {
         await _handleExportLyrics(request);
       } else if (method == 'POST' && path == '/api/lyrics/import') {
         await _handleImportLyrics(request);
+      } else if (method == 'GET' && path == '/api/playlists/export') {
+        await _handleExportPlaylists(request);
+      } else if (method == 'POST' && path == '/api/playlists/import') {
+        await _handleImportPlaylists(request);
       } else if (method == 'POST' && path == '/api/remote/pair') {
         await remoteService.handlePairRequest(request);
       } else if (method == 'POST' && path == '/api/remote/pair/verify') {
@@ -2601,6 +2640,259 @@ class SharingService {
     }
 
     final stats = await _importLyricsList(lyrics);
+
+    request.response.statusCode = HttpStatus.ok;
+    request.response.headers.contentType = ContentType.json;
+    request.response.write(jsonEncode({'accepted': true, ...stats}));
+    await request.response.close();
+  }
+
+  Future<Map<String, int>> sendPlaylistsToDevice(
+    LanDevice targetDevice,
+    List<Playlist> playlists,
+  ) async {
+    if (playlists.isEmpty) {
+      return {'imported_playlists': 0, 'imported_songs': 0};
+    }
+
+    final scannerRoots = _ref.read(scannerServiceProvider).rootPaths;
+    final List<Map<String, dynamic>> payload = [];
+    for (final playlist in playlists) {
+      payload.add({
+        'id': playlist.id,
+        'name': playlist.name,
+        'm3u_content': M3uUtils.generate(
+          playlist.songs,
+          playlistName: playlist.name,
+          rootPaths: scannerRoots,
+        ),
+        'songs_count': playlist.songs.length,
+      });
+    }
+
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
+    client.connectionTimeout = const Duration(seconds: 5);
+    try {
+      final formattedHost = formatHostForUrl(targetDevice.ip);
+      final uri = Uri.parse(
+        'https://$formattedHost:${targetDevice.httpPort}/api/playlists/import',
+      );
+      final request = await client.postUrl(uri);
+      request.headers.contentType = ContentType.json;
+      request.write(
+        jsonEncode({
+          'sender_id': _deviceId,
+          'sender_name': _deviceName,
+          'playlists': payload,
+        }),
+      );
+
+      final response = await request.close();
+      if (response.statusCode == HttpStatus.ok) {
+        final body = await utf8.decoder.bind(response).join();
+        final json = jsonDecode(body) as Map<String, dynamic>;
+        if (json['accepted'] == false) {
+          throw Exception('rejected');
+        }
+        return {
+          'imported_playlists': json['imported_playlists'] as int? ?? 0,
+          'imported_songs': json['imported_songs'] as int? ?? 0,
+        };
+      } else if (response.statusCode == HttpStatus.forbidden) {
+        throw Exception('rejected');
+      } else {
+        throw Exception('Server returned status code ${response.statusCode}');
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<Map<String, int>> pullPlaylistsFromDevice(
+    LanDevice targetDevice,
+  ) async {
+    final client = TlsCertificateService.createPinnedHttpClient(
+      expectedFingerprint: targetDevice.certFingerprint,
+    );
+    client.connectionTimeout = const Duration(seconds: 5);
+    try {
+      final formattedHost = formatHostForUrl(targetDevice.ip);
+      final encodedSenderId = Uri.encodeComponent(_deviceId);
+      final encodedSenderName = Uri.encodeComponent(_deviceName);
+      final uri = Uri.parse(
+        'https://$formattedHost:${targetDevice.httpPort}/api/playlists/export?sender_id=$encodedSenderId&sender_name=$encodedSenderName',
+      );
+      final request = await client.getUrl(uri);
+      final response = await request.close();
+
+      if (response.statusCode == HttpStatus.ok) {
+        final body = await utf8.decoder.bind(response).join();
+        final json = jsonDecode(body) as Map<String, dynamic>;
+        if (json['accepted'] == false) {
+          throw Exception('rejected');
+        }
+
+        final playlistsJson = json['playlists'] as List<dynamic>? ?? [];
+        return await _importPlaylistsPayload(playlistsJson);
+      } else if (response.statusCode == HttpStatus.forbidden) {
+        throw Exception('rejected');
+      } else {
+        throw Exception('Server returned status code ${response.statusCode}');
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<Map<String, int>> _importPlaylistsPayload(
+    List<dynamic> playlistsJson,
+  ) async {
+    int importedPlaylistsCount = 0;
+    int importedSongsCount = 0;
+
+    final playlistService = _ref.read(playlistServiceProvider);
+    final scannerRoots = _ref.read(scannerServiceProvider).rootPaths;
+
+    for (final item in playlistsJson) {
+      if (item is! Map<String, dynamic>) continue;
+      final rawName = item['name'] as String? ?? 'Imported Playlist';
+      final m3uContent = item['m3u_content'] as String?;
+
+      if (m3uContent != null && m3uContent.isNotEmpty) {
+        final data = M3uUtils.parse(m3uContent);
+        final uniqueName = playlistService.generateUniquePlaylistName(
+          data.playlistName ?? rawName,
+        );
+        final songs = await M3uUtils.resolveMusicFiles(
+          data.entries,
+          rootPaths: scannerRoots,
+        );
+        final id =
+            '${DateTime.now().millisecondsSinceEpoch}_$importedPlaylistsCount';
+        final playlist = Playlist(
+          id: id,
+          name: uniqueName,
+          songs: songs,
+        );
+
+        await playlistService.addPlaylist(playlist);
+        importedPlaylistsCount++;
+        importedSongsCount += songs.length;
+      }
+    }
+
+    return {
+      'imported_playlists': importedPlaylistsCount,
+      'imported_songs': importedSongsCount,
+    };
+  }
+
+  Future<void> _handleExportPlaylists(HttpRequest request) async {
+    final senderId = request.uri.queryParameters['sender_id'] ?? 'unknown';
+    final senderName = request.uri.queryParameters['sender_name'] ?? 'Unknown';
+
+    final completer = Completer<bool>();
+    _ref
+        .read(incomingPlaylistRequestProvider.notifier)
+        .setRequest(
+          IncomingPlaylistRequest(
+            senderId: senderId,
+            senderName: senderName,
+            type: IncomingPlaylistRequestType.exportPlaylists,
+            onDecision: (accepted) {
+              completer.complete(accepted);
+              _ref
+                  .read(incomingPlaylistRequestProvider.notifier)
+                  .setRequest(null);
+            },
+          ),
+        );
+
+    final accepted = await completer.future;
+    if (!accepted) {
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'accepted': false, 'reason': 'Request rejected by user'}),
+      );
+      await request.response.close();
+      return;
+    }
+
+    final playlists = _ref.read(playlistServiceProvider).playlists;
+    final scannerRoots = _ref.read(scannerServiceProvider).rootPaths;
+    final List<Map<String, dynamic>> exportedList = [];
+
+    for (final playlist in playlists) {
+      if (playlist.songs.isNotEmpty) {
+        exportedList.add({
+          'id': playlist.id,
+          'name': playlist.name,
+          'm3u_content': M3uUtils.generate(
+            playlist.songs,
+            playlistName: playlist.name,
+            rootPaths: scannerRoots,
+          ),
+          'songs_count': playlist.songs.length,
+        });
+      }
+    }
+
+    request.response.statusCode = HttpStatus.ok;
+    request.response.headers.contentType = ContentType.json;
+    request.response.write(
+      jsonEncode({'accepted': true, 'playlists': exportedList}),
+    );
+    await request.response.close();
+  }
+
+  Future<void> _handleImportPlaylists(HttpRequest request) async {
+    final content = await utf8.decoder.bind(request).join();
+    final json = jsonDecode(content) as Map<String, dynamic>;
+    final senderId = json['sender_id'] as String? ?? 'unknown';
+    final senderName = json['sender_name'] as String? ?? 'Unknown';
+    final playlists = json['playlists'] as List<dynamic>? ?? [];
+
+    int totalSongs = 0;
+    for (final p in playlists) {
+      if (p is Map<String, dynamic>) {
+        totalSongs += p['songs_count'] as int? ?? 0;
+      }
+    }
+
+    final completer = Completer<bool>();
+    _ref
+        .read(incomingPlaylistRequestProvider.notifier)
+        .setRequest(
+          IncomingPlaylistRequest(
+            senderId: senderId,
+            senderName: senderName,
+            type: IncomingPlaylistRequestType.importPlaylists,
+            playlistCount: playlists.length,
+            songsCount: totalSongs,
+            onDecision: (accepted) {
+              completer.complete(accepted);
+              _ref
+                  .read(incomingPlaylistRequestProvider.notifier)
+                  .setRequest(null);
+            },
+          ),
+        );
+
+    final accepted = await completer.future;
+    if (!accepted) {
+      request.response.statusCode = HttpStatus.forbidden;
+      request.response.headers.contentType = ContentType.json;
+      request.response.write(
+        jsonEncode({'accepted': false, 'reason': 'Request rejected by user'}),
+      );
+      await request.response.close();
+      return;
+    }
+
+    final stats = await _importPlaylistsPayload(playlists);
 
     request.response.statusCode = HttpStatus.ok;
     request.response.headers.contentType = ContentType.json;

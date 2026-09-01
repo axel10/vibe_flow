@@ -1934,5 +1934,111 @@
   "noSongsInPlaylist": "No songs in playlist",
   "@noSongsInPlaylist": {
     "description": "Empty playlist message"
+  },
+  "sendPlaylistsToDeviceAction": "Send Playlists to Device",
+  "@sendPlaylistsToDeviceAction": {
+    "description": "Action to send playlists to LAN device"
+  },
+  "pullPlaylistsFromDeviceAction": "Pull Playlists from Device",
+  "@pullPlaylistsFromDeviceAction": {
+    "description": "Action to pull playlists from LAN device"
+  },
+  "selectPlaylistsToSend": "Select Playlists to Send",
+  "@selectPlaylistsToSend": {
+    "description": "Dialog title for selecting playlists to send"
+  },
+  "sendPlaylistsSuccess": "Successfully sent {count} playlist(s)",
+  "@sendPlaylistsSuccess": {
+    "description": "Send playlists success message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pullPlaylistsSuccess": "Successfully imported {count} playlist(s)",
+  "@pullPlaylistsSuccess": {
+    "description": "Pull playlists success message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sendPlaylistsFailed": "Failed to send playlists: {error}",
+  "@sendPlaylistsFailed": {
+    "description": "Send playlists failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pullPlaylistsFailed": "Failed to pull playlists: {error}",
+  "@pullPlaylistsFailed": {
+    "description": "Pull playlists failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncingPlaylistsToDevice": "Sending playlists to \"{device}\"...",
+  "@syncingPlaylistsToDevice": {
+    "description": "Toast when starting to send playlists to device",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "syncingPlaylistsFromDevice": "Pulling playlists from \"{device}\"...",
+  "@syncingPlaylistsFromDevice": {
+    "description": "Toast when starting to pull playlists from device",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "incomingPlaylistImportTitle": "Playlist Share Request",
+  "@incomingPlaylistImportTitle": {
+    "description": "Title for incoming playlist import prompt"
+  },
+  "incomingPlaylistExportTitle": "Playlist Export Request",
+  "@incomingPlaylistExportTitle": {
+    "description": "Title for incoming playlist export prompt"
+  },
+  "incomingPlaylistImportFrom": "Device \"{senderName}\" wants to send you {count} playlists ({songsCount} songs).",
+  "@incomingPlaylistImportFrom": {
+    "description": "Message for incoming playlist import prompt",
+    "placeholders": {
+      "senderName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "songsCount": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingPlaylistExportFrom": "Device \"{senderName}\" requested to read and sync your playlists.",
+  "@incomingPlaylistExportFrom": {
+    "description": "Message for incoming playlist export prompt",
+    "placeholders": {
+      "senderName": {
+        "type": "String"
+      }
+    }
+  },
+  "noPlaylistsAvailable": "No playlists available",
+  "@noPlaylistsAvailable": {
+    "description": "Empty state when no playlists are available"
+  },
+  "playlistRequestRejected": "Playlist request was rejected by peer",
+  "@playlistRequestRejected": {
+    "description": "Toast when playlist request is rejected"
   }
 }

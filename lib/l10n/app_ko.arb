@@ -1675,5 +1675,20 @@
   "exportPlaylistSuccess": "재생목록을 내보냈습니다",
   "importPlaylistFailed": "재생목록 가져오기 실패: {error}",
   "exportPlaylistFailed": "재생목록 내보내기 실패: {error}",
-  "noSongsInPlaylist": "재생목록에 곡이 없습니다"
+  "noSongsInPlaylist": "재생목록에 곡이 없습니다",
+  "sendPlaylistsToDeviceAction": "기기로 재생목록 전송",
+  "pullPlaylistsFromDeviceAction": "이 기기에서 재생목록 가져오기",
+  "selectPlaylistsToSend": "전송할 재생목록 선택",
+  "sendPlaylistsSuccess": "{count}개의 재생목록을 전송했습니다",
+  "pullPlaylistsSuccess": "{count}개의 재생목록을 가져왔습니다",
+  "sendPlaylistsFailed": "재생목록 전송 실패: {error}",
+  "pullPlaylistsFailed": "재생목록 가져오기 실패: {error}",
+  "syncingPlaylistsToDevice": "\"{device}\" 기기로 재생목록 전송 중...",
+  "syncingPlaylistsFromDevice": "\"{device}\" 기기에서 재생목록 가져오는 중...",
+  "incomingPlaylistImportTitle": "재생목록 공유 요청 수신",
+  "incomingPlaylistExportTitle": "재생목록 내보내기 요청 수신",
+  "incomingPlaylistImportFrom": "\"{senderName}\" 기기에서 {count}개의 재생목록(총 {songsCount}곡)을 보내려고 합니다.",
+  "incomingPlaylistExportFrom": "\"{senderName}\" 기기에서 재생목록 읽기 및 동기화를 요청했습니다.",
+  "noPlaylistsAvailable": "사용 가능한 재생목록이 없습니다",
+  "playlistRequestRejected": "상대방이 재생목록 공유 요청을 거절했습니다"
 }

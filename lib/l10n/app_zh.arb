@@ -2642,5 +2642,111 @@
   "noSongsInPlaylist": "播放列表中没有歌曲",
   "@noSongsInPlaylist": {
     "description": "Empty playlist message"
+  },
+  "sendPlaylistsToDeviceAction": "发送播放列表到设备",
+  "@sendPlaylistsToDeviceAction": {
+    "description": "Action to send playlists to LAN device"
+  },
+  "pullPlaylistsFromDeviceAction": "从该设备拉取播放列表",
+  "@pullPlaylistsFromDeviceAction": {
+    "description": "Action to pull playlists from LAN device"
+  },
+  "selectPlaylistsToSend": "选择要发送的播放列表",
+  "@selectPlaylistsToSend": {
+    "description": "Dialog title for selecting playlists to send"
+  },
+  "sendPlaylistsSuccess": "成功发送 {count} 个播放列表",
+  "@sendPlaylistsSuccess": {
+    "description": "Send playlists success message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pullPlaylistsSuccess": "成功导入 {count} 个播放列表",
+  "@pullPlaylistsSuccess": {
+    "description": "Pull playlists success message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sendPlaylistsFailed": "发送播放列表失败: {error}",
+  "@sendPlaylistsFailed": {
+    "description": "Send playlists failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pullPlaylistsFailed": "拉取播放列表失败: {error}",
+  "@pullPlaylistsFailed": {
+    "description": "Pull playlists failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncingPlaylistsToDevice": "正在发送播放列表到“{device}”...",
+  "@syncingPlaylistsToDevice": {
+    "description": "Toast when starting to send playlists to device",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "syncingPlaylistsFromDevice": "正在从“{device}”拉取播放列表...",
+  "@syncingPlaylistsFromDevice": {
+    "description": "Toast when starting to pull playlists from device",
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "incomingPlaylistImportTitle": "收到播放列表共享请求",
+  "@incomingPlaylistImportTitle": {
+    "description": "Title for incoming playlist import prompt"
+  },
+  "incomingPlaylistExportTitle": "收到播放列表导出请求",
+  "@incomingPlaylistExportTitle": {
+    "description": "Title for incoming playlist export prompt"
+  },
+  "incomingPlaylistImportFrom": "设备 “{senderName}” 请求向您发送 {count} 个播放列表（共 {songsCount} 首歌曲）。",
+  "@incomingPlaylistImportFrom": {
+    "description": "Message for incoming playlist import prompt",
+    "placeholders": {
+      "senderName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "songsCount": {
+        "type": "int"
+      }
+    }
+  },
+  "incomingPlaylistExportFrom": "设备 “{senderName}” 申请读取并同步您设备上的播放列表。",
+  "@incomingPlaylistExportFrom": {
+    "description": "Message for incoming playlist export prompt",
+    "placeholders": {
+      "senderName": {
+        "type": "String"
+      }
+    }
+  },
+  "noPlaylistsAvailable": "暂无可用播放列表",
+  "@noPlaylistsAvailable": {
+    "description": "Empty state when no playlists are available"
+  },
+  "playlistRequestRejected": "播放列表共享请求已被对方拒绝",
+  "@playlistRequestRejected": {
+    "description": "Toast when playlist request is rejected"
   }
 }

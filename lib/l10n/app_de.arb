@@ -1675,5 +1675,20 @@
   "exportPlaylistSuccess": "Playlist erfolgreich exportiert",
   "importPlaylistFailed": "Playlist-Import fehlgeschlagen: {error}",
   "exportPlaylistFailed": "Playlist-Export fehlgeschlagen: {error}",
-  "noSongsInPlaylist": "Keine Titel in der Playlist"
+  "noSongsInPlaylist": "Keine Titel in der Playlist",
+  "sendPlaylistsToDeviceAction": "Playlists an Gerät senden",
+  "pullPlaylistsFromDeviceAction": "Playlists von diesem Gerät laden",
+  "selectPlaylistsToSend": "Zu sendende Playlists auswählen",
+  "sendPlaylistsSuccess": "{count} Playlist(s) erfolgreich gesendet",
+  "pullPlaylistsSuccess": "{count} Playlist(s) erfolgreich importiert",
+  "sendPlaylistsFailed": "Playlists senden fehlgeschlagen: {error}",
+  "pullPlaylistsFailed": "Playlists laden fehlgeschlagen: {error}",
+  "syncingPlaylistsToDevice": "Sende Playlists an „{device}“...",
+  "syncingPlaylistsFromDevice": "Lade Playlists von „{device}“...",
+  "incomingPlaylistImportTitle": "Playlist-Freigabeanfrage",
+  "incomingPlaylistExportTitle": "Playlist-Exportanfrage",
+  "incomingPlaylistImportFrom": "Gerät „{senderName}“ möchte Ihnen {count} Playlists ({songsCount} Titel) senden.",
+  "incomingPlaylistExportFrom": "Gerät „{senderName}“ möchte Ihre Playlists lesen und synchronisieren.",
+  "noPlaylistsAvailable": "Keine Playlists verfügbar",
+  "playlistRequestRejected": "Playlist-Anfrage wurde abgelehnt"
 }

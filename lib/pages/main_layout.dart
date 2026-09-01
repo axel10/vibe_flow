@@ -1032,6 +1032,16 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       }
     });
 
+    // Listen for incoming LAN playlist requests
+    ref.listen<IncomingPlaylistRequest?>(incomingPlaylistRequestProvider, (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        showIncomingPlaylistDialog(context, next);
+      }
+    });
+
     // Listen for incoming remote control pair requests
     ref.listen<IncomingRemotePairRequest?>(incomingRemotePairProvider, (
       previous,

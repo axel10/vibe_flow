@@ -4432,4 +4432,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noSongsInPlaylist => 'No songs in playlist';
+
+  @override
+  String get sendPlaylistsToDeviceAction => 'Send Playlists to Device';
+
+  @override
+  String get pullPlaylistsFromDeviceAction => 'Pull Playlists from Device';
+
+  @override
+  String get selectPlaylistsToSend => 'Select Playlists to Send';
+
+  @override
+  String sendPlaylistsSuccess(int count) {
+    return 'Successfully sent $count playlist(s)';
+  }
+
+  @override
+  String pullPlaylistsSuccess(int count) {
+    return 'Successfully imported $count playlist(s)';
+  }
+
+  @override
+  String sendPlaylistsFailed(String error) {
+    return 'Failed to send playlists: $error';
+  }
+
+  @override
+  String pullPlaylistsFailed(String error) {
+    return 'Failed to pull playlists: $error';
+  }
+
+  @override
+  String syncingPlaylistsToDevice(String device) {
+    return 'Sending playlists to \"$device\"...';
+  }
+
+  @override
+  String syncingPlaylistsFromDevice(String device) {
+    return 'Pulling playlists from \"$device\"...';
+  }
+
+  @override
+  String get incomingPlaylistImportTitle => 'Playlist Share Request';
+
+  @override
+  String get incomingPlaylistExportTitle => 'Playlist Export Request';
+
+  @override
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  ) {
+    return 'Device \"$senderName\" wants to send you $count playlists ($songsCount songs).';
+  }
+
+  @override
+  String incomingPlaylistExportFrom(String senderName) {
+    return 'Device \"$senderName\" requested to read and sync your playlists.';
+  }
+
+  @override
+  String get noPlaylistsAvailable => 'No playlists available';
+
+  @override
+  String get playlistRequestRejected => 'Playlist request was rejected by peer';
 }

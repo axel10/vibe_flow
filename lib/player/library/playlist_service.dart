@@ -163,12 +163,15 @@ class PlaylistService extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<String> _cachedRootPaths = [];
+
   /// 从本地存储加载播放列表
   Future<void> _loadPlaylists() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_storageKey);
       final currentId = prefs.getString(_currentPlaylistKey);
+      _cachedRootPaths = prefs.getStringList('root_paths') ?? [];
 
       if (jsonString != null) {
         final List<dynamic> jsonList = json.decode(jsonString);
@@ -184,6 +187,14 @@ class PlaylistService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error loading playlists: $e');
     }
+  }
+
+  /// 刷新缓存的扫描根路径
+  Future<void> refreshRootPaths() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _cachedRootPaths = prefs.getStringList('root_paths') ?? [];
+    } catch (_) {}
   }
 
   /// 保存播放列表到本地存储
@@ -213,6 +224,14 @@ class PlaylistService extends ChangeNotifier {
     return playlist;
   }
 
+  /// 添加已构建好的播放列表
+  Future<void> addPlaylist(Playlist playlist) async {
+    _playlists.add(playlist);
+    _currentPlaylistId = playlist.id;
+    await _savePlaylists();
+    notifyListeners();
+  }
+
   /// 检查是否存在同名播放列表 (不区分大小写，去除首尾空格)
   bool playlistExists(String name, {String? excludeId}) {
     final searchName = name.trim().toLowerCase();
@@ -237,7 +256,10 @@ class PlaylistService extends ChangeNotifier {
   }
 
   /// 从 M3U 文件导入播放列表
-  Future<Playlist> importPlaylistFromM3u(String filePath) async {
+  Future<Playlist> importPlaylistFromM3u(
+    String filePath, {
+    Iterable<String>? rootPaths,
+  }) async {
     final file = File(filePath);
     String content;
     try {
@@ -252,7 +274,11 @@ class PlaylistService extends ChangeNotifier {
         : p.basenameWithoutExtension(filePath);
     final playlistName = generateUniquePlaylistName(rawName);
 
-    final songs = await M3uUtils.resolveMusicFiles(data.entries);
+    final effectiveRoots = rootPaths ?? _cachedRootPaths;
+    final songs = await M3uUtils.resolveMusicFiles(
+      data.entries,
+      rootPaths: effectiveRoots,
+    );
     final id = DateTime.now().millisecondsSinceEpoch.toString();
     final playlist = Playlist(
       id: id,
@@ -268,11 +294,14 @@ class PlaylistService extends ChangeNotifier {
   }
 
   /// 批量从 M3U 文件导入播放列表
-  Future<List<Playlist>> importPlaylistsFromM3u(List<String> filePaths) async {
+  Future<List<Playlist>> importPlaylistsFromM3u(
+    List<String> filePaths, {
+    Iterable<String>? rootPaths,
+  }) async {
     final imported = <Playlist>[];
     for (final path in filePaths) {
       try {
-        final playlist = await importPlaylistFromM3u(path);
+        final playlist = await importPlaylistFromM3u(path, rootPaths: rootPaths);
         imported.add(playlist);
       } catch (e) {
         debugPrint('Error importing playlist from $path: $e');
@@ -282,8 +311,18 @@ class PlaylistService extends ChangeNotifier {
   }
 
   /// 导出播放列表为 M3U8 字符串
-  String exportPlaylistToM3u(Playlist playlist) {
-    return M3uUtils.generate(playlist.songs, playlistName: playlist.name);
+  String exportPlaylistToM3u(
+    Playlist playlist, {
+    Iterable<String>? rootPaths,
+    String? baseDir,
+  }) {
+    final effectiveRoots = rootPaths ?? _cachedRootPaths;
+    return M3uUtils.generate(
+      playlist.songs,
+      playlistName: playlist.name,
+      rootPaths: effectiveRoots,
+      baseDir: baseDir,
+    );
   }
 
   /// 删除播放列表

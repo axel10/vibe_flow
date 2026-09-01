@@ -4446,4 +4446,71 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get noSongsInPlaylist => 'Çalma listesinde şarkı yok';
+
+  @override
+  String get sendPlaylistsToDeviceAction => 'Çalma Listelerini Cihaza Gönder';
+
+  @override
+  String get pullPlaylistsFromDeviceAction =>
+      'Bu Cihazdan Çalma Listelerini Al';
+
+  @override
+  String get selectPlaylistsToSend => 'Gönderilecek Çalma Listelerini Seç';
+
+  @override
+  String sendPlaylistsSuccess(int count) {
+    return '$count çalma listesi başarıyla gönderildi';
+  }
+
+  @override
+  String pullPlaylistsSuccess(int count) {
+    return '$count çalma listesi başarıyla içe aktarıldı';
+  }
+
+  @override
+  String sendPlaylistsFailed(String error) {
+    return 'Çalma listeleri gönderilemedi: $error';
+  }
+
+  @override
+  String pullPlaylistsFailed(String error) {
+    return 'Çalma listeleri alınamadı: $error';
+  }
+
+  @override
+  String syncingPlaylistsToDevice(String device) {
+    return 'Çalma listeleri \"$device\" cihazına gönderiliyor...';
+  }
+
+  @override
+  String syncingPlaylistsFromDevice(String device) {
+    return 'Çalma listeleri \"$device\" cihazından alınıyor...';
+  }
+
+  @override
+  String get incomingPlaylistImportTitle => 'Çalma Listesi Paylaşım İsteği';
+
+  @override
+  String get incomingPlaylistExportTitle => 'Çalma Listesi Dışa Aktarma İsteği';
+
+  @override
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  ) {
+    return '\"$senderName\" cihazı size $count çalma listesi ($songsCount şarkı) göndermek istiyor.';
+  }
+
+  @override
+  String incomingPlaylistExportFrom(String senderName) {
+    return '\"$senderName\" cihazı çalma listelerinizi okumak ve senkronize etmek istiyor.';
+  }
+
+  @override
+  String get noPlaylistsAvailable => 'Kullanılabilir çalma listesi yok';
+
+  @override
+  String get playlistRequestRejected =>
+      'Çalma listesi isteği karşı tarafça reddedildi';
 }

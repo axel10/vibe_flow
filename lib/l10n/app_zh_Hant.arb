@@ -1370,5 +1370,20 @@
   "exportPlaylistSuccess": "播放清單已匯出",
   "importPlaylistFailed": "匯入播放清單失敗: {error}",
   "exportPlaylistFailed": "匯出播放清單失敗: {error}",
-  "noSongsInPlaylist": "播放清單中沒有歌曲"
+  "noSongsInPlaylist": "播放清單中沒有歌曲",
+  "sendPlaylistsToDeviceAction": "傳送播放清單到裝置",
+  "pullPlaylistsFromDeviceAction": "從該裝置拉取播放清單",
+  "selectPlaylistsToSend": "選擇要傳送的播放清單",
+  "sendPlaylistsSuccess": "成功傳送 {count} 個播放清單",
+  "pullPlaylistsSuccess": "成功匯入 {count} 個播放清單",
+  "sendPlaylistsFailed": "傳送播放清單失敗: {error}",
+  "pullPlaylistsFailed": "拉取播放清單失敗: {error}",
+  "syncingPlaylistsToDevice": "正在傳送播放清單到「{device}」...",
+  "syncingPlaylistsFromDevice": "正在從「{device}」拉取播放清單...",
+  "incomingPlaylistImportTitle": "收到播放清單共享請求",
+  "incomingPlaylistExportTitle": "收到播放清單匯出請求",
+  "incomingPlaylistImportFrom": "裝置「{senderName}」請求向您傳送 {count} 個播放清單（共 {songsCount} 首歌曲）。",
+  "incomingPlaylistExportFrom": "裝置「{senderName}」申請讀取並同步您裝置上的播放清單。",
+  "noPlaylistsAvailable": "暫無可用播放清單",
+  "playlistRequestRejected": "播放清單共享請求已被對方拒絕"
 }

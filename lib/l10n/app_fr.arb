@@ -1675,5 +1675,20 @@
   "exportPlaylistSuccess": "Liste de lecture exportée avec succès",
   "importPlaylistFailed": "Échec de l'importation de la liste: {error}",
   "exportPlaylistFailed": "Échec de l'exportation de la liste: {error}",
-  "noSongsInPlaylist": "Aucun morceau dans la liste de lecture"
+  "noSongsInPlaylist": "Aucun morceau dans la liste de lecture",
+  "sendPlaylistsToDeviceAction": "Envoyer des listes à l'appareil",
+  "pullPlaylistsFromDeviceAction": "Obtenir des listes de cet appareil",
+  "selectPlaylistsToSend": "Sélectionner les listes à envoyer",
+  "sendPlaylistsSuccess": "{count} liste(s) envoyée(s) avec succès",
+  "pullPlaylistsSuccess": "{count} liste(s) importée(s) avec succès",
+  "sendPlaylistsFailed": "Échec de l'envoi des listes : {error}",
+  "pullPlaylistsFailed": "Échec de l'obtention des listes : {error}",
+  "syncingPlaylistsToDevice": "Envoi des listes à « {device} »...",
+  "syncingPlaylistsFromDevice": "Obtention des listes de « {device} »...",
+  "incomingPlaylistImportTitle": "Demande de partage de listes de lecture",
+  "incomingPlaylistExportTitle": "Demande d'exportation de listes de lecture",
+  "incomingPlaylistImportFrom": "L'appareil « {senderName} » souhaite vous envoyer {count} listes ({songsCount} morceaux).",
+  "incomingPlaylistExportFrom": "L'appareil « {senderName} » a demandé à lire et synchroniser vos listes.",
+  "noPlaylistsAvailable": "Aucune liste disponible",
+  "playlistRequestRejected": "La demande de listes a été refusée"
 }

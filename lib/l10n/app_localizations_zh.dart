@@ -4216,6 +4216,71 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noSongsInPlaylist => '播放列表中没有歌曲';
+
+  @override
+  String get sendPlaylistsToDeviceAction => '发送播放列表到设备';
+
+  @override
+  String get pullPlaylistsFromDeviceAction => '从该设备拉取播放列表';
+
+  @override
+  String get selectPlaylistsToSend => '选择要发送的播放列表';
+
+  @override
+  String sendPlaylistsSuccess(int count) {
+    return '成功发送 $count 个播放列表';
+  }
+
+  @override
+  String pullPlaylistsSuccess(int count) {
+    return '成功导入 $count 个播放列表';
+  }
+
+  @override
+  String sendPlaylistsFailed(String error) {
+    return '发送播放列表失败: $error';
+  }
+
+  @override
+  String pullPlaylistsFailed(String error) {
+    return '拉取播放列表失败: $error';
+  }
+
+  @override
+  String syncingPlaylistsToDevice(String device) {
+    return '正在发送播放列表到“$device”...';
+  }
+
+  @override
+  String syncingPlaylistsFromDevice(String device) {
+    return '正在从“$device”拉取播放列表...';
+  }
+
+  @override
+  String get incomingPlaylistImportTitle => '收到播放列表共享请求';
+
+  @override
+  String get incomingPlaylistExportTitle => '收到播放列表导出请求';
+
+  @override
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  ) {
+    return '设备 “$senderName” 请求向您发送 $count 个播放列表（共 $songsCount 首歌曲）。';
+  }
+
+  @override
+  String incomingPlaylistExportFrom(String senderName) {
+    return '设备 “$senderName” 申请读取并同步您设备上的播放列表。';
+  }
+
+  @override
+  String get noPlaylistsAvailable => '暂无可用播放列表';
+
+  @override
+  String get playlistRequestRejected => '播放列表共享请求已被对方拒绝';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -8430,4 +8495,69 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get noSongsInPlaylist => '播放清單中沒有歌曲';
+
+  @override
+  String get sendPlaylistsToDeviceAction => '傳送播放清單到裝置';
+
+  @override
+  String get pullPlaylistsFromDeviceAction => '從該裝置拉取播放清單';
+
+  @override
+  String get selectPlaylistsToSend => '選擇要傳送的播放清單';
+
+  @override
+  String sendPlaylistsSuccess(int count) {
+    return '成功傳送 $count 個播放清單';
+  }
+
+  @override
+  String pullPlaylistsSuccess(int count) {
+    return '成功匯入 $count 個播放清單';
+  }
+
+  @override
+  String sendPlaylistsFailed(String error) {
+    return '傳送播放清單失敗: $error';
+  }
+
+  @override
+  String pullPlaylistsFailed(String error) {
+    return '拉取播放清單失敗: $error';
+  }
+
+  @override
+  String syncingPlaylistsToDevice(String device) {
+    return '正在傳送播放清單到「$device」...';
+  }
+
+  @override
+  String syncingPlaylistsFromDevice(String device) {
+    return '正在從「$device」拉取播放清單...';
+  }
+
+  @override
+  String get incomingPlaylistImportTitle => '收到播放清單共享請求';
+
+  @override
+  String get incomingPlaylistExportTitle => '收到播放清單匯出請求';
+
+  @override
+  String incomingPlaylistImportFrom(
+    String senderName,
+    int count,
+    int songsCount,
+  ) {
+    return '裝置「$senderName」請求向您傳送 $count 個播放清單（共 $songsCount 首歌曲）。';
+  }
+
+  @override
+  String incomingPlaylistExportFrom(String senderName) {
+    return '裝置「$senderName」申請讀取並同步您裝置上的播放清單。';
+  }
+
+  @override
+  String get noPlaylistsAvailable => '暫無可用播放清單';
+
+  @override
+  String get playlistRequestRejected => '播放清單共享請求已被對方拒絕';
 }

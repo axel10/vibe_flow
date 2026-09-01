@@ -79,5 +79,59 @@ file:///music/song.mp3
       expect(data.entries.length, equals(1));
       expect(data.entries[0].path, equals('/music/song.mp3'));
     });
+
+    test('generate M3U with scan root relative paths and WebDAV paths', () {
+      final songs = [
+        const MusicFile(
+          path: '/music/library/Jay Chou/晴天.flac',
+          name: '晴天.flac',
+          title: '晴天',
+          artist: '周杰伦',
+          durationMillis: 245000,
+        ),
+        const MusicFile(
+          path: 'webdav://srv_uuid_123/Pop/Taylor Swift/Cruel Summer.mp3',
+          name: 'Cruel Summer.mp3',
+          title: 'Cruel Summer',
+          artist: 'Taylor Swift',
+          durationMillis: 198000,
+        ),
+      ];
+
+      final m3u = M3uUtils.generate(
+        songs,
+        playlistName: 'Cross Platform List',
+        rootPaths: ['/music/library'],
+      );
+
+      expect(m3u.contains('#PLAYLIST:Cross Platform List'), isTrue);
+      // Local song under root should be converted to relative path
+      expect(m3u.contains('Jay Chou/晴天.flac'), isTrue);
+      expect(m3u.contains('/music/library/Jay Chou/晴天.flac'), isFalse);
+      // WebDAV should be converted to cross-platform URI
+      expect(m3u.contains('webdav:///Pop/Taylor Swift/Cruel Summer.mp3'), isTrue);
+    });
+
+    test('resolveMusicFiles with scan roots and relative paths', () async {
+      final entries = [
+        const M3uEntry(
+          path: 'Jay Chou/晴天.flac',
+          rawPath: 'Jay Chou/晴天.flac',
+          title: '晴天',
+          artist: '周杰伦',
+          durationMillis: 245000,
+        ),
+      ];
+
+      final resolved = await M3uUtils.resolveMusicFiles(
+        entries,
+        rootPaths: ['/music/library'],
+      );
+
+      expect(resolved.length, equals(1));
+      expect(resolved[0].title, equals('晴天'));
+      expect(resolved[0].artist, equals('周杰伦'));
+      expect(resolved[0].durationMillis, equals(245000));
+    });
   });
 }

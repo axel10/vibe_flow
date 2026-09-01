@@ -1081,6 +1081,115 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     return result;
   }
 
+  Future<List<SongMetadata>> findSongsByPathSuffix(String suffix) async {
+    final trimmed = suffix.trim();
+    if (trimmed.isEmpty) return [];
+
+    // Search by exact suffix or separator + suffix
+    final normalized = trimmed.replaceAll('\\', '/');
+    final lastComponent = normalized.contains('/') ? normalized.split('/').last : normalized;
+    final separator = Platform.isWindows ? r'\' : '/';
+    final suffixPattern = '%$separator$trimmed';
+    final slashPattern = '%/$normalized';
+    final filenamePattern = '%$separator$lastComponent';
+
+    final rows = await customSelect(
+      '''
+      SELECT *
+      FROM songs
+      WHERE (path = ? OR path LIKE ? OR path LIKE ? OR path LIKE ?)
+        AND deletedAt IS NULL
+      LIMIT 10
+      ''',
+      variables: [
+        Variable(trimmed),
+        Variable(suffixPattern),
+        Variable(slashPattern),
+        Variable(filenamePattern),
+      ],
+      readsFrom: {songs},
+    ).get();
+    return rows.map(_songFromQueryRow).toList(growable: false);
+  }
+
+  Future<List<SongMetadata>> findRemoteSongsByRemoteId(String remoteId) async {
+    final cleanRemoteId = remoteId.trim();
+    if (cleanRemoteId.isEmpty) return [];
+    final withSlash = cleanRemoteId.startsWith('/') ? cleanRemoteId : '/$cleanRemoteId';
+    final withoutSlash = cleanRemoteId.startsWith('/') ? cleanRemoteId.substring(1) : cleanRemoteId;
+    final lastComponent = cleanRemoteId.contains('/') ? cleanRemoteId.split('/').last : cleanRemoteId;
+    final suffixPattern = '%/$lastComponent';
+
+    final rows = await customSelect(
+      '''
+      SELECT *
+      FROM remote_songs
+      WHERE (remoteId = ? OR remoteId = ? OR remoteId LIKE ? OR virtualUri LIKE ?)
+        AND deletedAt IS NULL
+      LIMIT 10
+      ''',
+      variables: [
+        Variable(withSlash),
+        Variable(withoutSlash),
+        Variable(suffixPattern),
+        Variable(suffixPattern),
+      ],
+      readsFrom: {remoteSongs},
+    ).get();
+    return rows.map(_songFromRemoteRow).toList(growable: false);
+  }
+
+  Future<List<SongMetadata>> findSongsByTitleAndArtist({
+    required String title,
+    String? artist,
+  }) async {
+    final cleanTitle = title.trim();
+    if (cleanTitle.isEmpty) return [];
+
+    final localRows = await customSelect(
+      '''
+      SELECT *
+      FROM songs
+      WHERE LOWER(title) = ?
+        AND deletedAt IS NULL
+      LIMIT 10
+      ''',
+      variables: [Variable(cleanTitle.toLowerCase())],
+      readsFrom: {songs},
+    ).get();
+
+    final results = localRows.map(_songFromQueryRow).toList();
+
+    final remoteRows = await customSelect(
+      '''
+      SELECT *
+      FROM remote_songs
+      WHERE LOWER(title) = ?
+        AND deletedAt IS NULL
+      LIMIT 10
+      ''',
+      variables: [Variable(cleanTitle.toLowerCase())],
+      readsFrom: {remoteSongs},
+    ).get();
+
+    results.addAll(remoteRows.map(_songFromRemoteRow));
+
+    if (artist != null && artist.trim().isNotEmpty) {
+      final cleanArtist = artist.trim().toLowerCase();
+      results.sort((a, b) {
+        final aArtist = a.artist.toLowerCase();
+        final bArtist = b.artist.toLowerCase();
+        final aMatches = aArtist.contains(cleanArtist) || cleanArtist.contains(aArtist);
+        final bMatches = bArtist.contains(cleanArtist) || cleanArtist.contains(bArtist);
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return 0;
+      });
+    }
+
+    return results;
+  }
+
   Future<void> insertOrUpdateRemoteSong(
     SongMetadata song, {
     String? coverArtId,
