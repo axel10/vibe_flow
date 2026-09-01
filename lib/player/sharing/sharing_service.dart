@@ -1176,20 +1176,132 @@ class SharingService {
     final accepted = await completer.future;
 
     if (accepted) {
+      if (Platform.isIOS || Platform.isMacOS) {
+        if (_sharingFolderPath.isNotEmpty) {
+          var scopedAccessBegan =
+              await _beginAppleScopedAccess(_sharingFolderPath);
+          if (!scopedAccessBegan) {
+            await _registerApplePersistentAccess(_sharingFolderPath);
+            await _beginAppleScopedAccess(_sharingFolderPath);
+          }
+        }
+      }
+
+      bool useSaf = false;
+      String? treeUri;
+      if (Platform.isAndroid) {
+        final mapping =
+            await AndroidSafStorageHelper.findBestMapping(_sharingFolderPath);
+        if (mapping != null) {
+          useSaf = true;
+          treeUri = mapping.value;
+        }
+      }
+
+      final List<String> conflictingFiles = [];
+      if (useSaf && treeUri != null) {
+        // Fetch all existing files under treeUri in one batch IPC call (milliseconds instead of 500+ sequential IPC calls)
+        final existingList =
+            await AndroidSafStorageHelper.listMusicFilesRecursively(treeUri);
+        final existingSet = existingList
+            .map((s) => s.replaceAll('\\', '/').toLowerCase())
+            .toSet();
+        final existingBasenames = existingList
+            .map((s) => p.basename(s.replaceAll('\\', '/')).toLowerCase())
+            .toSet();
+
+        for (final file in files) {
+          final relPath = file.name.replaceAll('\\', '/');
+          final relLower = relPath.toLowerCase();
+          final baseLower = p.basename(relPath).toLowerCase();
+          if (existingSet.contains(relLower) ||
+              existingBasenames.contains(baseLower)) {
+            conflictingFiles.add(relPath);
+          }
+        }
+      } else {
+        for (final file in files) {
+          var relPath = file.name.replaceAll('\\', '/');
+          final pathSegments = relPath
+              .split('/')
+              .where((s) => s.isNotEmpty && s != '.' && s != '..')
+              .map((s) => s.replaceAll(RegExp(r'[:*?"<>|]'), '_'))
+              .toList();
+          if (pathSegments.isEmpty) continue;
+          final targetPath =
+              p.normalize(p.joinAll([_sharingFolderPath, ...pathSegments]));
+
+          if (File(targetPath).existsSync()) {
+            conflictingFiles.add(relPath);
+          }
+        }
+      }
+
+      String? conflictAction;
+      List<String> skippedFiles = [];
+
+      if (conflictingFiles.isNotEmpty) {
+        final context = navigatorKey.currentContext;
+        if (context != null && context.mounted) {
+          final displayFileName = conflictingFiles.length == 1
+              ? p.basename(conflictingFiles.first)
+              : '${p.basename(conflictingFiles.first)} 等 ${conflictingFiles.length} 个同名文件';
+          debugPrint(
+            '[SharingService] Receiver: Prompting preflight conflict dialog for $displayFileName',
+          );
+          final action = await showConflictDialog(context, displayFileName);
+          debugPrint(
+            '[SharingService] Receiver: User chose preflight action: $action',
+          );
+
+          if (action == 'skip_all') {
+            conflictAction = 'skip_all';
+            skippedFiles = List.from(conflictingFiles);
+          } else if (action == 'skip') {
+            skippedFiles = [conflictingFiles.first];
+          } else if (action == 'overwrite_all') {
+            conflictAction = 'overwrite_all';
+          } else if (action == 'overwrite') {
+            // overwrite individual file
+          } else {
+            conflictAction = 'skip_all';
+            skippedFiles = List.from(conflictingFiles);
+          }
+        }
+      }
+
       final token =
           'tkn_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(100000)}';
       final totalSize = files.fold<int>(0, (sum, f) => sum + f.size);
       final sessionName = _deriveSessionName(files);
 
-      _activeTokens[token] = _UploadRequestMetadata(
+      final skippedSet = skippedFiles.toSet();
+      final skippedBytes = files
+          .where(
+            (f) =>
+                skippedSet.contains(f.name.replaceAll('\\', '/')) ||
+                skippedSet.contains(p.basename(f.name.replaceAll('\\', '/'))),
+          )
+          .fold<int>(0, (sum, f) => sum + f.size);
+
+      final metadata = _UploadRequestMetadata(
         sessionName: sessionName,
         files: files,
         totalSize: totalSize,
         senderName: senderName,
       );
+      metadata.conflictAction = conflictAction;
+      metadata.completedFiles.addAll(skippedFiles);
+      metadata.bytesTransferredCumulative = skippedBytes;
+      _activeTokens[token] = metadata;
 
-      // Pause scanner media observer during active transfer to prevent 100% freezing
-      _ref.read(scannerServiceProvider).pauseMediaObserver();
+      final isAllSkipped =
+          skippedFiles.length >= files.length && files.isNotEmpty;
+
+      if (!isAllSkipped) {
+        // Pause scanner media observer during active transfer to prevent 100% freezing
+        _ref.read(scannerServiceProvider).pauseMediaObserver();
+      }
 
       // Add TransferSession on receiver side immediately upon acceptance
       _ref
@@ -1201,17 +1313,32 @@ class SharingService {
                   ? '$sessionName (${files.length}个文件)'
                   : sessionName,
               totalBytes: totalSize,
-              bytesTransferred: 0,
+              bytesTransferred: isAllSkipped ? totalSize : skippedBytes,
               isSending: false,
               deviceName: senderName,
-              status: TransferStatus.transferring,
+              status: isAllSkipped
+                  ? TransferStatus.success
+                  : TransferStatus.transferring,
               filesCount: files.length,
-              completedFilesCount: 0,
+              completedFilesCount:
+                  isAllSkipped ? files.length : skippedFiles.length,
             ),
           );
 
+      if (isAllSkipped) {
+        _activeTokens.remove(token);
+        _checkAndResumeScanner();
+      }
+
       request.response.statusCode = HttpStatus.ok;
-      request.response.write(jsonEncode({'accepted': true, 'token': token}));
+      request.response.write(
+        jsonEncode({
+          'accepted': true,
+          'token': token,
+          'conflict_action': conflictAction,
+          'skipped_files': skippedFiles,
+        }),
+      );
     } else {
       request.response.statusCode = HttpStatus.ok;
       request.response.write(
@@ -2028,13 +2155,56 @@ class SharingService {
 
       final token = responseJson['token'] as String;
 
+      final skippedList = (responseJson['skipped_files'] as List<dynamic>?)
+              ?.map((e) => e.toString().replaceAll('\\', '/'))
+              .toSet() ??
+          <String>{};
+
+      final filesToActuallySend = <_FileToSend>[];
+      int initialSkippedBytes = 0;
+      int initialSkippedCount = 0;
+
+      for (final fileInfo in filesToSend) {
+        final relNormalized = fileInfo.relativeName.replaceAll('\\', '/');
+        final baseName = p.basename(relNormalized);
+        if (skippedList.contains(relNormalized) ||
+            skippedList.contains(baseName)) {
+          initialSkippedBytes += fileInfo.size;
+          initialSkippedCount++;
+        } else {
+          filesToActuallySend.add(fileInfo);
+        }
+      }
+
+      if (filesToActuallySend.isEmpty) {
+        debugPrint(
+          '[SharingService] Sender: All ${filesToSend.length} files skipped per receiver conflict choice. Transfer finished instantly.',
+        );
+        _ref
+            .read(activeTransfersProvider.notifier)
+            .updateProgress(
+              sessionId,
+              totalSize,
+              status: TransferStatus.success,
+              completedFilesCount: filesToSend.length,
+              activeFiles: [],
+            );
+        return true;
+      }
+
       // 2. Perform Uploads concurrently
       _ref
           .read(activeTransfersProvider.notifier)
-          .updateStatus(sessionId, TransferStatus.transferring);
+          .updateProgress(
+            sessionId,
+            initialSkippedBytes,
+            status: TransferStatus.transferring,
+            completedFilesCount: initialSkippedCount,
+            activeFiles: [],
+          );
 
-      int totalBytesSent = 0;
-      int completedFilesCount = 0;
+      int totalBytesSent = initialSkippedBytes;
+      int completedFilesCount = initialSkippedCount;
       final Map<String, ActiveFileProgress> localActiveFiles = {};
 
       int nextFileIndex = 0;
@@ -2047,13 +2217,13 @@ class SharingService {
           if (hasError || isCancelled) return;
 
           int fileIndex;
-          if (nextFileIndex >= filesToSend.length) {
+          if (nextFileIndex >= filesToActuallySend.length) {
             break;
           }
           fileIndex = nextFileIndex;
           nextFileIndex++;
 
-          final fileInfo = filesToSend[fileIndex];
+          final fileInfo = filesToActuallySend[fileIndex];
 
           // Check cancellation
           final currentSession = _ref
@@ -2216,7 +2386,7 @@ class SharingService {
         }
       }
 
-      final concurrencyLimit = min(3, filesToSend.length);
+      final concurrencyLimit = min(3, filesToActuallySend.length);
       final workers = List.generate(concurrencyLimit, (_) => uploadWorker());
       await Future.wait(workers);
 
