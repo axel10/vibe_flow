@@ -78,6 +78,9 @@ class SelectionActionHelper {
         onEnterSelectionMode?.call();
       }
       final anchor = lastAnchorIndex ?? index;
+      if (lastAnchorIndex == null) {
+        onUpdateAnchor(index);
+      }
       final newKeys = ModifierKeyUtils.computeRangeKeys(
         items: items,
         anchorIndex: anchor,

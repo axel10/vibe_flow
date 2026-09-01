@@ -283,6 +283,7 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
 
     if (isShift) {
       final anchor = _lastAnchorIndex ?? index;
+      _lastAnchorIndex ??= index;
       final range = ModifierKeyUtils.getIndexRange(anchor, index);
       final nextKeys = Set<K>.from(selectedKeys);
       for (final i in range) {
@@ -407,6 +408,7 @@ mixin SongSelectionMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     if (isShift) {
       final anchor = _lastAnchorIndex ?? index;
+      _lastAnchorIndex ??= index;
       final range = ModifierKeyUtils.getIndexRange(anchor, index);
       final nextPaths = Set<String>.from(selectedSongPaths);
       for (final i in range) {

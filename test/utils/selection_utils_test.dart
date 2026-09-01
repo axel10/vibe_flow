@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/utils/selection_utils.dart';
 
@@ -83,6 +84,55 @@ void main() {
 
       expect(toggledKey, 'id2');
       expect(updatedAnchor, 2);
+    });
+
+    testWidgets('shift click initializes anchor when lastAnchorIndex is null and performs range selection', (tester) async {
+      int? currentAnchor;
+      Set<String> selection = {};
+      bool isMode = false;
+
+      // Press shift
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+
+      // First shift click on index 1
+      SelectionActionHelper.handleItemTap(
+        index: 1,
+        itemKey: 'id1',
+        items: items,
+        keySelector: (s) => s,
+        isSelectionMode: isMode,
+        selectedKeys: selection,
+        lastAnchorIndex: currentAnchor,
+        onUpdateAnchor: (a) => currentAnchor = a,
+        onEnterSelectionMode: () => isMode = true,
+        onSetSelection: (keys) => selection = keys,
+        onToggleSelection: (_) {},
+      );
+
+      expect(currentAnchor, 1);
+      expect(selection, {'id1'});
+      expect(isMode, isTrue);
+
+      // Second shift click on index 3
+      SelectionActionHelper.handleItemTap(
+        index: 3,
+        itemKey: 'id3',
+        items: items,
+        keySelector: (s) => s,
+        isSelectionMode: isMode,
+        selectedKeys: selection,
+        lastAnchorIndex: currentAnchor,
+        onUpdateAnchor: (a) => currentAnchor = a,
+        onEnterSelectionMode: () => isMode = true,
+        onSetSelection: (keys) => selection = keys,
+        onToggleSelection: (_) {},
+      );
+
+      // Anchor should remain 1 and range 1..3 (id1, id2, id3) should be selected
+      expect(currentAnchor, 1);
+      expect(selection, {'id1', 'id2', 'id3'});
+
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
     });
   });
 }
