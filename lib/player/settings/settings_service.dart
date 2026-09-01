@@ -11,6 +11,7 @@ import 'package:vynody/player/settings/shortcut_bindings.dart';
 import 'package:vynody/transcode/transcode_models.dart';
 import 'package:vynody/utils/language_code_utils.dart';
 
+import 'package:vynody/player/scanner/scanner_sorting.dart';
 import 'package:vynody/utils/localized_text.dart';
 
 AppLocalizations _l10n() => currentAppL10n;
@@ -540,6 +541,8 @@ class SettingsService extends ChangeNotifier {
       'navidrome_artist_sort_field';
   static const String _keyNavidromeArtistSortAscending =
       'navidrome_artist_sort_ascending';
+  static const String _keyWebDavSortCriteria = 'webdav_sort_criteria';
+  static const String _keyWebDavSortOrder = 'webdav_sort_order';
 
   final SharedPreferences _prefs;
   bool _isUserInactive = false;
@@ -687,6 +690,26 @@ class SettingsService extends ChangeNotifier {
     defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
+  );
+
+  late final _webDavSortCriteriaProperty = SettingProperty<SortCriteria>(
+    key: _keyWebDavSortCriteria,
+    defaultValue: SortCriteria.filename,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        SortCriteriaX.fromStorageValue(prefs.getString(key)),
+    customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
+  );
+
+  late final _webDavSortOrderProperty = SettingProperty<SortOrder>(
+    key: _keyWebDavSortOrder,
+    defaultValue: SortOrder.ascending,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        SortOrderX.fromStorageValue(prefs.getString(key)),
+    customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
   );
 
   late final _uiScaleProperty = SettingProperty<double>(
@@ -2442,6 +2465,14 @@ class SettingsService extends ChangeNotifier {
       _navidromeArtistSortAscendingProperty.value;
   set navidromeArtistSortAscending(bool value) =>
       _navidromeArtistSortAscendingProperty.value = value;
+
+  SortCriteria get webDavSortCriteria => _webDavSortCriteriaProperty.value;
+  set webDavSortCriteria(SortCriteria value) =>
+      _webDavSortCriteriaProperty.value = value;
+
+  SortOrder get webDavSortOrder => _webDavSortOrderProperty.value;
+  set webDavSortOrder(SortOrder value) =>
+      _webDavSortOrderProperty.value = value;
 
   SharedPreferences get prefs => _prefs;
 

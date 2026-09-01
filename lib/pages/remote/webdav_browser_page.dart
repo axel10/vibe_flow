@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import 'package:oktoast/oktoast.dart';
 import 'package:path/path.dart' as p;
 import '../../models/music_file.dart';
@@ -15,6 +16,7 @@ import '../../player/remote/services/remote_download_service.dart';
 import '../../player/remote/services/webdav_metadata_helper.dart';
 import '../../player/library/playlist_service.dart';
 import '../../player/metadata/metadata_database.dart';
+import '../../player/scanner/scanner_sorting.dart';
 import '../../player/settings/settings_service.dart';
 import '../../dialogs/transcode_dialog.dart';
 import '../../utils/app_snack_bar.dart';
@@ -113,7 +115,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
     if (isSameServer &&
         session.webDavDirectoryCache.containsKey(_currentPath)) {
-      _items = session.webDavDirectoryCache[_currentPath]!;
+      _items = List.of(session.webDavDirectoryCache[_currentPath]!);
+      _sortItems(_items);
       _isLoading = false;
       _startMetadataExtraction(_items, _loadEpoch);
     } else {
@@ -182,9 +185,11 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     if (!forceRefresh &&
         isSameServer &&
         session.webDavDirectoryCache.containsKey(path)) {
+      final cachedList = List<WebDavFile>.of(session.webDavDirectoryCache[path]!);
+      _sortItems(cachedList);
       setState(() {
         _currentPath = path;
-        _items = session.webDavDirectoryCache[path]!;
+        _items = cachedList;
         _isLoading = false;
         _error = null;
       });
@@ -227,12 +232,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
     try {
       final list = await _client.listFiles(path);
-      // Sort: folders first, then files alphabetically
-      list.sort((a, b) {
-        if (a.isDirectory && !b.isDirectory) return -1;
-        if (!a.isDirectory && b.isDirectory) return 1;
-        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-      });
+      _sortItems(list);
 
       var effectivePath = path;
       if (path == '/' && list.isNotEmpty && list.first.path.startsWith('/dav')) {
@@ -295,6 +295,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     }
 
     if (dbHits.isNotEmpty && mounted && _loadEpoch == epoch) {
+      final criteria = ref.read(settingsServiceProvider).webDavSortCriteria;
+      if (criteria == SortCriteria.title || criteria == SortCriteria.trackNumber) {
+        _sortItems(_items);
+      }
       setState(() {});
       for (final meta in dbHits.values) {
         ref.read(scannerServiceProvider).updateMetadataForPath(meta);
@@ -335,12 +339,20 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         final now = DateTime.now();
         if (now.difference(lastUiUpdate).inMilliseconds > 150) {
           lastUiUpdate = now;
+          final criteria = ref.read(settingsServiceProvider).webDavSortCriteria;
+          if (criteria == SortCriteria.title || criteria == SortCriteria.trackNumber) {
+            _sortItems(_items);
+          }
           setState(() {});
         }
       },
     );
 
     if (mounted && _loadEpoch == epoch) {
+      final criteria = ref.read(settingsServiceProvider).webDavSortCriteria;
+      if (criteria == SortCriteria.title || criteria == SortCriteria.trackNumber) {
+        _sortItems(_items);
+      }
       setState(() {});
     }
 
@@ -807,6 +819,208 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         ? _rootPath.substring(0, _rootPath.length - 1)
         : _rootPath;
     return '$base/$sub';
+  }
+
+  void _sortItems(List<WebDavFile> items, {SortCriteria? criteria, SortOrder? order}) {
+    final effectiveCriteria =
+        criteria ?? ref.read(settingsServiceProvider).webDavSortCriteria;
+    final effectiveOrder =
+        order ?? ref.read(settingsServiceProvider).webDavSortOrder;
+
+    items.sort((a, b) {
+      if (a.isDirectory && !b.isDirectory) return -1;
+      if (!a.isDirectory && b.isDirectory) return 1;
+      if (a.isDirectory && b.isDirectory) {
+        final res = compareNatural(a.name.toLowerCase(), b.name.toLowerCase());
+        return effectiveOrder == SortOrder.descending ? -res : res;
+      }
+
+      // Both are files
+      int comp = 0;
+      final virtualUriA =
+          RemoteMediaResolver.buildWebDavUri(widget.server.id, a.path);
+      final virtualUriB =
+          RemoteMediaResolver.buildWebDavUri(widget.server.id, b.path);
+      final metaA = _metadataMap[virtualUriA] ??
+          ref.read(scannerServiceProvider).metadataMap[virtualUriA];
+      final metaB = _metadataMap[virtualUriB] ??
+          ref.read(scannerServiceProvider).metadataMap[virtualUriB];
+
+      switch (effectiveCriteria) {
+        case SortCriteria.title:
+          final titleA =
+              (metaA?.title.isNotEmpty == true) ? metaA!.title : a.name;
+          final titleB =
+              (metaB?.title.isNotEmpty == true) ? metaB!.title : b.name;
+          comp = compareNatural(titleA.toLowerCase(), titleB.toLowerCase());
+          if (comp == 0) {
+            comp = compareNatural(a.name.toLowerCase(), b.name.toLowerCase());
+          }
+          break;
+        case SortCriteria.filename:
+          comp = compareNatural(a.name.toLowerCase(), b.name.toLowerCase());
+          break;
+        case SortCriteria.trackNumber:
+          final trackA = metaA?.trackNumber;
+          final trackB = metaB?.trackNumber;
+          if (trackA != null && trackB != null) {
+            comp = trackA.compareTo(trackB);
+          } else if (trackA != null) {
+            comp = -1;
+          } else if (trackB != null) {
+            comp = 1;
+          }
+          if (comp == 0) {
+            comp = compareNatural(a.name.toLowerCase(), b.name.toLowerCase());
+          }
+          break;
+      }
+
+      return effectiveOrder == SortOrder.descending ? -comp : comp;
+    });
+  }
+
+  void _showSortDialog(BuildContext context) {
+    final settings = ref.read(settingsServiceProvider);
+    var selectedCriteria = settings.webDavSortCriteria;
+    var selectedOrder = settings.webDavSortOrder;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final l10n = AppLocalizations.of(context)!;
+            return AlertDialog(
+              title: Text(l10n.sortBy),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.sortBy,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  RadioGroup<SortCriteria>(
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setDialogState(() {
+                        selectedCriteria = v;
+                      });
+                      settings.webDavSortCriteria = v;
+                      setState(() {
+                        _sortItems(_items);
+                      });
+                    },
+                    groupValue: selectedCriteria,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          title: Text(l10n.fileName),
+                          leading: const Radio(value: SortCriteria.filename),
+                          onTap: () {
+                            setDialogState(() {
+                              selectedCriteria = SortCriteria.filename;
+                            });
+                            settings.webDavSortCriteria = SortCriteria.filename;
+                            setState(() {
+                              _sortItems(_items);
+                            });
+                          },
+                        ),
+                        ListTile(
+                          title: Text(l10n.title),
+                          leading: const Radio(value: SortCriteria.title),
+                          onTap: () {
+                            setDialogState(() {
+                              selectedCriteria = SortCriteria.title;
+                            });
+                            settings.webDavSortCriteria = SortCriteria.title;
+                            setState(() {
+                              _sortItems(_items);
+                            });
+                          },
+                        ),
+                        ListTile(
+                          title: Text(l10n.trackNumber),
+                          leading: const Radio(value: SortCriteria.trackNumber),
+                          onTap: () {
+                            setDialogState(() {
+                              selectedCriteria = SortCriteria.trackNumber;
+                            });
+                            settings.webDavSortCriteria =
+                                SortCriteria.trackNumber;
+                            setState(() {
+                              _sortItems(_items);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.sortOrder,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  RadioGroup<SortOrder>(
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setDialogState(() {
+                        selectedOrder = v;
+                      });
+                      settings.webDavSortOrder = v;
+                      setState(() {
+                        _sortItems(_items);
+                      });
+                    },
+                    groupValue: selectedOrder,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          title: Text(l10n.ascending),
+                          leading: const Radio(value: SortOrder.ascending),
+                          onTap: () {
+                            setDialogState(() {
+                              selectedOrder = SortOrder.ascending;
+                            });
+                            settings.webDavSortOrder = SortOrder.ascending;
+                            setState(() {
+                              _sortItems(_items);
+                            });
+                          },
+                        ),
+                        ListTile(
+                          title: Text(l10n.descending),
+                          leading: const Radio(value: SortOrder.descending),
+                          onTap: () {
+                            setDialogState(() {
+                              selectedOrder = SortOrder.descending;
+                            });
+                            settings.webDavSortOrder = SortOrder.descending;
+                            setState(() {
+                              _sortItems(_items);
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l10n.confirm),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _locateCurrentSong() {
@@ -1897,6 +2111,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   onSelected: (value) {
                     if (value == 'locate') {
                       _locateCurrentSong();
+                    } else if (value == 'sort') {
+                      _showSortDialog(context);
                     } else if (value == 'view_mode') {
                       settings.folderViewMode =
                           switch (settings.folderViewMode) {
@@ -1926,6 +2142,16 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                           ],
                         ),
                       ),
+                    PopupMenuItem(
+                      value: 'sort',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.sort_rounded, size: 20),
+                          const SizedBox(width: 12),
+                          Text(l10n.sortBy),
+                        ],
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'view_mode',
                       child: Row(
@@ -1989,6 +2215,16 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                     onPressed: _locateCurrentSong,
                   ),
                 ],
+                IconButton(
+                  tooltip: l10n.sortBy,
+                  icon: Icon(
+                    Icons.sort_rounded,
+                    size: 20,
+                    color: iconColor,
+                    shadows: shadows,
+                  ),
+                  onPressed: () => _showSortDialog(context),
+                ),
                 IconButton(
                   tooltip: switch (settings.folderViewMode) {
                     FolderViewMode.list => l10n.hybridView,
