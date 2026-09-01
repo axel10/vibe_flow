@@ -114,9 +114,15 @@ class WebDavClient {
 
   static String safeEncodeUrl(String url) {
     try {
-      return Uri.encodeFull(url);
+      // Decode first if already percent-encoded to make encoding idempotent and prevent double-encoding (%XX -> %25XX)
+      final decoded = Uri.decodeFull(url);
+      return Uri.encodeFull(decoded);
     } catch (_) {
-      return url;
+      try {
+        return Uri.encodeFull(url);
+      } catch (_) {
+        return url;
+      }
     }
   }
 
@@ -156,7 +162,7 @@ class WebDavClient {
   /// Attempts a PROPFIND Depth: 0 request against a specific path.
   Future<int?> _probePath(String path) async {
     try {
-      final url = safeEncodeUrl(buildFullUrl(path));
+      final url = buildFullUrl(path);
       final response = await _dio.request<String>(
         url,
         options: Options(
@@ -184,7 +190,7 @@ class WebDavClient {
     final initialPath = hasExplicitCustomPath ? customPath : '/';
 
     try {
-      final url = safeEncodeUrl(buildFullUrl(initialPath));
+      final url = buildFullUrl(initialPath);
 
       final response = await _dio.request<String>(
         url,
@@ -257,7 +263,7 @@ class WebDavClient {
   /// Lists files and directories inside the given path using PROPFIND (Depth: 1).
   Future<List<WebDavFile>> listFiles(String path) async {
     try {
-      final url = safeEncodeUrl(buildFullUrl(path));
+      final url = buildFullUrl(path);
       final response = await _dio.request<String>(
         url,
         options: Options(
@@ -279,7 +285,7 @@ class WebDavClient {
       // If root path was requested and returned 405/404, try /dav fallback
       if (path == '/' &&
           (e.response?.statusCode == 405 || e.response?.statusCode == 404)) {
-        final fallbackUrl = safeEncodeUrl(buildFullUrl('/dav'));
+        final fallbackUrl = buildFullUrl('/dav');
         final response = await _dio.request<String>(
           fallbackUrl,
           options: Options(
@@ -411,10 +417,9 @@ class WebDavClient {
   /// Downloads text content of a file (e.g. .lrc lyrics file).
   Future<String?> getFileContent(String relativeOrFullPath) async {
     try {
-      final rawUrl = relativeOrFullPath.startsWith('http://') || relativeOrFullPath.startsWith('https://')
-          ? relativeOrFullPath
+      final url = relativeOrFullPath.startsWith('http://') || relativeOrFullPath.startsWith('https://')
+          ? safeEncodeUrl(relativeOrFullPath)
           : buildFullUrl(relativeOrFullPath);
-      final url = safeEncodeUrl(rawUrl);
 
       final response = await _dio.get<String>(
         url,
