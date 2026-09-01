@@ -9,6 +9,7 @@ import 'package:vynody/models/artist_summary.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
+import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import '../widgets/desktop_window_title_bar.dart';
 import '../widgets/song_thumbnail.dart';
@@ -69,6 +70,7 @@ class ArtistDetailContent extends ConsumerStatefulWidget {
 class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
   bool _isSelectionMode = false;
   final Set<String> _selectedSongPaths = {};
+  int? _lastAnchorIndex;
   late final LibrarySelectionScopeController _librarySelectionScopeController;
 
   List<MusicFile>? _lastArtistSongs;
@@ -276,18 +278,61 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                   ),
                   onSongTap: (songIndex) {
                     final song = albumSections[i].songs[songIndex];
-                    if (_effectiveIsSelectionMode) {
+                    final globalIndex = albumSections[i].startIndex + songIndex;
+
+                    final isShift = ModifierKeyUtils.isRangeSelectPressed;
+                    final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+                    if (isShift) {
+                      if (!_effectiveIsSelectionMode) {
+                        if (widget.songSelectionController != null) {
+                          _librarySelectionScopeController.setScope(
+                            LibrarySelectionScope.library,
+                          );
+                          widget.songSelectionController!.enterSelectionMode(song.path);
+                        } else {
+                          _toggleSelectionMode();
+                        }
+                      }
+                      final anchor = _lastAnchorIndex ?? globalIndex;
+                      final range = ModifierKeyUtils.getIndexRange(anchor, globalIndex);
+                      for (final idx in range) {
+                        if (idx >= 0 && idx < displaySongs.length) {
+                          final path = displaySongs[idx].path;
+                          if (!_effectiveSelectedSongPaths.contains(path)) {
+                            _toggleSelection(path);
+                          }
+                        }
+                      }
+                    } else if (isCtrl) {
+                      if (!_effectiveIsSelectionMode) {
+                        if (widget.songSelectionController != null) {
+                          _librarySelectionScopeController.setScope(
+                            LibrarySelectionScope.library,
+                          );
+                          widget.songSelectionController!.enterSelectionMode(song.path);
+                        } else {
+                          _toggleSelectionMode();
+                        }
+                      }
                       _toggleSelection(song.path);
+                      _lastAnchorIndex = globalIndex;
                     } else {
-                      audio.playPlaylist(
-                        displaySongs,
-                        initialIndex: albumSections[i].startIndex + songIndex,
-                        source: PlaybackSource(
-                          type: PlaybackSourceType.artist,
-                          id: widget.artist.queryKey,
-                          name: widget.artist.name,
-                        ),
-                      );
+                      if (_effectiveIsSelectionMode) {
+                        _toggleSelection(song.path);
+                        _lastAnchorIndex = globalIndex;
+                      } else {
+                        _lastAnchorIndex = globalIndex;
+                        audio.playPlaylist(
+                          displaySongs,
+                          initialIndex: globalIndex,
+                          source: PlaybackSource(
+                            type: PlaybackSourceType.artist,
+                            id: widget.artist.queryKey,
+                            name: widget.artist.name,
+                          ),
+                        );
+                      }
                     }
                   },
                   onSongSecondaryTapDown: (details, song) {
@@ -296,6 +341,10 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                     }
                   },
                   onSongLongPress: (song) {
+                    final songIndex = albumSections[i].songs.indexOf(song);
+                    if (songIndex != -1) {
+                      _lastAnchorIndex = albumSections[i].startIndex + songIndex;
+                    }
                     if (!_effectiveIsSelectionMode) {
                       final scope = ref.read(librarySelectionScopeProvider);
                       if (scope == LibrarySelectionScope.none) {

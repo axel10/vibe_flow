@@ -18,6 +18,7 @@ import '../widgets/folder_header_banner.dart';
 import '../widgets/song_thumbnail.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/folder_helpers.dart';
+import 'package:vynody/utils/selection_utils.dart';
 import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_layout_utils.dart';
 import '../widgets/folder_content_slivers.dart';
@@ -79,6 +80,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   final ValueNotifier<double> _scrollProgress = ValueNotifier<double>(0.0);
   String? _cachedFolderKey;
   int? _cachedTotalDurationMs;
+  int? _lastSongAnchorIndex;
 
   void _performSearch(String query) {
     _searchDebounce?.cancel();
@@ -496,37 +498,68 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             selectedSongPaths: widget.selectedSongPaths,
             highlightedSongPath: widget.highlightedSongPath,
             onSongTap: (file, fileIndex) async {
-              if (widget.isSelectionMode) {
-                widget.onToggleSelection(file.path);
-              } else {
-                unawaited(() async {
-                  try {
-                    await audio.playPlaylist(
-                      matchedSongs,
-                      initialIndex: fileIndex,
-                      source: PlaybackSource(
-                        type: PlaybackSourceType.folder,
-                        id: folder.path,
-                        name: folder.name,
-                      ),
-                    );
-                  } catch (e, st) {
-                    debugPrint(
-                      'FoldersPage: failed to start folder playback for ${file.path}: $e',
-                    );
-                    debugPrintStack(stackTrace: st);
-                  }
-                }());
+              final isShift = ModifierKeyUtils.isRangeSelectPressed;
+              final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
 
-                if (mounted) {
-                  widget.onClearAllSelection();
-                  if (settings.openPlaybackOnDirectorySongTap) {
-                    await widget.onOpenPlayback?.call();
+              if (isShift) {
+                if (!widget.isSelectionMode) {
+                  widget.onToggleSelectionMode();
+                }
+                final anchor = _lastSongAnchorIndex ?? fileIndex;
+                final range = ModifierKeyUtils.getIndexRange(anchor, fileIndex);
+                for (final idx in range) {
+                  if (idx >= 0 && idx < matchedSongs.length) {
+                    final path = matchedSongs[idx].path;
+                    if (!widget.selectedSongPaths.contains(path)) {
+                      widget.onToggleSelection(path);
+                    }
+                  }
+                }
+              } else if (isCtrl) {
+                if (!widget.isSelectionMode) {
+                  widget.onToggleSelectionMode();
+                }
+                widget.onToggleSelection(file.path);
+                _lastSongAnchorIndex = fileIndex;
+              } else {
+                if (widget.isSelectionMode) {
+                  widget.onToggleSelection(file.path);
+                  _lastSongAnchorIndex = fileIndex;
+                } else {
+                  _lastSongAnchorIndex = fileIndex;
+                  unawaited(() async {
+                    try {
+                      await audio.playPlaylist(
+                        matchedSongs,
+                        initialIndex: fileIndex,
+                        source: PlaybackSource(
+                          type: PlaybackSourceType.folder,
+                          id: folder.path,
+                          name: folder.name,
+                        ),
+                      );
+                    } catch (e, st) {
+                      debugPrint(
+                        'FoldersPage: failed to start folder playback for ${file.path}: $e',
+                      );
+                      debugPrintStack(stackTrace: st);
+                    }
+                  }());
+
+                  if (mounted) {
+                    widget.onClearAllSelection();
+                    if (settings.openPlaybackOnDirectorySongTap) {
+                      await widget.onOpenPlayback?.call();
+                    }
                   }
                 }
               }
             },
             onSongLongPress: (file) {
+              final fileIndex = matchedSongs.indexOf(file);
+              if (fileIndex != -1) {
+                _lastSongAnchorIndex = fileIndex;
+              }
               if (!widget.isSelectionMode) {
                 widget.onToggleSelectionMode();
                 widget.onToggleSelection(file.path);

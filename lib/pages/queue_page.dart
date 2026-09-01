@@ -8,6 +8,7 @@ import '../widgets/song_tile.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
+import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/widgets/queue_file_drop_target.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
@@ -22,6 +23,7 @@ class QueuePage extends ConsumerStatefulWidget {
 
 class _QueuePageState extends ConsumerState<QueuePage> {
   final Set<int> _selectedIndices = {};
+  int? _lastAnchorIndex;
   final Map<String, GlobalKey> _songTileKeys = {};
   int _viewIndex = 0; // 0: Normal Queue, 1: Random History, 2: Random Queue
   late final LibrarySelectionScopeController _librarySelectionScopeController;
@@ -512,44 +514,64 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                                       index: index,
                                       child: const Icon(Icons.drag_handle),
                                     ),
-                                    onTap: isSelectionMode
-                                        ? () {
-                                            if (isMissing) {
-                                              showDeletedSongSnack(
-                                                context,
-                                                ref,
-                                                skipped: false,
-                                              );
-                                              return;
+                                    onTap: () {
+                                      if (isMissing) {
+                                        showDeletedSongSnack(
+                                          context,
+                                          ref,
+                                          skipped: false,
+                                        );
+                                        return;
+                                      }
+
+                                      final isShift = ModifierKeyUtils.isRangeSelectPressed;
+                                      final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+                                      if (isShift) {
+                                        if (!isSelectionMode) {
+                                          _toggleSelectionMode();
+                                        }
+                                        final anchor = _lastAnchorIndex ?? index;
+                                        final range = ModifierKeyUtils.getIndexRange(anchor, index);
+                                        setState(() {
+                                          for (final i in range) {
+                                            if (i >= 0 && i < displayQueue.length) {
+                                              _selectedIndices.add(i);
                                             }
-                                            _toggleSelection(index);
                                           }
-                                        : () {
-                                            if (isMissing) {
-                                              showDeletedSongSnack(
-                                                context,
-                                                ref,
-                                                skipped: false,
-                                              );
-                                              return;
-                                            }
-                                            if (_viewIndex == 1 ||
-                                                _viewIndex == 2) {
-                                              final actualIndex = queue.indexWhere(
-                                                (s) => s.path == song.path,
-                                              );
-                                              if (actualIndex >= 0) {
-                                                ref
-                                                    .read(audioServiceProvider)
-                                                    .playAtIndex(actualIndex);
-                                              }
-                                            } else {
+                                        });
+                                      } else if (isCtrl) {
+                                        if (!isSelectionMode) {
+                                          _toggleSelectionMode();
+                                        }
+                                        _toggleSelection(index);
+                                        _lastAnchorIndex = index;
+                                      } else {
+                                        if (isSelectionMode) {
+                                          _toggleSelection(index);
+                                          _lastAnchorIndex = index;
+                                        } else {
+                                          _lastAnchorIndex = index;
+                                          if (_viewIndex == 1 ||
+                                              _viewIndex == 2) {
+                                            final actualIndex = queue.indexWhere(
+                                              (s) => s.path == song.path,
+                                            );
+                                            if (actualIndex >= 0) {
                                               ref
                                                   .read(audioServiceProvider)
-                                                  .playAtIndex(index);
+                                                  .playAtIndex(actualIndex);
                                             }
-                                          },
+                                          } else {
+                                            ref
+                                                .read(audioServiceProvider)
+                                                .playAtIndex(index);
+                                          }
+                                        }
+                                      }
+                                    },
                                     onLongPress: () {
+                                      _lastAnchorIndex = index;
                                       if (!isSelectionMode) {
                                         _toggleSelectionMode();
                                         _toggleSelection(index);

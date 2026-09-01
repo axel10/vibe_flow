@@ -10,6 +10,7 @@ import 'package:vynody/models/album_summary.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
+import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import '../widgets/desktop_window_title_bar.dart';
 import '../widgets/song_thumbnail.dart';
@@ -29,6 +30,7 @@ class AlbumDetailPage extends ConsumerStatefulWidget {
 class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
   bool _isSelectionMode = false;
   final Set<String> _selectedSongPaths = {};
+  int? _lastAnchorIndex;
   late final LibrarySelectionScopeController _librarySelectionScopeController;
   late final ScrollController _scrollController;
   bool _isCoverVisible = true;
@@ -238,9 +240,36 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                     isSelectionMode: _isSelectionMode,
                     isLargeAlbum: isLargeAlbum,
                     unknownArtist: unknownArtist,
-                    onTap: _isSelectionMode
-                        ? () => _toggleSelection(song.path)
-                        : () => audio.playPlaylist(
+                    onTap: () {
+                      final isShift = ModifierKeyUtils.isRangeSelectPressed;
+                      final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+                      if (isShift) {
+                        if (!_isSelectionMode) {
+                          _toggleSelectionMode();
+                        }
+                        final anchor = _lastAnchorIndex ?? index;
+                        final range = ModifierKeyUtils.getIndexRange(anchor, index);
+                        setState(() {
+                          for (final i in range) {
+                            if (i >= 0 && i < widget.album.songs.length) {
+                              _selectedSongPaths.add(widget.album.songs[i].path);
+                            }
+                          }
+                        });
+                      } else if (isCtrl) {
+                        if (!_isSelectionMode) {
+                          _toggleSelectionMode();
+                        }
+                        _toggleSelection(song.path);
+                        _lastAnchorIndex = index;
+                      } else {
+                        if (_isSelectionMode) {
+                          _toggleSelection(song.path);
+                          _lastAnchorIndex = index;
+                        } else {
+                          _lastAnchorIndex = index;
+                          audio.playPlaylist(
                             widget.album.songs,
                             initialIndex: index,
                             source: PlaybackSource(
@@ -248,8 +277,12 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                               id: widget.album.id,
                               name: widget.album.title,
                             ),
-                          ),
+                          );
+                        }
+                      }
+                    },
                     onLongPress: () {
+                      _lastAnchorIndex = index;
                       if (!_isSelectionMode) {
                         _toggleSelectionMode();
                         _toggleSelection(song.path);
@@ -260,7 +293,10 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                         showSongBottomSheet(context, ref, song);
                       }
                     },
-                    onToggleSelection: () => _toggleSelection(song.path),
+                    onToggleSelection: () {
+                      _lastAnchorIndex = index;
+                      _toggleSelection(song.path);
+                    },
                   );
                 },
               ),

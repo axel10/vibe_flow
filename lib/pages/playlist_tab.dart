@@ -12,6 +12,7 @@ import '../widgets/song_tile.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
 import 'package:vynody/utils/playlist_name.dart';
+import 'package:vynody/utils/selection_utils.dart';
 import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
 
@@ -24,6 +25,7 @@ class PlaylistTab extends ConsumerStatefulWidget {
 
 class _PlaylistTabState extends ConsumerState<PlaylistTab> {
   final Set<int> _selectedIndices = {};
+  int? _lastAnchorIndex;
   final ScrollController _scrollController = ScrollController();
   late final LibrarySelectionScopeController _librarySelectionScopeController;
 
@@ -717,38 +719,58 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                               index: index,
                               child: const Icon(Icons.drag_handle),
                             ),
-                            onTap: isSelectionMode
-                                ? () {
-                                    if (isMissing) {
-                                      showDeletedSongSnack(
-                                        context,
-                                        ref,
-                                        skipped: false,
-                                      );
-                                      return;
+                            onTap: () {
+                              if (isMissing) {
+                                showDeletedSongSnack(
+                                  context,
+                                  ref,
+                                  skipped: false,
+                                );
+                                return;
+                              }
+
+                              final isShift = ModifierKeyUtils.isRangeSelectPressed;
+                              final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+                              if (isShift) {
+                                if (!isSelectionMode) {
+                                  _toggleSelectionMode();
+                                }
+                                final anchor = _lastAnchorIndex ?? index;
+                                final range = ModifierKeyUtils.getIndexRange(anchor, index);
+                                setState(() {
+                                  for (final i in range) {
+                                    if (i >= 0 && i < activePlaylist.songs.length) {
+                                      _selectedIndices.add(i);
                                     }
-                                    _toggleSelection(index);
                                   }
-                                : () {
-                                    if (isMissing) {
-                                      showDeletedSongSnack(
-                                        context,
-                                        ref,
-                                        skipped: false,
-                                      );
-                                      return;
-                                    }
-                                    audio.playPlaylist(
-                                      activePlaylist.songs,
-                                      initialIndex: index,
-                                      source: PlaybackSource(
-                                        type: PlaybackSourceType.playlist,
-                                        id: activePlaylist.id,
-                                        name: activePlaylist.name,
-                                      ),
-                                    );
-                                  },
+                                });
+                              } else if (isCtrl) {
+                                if (!isSelectionMode) {
+                                  _toggleSelectionMode();
+                                }
+                                _toggleSelection(index);
+                                _lastAnchorIndex = index;
+                              } else {
+                                if (isSelectionMode) {
+                                  _toggleSelection(index);
+                                  _lastAnchorIndex = index;
+                                } else {
+                                  _lastAnchorIndex = index;
+                                  audio.playPlaylist(
+                                    activePlaylist.songs,
+                                    initialIndex: index,
+                                    source: PlaybackSource(
+                                      type: PlaybackSourceType.playlist,
+                                      id: activePlaylist.id,
+                                      name: activePlaylist.name,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
                             onLongPress: () {
+                              _lastAnchorIndex = index;
                               if (!isSelectionMode) {
                                 _toggleSelectionMode();
                                 _toggleSelection(index);

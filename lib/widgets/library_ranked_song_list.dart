@@ -8,6 +8,7 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/library/library_insights_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
+import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'song_thumbnail.dart';
 import 'playing_equalizer_icon.dart';
@@ -41,6 +42,7 @@ class LibraryRankedSongList extends ConsumerStatefulWidget {
 class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
   bool _isSelectionMode = false;
   final Set<String> _selectedSongPaths = {};
+  int? _lastAnchorIndex;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -469,16 +471,43 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                           isSelectionMode: _isSelectionMode,
                           isSelected: isSelected,
                           onTap: () {
-                            if (_isSelectionMode) {
+                            final isShift = ModifierKeyUtils.isRangeSelectPressed;
+                            final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+                            if (isShift) {
+                              if (!_isSelectionMode) {
+                                _toggleSelectionMode();
+                              }
+                              final anchor = _lastAnchorIndex ?? index;
+                              final range = ModifierKeyUtils.getIndexRange(anchor, index);
+                              setState(() {
+                                for (final i in range) {
+                                  if (i >= 0 && i < filteredItems.length) {
+                                    _selectedSongPaths.add(filteredItems[i].song.path);
+                                  }
+                                }
+                              });
+                            } else if (isCtrl) {
+                              if (!_isSelectionMode) {
+                                _toggleSelectionMode();
+                              }
                               _toggleSelection(entry.song.path);
+                              _lastAnchorIndex = index;
                             } else {
-                              audio.playPlaylist(
-                                filteredItems.map((e) => e.song).toList(),
-                                initialIndex: index,
-                              );
+                              if (_isSelectionMode) {
+                                _toggleSelection(entry.song.path);
+                                _lastAnchorIndex = index;
+                              } else {
+                                _lastAnchorIndex = index;
+                                audio.playPlaylist(
+                                  filteredItems.map((e) => e.song).toList(),
+                                  initialIndex: index,
+                                );
+                              }
                             }
                           },
                           onLongPress: () {
+                            _lastAnchorIndex = index;
                             if (!_isSelectionMode) {
                               _toggleSelectionMode();
                               _toggleSelection(entry.song.path);
