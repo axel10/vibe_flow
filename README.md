@@ -11,6 +11,8 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.apple.com/app/id6799339894"><img src="https://img.shields.io/badge/App_Store-Download-0D96F6?logo=apple&logoColor=white" alt="App Store"></a>
+  <a href="https://apps.microsoft.com/detail/9nmzrzz6rsd3"><img src="https://img.shields.io/badge/Microsoft_Store-Download-0078D4?logo=microsoft&logoColor=white" alt="Microsoft Store"></a>
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter"></a>
   <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-Core-000000?logo=rust&logoColor=white" alt="Rust"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" alt="License: GPL v3"></a>
@@ -25,6 +27,14 @@ The project currently targets the following platforms:
 - macOS
 - iOS
 - Android
+
+## Downloads
+
+| Platform | Channel | Link |
+| :--- | :--- | :--- |
+| **iOS / macOS** | Apple App Store | [Download on App Store](https://apps.apple.com/app/id6799339894) |
+| **Windows** | Microsoft Store | [Get from Microsoft Store](https://apps.microsoft.com/detail/9nmzrzz6rsd3) |
+| **All Platforms** | GitHub Releases | [GitHub Releases](https://github.com/axel10/vynody/releases) |
 
 ## Screenshots
 
@@ -46,6 +56,7 @@ The project currently targets the following platforms:
 - **Song Recognition**: Identifies songs using audio fingerprinting.
 - **Local LAN Sharing**: Easily share lyrics and music files across devices on the same local network.
 - **Sleep Timer**: Built-in countdown timer for automatic playback stop.
+- **Remote Music Libraries (Navidrome & WebDAV)**: Connects to Navidrome music servers and WebDAV storage for remote streaming; WebDAV supports direct metadata parsing and display in song lists without downloading whole audio files.
 - **Enhanced Lyric Features**: Supports online search, local caching, AI-powered generation and translation, and lyric timeline adjustments.
 - **Visual Enhancements**: Features audio spectrum, waveform display, cover art color extraction, and more.
 
@@ -125,6 +136,14 @@ Vynody includes built-in local area network sharing capabilities to transfer mus
 
 Perfect for syncing or migrating your local library between computers and mobile devices.
 
+### 7. Remote Music Libraries (Navidrome & WebDAV)
+
+Vynody supports seamless integration with remote audio servers and cloud storage:
+
+- **Navidrome Integration**: Connect to your self-hosted Navidrome music server to browse artists, albums, playlists, and stream tracks directly.
+- **WebDAV Remote Storage**: Mount and browse standard WebDAV servers as remote music directories.
+- **Header-Only Metadata Extraction for WebDAV**: Efficiently parses audio tags (ID3/metadata, duration, title, artist, album) via HTTP Range requests without downloading full song files, allowing the song list to instantly display comprehensive metadata.
+
 ## Architecture
 
 The project follows a "Flutter UI + Platform Native Audio Backend" architecture:
@@ -136,6 +155,7 @@ The project follows a "Flutter UI + Platform Native Audio Backend" architecture:
 
 Online services and libraries used:
 - **LRCLIB**: Online lyrics source.
+- **Navidrome & WebDAV**: Remote audio streaming and on-demand metadata parsing.
 - **Configurable AI Providers**: Lyric generation, timeline generation, and lyric translation.
 - **AcoustID**: Audio fingerprinting.
 - **MusicBrainz**: Metadata matching.
@@ -221,6 +241,14 @@ Vynody 是一款以本地音乐播放为核心的跨平台播放器，使用 Flu
 - iOS
 - Android
 
+## 下载与安装
+
+| 平台 | 获取渠道 | 链接 |
+| :--- | :--- | :--- |
+| **iOS / macOS** | Apple App Store | [前往 App Store 下载](https://apps.apple.com/app/id6799339894) |
+| **Windows** | 微软应用商店 | [前往 Microsoft Store 获取](https://apps.microsoft.com/detail/9nmzrzz6rsd3) |
+| **全部平台** | GitHub Releases | [GitHub Releases 下载页面](https://github.com/axel10/vynody/releases) |
+
 ## 截图
 
 <p align="center">
@@ -241,6 +269,7 @@ Vynody 是一款以本地音乐播放为核心的跨平台播放器，使用 Flu
 - 听歌识曲能力，基于音频指纹进行歌曲识别
 - 本地局域网歌词与音乐文件共享
 - 睡眠定时器
+- **远程音乐库（Navidrome 与 WebDAV）**：支持连接 Navidrome 服务器与 WebDAV 存储进行远程串流播放；WebDAV 支持无需下载整首歌曲即可在列表中直接解析展示歌曲元数据
 - 歌词相关增强能力，包括在线搜索、缓存、AI 生成、翻译与时间轴处理
 - 频谱、波形、封面取色等播放界面增强体验
 
@@ -324,6 +353,14 @@ Vynody 内置局域网共享能力，可在同一网络下与其他设备交换�
 
 这项能力适合在多台设备之间迁移曲库，或者把一台设备上整理好的歌词同步到另一台设备。
 
+### 7. 远程音乐库（Navidrome 与 WebDAV）
+
+Vynody 支持无缝接入远程音乐服务器与云端存储：
+
+- **Navidrome 服务接入**：连接自建 Navidrome 音乐服务器，在线浏览艺术家、专辑、歌单并直接串流播放。
+- **WebDAV 远程存储**：支持挂载标准 WebDAV 服务作为远程音乐目录浏览并播放。
+- **WebDAV 轻量元数据解析**：利用 HTTP Range 分段请求快速读取音频文件头部标签，无需下载整首歌曲即可在歌曲列表中直接解析并展示标题、艺术家、专辑及时长等完整元数据信息。
+
 ## 技术架构
 
 项目整体采用“Flutter UI + 平台原生音频实现”的思路：
@@ -336,6 +373,7 @@ Vynody 内置局域网共享能力，可在同一网络下与其他设备交换�
 在线相关能力主要包括：
 
 - LRCLIB：在线歌词获取
+- Navidrome & WebDAV：远程音频串流与基于分段请求的轻量元数据按需解析
 - 可配置 AI 服务商：歌词生成、时间轴生成与歌词翻译
 - AcoustID：音频指纹识别
 - MusicBrainz：标签与元数据补全
