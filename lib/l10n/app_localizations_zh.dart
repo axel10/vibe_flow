@@ -3247,6 +3247,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importLyricsDescription => '从导出的 JSON 文件导入歌词缓存';
 
   @override
+  String get importLyrics => '导入歌词';
+
+  @override
+  String get importLyricsSuccess => '歌词导入成功';
+
+  @override
+  String get importLyricsFailed => '歌词导入失败';
+
+  @override
+  String get emptyLyricsFile => '歌词文件内容为空';
+
+  @override
   String exportSuccess(int count) {
     return '成功导出 $count 条歌词';
   }
@@ -7550,6 +7562,18 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get importLyricsDescription => '從匯出的 JSON 檔案匯入歌詞快取';
+
+  @override
+  String get importLyrics => '匯入歌詞';
+
+  @override
+  String get importLyricsSuccess => '歌詞匯入成功';
+
+  @override
+  String get importLyricsFailed => '歌詞匯入失敗';
+
+  @override
+  String get emptyLyricsFile => '歌詞檔案內容為空';
 
   @override
   String exportSuccess(int count) {

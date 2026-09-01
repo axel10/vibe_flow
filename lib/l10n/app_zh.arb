@@ -1860,6 +1860,10 @@
   "exportLyricsDescription": "将所有缓存与调整过的歌词导出为 JSON 文件",
   "importLyricsLabel": "导入歌词备份",
   "importLyricsDescription": "从导出的 JSON 文件导入歌词缓存",
+  "importLyrics": "导入歌词",
+  "importLyricsSuccess": "歌词导入成功",
+  "importLyricsFailed": "歌词导入失败",
+  "emptyLyricsFile": "歌词文件内容为空",
   "exportSuccess": "成功导出 {count} 条歌词",
   "@exportSuccess": {
     "placeholders": {

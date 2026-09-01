@@ -3466,6 +3466,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Importer le cache de paroles depuis un fichier JSON exporté';
 
   @override
+  String get importLyrics => 'Importer les paroles';
+
+  @override
+  String get importLyricsSuccess => 'Paroles importées avec succès';
+
+  @override
+  String get importLyricsFailed => 'Échec de l\'importation des paroles';
+
+  @override
+  String get emptyLyricsFile => 'Le fichier de paroles est vide';
+
+  @override
   String exportSuccess(int count) {
     return '$count paroles exportées avec succès.';
   }

@@ -3297,6 +3297,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get importLyricsDescription => 'エクスポートされたJSONファイルから歌詞キャッシュをインポート';
 
   @override
+  String get importLyrics => '歌詞をインポート';
+
+  @override
+  String get importLyricsSuccess => '歌詞をインポートしました';
+
+  @override
+  String get importLyricsFailed => '歌詞のインポートに失敗しました';
+
+  @override
+  String get emptyLyricsFile => '歌詞ファイルが空です';
+
+  @override
   String exportSuccess(int count) {
     return '$count件の歌詞をエクスポートしました。';
   }

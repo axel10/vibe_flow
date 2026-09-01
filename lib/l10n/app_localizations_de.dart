@@ -3456,6 +3456,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Songtext-Cache aus einer exportierten JSON-Datei importieren';
 
   @override
+  String get importLyrics => 'Songtext importieren';
+
+  @override
+  String get importLyricsSuccess => 'Songtext erfolgreich importiert';
+
+  @override
+  String get importLyricsFailed => 'Fehler beim Importieren des Songtexts';
+
+  @override
+  String get emptyLyricsFile => 'Songtext-Datei ist leer';
+
+  @override
   String exportSuccess(int count) {
     return '$count Songtexte erfolgreich exportiert.';
   }

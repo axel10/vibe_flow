@@ -1392,8 +1392,12 @@
   "importAction": "İçe Aktar",
   "exportLyricsLabel": "Şarkı Sözü Yedeğini Dışa Aktar",
   "exportLyricsDescription": "Önbelleğe alınmış ve ayarlanmış tüm şarkı sözlerini JSON dosyası olarak dışa aktarın",
-  "importLyricsLabel": "Şarkı Sözü Yedeğini İçe Aktar",
   "importLyricsDescription": "Dışa aktarılmış bir JSON dosyasından şarkı sözü önbelleğini içe aktarın",
+  "importLyricsLabel": "Şarkı Sözü Yedeğini İçe Aktar",
+  "importLyrics": "Şarkı Sözünü İçe Aktar",
+  "importLyricsSuccess": "Şarkı sözü başarıyla içe aktarıldı",
+  "importLyricsFailed": "Şarkı sözü içe aktarılamadı",
+  "emptyLyricsFile": "Şarkı sözü dosyası boş",
   "exportSuccess": "{count} şarkı sözü başarıyla dışa aktarıldı.",
   "@exportSuccess": {
     "placeholders": {

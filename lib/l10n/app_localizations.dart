@@ -6159,6 +6159,30 @@ abstract class AppLocalizations {
   /// **'从导出的 JSON 文件导入歌词缓存'**
   String get importLyricsDescription;
 
+  /// No description provided for @importLyrics.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入歌词'**
+  String get importLyrics;
+
+  /// No description provided for @importLyricsSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌词导入成功'**
+  String get importLyricsSuccess;
+
+  /// No description provided for @importLyricsFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌词导入失败'**
+  String get importLyricsFailed;
+
+  /// No description provided for @emptyLyricsFile.
+  ///
+  /// In zh, this message translates to:
+  /// **'歌词文件内容为空'**
+  String get emptyLyricsFile;
+
   /// No description provided for @exportSuccess.
   ///
   /// In zh, this message translates to:

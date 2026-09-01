@@ -3300,6 +3300,18 @@ class AppLocalizationsKo extends AppLocalizations {
   String get importLyricsDescription => '내보낸 JSON 파일에서 가사 캐시 가져오기';
 
   @override
+  String get importLyrics => '가사 가져오기';
+
+  @override
+  String get importLyricsSuccess => '가사를 성공적으로 가져왔습니다';
+
+  @override
+  String get importLyricsFailed => '가사를 가져오지 못했습니다';
+
+  @override
+  String get emptyLyricsFile => '가사 파일이 비어 있습니다';
+
+  @override
   String exportSuccess(int count) {
     return '$count개의 가사를 성공적으로 내보냈습니다.';
   }

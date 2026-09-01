@@ -21,6 +21,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
     this.title,
     this.onOpenLocation,
     this.openLocationLabel,
+    this.onImportLyrics,
     this.replaceFavoritesWithSongDetails = false,
     this.hideSongProperties = false,
     this.onPlayNext,
@@ -41,6 +42,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
   final String? title;
   final VoidCallback? onOpenLocation;
   final String? openLocationLabel;
+  final VoidCallback? onImportLyrics;
   final bool replaceFavoritesWithSongDetails;
   final bool hideSongProperties;
   final VoidCallback? onPlayNext;
@@ -133,6 +135,28 @@ class LibrarySelectionPanel extends ConsumerWidget {
               ),
             );
           }
+        } else {
+          secondaryActions.add(
+            _buildSelectionActionButton(
+              context: context,
+              icon: Icons.lyrics_outlined,
+              label: l10n.importLyrics,
+              onPressed: isSingleSelected
+                  ? () async {
+                      if (onImportLyrics != null) {
+                        onImportLyrics!();
+                      } else {
+                        await importLyricsForSong(
+                          context,
+                          ref,
+                          selectedSongs.first,
+                        );
+                      }
+                      onCancel();
+                    }
+                  : null,
+            ),
+          );
         }
         if (onDownload != null) {
           secondaryActions.add(
@@ -237,6 +261,28 @@ class LibrarySelectionPanel extends ConsumerWidget {
               ),
             );
           }
+        } else {
+          secondaryActions.add(
+            _buildSelectionActionButton(
+              context: context,
+              icon: Icons.lyrics_outlined,
+              label: l10n.importLyrics,
+              onPressed: isSingleSelected
+                  ? () async {
+                      if (onImportLyrics != null) {
+                        onImportLyrics!();
+                      } else {
+                        await importLyricsForSong(
+                          context,
+                          ref,
+                          selectedSongs.first,
+                        );
+                      }
+                      onCancel();
+                    }
+                  : null,
+            ),
+          );
         }
         if (onDownload != null) {
           secondaryActions.add(

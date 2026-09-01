@@ -1339,6 +1339,10 @@
   "exportLyricsDescription": "Export all cached and adjusted lyrics to a JSON file",
   "importLyricsLabel": "Import Lyrics Backup",
   "importLyricsDescription": "Import lyrics cache from an exported JSON file",
+  "importLyrics": "Import Lyrics",
+  "importLyricsSuccess": "Lyrics imported successfully",
+  "importLyricsFailed": "Failed to import lyrics",
+  "emptyLyricsFile": "Lyrics file is empty",
   "exportSuccess": "Successfully exported {count} lyrics.",
   "@exportSuccess": {
     "placeholders": {

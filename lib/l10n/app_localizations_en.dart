@@ -3414,6 +3414,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import lyrics cache from an exported JSON file';
 
   @override
+  String get importLyrics => 'Import Lyrics';
+
+  @override
+  String get importLyricsSuccess => 'Lyrics imported successfully';
+
+  @override
+  String get importLyricsFailed => 'Failed to import lyrics';
+
+  @override
+  String get emptyLyricsFile => 'Lyrics file is empty';
+
+  @override
   String exportSuccess(int count) {
     return 'Successfully exported $count lyrics.';
   }

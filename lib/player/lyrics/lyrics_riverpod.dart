@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_dependencies.dart';
+import 'package:vynody/player/lyrics/lyrics_cache_repository.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/lyrics/lyrics_controller.dart';
 import 'package:vynody/player/lyrics/lyrics_controller_state.dart';
@@ -14,6 +15,11 @@ final lyricsControllerDependenciesProvider =
       final audioService = ref.read(audioServiceProvider);
       return audioService.lyricsControllerDependencies;
     });
+
+final lyricsCacheRepositoryProvider = Provider<LyricsCacheRepository>((ref) {
+  final deps = ref.watch(lyricsControllerDependenciesProvider);
+  return LyricsCacheRepository(db: deps.db);
+});
 
 final lyricsAiRuntimeConfigProvider = Provider<LyricsAiRuntimeConfig>((ref) {
   return ref.watch(

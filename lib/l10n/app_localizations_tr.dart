@@ -3426,6 +3426,18 @@ class AppLocalizationsTr extends AppLocalizations {
       'Dışa aktarılmış bir JSON dosyasından şarkı sözü önbelleğini içe aktarın';
 
   @override
+  String get importLyrics => 'Şarkı Sözünü İçe Aktar';
+
+  @override
+  String get importLyricsSuccess => 'Şarkı sözü başarıyla içe aktarıldı';
+
+  @override
+  String get importLyricsFailed => 'Şarkı sözü içe aktarılamadı';
+
+  @override
+  String get emptyLyricsFile => 'Şarkı sözü dosyası boş';
+
+  @override
   String exportSuccess(int count) {
     return '$count şarkı sözü başarıyla dışa aktarıldı.';
   }

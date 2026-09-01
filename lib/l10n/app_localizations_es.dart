@@ -3462,6 +3462,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Importar caché de letras desde un archivo JSON exportado';
 
   @override
+  String get importLyrics => 'Importar letra';
+
+  @override
+  String get importLyricsSuccess => 'Letra importada correctamente';
+
+  @override
+  String get importLyricsFailed => 'Error al importar la letra';
+
+  @override
+  String get emptyLyricsFile => 'El archivo de letra está vacío';
+
+  @override
   String exportSuccess(int count) {
     return '$count letras exportadas exitosamente.';
   }

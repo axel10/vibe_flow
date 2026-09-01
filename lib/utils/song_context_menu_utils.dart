@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,14 @@ import '../l10n/app_localizations.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/library/playlist_service.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/lyrics/lyrics_riverpod.dart';
+import 'package:vynody/player/lyrics/lyrics_service.dart';
+import 'package:vynody/player/lyrics/lyrics_cache_models.dart';
+import 'package:vynody/player/metadata/metadata_helper.dart';
+import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/utils/file_selector_helper.dart';
+import 'package:vynody/utils/lrc_utils.dart';
+import 'package:vynody/utils/language_code_utils.dart';
 import 'package:vynody/widgets/song_thumbnail.dart';
 import 'package:vynody/widgets/app_context_menu.dart';
 
@@ -97,6 +106,143 @@ Future<void> openFolderLocation(String folderPath) async {
   }
 }
 
+Future<void> importLyricsForSong(
+  BuildContext context,
+  WidgetRef ref,
+  MusicFile song,
+) async {
+  await importLyricsForSongWithContainer(context, ref.container, song);
+}
+
+Future<void> importLyricsForSongWithContainer(
+  BuildContext context,
+  ProviderContainer container,
+  MusicFile song,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+  try {
+    final filePath = await FileSelectorHelper.pickFile(
+      label: l10n.importLyrics,
+      extensions: ['lrc', 'txt'],
+    );
+    if (filePath == null || filePath.trim().isEmpty) return;
+
+    final file = File(filePath);
+    if (!await file.exists()) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(l10n.importLyricsFailed)),
+      );
+      return;
+    }
+
+    String content;
+    try {
+      content = await file.readAsString();
+    } catch (_) {
+      try {
+        final bytes = await file.readAsBytes();
+        content = utf8.decode(bytes, allowMalformed: true);
+      } catch (_) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(l10n.importLyricsFailed)),
+        );
+        return;
+      }
+    }
+
+    final normalizedText = content.replaceAll('\r\n', '\n').trim();
+    if (normalizedText.isEmpty) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(l10n.emptyLyricsFile)),
+      );
+      return;
+    }
+
+    final lyricsController = container.read(lyricsControllerProvider.notifier);
+    final lyricsCacheRepo = container.read(lyricsCacheRepositoryProvider);
+
+    final query = await lyricsController.buildLyricsQueryForSong(song) ??
+        LyricsQuery(
+          filePath: song.path,
+          fileName: song.name,
+          title: song.title?.trim().isNotEmpty == true
+              ? song.title!.trim()
+              : song.name,
+          artist: song.artist?.trim() ?? '',
+          album: song.album?.trim() ?? '',
+          duration: song.durationMillis != null
+              ? Duration(milliseconds: song.durationMillis!)
+              : Duration.zero,
+        );
+    final cacheKey = query.cacheKey;
+
+    final parsedResult = LrcUtils.parseLyricsWithTranslation(normalizedText);
+    final isSynced = parsedResult.syncedLines.isNotEmpty;
+
+    final cacheRecord = LyricsCacheRecord(
+      cacheKey: cacheKey,
+      source: LyricsCacheSource.manualAdjust,
+      isSynced: isSynced,
+      syncedLyrics: normalizedText,
+      syncedLines: parsedResult.syncedLines,
+      timelineOffsetMillis: 0,
+      updatedAtMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    if (cacheKey.isNotEmpty) {
+      await lyricsCacheRepo.clearLyricsCacheByKey(cacheKey);
+    }
+    await lyricsCacheRepo.saveLyricsCache(cacheRecord);
+
+    if (parsedResult.hasTranslation) {
+      final preferredLang = LanguageCodeUtils.currentAppLanguageCode();
+      final langCode = preferredLang.isNotEmpty ? preferredLang : 'zh';
+      await lyricsCacheRepo.saveLyricsTranslationCache(
+        LyricsTranslationCacheRecord(
+          cacheKey: cacheKey,
+          languageCode: langCode,
+          translatedText: parsedResult.translatedLines!.join('\n'),
+          translatedLines: parsedResult.translatedLines!,
+          provider: 'imported_lrc',
+          updatedAtMillis: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+    }
+
+    // If the imported song is currently playing, update lyricsController
+    final currentMusic = container.read(audioCurrentMusicProvider);
+    if (currentMusic != null && currentMusic.path == song.path) {
+      await container.read(lyricsControllerProvider.notifier).fillLyricsForCurrentSong(
+        normalizedText,
+        source: LyricsCacheSource.manualAdjust,
+      );
+    }
+
+    // Save to external companion .lrc file if configured in settings and local file
+    final settings = container.read(settingsServiceProvider);
+    final isRemote =
+        song.path.startsWith('subsonic://') || song.path.startsWith('webdav://');
+    if (settings.lyricsSaveMethod == LyricsSaveMethod.lrcFile && !isRemote) {
+      try {
+        await MetadataHelper.saveLyricsToExternalLrc(song.path, normalizedText);
+      } catch (e) {
+        debugPrint('[ImportLyrics] Failed to save external .lrc file: $e');
+      }
+    }
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(content: Text(l10n.importLyricsSuccess)),
+    );
+  } catch (e) {
+    debugPrint('[ImportLyrics] Error importing lyrics: $e');
+    scaffoldMessenger.showSnackBar(
+      SnackBar(content: Text(l10n.importLyricsFailed)),
+    );
+  }
+}
+
 String _getRemoveFromQueueLabel(BuildContext context) {
   return AppLocalizations.of(context)!.removeFromQueue;
 }
@@ -117,6 +263,7 @@ Future<void> showSongContextMenu(
   VoidCallback? onRemoveFromQueue,
   VoidCallback? onRemoveFromPlaylist,
   VoidCallback? onDownload,
+  VoidCallback? onImportLyrics,
 }) async {
   final l10n = AppLocalizations.of(context)!;
 
@@ -221,6 +368,13 @@ Future<void> showSongContextMenu(
             icon: Icons.folder_open_rounded,
             context: context,
           ),
+        buildContextMenuItem<String>(
+          value: 'import_lyrics',
+          enabled: song != null,
+          label: l10n.importLyrics,
+          icon: Icons.lyrics_outlined,
+          context: context,
+        ),
         buildContextMenuItem<String>(
           value: 'song_details',
           enabled: song != null,
@@ -357,6 +511,16 @@ Future<void> showSongContextMenu(
     case 'open_file_location':
       if (canOpenLocation) {
         await openSongFileLocation(song.path);
+      }
+      break;
+    case 'import_lyrics':
+      if (song != null) {
+        if (onImportLyrics != null) {
+          onImportLyrics();
+        } else {
+          final container = ProviderScope.containerOf(context, listen: false);
+          await importLyricsForSongWithContainer(context, container, song);
+        }
       }
       break;
     case 'song_details':
@@ -597,6 +761,12 @@ Future<void> showSongBottomSheet(
                           ),
                         _buildBottomSheetItem(
                           context: context,
+                          value: 'import_lyrics',
+                          label: l10n.importLyrics,
+                          icon: Icons.lyrics_outlined,
+                        ),
+                        _buildBottomSheetItem(
+                          context: context,
                           value: 'song_details',
                           label: l10n.songProperties,
                           icon: Icons.info_outline_rounded,
@@ -651,6 +821,9 @@ Future<void> showSongBottomSheet(
       break;
     case 'open_location':
       await openSongFileLocation(song.path);
+      break;
+    case 'import_lyrics':
+      await importLyricsForSong(context, ref, song);
       break;
     case 'song_details':
       await showSongDetailsDialog(context, song);
