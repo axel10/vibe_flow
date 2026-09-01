@@ -30,8 +30,6 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
     with SelectionStateMixin<PlaylistTab, int> {
   @override
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.playlist;
-
-  int? _lastAnchorIndex;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -738,30 +736,14 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
                                 return;
                               }
 
-                              final isShift = ModifierKeyUtils.isRangeSelectPressed;
-                              final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
-
-                              if (isShift) {
-                                final anchor = _lastAnchorIndex ?? index;
-                                final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                                final nextKeys = Set<int>.from(selectedKeys);
-                                for (final i in range) {
-                                  if (i >= 0 && i < activePlaylist.songs.length) {
-                                    nextKeys.add(i);
-                                  }
-                                }
-                                ref
-                                    .read(librarySelectionStateProvider.notifier)
-                                    .setSelection(nextKeys, scope: selectionScope);
-                              } else if (isCtrl) {
-                                toggleSelection(index);
-                                _lastAnchorIndex = index;
-                              } else {
-                                if (isSelectionMode) {
-                                  toggleSelection(index);
-                                  _lastAnchorIndex = index;
-                                } else {
-                                  _lastAnchorIndex = index;
+                              handleItemTap(
+                                index: index,
+                                itemKey: index,
+                                allKeys: List.generate(
+                                  activePlaylist.songs.length,
+                                  (i) => i,
+                                ),
+                                onNormalTap: () {
                                   audio.playPlaylist(
                                     activePlaylist.songs,
                                     initialIndex: index,
@@ -771,11 +753,11 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
                                       name: activePlaylist.name,
                                     ),
                                   );
-                                }
-                              }
+                                },
+                              );
                             },
                             onLongPress: () {
-                              _lastAnchorIndex = index;
+                              lastAnchorIndex = index;
                               if (!isSelectionMode) {
                                 enterSelectionMode(index);
                               }
@@ -851,6 +833,7 @@ class _PlaylistManagerSheet extends ConsumerStatefulWidget {
 class _PlaylistManagerSheetState extends ConsumerState<_PlaylistManagerSheet> {
   bool _isSelectionMode = false;
   final Set<String> _selectedPlaylistIds = {};
+  int? _lastAnchorIndex;
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -980,13 +963,42 @@ class _PlaylistManagerSheetState extends ConsumerState<_PlaylistManagerSheet> {
                         },
                       ),
                       onTap: () {
-                        playlistService.setCurrentPlaylist(playlist.id);
-                        Navigator.pop(context);
+                        SelectionActionHelper.handleItemTap(
+                          index: index,
+                          itemKey: playlist.id,
+                          items: playlists,
+                          keySelector: (p) => p.id,
+                          isSelectionMode: _isSelectionMode,
+                          selectedKeys: _selectedPlaylistIds,
+                          lastAnchorIndex: _lastAnchorIndex,
+                          onUpdateAnchor: (a) => setState(() => _lastAnchorIndex = a),
+                          onSetSelection: (keys) => setState(() {
+                            _isSelectionMode = true;
+                            _selectedPlaylistIds
+                              ..clear()
+                              ..addAll(keys.where((id) => deletablePlaylists.any((p) => p.id == id)));
+                          }),
+                          onToggleSelection: (key) => setState(() {
+                            if (isFav) return;
+                            _isSelectionMode = true;
+                            if (_selectedPlaylistIds.contains(key)) {
+                              _selectedPlaylistIds.remove(key);
+                            } else {
+                              _selectedPlaylistIds.add(key);
+                            }
+                          }),
+                          onEnterSelectionMode: () => setState(() => _isSelectionMode = true),
+                          onNormalTap: () {
+                            playlistService.setCurrentPlaylist(playlist.id);
+                            Navigator.pop(context);
+                          },
+                        );
                       },
                       onLongPress: isFav
                           ? null
                           : () {
                               setState(() {
+                                _lastAnchorIndex = index;
                                 _isSelectionMode = true;
                                 _selectedPlaylistIds.add(playlist.id);
                               });
@@ -1109,13 +1121,28 @@ class _PlaylistManagerSheetState extends ConsumerState<_PlaylistManagerSheet> {
                         '${l10n.songCount(playlist.songs.length)} · ${_formatDate(playlist.updatedAt)}',
                       ),
                       onTap: () {
-                        setState(() {
-                          if (isSelected) {
-                            _selectedPlaylistIds.remove(playlist.id);
-                          } else {
-                            _selectedPlaylistIds.add(playlist.id);
-                          }
-                        });
+                        SelectionActionHelper.handleItemTap(
+                          index: index,
+                          itemKey: playlist.id,
+                          items: playlists,
+                          keySelector: (p) => p.id,
+                          isSelectionMode: true,
+                          selectedKeys: _selectedPlaylistIds,
+                          lastAnchorIndex: _lastAnchorIndex,
+                          onUpdateAnchor: (a) => setState(() => _lastAnchorIndex = a),
+                          onSetSelection: (keys) => setState(() {
+                            _selectedPlaylistIds
+                              ..clear()
+                              ..addAll(keys.where((id) => deletablePlaylists.any((p) => p.id == id)));
+                          }),
+                          onToggleSelection: (key) => setState(() {
+                            if (_selectedPlaylistIds.contains(key)) {
+                              _selectedPlaylistIds.remove(key);
+                            } else {
+                              _selectedPlaylistIds.add(key);
+                            }
+                          }),
+                        );
                       },
                     );
                   },

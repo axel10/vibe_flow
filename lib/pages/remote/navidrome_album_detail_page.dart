@@ -370,6 +370,7 @@ class _NavidromeAlbumDetailPageState
                                   }
                                 },
                                 onLongPressStart: (details) {
+                                  lastAnchorIndex = index;
                                   if (!isSelectionMode) {
                                     enterSongSelectionMode(song.path);
                                   } else {
@@ -385,22 +386,25 @@ class _NavidromeAlbumDetailPageState
                                               .withValues(alpha: 0.35)
                                           : Colors.transparent),
                                   child: InkWell(
-                                    onTap: () async {
-                                      if (isSelectionMode) {
-                                        toggleSongSelection(song.path);
-                                      } else {
-                                        final audioService =
-                                            ref.read(audioServiceProvider);
-                                        await audioService.playPlaylist(
-                                          _tracks,
-                                          initialIndex: index,
-                                          source: PlaybackSource(
-                                            type: PlaybackSourceType.album,
-                                            id: 'remote-${widget.server.id}-${widget.albumId}',
-                                            name: widget.albumName,
-                                          ),
-                                        );
-                                      }
+                                    onTap: () {
+                                      handleSongTap(
+                                        index: index,
+                                        songPath: song.path,
+                                        allSongs: _tracks,
+                                        onNormalTap: () async {
+                                          final audioService =
+                                              ref.read(audioServiceProvider);
+                                          await audioService.playPlaylist(
+                                            _tracks,
+                                            initialIndex: index,
+                                            source: PlaybackSource(
+                                              type: PlaybackSourceType.album,
+                                              id: 'remote-${widget.server.id}-${widget.albumId}',
+                                              name: widget.albumName,
+                                            ),
+                                          );
+                                        },
+                                      );
                                     },
                                     child: Align(
                                       alignment: Alignment.center,

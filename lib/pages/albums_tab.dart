@@ -435,15 +435,19 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                 isSelected: isSelected,
                 isHeroEnabled: isHeroEnabled,
                 onTap: () {
-                  if (isSelectionMode) {
-                    toggleSelection(album.id);
-                  } else {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(builder: (_) => AlbumDetailPage(album: album)),
-                    );
-                  }
+                  handleItemTap(
+                    index: index,
+                    itemKey: album.id,
+                    allKeys: albums.map((a) => a.id).toList(),
+                    onNormalTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (_) => AlbumDetailPage(album: album)),
+                      );
+                    },
+                  );
                 },
                 onLongPress: () {
+                  lastAnchorIndex = index;
                   if (isSelectionMode) {
                     toggleSelection(album.id);
                   } else {

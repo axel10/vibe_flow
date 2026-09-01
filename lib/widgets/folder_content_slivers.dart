@@ -122,6 +122,8 @@ class FolderSubfoldersSliver extends StatelessWidget {
   final String? systemMediaTitle;
   final String? systemMediaSubtitle;
   final void Function(MusicFolder) onNavigateTo;
+  final void Function(MusicFolder folder, int index)? onFolderTap;
+  final void Function(MusicFolder folder, int index)? onFolderLongPress;
   final void Function(String path)? onToggleFolderSelection;
   final VoidCallback? onToggleSelectionMode;
   final void Function(MusicFolder, {required bool isRoot})? onShowFolderBottomSheet;
@@ -142,6 +144,8 @@ class FolderSubfoldersSliver extends StatelessWidget {
     this.systemMediaTitle,
     this.systemMediaSubtitle,
     required this.onNavigateTo,
+    this.onFolderTap,
+    this.onFolderLongPress,
     this.onToggleFolderSelection,
     this.onToggleSelectionMode,
     this.onShowFolderBottomSheet,
@@ -352,17 +356,21 @@ class FolderSubfoldersSliver extends StatelessWidget {
                         representativeSong: representativeSong,
                         isSelected: isSelected,
                         isSelectionMode: isSelectionMode,
-                        onTap: isSelectionMode
-                            ? () => onToggleFolderSelection?.call(folder.path)
-                            : (isAvailable ? () => onNavigateTo(folder) : null),
-                        onLongPress: () {
-                          if (!isSelectionMode && !isSortMode) {
-                            onToggleSelectionMode?.call();
-                            onToggleFolderSelection?.call(folder.path);
-                          } else if (isSelectionMode) {
-                            onToggleFolderSelection?.call(folder.path);
-                          }
-                        },
+                        onTap: onFolderTap != null
+                            ? (isAvailable || isSelectionMode ? () => onFolderTap?.call(folder, folderIndex) : null)
+                            : (isSelectionMode
+                                ? () => onToggleFolderSelection?.call(folder.path)
+                                : (isAvailable ? () => onNavigateTo(folder) : null)),
+                        onLongPress: onFolderLongPress != null
+                            ? () => onFolderLongPress?.call(folder, folderIndex)
+                            : () {
+                                if (!isSelectionMode && !isSortMode) {
+                                  onToggleSelectionMode?.call();
+                                  onToggleFolderSelection?.call(folder.path);
+                                } else if (isSelectionMode) {
+                                  onToggleFolderSelection?.call(folder.path);
+                                }
+                              },
                         onSecondaryTapDown: (details) {
                           onShowFolderContextMenu?.call(
                             folder,
@@ -560,17 +568,21 @@ class FolderSubfoldersSliver extends StatelessWidget {
                     representativeSong: representativeSong,
                     isSelected: isSelected,
                     isSelectionMode: isSelectionMode,
-                    onTap: isSelectionMode
-                        ? () => onToggleFolderSelection?.call(folder.path)
-                        : (isAvailable ? () => onNavigateTo(folder) : null),
-                    onLongPress: () {
-                      if (!isSelectionMode && !isSortMode) {
-                        onToggleSelectionMode?.call();
-                        onToggleFolderSelection?.call(folder.path);
-                      } else if (isSelectionMode) {
-                        onToggleFolderSelection?.call(folder.path);
-                      }
-                    },
+                    onTap: onFolderTap != null
+                        ? (isAvailable || isSelectionMode ? () => onFolderTap?.call(folder, folderIndex) : null)
+                        : (isSelectionMode
+                            ? () => onToggleFolderSelection?.call(folder.path)
+                            : (isAvailable ? () => onNavigateTo(folder) : null)),
+                    onLongPress: onFolderLongPress != null
+                        ? () => onFolderLongPress?.call(folder, folderIndex)
+                        : () {
+                            if (!isSelectionMode && !isSortMode) {
+                              onToggleSelectionMode?.call();
+                              onToggleFolderSelection?.call(folder.path);
+                            } else if (isSelectionMode) {
+                              onToggleFolderSelection?.call(folder.path);
+                            }
+                          },
                     onSecondaryTapDown: (details) {
                       onShowFolderContextMenu?.call(
                         folder,

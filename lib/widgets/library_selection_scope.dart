@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/models/music_file.dart';
+import '../utils/selection_utils.dart';
 
 enum LibrarySelectionScope {
   none,
@@ -265,7 +266,53 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
     );
   }
 
+  int? _lastAnchorIndex;
+  int? get lastAnchorIndex => _lastAnchorIndex;
+  set lastAnchorIndex(int? value) => _lastAnchorIndex = value;
+
+  /// Unified tap handler with shortcut modifiers support (Shift range, Ctrl/Cmd toggle).
+  /// Returns `true` if the tap was handled as a selection operation, or `false` if `onNormalTap` was executed.
+  bool handleItemTap({
+    required int index,
+    required K itemKey,
+    required List<K> allKeys,
+    void Function()? onNormalTap,
+  }) {
+    final isShift = ModifierKeyUtils.isRangeSelectPressed;
+    final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+    if (isShift) {
+      final anchor = _lastAnchorIndex ?? index;
+      final range = ModifierKeyUtils.getIndexRange(anchor, index);
+      final nextKeys = Set<K>.from(selectedKeys);
+      for (final i in range) {
+        if (i >= 0 && i < allKeys.length) {
+          nextKeys.add(allKeys[i]);
+        }
+      }
+      ref
+          .read(librarySelectionStateProvider.notifier)
+          .setSelection(nextKeys, scope: selectionScope);
+      return true;
+    } else if (isCtrl) {
+      toggleSelection(itemKey);
+      _lastAnchorIndex = index;
+      return true;
+    } else {
+      if (isSelectionMode) {
+        toggleSelection(itemKey);
+        _lastAnchorIndex = index;
+        return true;
+      } else {
+        _lastAnchorIndex = index;
+        onNormalTap?.call();
+        return false;
+      }
+    }
+  }
+
   void cancelSelection() {
+    _lastAnchorIndex = null;
     ref.read(librarySelectionStateProvider.notifier).clear();
   }
 
@@ -286,6 +333,9 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
 mixin SongSelectionMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
   LibrarySelectionController? _selectionController;
+  int? _lastAnchorIndex;
+  int? get lastAnchorIndex => _lastAnchorIndex;
+  set lastAnchorIndex(int? value) => _lastAnchorIndex = value;
 
   @override
   void didChangeDependencies() {
@@ -344,7 +394,49 @@ mixin SongSelectionMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
+  /// Unified song tap handler with shortcut modifiers support (Shift range, Ctrl/Cmd toggle).
+  /// Returns `true` if the tap was handled as a selection operation, or `false` if `onNormalTap` was executed.
+  bool handleSongTap({
+    required int index,
+    required String songPath,
+    required List<MusicFile> allSongs,
+    void Function()? onNormalTap,
+  }) {
+    final isShift = ModifierKeyUtils.isRangeSelectPressed;
+    final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+
+    if (isShift) {
+      final anchor = _lastAnchorIndex ?? index;
+      final range = ModifierKeyUtils.getIndexRange(anchor, index);
+      final nextPaths = Set<String>.from(selectedSongPaths);
+      for (final i in range) {
+        if (i >= 0 && i < allSongs.length) {
+          nextPaths.add(allSongs[i].path);
+        }
+      }
+      ref
+          .read(librarySelectionStateProvider.notifier)
+          .setSelection(nextPaths, scope: selectionScope);
+      return true;
+    } else if (isCtrl) {
+      toggleSongSelection(songPath);
+      _lastAnchorIndex = index;
+      return true;
+    } else {
+      if (isSelectionMode) {
+        toggleSongSelection(songPath);
+        _lastAnchorIndex = index;
+        return true;
+      } else {
+        _lastAnchorIndex = index;
+        onNormalTap?.call();
+        return false;
+      }
+    }
+  }
+
   void cancelSongSelection() {
+    _lastAnchorIndex = null;
     ref.read(librarySelectionStateProvider.notifier).clear();
   }
 

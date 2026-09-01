@@ -8,7 +8,6 @@ import '../widgets/song_tile.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
-import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/widgets/queue_file_drop_target.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
@@ -26,7 +25,6 @@ class _QueuePageState extends ConsumerState<QueuePage>
   @override
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.queue;
 
-  int? _lastAnchorIndex;
   final Map<String, GlobalKey> _songTileKeys = {};
   int _viewIndex = 0; // 0: Normal Queue, 1: Random History, 2: Random Queue
   late final ScrollController _scrollController;
@@ -488,45 +486,14 @@ class _QueuePageState extends ConsumerState<QueuePage>
                                         return;
                                       }
 
-                                      final isShift =
-                                          ModifierKeyUtils.isRangeSelectPressed;
-                                      final isCtrl = ModifierKeyUtils
-                                          .isDiscreteSelectPressed;
-
-                                      if (isShift) {
-                                        final anchor = _lastAnchorIndex ?? index;
-                                        final range =
-                                            ModifierKeyUtils.getIndexRange(
-                                              anchor,
-                                              index,
-                                            );
-                                        final nextKeys = Set<int>.from(
-                                          selectedKeys,
-                                        );
-                                        for (final i in range) {
-                                          if (i >= 0 &&
-                                              i < displayQueue.length) {
-                                            nextKeys.add(i);
-                                          }
-                                        }
-                                        ref
-                                            .read(
-                                              librarySelectionStateProvider
-                                                  .notifier,
-                                            )
-                                            .setSelection(
-                                              nextKeys,
-                                              scope: selectionScope,
-                                            );
-                                      } else if (isCtrl) {
-                                        toggleSelection(index);
-                                        _lastAnchorIndex = index;
-                                      } else {
-                                        if (isSelectionMode) {
-                                          toggleSelection(index);
-                                          _lastAnchorIndex = index;
-                                        } else {
-                                          _lastAnchorIndex = index;
+                                      handleItemTap(
+                                        index: index,
+                                        itemKey: index,
+                                        allKeys: List.generate(
+                                          displayQueue.length,
+                                          (i) => i,
+                                        ),
+                                        onNormalTap: () {
                                           if (_viewIndex == 1 ||
                                               _viewIndex == 2) {
                                             final actualIndex = queue
@@ -543,15 +510,15 @@ class _QueuePageState extends ConsumerState<QueuePage>
                                                 .read(audioServiceProvider)
                                                 .playAtIndex(index);
                                           }
-                                        }
-                                      }
+                                        },
+                                      );
                                     },
-                                    onLongPress: () {
-                                      _lastAnchorIndex = index;
-                                      if (!isSelectionMode) {
-                                        enterSelectionMode(index);
-                                      }
-                                    },
+                                     onLongPress: () {
+                                       lastAnchorIndex = index;
+                                       if (!isSelectionMode) {
+                                         enterSelectionMode(index);
+                                       }
+                                     },
                                     onSecondaryTapDown: (details) {
                                       handleShowMenu(
                                         context,

@@ -2,20 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_reorderable_grid_view/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
-import 'package:vynody/player/scanner/scanner_path_utils.dart';
 import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/folder_header_banner.dart';
 import '../widgets/song_thumbnail.dart';
-import '../widgets/folder_grid_card.dart';
-import '../widgets/folder_layout_utils.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
@@ -24,7 +20,7 @@ import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_content_slivers.dart';
 import '../widgets/remote_server_slivers.dart';
 import '../dialogs/add_edit_remote_server_dialog.dart';
-import 'package:vynody/player/settings/settings_service.dart';
+import '../utils/selection_utils.dart';
 
 class FolderRootView extends ConsumerStatefulWidget {
   const FolderRootView({
@@ -69,6 +65,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   bool _isSearchLoading = false;
   String _searchQuery = '';
   bool _showStatusBarOverlay = false;
+  int? _lastRootAnchorIndex;
 
   List<MusicFile> _matchedSongs = [];
   List<MusicFolder> _matchedFolders = [];
@@ -433,6 +430,35 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
             systemMediaTitle: l10n.systemMediaLibrary,
             systemMediaSubtitle: l10n.needPermissionToScan,
             onNavigateTo: widget.onNavigateTo,
+            onFolderTap: (folder, index) {
+              SelectionActionHelper.handleItemTap(
+                index: index,
+                itemKey: folder.path,
+                items: matchedRootFolders,
+                keySelector: (f) => f.path,
+                isSelectionMode: isRootSelectionMode,
+                selectedKeys: widget.selectedRootPaths,
+                lastAnchorIndex: _lastRootAnchorIndex,
+                onUpdateAnchor: (a) => setState(() => _lastRootAnchorIndex = a),
+                onSetSelection: (keys) {
+                  for (final k in keys) {
+                    if (!widget.selectedRootPaths.contains(k)) {
+                      widget.onToggleRootSelection(k);
+                    }
+                  }
+                },
+                onToggleSelection: (key) => widget.onToggleRootSelection(key),
+                onEnterSelectionMode: () => widget.onToggleRootSelectionMode(),
+                onNormalTap: () => widget.onNavigateTo(folder),
+              );
+            },
+            onFolderLongPress: (folder, index) {
+              _lastRootAnchorIndex = index;
+              if (!isRootSelectionMode) {
+                widget.onToggleRootSelectionMode();
+              }
+              widget.onToggleRootSelection(folder.path);
+            },
             onToggleFolderSelection: widget.onToggleRootSelection,
             onToggleSelectionMode: widget.onToggleRootSelectionMode,
             onShowFolderContextMenu: widget.onShowFolderContextMenu,

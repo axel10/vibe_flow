@@ -8,7 +8,6 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/player/library/library_insights_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
-import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'song_thumbnail.dart';
 import 'playing_equalizer_icon.dart';
@@ -43,8 +42,6 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
     with SongSelectionMixin<LibraryRankedSongList> {
   @override
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
-
-  int? _lastAnchorIndex;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -421,39 +418,20 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
                           isSelectionMode: isSelectionMode,
                           isSelected: isSelected,
                           onTap: () {
-                            final isShift = ModifierKeyUtils.isRangeSelectPressed;
-                            final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
-
-                            if (isShift) {
-                              final anchor = _lastAnchorIndex ?? index;
-                              final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                              final nextPaths = Set<String>.from(selectedSongPaths);
-                              for (final i in range) {
-                                if (i >= 0 && i < filteredItems.length) {
-                                  nextPaths.add(filteredItems[i].song.path);
-                                }
-                              }
-                              ref
-                                  .read(librarySelectionStateProvider.notifier)
-                                  .setSelection(nextPaths, scope: selectionScope);
-                            } else if (isCtrl) {
-                              toggleSongSelection(entry.song.path);
-                              _lastAnchorIndex = index;
-                            } else {
-                              if (isSelectionMode) {
-                                toggleSongSelection(entry.song.path);
-                                _lastAnchorIndex = index;
-                              } else {
-                                _lastAnchorIndex = index;
+                            handleSongTap(
+                              index: index,
+                              songPath: entry.song.path,
+                              allSongs: filteredSongs,
+                              onNormalTap: () {
                                 audio.playPlaylist(
                                   filteredSongs,
                                   initialIndex: index,
                                 );
-                              }
-                            }
+                              },
+                            );
                           },
                           onLongPress: () {
-                            _lastAnchorIndex = index;
+                            lastAnchorIndex = index;
                             if (!isSelectionMode) {
                               enterSongSelectionMode(entry.song.path);
                             }

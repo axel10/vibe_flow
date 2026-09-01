@@ -187,15 +187,25 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
                               selectedArtistKeysInSelectionMode: selectedKeys,
                               hasBottomPanel: showBottomPanel,
                               onArtistSelected: (artist) {
-                                if (isSelectionMode) {
-                                  toggleSelection(artist.queryKey);
-                                } else if (!isSongSelectionMode) {
-                                  setState(() {
-                                    _selectedArtistKey = artist.queryKey;
-                                  });
-                                }
+                                final artistIndex = visibleArtists.indexOf(artist);
+                                handleItemTap(
+                                  index: artistIndex >= 0 ? artistIndex : 0,
+                                  itemKey: artist.queryKey,
+                                  allKeys: visibleArtists.map((a) => a.queryKey).toList(),
+                                  onNormalTap: () {
+                                    if (!isSongSelectionMode) {
+                                      setState(() {
+                                        _selectedArtistKey = artist.queryKey;
+                                      });
+                                    }
+                                  },
+                                );
                               },
                               onArtistLongPressed: (artist) {
+                                final artistIndex = visibleArtists.indexOf(artist);
+                                if (artistIndex >= 0) {
+                                  lastAnchorIndex = artistIndex;
+                                }
                                 if (isSelectionMode) {
                                   toggleSelection(artist.queryKey);
                                 } else if (!isSongSelectionMode) {
@@ -281,18 +291,22 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
                                 isSelectionMode: isSelectionMode,
                                 isSelectedInSelectionMode: isSelected,
                                 onTap: () {
-                                  if (isSelectionMode) {
-                                    toggleSelection(artist.queryKey);
-                                  } else {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) =>
-                                            ArtistDetailPage(artist: artist),
-                                      ),
-                                    );
-                                  }
+                                  handleItemTap(
+                                    index: artistIndex,
+                                    itemKey: artist.queryKey,
+                                    allKeys: visibleArtists.map((a) => a.queryKey).toList(),
+                                    onNormalTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) =>
+                                              ArtistDetailPage(artist: artist),
+                                        ),
+                                      );
+                                    },
+                                  );
                                 },
                                 onLongPress: () {
+                                  lastAnchorIndex = artistIndex;
                                   if (isSelectionMode) {
                                     toggleSelection(artist.queryKey);
                                   } else {

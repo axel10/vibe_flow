@@ -1027,6 +1027,7 @@ class _NavidromePlaylistDetailContentState
                               }
                             },
                             onLongPressStart: (details) {
+                              lastAnchorIndex = index;
                               if (!isSelectionMode) {
                                 enterSongSelectionMode(song.path);
                               } else {
@@ -1044,21 +1045,24 @@ class _NavidromePlaylistDetailContentState
                               borderRadius: BorderRadius.circular(10),
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(10),
-                                onTap: () async {
-                                  if (isSelectionMode) {
-                                    toggleSongSelection(song.path);
-                                  } else {
-                                    final audio = ref.read(audioServiceProvider);
-                                    await audio.playPlaylist(
-                                      _tracks,
-                                      initialIndex: index,
-                                      source: PlaybackSource(
-                                        type: PlaybackSourceType.playlist,
-                                        id: 'remote-${widget.server.id}-${widget.playlistId}',
-                                        name: _currentName,
-                                      ),
-                                    );
-                                  }
+                                onTap: () {
+                                  handleSongTap(
+                                    index: index,
+                                    songPath: song.path,
+                                    allSongs: _tracks,
+                                    onNormalTap: () async {
+                                      final audio = ref.read(audioServiceProvider);
+                                      await audio.playPlaylist(
+                                        _tracks,
+                                        initialIndex: index,
+                                        source: PlaybackSource(
+                                          type: PlaybackSourceType.playlist,
+                                          id: 'remote-${widget.server.id}-${widget.playlistId}',
+                                          name: _currentName,
+                                        ),
+                                      );
+                                    },
+                                  );
                                 },
                                 child: Align(
                                   alignment: Alignment.center,

@@ -10,7 +10,6 @@ import 'package:vynody/models/album_summary.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
-import 'package:vynody/utils/selection_utils.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import '../widgets/desktop_window_title_bar.dart';
 import '../widgets/song_thumbnail.dart';
@@ -31,8 +30,6 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage>
     with SongSelectionMixin<AlbumDetailPage> {
   @override
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
-
-  int? _lastAnchorIndex;
   late final ScrollController _scrollController;
   bool _isCoverVisible = true;
 
@@ -194,30 +191,11 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage>
                     isLargeAlbum: isLargeAlbum,
                     unknownArtist: unknownArtist,
                     onTap: () {
-                      final isShift = ModifierKeyUtils.isRangeSelectPressed;
-                      final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
-
-                      if (isShift) {
-                        final anchor = _lastAnchorIndex ?? index;
-                        final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                        final newPaths = Set<String>.from(selectedSongPaths);
-                        for (final i in range) {
-                          if (i >= 0 && i < widget.album.songs.length) {
-                            newPaths.add(widget.album.songs[i].path);
-                          }
-                        }
-                        ref
-                            .read(librarySelectionStateProvider.notifier)
-                            .setSelection(newPaths, scope: selectionScope);
-                      } else if (isCtrl) {
-                        toggleSongSelection(song.path);
-                        _lastAnchorIndex = index;
-                      } else {
-                        if (isSelectionMode) {
-                          toggleSongSelection(song.path);
-                          _lastAnchorIndex = index;
-                        } else {
-                          _lastAnchorIndex = index;
+                      handleSongTap(
+                        index: index,
+                        songPath: song.path,
+                        allSongs: widget.album.songs,
+                        onNormalTap: () {
                           audio.playPlaylist(
                             widget.album.songs,
                             initialIndex: index,
@@ -227,11 +205,11 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage>
                               name: widget.album.title,
                             ),
                           );
-                        }
-                      }
+                        },
+                      );
                     },
                     onLongPress: () {
-                      _lastAnchorIndex = index;
+                      lastAnchorIndex = index;
                       if (!isSelectionMode) {
                         enterSongSelectionMode(song.path);
                       }
@@ -242,7 +220,7 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage>
                       }
                     },
                     onToggleSelection: () {
-                      _lastAnchorIndex = index;
+                      lastAnchorIndex = index;
                       toggleSongSelection(song.path);
                     },
                   );

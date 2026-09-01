@@ -81,6 +81,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   String? _cachedFolderKey;
   int? _cachedTotalDurationMs;
   int? _lastSongAnchorIndex;
+  int? _lastFolderAnchorIndex;
 
   void _performSearch(String query) {
     _searchDebounce?.cancel();
@@ -480,6 +481,35 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             selectedFolderPaths: widget.selectedFolderPaths,
             isRoot: false,
             onNavigateTo: widget.onNavigateTo,
+            onFolderTap: (subfolder, subfolderIndex) {
+              SelectionActionHelper.handleItemTap(
+                index: subfolderIndex,
+                itemKey: subfolder.path,
+                items: matchedFolders,
+                keySelector: (f) => f.path,
+                isSelectionMode: widget.isSelectionMode,
+                selectedKeys: widget.selectedFolderPaths,
+                lastAnchorIndex: _lastFolderAnchorIndex,
+                onUpdateAnchor: (a) => setState(() => _lastFolderAnchorIndex = a),
+                onSetSelection: (keys) {
+                  for (final k in keys) {
+                    if (!widget.selectedFolderPaths.contains(k)) {
+                      widget.onToggleFolderSelection(k);
+                    }
+                  }
+                },
+                onToggleSelection: (key) => widget.onToggleFolderSelection(key),
+                onEnterSelectionMode: () => widget.onToggleSelectionMode(),
+                onNormalTap: () => widget.onNavigateTo(subfolder),
+              );
+            },
+            onFolderLongPress: (subfolder, subfolderIndex) {
+              _lastFolderAnchorIndex = subfolderIndex;
+              if (!widget.isSelectionMode) {
+                widget.onToggleSelectionMode();
+              }
+              widget.onToggleFolderSelection(subfolder.path);
+            },
             onToggleFolderSelection: widget.onToggleFolderSelection,
             onToggleSelectionMode: widget.onToggleSelectionMode,
             onShowFolderBottomSheet: widget.onShowFolderBottomSheet,
@@ -498,35 +528,25 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             selectedSongPaths: widget.selectedSongPaths,
             highlightedSongPath: widget.highlightedSongPath,
             onSongTap: (file, fileIndex) async {
-              final isShift = ModifierKeyUtils.isRangeSelectPressed;
-              final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
-
-              if (isShift) {
-                if (!widget.isSelectionMode) {
-                  widget.onToggleSelectionMode();
-                }
-                final anchor = _lastSongAnchorIndex ?? fileIndex;
-                final range = ModifierKeyUtils.getIndexRange(anchor, fileIndex);
-                for (final idx in range) {
-                  if (idx >= 0 && idx < matchedSongs.length) {
-                    final path = matchedSongs[idx].path;
-                    if (!widget.selectedSongPaths.contains(path)) {
-                      widget.onToggleSelection(path);
+              SelectionActionHelper.handleItemTap(
+                index: fileIndex,
+                itemKey: file.path,
+                items: matchedSongs,
+                keySelector: (s) => s.path,
+                isSelectionMode: widget.isSelectionMode,
+                selectedKeys: widget.selectedSongPaths,
+                lastAnchorIndex: _lastSongAnchorIndex,
+                onUpdateAnchor: (a) => setState(() => _lastSongAnchorIndex = a),
+                onSetSelection: (keys) {
+                  for (final k in keys) {
+                    if (!widget.selectedSongPaths.contains(k)) {
+                      widget.onToggleSelection(k);
                     }
                   }
-                }
-              } else if (isCtrl) {
-                if (!widget.isSelectionMode) {
-                  widget.onToggleSelectionMode();
-                }
-                widget.onToggleSelection(file.path);
-                _lastSongAnchorIndex = fileIndex;
-              } else {
-                if (widget.isSelectionMode) {
-                  widget.onToggleSelection(file.path);
-                  _lastSongAnchorIndex = fileIndex;
-                } else {
-                  _lastSongAnchorIndex = fileIndex;
+                },
+                onToggleSelection: (key) => widget.onToggleSelection(key),
+                onEnterSelectionMode: () => widget.onToggleSelectionMode(),
+                onNormalTap: () async {
                   unawaited(() async {
                     try {
                       await audio.playPlaylist(
@@ -552,8 +572,8 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
                       await widget.onOpenPlayback?.call();
                     }
                   }
-                }
-              }
+                },
+              );
             },
             onSongLongPress: (file) {
               final fileIndex = matchedSongs.indexOf(file);

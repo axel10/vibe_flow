@@ -25,6 +25,7 @@ import '../../widgets/library_selection_scope.dart';
 import 'navidrome_artist_detail_page.dart';
 import 'navidrome_playlist_detail_page.dart';
 import 'remote_download_manager_page.dart';
+import '../../utils/selection_utils.dart';
 
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -96,6 +97,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   final Set<String> _selectedPlaylistIds = {};
   final Set<String> _selectedSongPaths = {};
 
+  int? _lastAlbumAnchorIndex;
+  int? _lastArtistAnchorIndex;
+  int? _lastPlaylistAnchorIndex;
+  int? _lastSongAnchorIndex;
+
   bool get _isAlbumSelectionMode => _selectedAlbumIds.isNotEmpty;
   bool get _isArtistSelectionMode => _selectedArtistIds.isNotEmpty;
   bool get _isPlaylistSelectionMode => _selectedPlaylistIds.isNotEmpty;
@@ -127,9 +133,61 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         _selectedArtistIds.clear();
         _selectedPlaylistIds.clear();
         _selectedSongPaths.clear();
+        _lastAlbumAnchorIndex = null;
+        _lastArtistAnchorIndex = null;
+        _lastPlaylistAnchorIndex = null;
+        _lastSongAnchorIndex = null;
       });
       _updateSelectionScope(false);
     }
+  }
+
+  void _setAlbumSelection(Set<String> keys) {
+    setState(() {
+      _selectedArtistIds.clear();
+      _selectedPlaylistIds.clear();
+      _selectedSongPaths.clear();
+      _selectedAlbumIds
+        ..clear()
+        ..addAll(keys);
+    });
+    _updateSelectionScope();
+  }
+
+  void _setArtistSelection(Set<String> keys) {
+    setState(() {
+      _selectedAlbumIds.clear();
+      _selectedPlaylistIds.clear();
+      _selectedSongPaths.clear();
+      _selectedArtistIds
+        ..clear()
+        ..addAll(keys);
+    });
+    _updateSelectionScope();
+  }
+
+  void _setPlaylistSelection(Set<String> keys) {
+    setState(() {
+      _selectedAlbumIds.clear();
+      _selectedArtistIds.clear();
+      _selectedSongPaths.clear();
+      _selectedPlaylistIds
+        ..clear()
+        ..addAll(keys);
+    });
+    _updateSelectionScope();
+  }
+
+  void _setSongSelection(Set<String> keys) {
+    setState(() {
+      _selectedAlbumIds.clear();
+      _selectedArtistIds.clear();
+      _selectedPlaylistIds.clear();
+      _selectedSongPaths
+        ..clear()
+        ..addAll(keys);
+    });
+    _updateSelectionScope();
   }
 
   void _toggleAlbumSelection(String albumId) {
@@ -1563,6 +1621,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             }
                           },
                           onLongPressStart: (details) {
+                            _lastAlbumAnchorIndex = index;
                             _toggleAlbumSelection(albumId);
                           },
                           child: Material(
@@ -1570,20 +1629,30 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
                               onTap: () {
-                                if (_isAlbumSelectionMode) {
-                                  _toggleAlbumSelection(albumId);
-                                } else {
-                                  NavidromeNavUtils.openAlbum(
-                                    context,
-                                    ref,
-                                    server: widget.server,
-                                    password: widget.password,
-                                    albumId: albumId,
-                                    albumName: title,
-                                    artistName: artist,
-                                    coverArtId: coverId,
-                                  );
-                                }
+                                SelectionActionHelper.handleItemTap(
+                                  index: index,
+                                  itemKey: albumId,
+                                  items: filteredAlbums,
+                                  keySelector: (a) => a['id'] as String? ?? '',
+                                  isSelectionMode: _isAlbumSelectionMode,
+                                  selectedKeys: _selectedAlbumIds,
+                                  lastAnchorIndex: _lastAlbumAnchorIndex,
+                                  onUpdateAnchor: (a) => setState(() => _lastAlbumAnchorIndex = a),
+                                  onSetSelection: _setAlbumSelection,
+                                  onToggleSelection: _toggleAlbumSelection,
+                                  onNormalTap: () {
+                                    NavidromeNavUtils.openAlbum(
+                                      context,
+                                      ref,
+                                      server: widget.server,
+                                      password: widget.password,
+                                      albumId: albumId,
+                                      albumName: title,
+                                      artistName: artist,
+                                      coverArtId: coverId,
+                                    );
+                                  },
+                                );
                               },
                               child: Ink(
                                 decoration: BoxDecoration(
@@ -1872,6 +1941,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           child: _buildArtistItem(
                             theme: theme,
                             artist: artist,
+                            index: index,
+                            allArtists: filteredArtists,
                             isSelected: isSelected,
                             onTap: () {
                               final id = artist['id'] as String?;
@@ -1950,6 +2021,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       child: _buildArtistItem(
                         theme: theme,
                         artist: artist,
+                        index: index,
+                        allArtists: filteredArtists,
                         isSelected: false,
                         onTap: () {
                           NavidromeNavUtils.openArtist(
@@ -1976,6 +2049,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   Widget _buildArtistItem({
     required ThemeData theme,
     required Map<String, dynamic> artist,
+    required int index,
+    required List<Map<String, dynamic>> allArtists,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -2010,6 +2085,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
       },
       onLongPressStart: (details) {
+        _lastArtistAnchorIndex = index;
         _toggleArtistSelection(artistId);
       },
       child: Material(
@@ -2017,11 +2093,19 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            if (_isArtistSelectionMode) {
-              _toggleArtistSelection(artistId);
-            } else {
-              onTap();
-            }
+            SelectionActionHelper.handleItemTap(
+              index: index,
+              itemKey: artistId,
+              items: allArtists,
+              keySelector: (a) => a['id'] as String? ?? '',
+              isSelectionMode: _isArtistSelectionMode,
+              selectedKeys: _selectedArtistIds,
+              lastAnchorIndex: _lastArtistAnchorIndex,
+              onUpdateAnchor: (a) => setState(() => _lastArtistAnchorIndex = a),
+              onSetSelection: _setArtistSelection,
+              onToggleSelection: _toggleArtistSelection,
+              onNormalTap: onTap,
+            );
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2213,6 +2297,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           child: _buildPlaylistItem(
                             theme: theme,
                             playlist: pl,
+                            index: index,
+                            allPlaylists: filteredPlaylists,
                             isSelected: isSelected,
                             onTap: () {
                               final id = pl['id'] as String?;
@@ -2301,6 +2387,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       child: _buildPlaylistItem(
                         theme: theme,
                         playlist: pl,
+                        index: index,
+                        allPlaylists: filteredPlaylists,
                         isSelected: false,
                         onTap: () {
                           NavidromeNavUtils.openPlaylist(
@@ -2332,6 +2420,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   Widget _buildPlaylistItem({
     required ThemeData theme,
     required Map<String, dynamic> playlist,
+    required int index,
+    required List<Map<String, dynamic>> allPlaylists,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -2371,6 +2461,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
               );
             },
       onLongPressStart: (details) {
+        _lastPlaylistAnchorIndex = index;
         _togglePlaylistSelection(playlistId);
       },
       child: Material(
@@ -2378,11 +2469,19 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            if (_isPlaylistSelectionMode) {
-              _togglePlaylistSelection(playlistId);
-            } else {
-              onTap();
-            }
+            SelectionActionHelper.handleItemTap(
+              index: index,
+              itemKey: playlistId,
+              items: allPlaylists,
+              keySelector: (p) => p['id'] as String? ?? '',
+              isSelectionMode: _isPlaylistSelectionMode,
+              selectedKeys: _selectedPlaylistIds,
+              lastAnchorIndex: _lastPlaylistAnchorIndex,
+              onUpdateAnchor: (a) => setState(() => _lastPlaylistAnchorIndex = a),
+              onSetSelection: _setPlaylistSelection,
+              onToggleSelection: _togglePlaylistSelection,
+              onNormalTap: onTap,
+            );
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2843,6 +2942,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 }
               },
               onLongPressStart: (details) {
+                _lastSongAnchorIndex = i;
                 _toggleSongSelection(song.path);
               },
               child: Material(
@@ -2852,16 +2952,26 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 borderRadius: BorderRadius.circular(8),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () async {
-                    if (_isSongSelectionMode) {
-                      _toggleSongSelection(song.path);
-                    } else {
-                      final audioService = ref.read(audioServiceProvider);
-                      await audioService.playPlaylist(
-                        _searchedSongs,
-                        initialIndex: i,
-                      );
-                    }
+                  onTap: () {
+                    SelectionActionHelper.handleItemTap(
+                      index: i,
+                      itemKey: song.path,
+                      items: _searchedSongs,
+                      keySelector: (s) => s.path,
+                      isSelectionMode: _isSongSelectionMode,
+                      selectedKeys: _selectedSongPaths,
+                      lastAnchorIndex: _lastSongAnchorIndex,
+                      onUpdateAnchor: (a) => setState(() => _lastSongAnchorIndex = a),
+                      onSetSelection: _setSongSelection,
+                      onToggleSelection: _toggleSongSelection,
+                      onNormalTap: () async {
+                        final audioService = ref.read(audioServiceProvider);
+                        await audioService.playPlaylist(
+                          _searchedSongs,
+                          initialIndex: i,
+                        );
+                      },
+                    );
                   },
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),

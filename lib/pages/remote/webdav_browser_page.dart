@@ -29,6 +29,7 @@ import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/song_thumbnail.dart';
 import 'remote_download_manager_page.dart';
 import 'widgets/webdav_content_slivers.dart';
+import '../../utils/selection_utils.dart';
 
 
 class WebDavBrowserPage extends ConsumerStatefulWidget {
@@ -65,6 +66,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   bool _isSelectionMode = false;
   final Set<String> _selectedSongPaths = {};
   final Set<String> _selectedFolderPaths = {};
+  int? _lastSongAnchorIndex;
+  int? _lastFolderAnchorIndex;
 
   // Search & Scroll states
   late final LibrarySelectionScopeController _selectionScopeNotifier;
@@ -475,11 +478,15 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           _isSelectionMode = false;
           _selectedSongPaths.clear();
           _selectedFolderPaths.clear();
+          _lastSongAnchorIndex = null;
+          _lastFolderAnchorIndex = null;
         });
       } else {
         _isSelectionMode = false;
         _selectedSongPaths.clear();
         _selectedFolderPaths.clear();
+        _lastSongAnchorIndex = null;
+        _lastFolderAnchorIndex = null;
       }
     }
   }
@@ -583,33 +590,58 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     WebDavFile file,
     int index,
     List<MusicFile> allAudio,
+    List<WebDavFile> displayedFiles,
   ) async {
     final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, file.path);
-    if (_isSelectionMode) {
-      _toggleSongSelection(uri);
-    } else if (file.isAudio) {
-      final target = RemoteMediaResolver.buildMusicFileFromWebDav(
-        file,
-        widget.server,
-        metadata: _metadataMap[uri] ??
-            ref.read(scannerServiceProvider).metadataMap[uri],
-      );
-      final initialIndex = allAudio.indexWhere((s) => s.path == target.path);
-      final audioService = ref.read(audioServiceProvider);
-      await audioService.playPlaylist(
-        allAudio.isNotEmpty ? allAudio : [target],
-        initialIndex: initialIndex >= 0 ? initialIndex : 0,
-        source: PlaybackSource(
-          type: PlaybackSourceType.folder,
-          id: 'webdav-${widget.server.id}-$_currentPath',
-          name: _isAtRoot ? widget.server.name : p.basename(_currentPath),
-        ),
-      );
-    }
+    SelectionActionHelper.handleItemTap(
+      index: index,
+      itemKey: uri,
+      items: displayedFiles,
+      keySelector: (f) =>
+          RemoteMediaResolver.buildWebDavUri(widget.server.id, f.path),
+      isSelectionMode: _isSelectionMode,
+      selectedKeys: _selectedSongPaths,
+      lastAnchorIndex: _lastSongAnchorIndex,
+      onUpdateAnchor: (a) => setState(() => _lastSongAnchorIndex = a),
+      onSetSelection: (keys) {
+        _selectionScopeNotifier.setScope(LibrarySelectionScope.webdav);
+        setState(() {
+          _isSelectionMode = true;
+          _selectedSongPaths.addAll(keys);
+        });
+      },
+      onToggleSelection: (key) => _toggleSongSelection(key),
+      onEnterSelectionMode: () {
+        _selectionScopeNotifier.setScope(LibrarySelectionScope.webdav);
+        setState(() => _isSelectionMode = true);
+      },
+      onNormalTap: () async {
+        if (file.isAudio) {
+          final target = RemoteMediaResolver.buildMusicFileFromWebDav(
+            file,
+            widget.server,
+            metadata: _metadataMap[uri] ??
+                ref.read(scannerServiceProvider).metadataMap[uri],
+          );
+          final initialIndex = allAudio.indexWhere((s) => s.path == target.path);
+          final audioService = ref.read(audioServiceProvider);
+          await audioService.playPlaylist(
+            allAudio.isNotEmpty ? allAudio : [target],
+            initialIndex: initialIndex >= 0 ? initialIndex : 0,
+            source: PlaybackSource(
+              type: PlaybackSourceType.folder,
+              id: 'webdav-${widget.server.id}-$_currentPath',
+              name: _isAtRoot ? widget.server.name : p.basename(_currentPath),
+            ),
+          );
+        }
+      },
+    );
   }
 
-  void _handleSongLongPress(WebDavFile file) {
+  void _handleSongLongPress(WebDavFile file, int index) {
     final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, file.path);
+    _lastSongAnchorIndex = index;
     if (!_isSelectionMode) {
       _toggleSelectionMode();
       _toggleSongSelection(uri);
@@ -1148,6 +1180,41 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   isSelectionMode: _isSelectionMode,
                   selectedFolderPaths: _selectedFolderPaths,
                   onOpenFolder: (folder) => _openFolder(folder),
+                  onFolderTap: (folder, index) {
+                    SelectionActionHelper.handleItemTap(
+                      index: index,
+                      itemKey: folder.path,
+                      items: matchedFolders,
+                      keySelector: (f) => f.path,
+                      isSelectionMode: _isSelectionMode,
+                      selectedKeys: _selectedFolderPaths,
+                      lastAnchorIndex: _lastFolderAnchorIndex,
+                      onUpdateAnchor: (a) =>
+                          setState(() => _lastFolderAnchorIndex = a),
+                      onSetSelection: (keys) {
+                        _selectionScopeNotifier
+                            .setScope(LibrarySelectionScope.webdav);
+                        setState(() {
+                          _isSelectionMode = true;
+                          _selectedFolderPaths.addAll(keys);
+                        });
+                      },
+                      onToggleSelection: (key) => _toggleFolderSelection(key),
+                      onEnterSelectionMode: () {
+                        _selectionScopeNotifier
+                            .setScope(LibrarySelectionScope.webdav);
+                        setState(() => _isSelectionMode = true);
+                      },
+                      onNormalTap: () => _openFolder(folder),
+                    );
+                  },
+                  onFolderLongPress: (folder, index) {
+                    _lastFolderAnchorIndex = index;
+                    if (!_isSelectionMode) {
+                      _toggleSelectionMode();
+                    }
+                    _toggleFolderSelection(folder.path);
+                  },
                   onToggleFolderSelection: _toggleFolderSelection,
                   onToggleSelectionMode: _toggleSelectionMode,
                   onShowFolderBottomSheet: _handleShowFolderBottomSheet,
@@ -1176,8 +1243,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                     file,
                     index,
                     _getAudioFiles(sourceList: displayedItems),
+                    matchedFiles,
                   ),
-                  onSongLongPress: _handleSongLongPress,
+                  onSongLongPress: (file) => _handleSongLongPress(
+                    file,
+                    matchedFiles.indexOf(file),
+                  ),
                   onSongSecondaryTapDown: (file, details) =>
                       _handleSongContextMenu(
                     file,

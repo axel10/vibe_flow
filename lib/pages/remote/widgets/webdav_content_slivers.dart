@@ -26,6 +26,8 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
   final bool isSelectionMode;
   final Set<String> selectedFolderPaths;
   final void Function(WebDavFile) onOpenFolder;
+  final void Function(WebDavFile folder, int index)? onFolderTap;
+  final void Function(WebDavFile folder, int index)? onFolderLongPress;
   final void Function(String folderPath)? onToggleFolderSelection;
   final VoidCallback? onToggleSelectionMode;
   final void Function(WebDavFile folder)? onShowFolderBottomSheet;
@@ -39,6 +41,8 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
     this.isSelectionMode = false,
     this.selectedFolderPaths = const {},
     required this.onOpenFolder,
+    this.onFolderTap,
+    this.onFolderLongPress,
     this.onToggleFolderSelection,
     this.onToggleSelectionMode,
     this.onShowFolderBottomSheet,
@@ -102,20 +106,24 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
                       enableHero: false,
                       isSelected: isSelected,
                       isSelectionMode: isSelectionMode,
-                      onTap: isSelectionMode
-                          ? () => onToggleFolderSelection?.call(folder.path)
-                          : () => onOpenFolder(folder),
+                      onTap: onFolderTap != null
+                          ? () => onFolderTap?.call(folder, index)
+                          : (isSelectionMode
+                              ? () => onToggleFolderSelection?.call(folder.path)
+                              : () => onOpenFolder(folder)),
                       onSecondaryTapDown: (details) {
                         openContextMenu(folder, details.globalPosition);
                       },
-                      onLongPress: () {
-                        if (!isSelectionMode) {
-                          onToggleSelectionMode?.call();
-                          onToggleFolderSelection?.call(folder.path);
-                        } else {
-                          onToggleFolderSelection?.call(folder.path);
-                        }
-                      },
+                      onLongPress: onFolderLongPress != null
+                          ? () => onFolderLongPress?.call(folder, index)
+                          : () {
+                              if (!isSelectionMode) {
+                                onToggleSelectionMode?.call();
+                                onToggleFolderSelection?.call(folder.path);
+                              } else {
+                                onToggleFolderSelection?.call(folder.path);
+                              }
+                            },
                     ),
                   );
                 },
@@ -166,17 +174,21 @@ class WebDavSubfoldersSliver extends ConsumerWidget {
                       );
                     },
                   ),
-                  onTap: isSelectionMode
-                      ? () => onToggleFolderSelection?.call(folder.path)
-                      : () => onOpenFolder(folder),
-                  onLongPress: () {
-                    if (!isSelectionMode) {
-                      onToggleSelectionMode?.call();
-                      onToggleFolderSelection?.call(folder.path);
-                    } else {
-                      onToggleFolderSelection?.call(folder.path);
-                    }
-                  },
+                  onTap: onFolderTap != null
+                      ? () => onFolderTap?.call(folder, index)
+                      : (isSelectionMode
+                          ? () => onToggleFolderSelection?.call(folder.path)
+                          : () => onOpenFolder(folder)),
+                  onLongPress: onFolderLongPress != null
+                      ? () => onFolderLongPress?.call(folder, index)
+                      : () {
+                          if (!isSelectionMode) {
+                            onToggleSelectionMode?.call();
+                            onToggleFolderSelection?.call(folder.path);
+                          } else {
+                            onToggleFolderSelection?.call(folder.path);
+                          }
+                        },
                   onSecondaryTapDown: (details) {
                     openContextMenu(folder, details.globalPosition);
                   },

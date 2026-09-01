@@ -874,6 +874,7 @@ class _NavidromeArtistDetailContentState
         }
       },
       onLongPressStart: (details) {
+        lastAnchorIndex = initialIndex;
         if (!isSelectionMode) {
           enterSongSelectionMode(song.path);
         } else {
@@ -889,21 +890,24 @@ class _NavidromeArtistDetailContentState
         borderRadius: borderRadius,
         child: InkWell(
           borderRadius: borderRadius,
-          onTap: () async {
-            if (isSelectionMode) {
-              toggleSongSelection(song.path);
-            } else {
-              final audio = ref.read(audioServiceProvider);
-              await audio.playPlaylist(
-                playlist,
-                initialIndex: initialIndex,
-                source: PlaybackSource(
-                  type: PlaybackSourceType.artist,
-                  id: 'remote-${widget.server.id}-${widget.artistId}',
-                  name: widget.artistName,
-                ),
-              );
-            }
+          onTap: () {
+            handleSongTap(
+              index: initialIndex,
+              songPath: song.path,
+              allSongs: playlist,
+              onNormalTap: () async {
+                final audio = ref.read(audioServiceProvider);
+                await audio.playPlaylist(
+                  playlist,
+                  initialIndex: initialIndex,
+                  source: PlaybackSource(
+                    type: PlaybackSourceType.artist,
+                    id: 'remote-${widget.server.id}-${widget.artistId}',
+                    name: widget.artistName,
+                  ),
+                );
+              },
+            );
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
