@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/audio/audio_service.dart';
 import 'package:vynody/utils/playback_utils.dart';
 import 'package:vynody/widgets/animated_play_pause_button.dart';
 import 'package:vynody/widgets/app_tooltip.dart';
@@ -222,7 +223,7 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
     required dynamic currentMusic,
     required bool isPlaying,
     required bool isBuffering,
-    required dynamic audio,
+    required AudioService audio,
     required Duration position,
     required Duration duration,
   }) {
@@ -234,161 +235,178 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
           )
         : position;
 
-    return Container(
+    return SizedBox(
       height: 54,
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. 歌曲信息与按钮区域（拖动进度条时高斯模糊并淡出）
+          // 0. 背景频谱动画 (像 MiniPlayerCard 那样)
           Positioned.fill(
-            child: TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 200),
-              tween: Tween<double>(begin: 0, end: _isDragging ? 5.0 : 0.0),
-              builder: (context, blur, child) {
-                return ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-                  child: AnimatedOpacity(
+            child: Opacity(
+              opacity: 0.6,
+              child: MiniSpectrumBackground(
+                audio: audio,
+              ),
+            ),
+          ),
+
+          // 1. 歌曲信息与按钮区域（拖动进度条时高斯模糊并淡出）
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  child: TweenAnimationBuilder<double>(
                     duration: const Duration(milliseconds: 200),
-                    opacity: _isDragging ? 0.25 : 1.0,
-                    child: IgnorePointer(
-                      ignoring: _isDragging,
-                      child: child,
-                    ),
-                  ),
-                );
-              },
-              child: Row(
-                children: [
-                  // 左侧：封面 + 歌曲名/歌手（点击直达播放页）
-                  Expanded(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () => widget.onDestinationSelected(1),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 2.0,
+                    tween: Tween<double>(begin: 0, end: _isDragging ? 5.0 : 0.0),
+                    builder: (context, blur, child) {
+                      return ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: _isDragging ? 0.25 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: _isDragging,
+                            child: child,
                           ),
-                          child: Row(
-                            children: [
-                              const MiniArtwork(),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        // 左侧：封面 + 歌曲名/歌手（点击直达播放页）
+                        Expanded(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => widget.onDestinationSelected(1),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4.0,
+                                  vertical: 2.0,
+                                ),
+                                child: Row(
                                   children: [
-                                    Text(
-                                      currentMusic.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black87,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      currentMusic.artist ?? l10n.unknownArtist,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: isDark
-                                            ? Colors.white60
-                                            : Colors.black54,
-                                        height: 1.1,
+                                    const MiniArtwork(),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            currentMusic.title,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : Colors.black87,
+                                              height: 1.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            currentMusic.artist ?? l10n.unknownArtist,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isDark
+                                                  ? Colors.white60
+                                                  : Colors.black54,
+                                              height: 1.1,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
+                        ),
+
+                        // 右侧：播放控制按钮
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            MiniControlButton(
+                              icon: Icons.skip_previous_rounded,
+                              iconSize: 18,
+                              padding: const EdgeInsets.all(5),
+                              onPressed: audio.previous,
+                              tooltip: l10n.previous,
+                            ),
+                            const SizedBox(width: 2),
+                            AnimatedPlayPauseButton(
+                              isPlaying: isPlaying,
+                              isLoading: isBuffering,
+                              onPressed: audio.togglePlay,
+                              color: isDark ? Colors.white : Colors.black87,
+                              size: 28,
+                              padding: const EdgeInsets.all(4.0),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              tooltip: isPlaying ? l10n.pause : l10n.play,
+                            ),
+                            const SizedBox(width: 2),
+                            MiniControlButton(
+                              icon: Icons.skip_next_rounded,
+                              iconSize: 18,
+                              padding: const EdgeInsets.all(5),
+                              onPressed: audio.next,
+                              tooltip: l10n.next,
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 2. 拖拽时浮现的时间指示层（左侧当前拖拽进度时间，右侧歌曲总时长）
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 200),
+                      opacity: _isDragging ? 1.0 : 0.0,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              formatDuration(displayPosition),
+                              style: TextStyle(
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              formatDuration(duration),
+                              style: TextStyle(
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-
-                  // 右侧：播放控制按钮
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      MiniControlButton(
-                        icon: Icons.skip_previous_rounded,
-                        iconSize: 18,
-                        padding: const EdgeInsets.all(5),
-                        onPressed: audio.previous,
-                        tooltip: l10n.previous,
-                      ),
-                      const SizedBox(width: 2),
-                      AnimatedPlayPauseButton(
-                        isPlaying: isPlaying,
-                        isLoading: isBuffering,
-                        onPressed: audio.togglePlay,
-                        color: isDark ? Colors.white : Colors.black87,
-                        size: 28,
-                        padding: const EdgeInsets.all(4.0),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        tooltip: isPlaying ? l10n.pause : l10n.play,
-                      ),
-                      const SizedBox(width: 2),
-                      MiniControlButton(
-                        icon: Icons.skip_next_rounded,
-                        iconSize: 18,
-                        padding: const EdgeInsets.all(5),
-                        onPressed: audio.next,
-                        tooltip: l10n.next,
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // 2. 拖拽时浮现的时间指示层（左侧当前拖拽进度时间，右侧歌曲总时长）
-          Positioned.fill(
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: _isDragging ? 1.0 : 0.0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        formatDuration(displayPosition),
-                        style: TextStyle(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        formatDuration(duration),
-                        style: TextStyle(
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
