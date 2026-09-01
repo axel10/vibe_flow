@@ -673,3 +673,28 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
+
+----------------------------------------------------------------------
+
+                      APP STORE EXCEPTION
+               (Additional Permission under GNU GPLv3 Section 7)
+
+1. Additional Permissions:
+As a special exception under Section 7 of the GNU General Public License version 3,
+the copyright holders of this software grant permission to distribute the Program
+or works based on the Program in object code or executable form via the Apple App
+Store, Microsoft Store, Google Play Store, and other official application marketplaces,
+under the standard terms and conditions of those platforms (including any terms
+related to digital rights management, code signing, non-transferability, or device
+limits), provided that:
+
+   a) The Corresponding Source for the Program continues to be made freely available
+      to the public under the terms of the GNU General Public License version 3; and
+   b) All original copyright notices, license notices, and this exception notice are
+      retained in source code distributions.
+
+2. Contributions:
+Any code or material contributed to this project is licensed under the GNU General
+Public License version 3 and is subject to this App Store Exception unless explicitly
+stated otherwise at the time of contribution.
+
