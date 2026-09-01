@@ -27,6 +27,8 @@ import 'package:vynody/player/settings/settings_service.dart';
 import 'package:path/path.dart' as p;
 import 'package:audio_core/audio_core.dart';
 import 'package:flutter_taglib/flutter_taglib.dart' as taglib;
+import 'package:vynody/models/music_file.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/transcode/transcode_models.dart';
 import 'package:vynody/transcode/transcode_service.dart';
 
@@ -77,11 +79,14 @@ class _LyricsGenerationOutcome {
   final LyricsGenerationResult result;
 }
 
+class _LocalFileNotFoundException implements Exception {}
+
 class LyricsAiService {
   LyricsAiService({
     NetworkClient? client,
     required LyricsAiRuntimeConfig Function() readConfig,
     TranscodeService? transcodeService,
+    Future<RemoteMediaResolver> Function()? remoteMediaResolver,
   }) : _client = client ?? NetworkClient.instance,
        _readConfig = readConfig,
        _geminiApiClient = GeminiLyricsApiClient(client: client),
@@ -94,7 +99,8 @@ class LyricsAiService {
          client: client,
          streamParser: LyricsAiStreamTextParser(),
        ),
-       _transcodeService = transcodeService ?? TranscodeService();
+       _transcodeService = transcodeService ?? TranscodeService(),
+       _remoteMediaResolver = remoteMediaResolver;
 
   final NetworkClient _client;
   final LyricsAiRuntimeConfig Function() _readConfig;
@@ -103,6 +109,7 @@ class LyricsAiService {
   final LyricsAiOpenRouterClient _openRouterClient;
   final LyricsAiStreamTextParser _streamParser = LyricsAiStreamTextParser();
   final TranscodeService _transcodeService;
+  final Future<RemoteMediaResolver> Function()? _remoteMediaResolver;
   static const int maxGenerationRetries = 2;
   static const int maxGenerationAttempts = maxGenerationRetries + 1;
 
@@ -310,20 +317,23 @@ class LyricsAiService {
     void Function(String partialText, bool isFinal)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final originalFile = File(filePath);
-    if (!await originalFile.exists()) {
-      debugPrint('[LyricsAi] file not found for generation: $filePath');
-      return LyricsGenerationResult.failure(
-        _l10n().localSongFileNotFoundForGeneration,
-      );
-    }
-
     _PreparedAudio? preparedAudio;
     try {
-      preparedAudio = await _prepareAudioFile(
-        filePath,
-        onStageChanged: onStageChanged,
-      );
+      try {
+        preparedAudio = await _resolveAndPrepareAudioFile(
+          filePath: filePath,
+          songTitle: songTitle,
+          onStageChanged: onStageChanged,
+          onUploadProgress: onUploadProgress,
+          cancelToken: cancelToken,
+        );
+      } on _LocalFileNotFoundException {
+        debugPrint('[LyricsAi] file not found for generation: $filePath');
+        return LyricsGenerationResult.failure(
+          _l10n().localSongFileNotFoundForGeneration,
+        );
+      }
+
       final activeFile = preparedAudio.file;
       final activePath = activeFile.path;
 
@@ -402,7 +412,7 @@ class LyricsAiService {
             _l10n().unknownGenerationError,
       );
     } finally {
-      await _deleteIfExists(preparedAudio?.tempFile);
+      await preparedAudio?.dispose();
     }
   }
 
@@ -417,13 +427,6 @@ class LyricsAiService {
     void Function(String partialText, bool isFinal)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final originalFile = File(filePath);
-    if (!await originalFile.exists()) {
-      debugPrint('[LyricsAi] file not found for timeline: $filePath');
-      return LyricsGenerationResult.failure(
-        _l10n().localSongFileNotFoundForTimeline,
-      );
-    }
     final normalizedLyrics = lyrics.trim();
     if (normalizedLyrics.isEmpty) {
       debugPrint('[LyricsAi] no usable lyrics for timeline generation.');
@@ -432,28 +435,39 @@ class LyricsAiService {
       );
     }
 
-    final prompt = LyricsAiPromptBuilder.buildGenerateTimelinePrompt(
-      lyrics: normalizedLyrics,
-    );
-    final candidates = <LyricsAiModelSelection>[
-      LyricsAiModelSelection(
-        provider: _generationPrimaryModel.provider,
-        modelId: modelId?.trim().isNotEmpty == true
-            ? modelId!.trim()
-            : _generationPrimaryModel.modelId,
-      ),
-      if (_generationFallbackModel.modelId.trim().isNotEmpty)
-        _generationFallbackModel,
-    ];
-
     _PreparedAudio? preparedAudio;
     try {
-      preparedAudio = await _prepareAudioFile(
-        filePath,
-        onStageChanged: onStageChanged,
-      );
+      try {
+        preparedAudio = await _resolveAndPrepareAudioFile(
+          filePath: filePath,
+          songTitle: songTitle,
+          onStageChanged: onStageChanged,
+          onUploadProgress: onUploadProgress,
+          cancelToken: cancelToken,
+        );
+      } on _LocalFileNotFoundException {
+        debugPrint('[LyricsAi] file not found for timeline: $filePath');
+        return LyricsGenerationResult.failure(
+          _l10n().localSongFileNotFoundForTimeline,
+        );
+      }
+
       final activeFile = preparedAudio.file;
       final activePath = activeFile.path;
+
+      final prompt = LyricsAiPromptBuilder.buildGenerateTimelinePrompt(
+        lyrics: normalizedLyrics,
+      );
+      final candidates = <LyricsAiModelSelection>[
+        LyricsAiModelSelection(
+          provider: _generationPrimaryModel.provider,
+          modelId: modelId?.trim().isNotEmpty == true
+              ? modelId!.trim()
+              : _generationPrimaryModel.modelId,
+        ),
+        if (_generationFallbackModel.modelId.trim().isNotEmpty)
+          _generationFallbackModel,
+      ];
 
       String? lastError;
       for (final candidate in candidates) {
@@ -517,7 +531,7 @@ class LyricsAiService {
             _l10n().unknownTimelineGenerationError,
       );
     } finally {
-      await _deleteIfExists(preparedAudio?.tempFile);
+      await preparedAudio?.dispose();
     }
   }
 
@@ -1552,6 +1566,71 @@ class LyricsAiService {
     return openRouterFallbackGenerator(fallbackApiKey);
   }
 
+  Future<_PreparedAudio> _resolveAndPrepareAudioFile({
+    required String filePath,
+    String? songTitle,
+    void Function(String stage)? onStageChanged,
+    void Function(double progress)? onUploadProgress,
+    CancelToken? cancelToken,
+  }) async {
+    Directory? downloadedTempDirectory;
+    String localInputPath = filePath;
+
+    if (RemoteMediaResolver.isRemoteUri(filePath)) {
+      if (_remoteMediaResolver == null) {
+        throw Exception('RemoteMediaResolver is not available');
+      }
+      onStageChanged?.call('downloading');
+      final resolver = await _remoteMediaResolver();
+      final song = MusicFile(
+        path: filePath,
+        name: songTitle != null && songTitle.isNotEmpty ? songTitle : 'remote_audio',
+        title: songTitle,
+      );
+      final tempFile = await resolver.downloadRemoteTrackToTempFile(
+        song,
+        onProgress: (received, total) {
+          if (total > 0 && onUploadProgress != null) {
+            onUploadProgress((received / total).clamp(0.0, 1.0));
+          }
+        },
+        cancelToken: cancelToken,
+      );
+      downloadedTempDirectory = tempFile.parent;
+      localInputPath = tempFile.path;
+    } else {
+      final originalFile = File(filePath);
+      if (!await originalFile.exists()) {
+        throw _LocalFileNotFoundException();
+      }
+    }
+
+    if (cancelToken?.isCancelled == true) {
+      if (downloadedTempDirectory != null) {
+        try {
+          if (await downloadedTempDirectory.exists()) {
+            await downloadedTempDirectory.delete(recursive: true);
+          }
+        } catch (_) {}
+      }
+      throw DioException(
+        requestOptions: RequestOptions(path: filePath),
+        type: DioExceptionType.cancel,
+      );
+    }
+
+    final prepared = await _prepareAudioFile(
+      localInputPath,
+      onStageChanged: onStageChanged,
+    );
+
+    return _PreparedAudio(
+      file: prepared.file,
+      tempFile: prepared.tempFile,
+      downloadedTempDirectory: downloadedTempDirectory,
+    );
+  }
+
   Future<_PreparedAudio> _prepareAudioFile(
     String filePath, {
     void Function(String stage)? onStageChanged,
@@ -1634,22 +1713,35 @@ class LyricsAiService {
     }
     return _PreparedAudio(file: outputFile, tempFile: outputFile);
   }
-
-  Future<void> _deleteIfExists(File? file) async {
-    if (file == null) return;
-    try {
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (_) {}
-  }
 }
 
 class _PreparedAudio {
-  const _PreparedAudio({required this.file, this.tempFile});
+  const _PreparedAudio({
+    required this.file,
+    this.tempFile,
+    this.downloadedTempDirectory,
+  });
 
   final File file;
   final File? tempFile;
+  final Directory? downloadedTempDirectory;
+
+  Future<void> dispose() async {
+    if (tempFile != null) {
+      try {
+        if (await tempFile!.exists()) {
+          await tempFile!.delete();
+        }
+      } catch (_) {}
+    }
+    if (downloadedTempDirectory != null) {
+      try {
+        if (await downloadedTempDirectory!.exists()) {
+          await downloadedTempDirectory!.delete(recursive: true);
+        }
+      } catch (_) {}
+    }
+  }
 }
 
 AppLocalizations _l10n() => currentAppL10n;

@@ -129,6 +129,7 @@ class LyricsGenerationCoordinator {
       current.copyWith(
         songPath: session.songPath,
         phase: switch (stage) {
+          'downloading' => LyricsGenerationPhase.uploading,
           'transcoding' => LyricsGenerationPhase.transcoding,
           'uploading' => LyricsGenerationPhase.uploading,
           'processing' => LyricsGenerationPhase.processing,
@@ -138,6 +139,7 @@ class LyricsGenerationCoordinator {
           _ => LyricsGenerationPhase.idle,
         },
         progress: switch (stage) {
+          'downloading' => 0.0,
           'transcoding' => 0.0,
           'uploading' => 0.0,
           'processing' => 1.0,
@@ -162,6 +164,8 @@ class LyricsGenerationCoordinator {
   String _generationStageLabel(String stage, String currentStatus) {
     final taskKind = _generationTaskKind(currentStatus);
     switch (stage) {
+      case 'downloading':
+        return _l10n().downloadingTab;
       case 'transcoding':
         return currentStatus;
       case 'uploading':

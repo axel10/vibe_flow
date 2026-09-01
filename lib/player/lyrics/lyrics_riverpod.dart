@@ -44,6 +44,7 @@ final lyricsAiRuntimeConfigProvider = Provider<LyricsAiRuntimeConfig>((ref) {
 final lyricsAiServiceProvider = Provider<LyricsAiService>((ref) {
   return LyricsAiService(
     readConfig: () => ref.read(lyricsAiRuntimeConfigProvider),
+    remoteMediaResolver: () => ref.read(remoteMediaResolverProvider.future),
   );
 });
 

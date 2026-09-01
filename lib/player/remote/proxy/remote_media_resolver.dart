@@ -371,6 +371,7 @@ class RemoteMediaResolver {
   Future<File> downloadRemoteTrackToTempFile(
     MusicFile song, {
     void Function(int received, int total)? onProgress,
+    CancelToken? cancelToken,
   }) async {
     final info = parseUri(song.path);
     if (info == null) {
@@ -453,6 +454,7 @@ class RemoteMediaResolver {
       downloadUrl,
       tempFile.path,
       onReceiveProgress: onProgress,
+      cancelToken: cancelToken,
     );
 
     return tempFile;
