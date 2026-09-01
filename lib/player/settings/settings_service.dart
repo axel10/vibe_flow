@@ -131,6 +131,38 @@ extension FolderViewModeX on FolderViewMode {
   }
 }
 
+enum AlbumSortField { artist, title, trackCount, duration, recentAdded }
+
+extension AlbumSortFieldX on AlbumSortField {
+  String get storageValue => name;
+  static AlbumSortField fromStorageValue(
+    String? value,
+    AlbumSortField defaultValue,
+  ) {
+    if (value == null) return defaultValue;
+    return AlbumSortField.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => defaultValue,
+    );
+  }
+}
+
+enum ArtistSortField { artist, songCount }
+
+extension ArtistSortFieldX on ArtistSortField {
+  String get storageValue => name;
+  static ArtistSortField fromStorageValue(
+    String? value,
+    ArtistSortField defaultValue,
+  ) {
+    if (value == null) return defaultValue;
+    return ArtistSortField.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => defaultValue,
+    );
+  }
+}
+
 extension ThemeModeX on ThemeMode {
   String get storageValue => switch (this) {
     ThemeMode.system => 'system',
@@ -499,6 +531,16 @@ class SettingsService extends ChangeNotifier {
   static const double minUiScale = 0.8;
   static const double maxUiScale = 1.5;
 
+  static const String _keyAlbumSortField = 'album_sort_field';
+  static const String _keyAlbumSortAscending = 'album_sort_ascending';
+  static const String _keyArtistSortField = 'artist_sort_field';
+  static const String _keyArtistSortAscending = 'artist_sort_ascending';
+  static const String _keyNavidromeAlbumSortType = 'navidrome_album_sort_type';
+  static const String _keyNavidromeArtistSortField =
+      'navidrome_artist_sort_field';
+  static const String _keyNavidromeArtistSortAscending =
+      'navidrome_artist_sort_ascending';
+
   final SharedPreferences _prefs;
   bool _isUserInactive = false;
   Timer? _inactivityTimer;
@@ -590,6 +632,61 @@ class SettingsService extends ChangeNotifier {
     customRead: (prefs, key, def) =>
         FolderViewModeX.fromStorageValue(prefs.getString(key), def),
     customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
+  );
+
+  late final _albumSortFieldProperty = SettingProperty<AlbumSortField>(
+    key: _keyAlbumSortField,
+    defaultValue: AlbumSortField.artist,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        AlbumSortFieldX.fromStorageValue(prefs.getString(key), def),
+    customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
+  );
+
+  late final _albumSortAscendingProperty = SettingProperty<bool>(
+    key: _keyAlbumSortAscending,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _artistSortFieldProperty = SettingProperty<ArtistSortField>(
+    key: _keyArtistSortField,
+    defaultValue: ArtistSortField.artist,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+    customRead: (prefs, key, def) =>
+        ArtistSortFieldX.fromStorageValue(prefs.getString(key), def),
+    customWrite: (prefs, key, val) => prefs.setString(key, val.storageValue),
+  );
+
+  late final _artistSortAscendingProperty = SettingProperty<bool>(
+    key: _keyArtistSortAscending,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _navidromeAlbumSortTypeProperty = SettingProperty<String>(
+    key: _keyNavidromeAlbumSortType,
+    defaultValue: 'alphabeticalByName',
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _navidromeArtistSortFieldProperty = SettingProperty<String>(
+    key: _keyNavidromeArtistSortField,
+    defaultValue: 'name',
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _navidromeArtistSortAscendingProperty = SettingProperty<bool>(
+    key: _keyNavidromeArtistSortAscending,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
   );
 
   late final _uiScaleProperty = SettingProperty<double>(
@@ -2315,6 +2412,36 @@ class SettingsService extends ChangeNotifier {
   FolderViewMode get folderViewMode => _folderViewModeProperty.value;
   set folderViewMode(FolderViewMode value) =>
       _folderViewModeProperty.value = value;
+
+  AlbumSortField get albumSortField => _albumSortFieldProperty.value;
+  set albumSortField(AlbumSortField value) =>
+      _albumSortFieldProperty.value = value;
+
+  bool get albumSortAscending => _albumSortAscendingProperty.value;
+  set albumSortAscending(bool value) =>
+      _albumSortAscendingProperty.value = value;
+
+  ArtistSortField get artistSortField => _artistSortFieldProperty.value;
+  set artistSortField(ArtistSortField value) =>
+      _artistSortFieldProperty.value = value;
+
+  bool get artistSortAscending => _artistSortAscendingProperty.value;
+  set artistSortAscending(bool value) =>
+      _artistSortAscendingProperty.value = value;
+
+  String get navidromeAlbumSortType => _navidromeAlbumSortTypeProperty.value;
+  set navidromeAlbumSortType(String value) =>
+      _navidromeAlbumSortTypeProperty.value = value;
+
+  String get navidromeArtistSortField =>
+      _navidromeArtistSortFieldProperty.value;
+  set navidromeArtistSortField(String value) =>
+      _navidromeArtistSortFieldProperty.value = value;
+
+  bool get navidromeArtistSortAscending =>
+      _navidromeArtistSortAscendingProperty.value;
+  set navidromeArtistSortAscending(bool value) =>
+      _navidromeArtistSortAscendingProperty.value = value;
 
   SharedPreferences get prefs => _prefs;
 

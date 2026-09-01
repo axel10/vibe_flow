@@ -366,5 +366,48 @@ void main() {
       final restored = SettingsService(prefs);
       expect(restored.remotePrefetchCount, 5);
     });
+
+    test('album, artist, and navidrome sort settings default and persist correctly', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      // Verify default values
+      expect(settings.albumSortField, AlbumSortField.artist);
+      expect(settings.albumSortAscending, isTrue);
+      expect(settings.artistSortField, ArtistSortField.artist);
+      expect(settings.artistSortAscending, isTrue);
+      expect(settings.navidromeAlbumSortType, 'alphabeticalByName');
+      expect(settings.navidromeArtistSortField, 'name');
+      expect(settings.navidromeArtistSortAscending, isTrue);
+
+      // Update values
+      settings.albumSortField = AlbumSortField.recentAdded;
+      settings.albumSortAscending = false;
+      settings.artistSortField = ArtistSortField.songCount;
+      settings.artistSortAscending = false;
+      settings.navidromeAlbumSortType = 'recent';
+      settings.navidromeArtistSortField = 'albumCount';
+      settings.navidromeArtistSortAscending = false;
+
+      expect(settings.albumSortField, AlbumSortField.recentAdded);
+      expect(settings.albumSortAscending, isFalse);
+      expect(settings.artistSortField, ArtistSortField.songCount);
+      expect(settings.artistSortAscending, isFalse);
+      expect(settings.navidromeAlbumSortType, 'recent');
+      expect(settings.navidromeArtistSortField, 'albumCount');
+      expect(settings.navidromeArtistSortAscending, isFalse);
+
+      // Verify persistence across restart
+      final restored = SettingsService(prefs);
+      expect(restored.albumSortField, AlbumSortField.recentAdded);
+      expect(restored.albumSortAscending, isFalse);
+      expect(restored.artistSortField, ArtistSortField.songCount);
+      expect(restored.artistSortAscending, isFalse);
+      expect(restored.navidromeAlbumSortType, 'recent');
+      expect(restored.navidromeArtistSortField, 'albumCount');
+      expect(restored.navidromeArtistSortAscending, isFalse);
+    });
   });
 }
+

@@ -14,8 +14,7 @@ import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
 import '../models/music_file.dart';
 import '../dialogs/sort_options_dialog.dart';
-
-enum _ArtistSortField { artist, songCount }
+import 'package:vynody/player/settings/settings_service.dart';
 
 class ArtistsTab extends ConsumerStatefulWidget {
   const ArtistsTab({super.key});
@@ -32,19 +31,22 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  _ArtistSortField _sortField = _ArtistSortField.artist;
+  ArtistSortField _sortField = ArtistSortField.artist;
   bool _sortAscending = true;
   String? _selectedArtistKey;
 
   List<ArtistSummary>? _lastRawArtists;
   String? _lastSearchQuery;
-  _ArtistSortField? _lastSortField;
+  ArtistSortField? _lastSortField;
   bool? _lastSortAscending;
   List<ArtistSummary>? _cachedFilteredArtists;
 
   @override
   void initState() {
     super.initState();
+    final settings = ref.read(settingsServiceProvider);
+    _sortField = settings.artistSortField;
+    _sortAscending = settings.artistSortAscending;
   }
 
   @override
@@ -169,6 +171,9 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
                         _sortField = field;
                         _sortAscending = sortAscending;
                       });
+                      final settings = ref.read(settingsServiceProvider);
+                      settings.artistSortField = field;
+                      settings.artistSortAscending = sortAscending;
                     },
                   ),
                   Expanded(
@@ -260,6 +265,9 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
                             _sortField = field;
                             _sortAscending = sortAscending;
                           });
+                          final settings = ref.read(settingsServiceProvider);
+                          settings.artistSortField = field;
+                          settings.artistSortAscending = sortAscending;
                         },
                       ),
                     ),
@@ -384,10 +392,10 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
 
     filtered.sort((a, b) {
       final compare = switch (_sortField) {
-        _ArtistSortField.artist => a.name.toLowerCase().compareTo(
+        ArtistSortField.artist => a.name.toLowerCase().compareTo(
           b.name.toLowerCase(),
         ),
-        _ArtistSortField.songCount => a.songCount.compareTo(b.songCount),
+        ArtistSortField.songCount => a.songCount.compareTo(b.songCount),
       };
       if (compare != 0) {
         return _sortAscending ? compare : -compare;
@@ -907,14 +915,14 @@ class _ArtistsToolbar extends StatelessWidget {
 
   final TextEditingController searchController;
   final String searchQuery;
-  final _ArtistSortField sortField;
+  final ArtistSortField sortField;
   final bool sortAscending;
   final int artistCount;
   final String artistsLabel;
   final bool isWide;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchCleared;
-  final void Function(_ArtistSortField field, bool sortAscending) onSortChanged;
+  final void Function(ArtistSortField field, bool sortAscending) onSortChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -925,20 +933,20 @@ class _ArtistsToolbar extends StatelessWidget {
     final sortControls = IconButton(
       tooltip: l10n.albumSort,
       onPressed: () async {
-        final result = await showDialog<SortResult<_ArtistSortField>>(
+        final result = await showDialog<SortResult<ArtistSortField>>(
           context: context,
-          builder: (context) => SortOptionsDialog<_ArtistSortField>(
+          builder: (context) => SortOptionsDialog<ArtistSortField>(
             title: l10n.albumSort,
             currentField: sortField,
             sortAscending: sortAscending,
             options: [
               SortOptionItem(
-                value: _ArtistSortField.artist,
+                value: ArtistSortField.artist,
                 label: l10n.sortArtistAsc,
                 icon: Icons.person_rounded,
               ),
               SortOptionItem(
-                value: _ArtistSortField.songCount,
+                value: ArtistSortField.songCount,
                 label: l10n.sortTrackCount,
                 icon: Icons.format_list_numbered_rounded,
               ),

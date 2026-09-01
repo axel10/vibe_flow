@@ -22,6 +22,7 @@ import 'widgets/navidrome_albums_tab.dart';
 import 'widgets/navidrome_artists_tab.dart';
 import 'widgets/navidrome_playlists_tab.dart';
 import 'widgets/navidrome_search_tab.dart';
+import '../../player/settings/settings_service.dart';
 
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -414,6 +415,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       _playlistSearchQuery = session.navidromePlaylistSearchQuery!;
       _playlistSearchController.text = session.navidromePlaylistSearchQuery!;
     }
+    final settings = ref.read(settingsServiceProvider);
+    _albumSortType = settings.navidromeAlbumSortType;
+    _artistSortField = settings.navidromeArtistSortField;
+    _artistSortAsc = settings.navidromeArtistSortAscending;
     _loadAlbums();
     _loadArtists();
     _loadPlaylists();
@@ -1105,6 +1110,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             setState(() {
               _albumSortType = newSort;
             });
+            ref.read(settingsServiceProvider).navidromeAlbumSortType = newSort;
             _loadAlbums(forceRefresh: true);
           },
         );
@@ -1148,6 +1154,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 _artistSortAsc = true;
               }
             });
+            final settings = ref.read(settingsServiceProvider);
+            settings.navidromeArtistSortField = _artistSortField;
+            settings.navidromeArtistSortAscending = _artistSortAsc;
           },
         );
       case 2:

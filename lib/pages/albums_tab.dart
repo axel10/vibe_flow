@@ -17,8 +17,7 @@ import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
 import '../models/music_file.dart';
 import '../dialogs/sort_options_dialog.dart';
-
-enum _AlbumSortField { artist, title, trackCount, duration, recentAdded }
+import 'package:vynody/player/settings/settings_service.dart';
 
 class AlbumsTab extends ConsumerStatefulWidget {
   const AlbumsTab({
@@ -42,7 +41,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  _AlbumSortField _sortField = _AlbumSortField.artist;
+  AlbumSortField _sortField = AlbumSortField.artist;
   bool _sortAscending = true;
   late bool _is3DView;
   bool _isShuffledMode = false;
@@ -51,7 +50,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
 
   List<AlbumSummary>? _lastRawAlbums;
   String? _lastSearchQuery;
-  _AlbumSortField? _lastSortField;
+  AlbumSortField? _lastSortField;
   bool? _lastSortAscending;
   List<AlbumSummary>? _cachedFilteredAlbums;
   List<AlbumSummary>? _cachedKnownAlbums;
@@ -61,6 +60,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
   void initState() {
     super.initState();
     _is3DView = widget.initial3DView;
+    final settings = ref.read(settingsServiceProvider);
+    _sortField = settings.albumSortField;
+    _sortAscending = settings.albumSortAscending;
   }
 
   @override
@@ -206,6 +208,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                       _isShuffledMode = false;
                       _shuffledAlbums = null;
                     });
+                    final settings = ref.read(settingsServiceProvider);
+                    settings.albumSortField = field;
+                    settings.albumSortAscending = sortAscending;
                   },
                   onViewModeToggled: () {
                     setState(() {
@@ -384,17 +389,17 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
 
     filtered.sort((a, b) {
       final compare = switch (_sortField) {
-        _AlbumSortField.artist => a.artist.toLowerCase().compareTo(
+        AlbumSortField.artist => a.artist.toLowerCase().compareTo(
           b.artist.toLowerCase(),
         ),
-        _AlbumSortField.title => a.title.toLowerCase().compareTo(
+        AlbumSortField.title => a.title.toLowerCase().compareTo(
           b.title.toLowerCase(),
         ),
-        _AlbumSortField.trackCount => a.trackCount.compareTo(b.trackCount),
-        _AlbumSortField.duration => a.totalDurationMillis.compareTo(
+        AlbumSortField.trackCount => a.trackCount.compareTo(b.trackCount),
+        AlbumSortField.duration => a.totalDurationMillis.compareTo(
           b.totalDurationMillis,
         ),
-        _AlbumSortField.recentAdded => a.latestTimestampMillis.compareTo(
+        AlbumSortField.recentAdded => a.latestTimestampMillis.compareTo(
           b.latestTimestampMillis,
         ),
       };
@@ -909,14 +914,14 @@ class _AlbumsToolbar extends StatelessWidget {
 
   final TextEditingController searchController;
   final String searchQuery;
-  final _AlbumSortField sortField;
+  final AlbumSortField sortField;
   final bool sortAscending;
   final int albumCount;
   final bool isWide;
   final bool is3DView;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onSearchCleared;
-  final void Function(_AlbumSortField field, bool sortAscending) onSortChanged;
+  final void Function(AlbumSortField field, bool sortAscending) onSortChanged;
   final VoidCallback onViewModeToggled;
   final VoidCallback? onShufflePressed;
 
@@ -1002,35 +1007,35 @@ class _AlbumsToolbar extends StatelessWidget {
         IconButton(
           tooltip: l10n.albumSort,
           onPressed: () async {
-            final result = await showDialog<SortResult<_AlbumSortField>>(
+            final result = await showDialog<SortResult<AlbumSortField>>(
               context: context,
-              builder: (context) => SortOptionsDialog<_AlbumSortField>(
+              builder: (context) => SortOptionsDialog<AlbumSortField>(
                 title: l10n.albumSort,
                 currentField: sortField,
                 sortAscending: sortAscending,
                 options: [
                   SortOptionItem(
-                    value: _AlbumSortField.artist,
+                    value: AlbumSortField.artist,
                     label: l10n.sortArtistAsc,
                     icon: Icons.person_rounded,
                   ),
                   SortOptionItem(
-                    value: _AlbumSortField.title,
+                    value: AlbumSortField.title,
                     label: l10n.sortTitleAsc,
                     icon: Icons.album_rounded,
                   ),
                   SortOptionItem(
-                    value: _AlbumSortField.trackCount,
+                    value: AlbumSortField.trackCount,
                     label: l10n.sortTrackCount,
                     icon: Icons.format_list_numbered_rounded,
                   ),
                   SortOptionItem(
-                    value: _AlbumSortField.duration,
+                    value: AlbumSortField.duration,
                     label: l10n.sortDuration,
                     icon: Icons.access_time_rounded,
                   ),
                   SortOptionItem(
-                    value: _AlbumSortField.recentAdded,
+                    value: AlbumSortField.recentAdded,
                     label: l10n.sortRecentAdded,
                     icon: Icons.add_circle_outline_rounded,
                   ),
