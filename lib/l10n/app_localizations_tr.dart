@@ -258,6 +258,27 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get deletePlaylists => 'Çalma Listelerini Sil';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return 'Seçilen $count çalma listesini silmek istediğinizden emin misiniz?';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return '$count çalma listesi silindi';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return '$count çalma listesi seçildi';
+  }
+
+  @override
+  String get batchDelete => 'Toplu Silme';
+
+  @override
   String get addToPlaylist => 'Çalma Listesine Ekle';
 
   @override

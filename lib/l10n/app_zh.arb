@@ -326,6 +326,38 @@
       }
     }
   },
+  "deletePlaylists": "删除播放列表",
+  "confirmDeletePlaylists": "确定要删除选中的 {count} 个播放列表吗？",
+  "@confirmDeletePlaylists": {
+    "description": "Confirm batch delete playlists message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "playlistsDeleted": "已删除 {count} 个播放列表",
+  "@playlistsDeleted": {
+    "description": "Toast when playlists are deleted in batch",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectedPlaylistsCount": "已选择 {count} 个播放列表",
+  "@selectedPlaylistsCount": {
+    "description": "Selected playlists count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batchDelete": "批量删除",
+  "@batchDelete": {
+    "description": "Batch delete"
+  },
   "addToPlaylist": "添加到播放列表",
   "@addToPlaylist": {
     "description": "Add to playlist"

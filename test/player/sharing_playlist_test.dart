@@ -65,5 +65,27 @@ void main() {
       expect(found.name, equals('Shared Rock Hits'));
       expect(found.songs.length, equals(1));
     });
+
+    test('PlaylistService deletePlaylists batch deletes playlists and ignores favorites', () async {
+      final service = PlaylistService();
+      final pl1 = Playlist(id: 'pl-batch-1', name: 'Batch 1');
+      final pl2 = Playlist(id: 'pl-batch-2', name: 'Batch 2');
+      final pl3 = Playlist(id: 'pl-batch-3', name: 'Batch 3');
+
+      await service.addPlaylist(pl1);
+      await service.addPlaylist(pl2);
+      await service.addPlaylist(pl3);
+
+      expect(service.playlists.any((p) => p.id == 'pl-batch-1'), isTrue);
+      expect(service.playlists.any((p) => p.id == 'pl-batch-2'), isTrue);
+      expect(service.playlists.any((p) => p.id == 'pl-batch-3'), isTrue);
+
+      await service.deletePlaylists(['pl-batch-1', 'pl-batch-2', PlaylistService.favoritePlaylistId]);
+
+      expect(service.playlists.any((p) => p.id == 'pl-batch-1'), isFalse);
+      expect(service.playlists.any((p) => p.id == 'pl-batch-2'), isFalse);
+      expect(service.playlists.any((p) => p.id == 'pl-batch-3'), isTrue);
+      expect(service.playlists.any((p) => p.id == PlaylistService.favoritePlaylistId), isTrue);
+    });
   });
 }

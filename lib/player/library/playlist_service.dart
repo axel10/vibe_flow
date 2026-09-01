@@ -341,6 +341,22 @@ class PlaylistService extends ChangeNotifier {
     }
   }
 
+  /// 批量删除播放列表
+  Future<void> deletePlaylists(Iterable<String> ids) async {
+    final toDelete = ids.toSet()..remove(favoritePlaylistId);
+    if (toDelete.isEmpty) return;
+
+    final beforeLength = _playlists.length;
+    _playlists.removeWhere((p) => toDelete.contains(p.id));
+    if (_playlists.length != beforeLength) {
+      if (_currentPlaylistId != null && toDelete.contains(_currentPlaylistId)) {
+        _currentPlaylistId = _playlists.isNotEmpty ? _playlists.first.id : null;
+      }
+      await _savePlaylists();
+      notifyListeners();
+    }
+  }
+
   /// 重命名播放列表
   Future<void> renamePlaylist(String id, String newName) async {
     if (id == favoritePlaylistId) {

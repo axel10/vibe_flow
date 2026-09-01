@@ -254,6 +254,27 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get deletePlaylists => 'プレイリストを削除';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return '選択した $count 個のプレイリストを削除してもよろしいですか？';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return '$count 個のプレイリストを削除しました';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return '$count 個のプレイリストを選択中';
+  }
+
+  @override
+  String get batchDelete => '一括削除';
+
+  @override
   String get addToPlaylist => 'プレイリストに追加';
 
   @override

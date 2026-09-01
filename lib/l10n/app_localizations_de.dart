@@ -257,6 +257,27 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get deletePlaylists => 'Playlists löschen';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return 'Möchten Sie die ausgewählten $count Playlists wirklich löschen?';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return '$count Playlists gelöscht';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return '$count Playlists ausgewählt';
+  }
+
+  @override
+  String get batchDelete => 'Stapel löschen';
+
+  @override
   String get addToPlaylist => 'Zur Playlist hinzufügen';
 
   @override

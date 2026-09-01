@@ -573,6 +573,36 @@ abstract class AppLocalizations {
   /// **'确定要删除播放列表\"{name}\"吗？'**
   String confirmDeletePlaylist(String name);
 
+  /// No description provided for @deletePlaylists.
+  ///
+  /// In zh, this message translates to:
+  /// **'删除播放列表'**
+  String get deletePlaylists;
+
+  /// Confirm batch delete playlists message
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要删除选中的 {count} 个播放列表吗？'**
+  String confirmDeletePlaylists(int count);
+
+  /// Toast when playlists are deleted in batch
+  ///
+  /// In zh, this message translates to:
+  /// **'已删除 {count} 个播放列表'**
+  String playlistsDeleted(int count);
+
+  /// Selected playlists count
+  ///
+  /// In zh, this message translates to:
+  /// **'已选择 {count} 个播放列表'**
+  String selectedPlaylistsCount(int count);
+
+  /// Batch delete
+  ///
+  /// In zh, this message translates to:
+  /// **'批量删除'**
+  String get batchDelete;
+
   /// Add to playlist
   ///
   /// In zh, this message translates to:

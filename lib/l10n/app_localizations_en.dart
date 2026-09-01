@@ -256,6 +256,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get deletePlaylists => 'Delete Playlists';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return 'Are you sure you want to delete $count selected playlists?';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return 'Deleted $count playlists';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return 'Selected $count playlists';
+  }
+
+  @override
+  String get batchDelete => 'Batch Delete';
+
+  @override
   String get addToPlaylist => 'Add to Playlist';
 
   @override

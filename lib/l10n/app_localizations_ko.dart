@@ -253,6 +253,27 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get deletePlaylists => '재생목록 삭제';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return '선택한 $count개의 재생목록을 삭제하시겠습니까?';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return '$count개의 재생목록을 삭제했습니다';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return '$count개의 재생목록 선택됨';
+  }
+
+  @override
+  String get batchDelete => '일괄 삭제';
+
+  @override
   String get addToPlaylist => '재생목록에 추가';
 
   @override

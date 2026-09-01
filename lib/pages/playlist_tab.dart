@@ -465,79 +465,15 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
   }
 
   void _showPlaylistManager(BuildContext context) {
-    final playlistService = ref.read(playlistServiceProvider);
-
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      builder: (context) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text(
-                  AppLocalizations.of(context)!.managePlaylists,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.file_download_outlined),
-                title: Text(AppLocalizations.of(context)!.importPlaylist),
-                onTap: () {
-                  Navigator.pop(context);
-                  _importM3uPlaylist(context);
-                },
-              ),
-              const Divider(height: 1),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    ...playlistService.playlists.map(
-                      (playlist) => ListTile(
-                        leading: Icon(
-                          _isFavoritePlaylist(playlist)
-                              ? Icons.favorite_rounded
-                              : Icons.playlist_play,
-                          color: _isFavoritePlaylist(playlist)
-                              ? Colors.redAccent
-                              : null,
-                        ),
-                        title: Text(localizedPlaylistName(context, playlist)),
-                        subtitle: Text(
-                          '${AppLocalizations.of(context)!.songCount(playlist.songs.length)} · ${_formatDate(playlist.updatedAt)}',
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.more_vert),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showPlaylistOptions(context, playlist);
-                          },
-                        ),
-                        onTap: () {
-                          playlistService.setCurrentPlaylist(playlist.id);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => _PlaylistManagerSheet(
+        onImportM3u: () => _importM3uPlaylist(context),
+        onShowOptions: (playlist) => _showPlaylistOptions(context, playlist),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   Widget _buildHeader(BuildContext context, Playlist? currentPlaylist) {
@@ -966,6 +902,301 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
           ),
         ],
       );
-    }
   }
+}
+
+class _PlaylistManagerSheet extends ConsumerStatefulWidget {
+  final VoidCallback onImportM3u;
+  final void Function(Playlist playlist) onShowOptions;
+
+  const _PlaylistManagerSheet({
+    required this.onImportM3u,
+    required this.onShowOptions,
+  });
+
+  @override
+  ConsumerState<_PlaylistManagerSheet> createState() =>
+      _PlaylistManagerSheetState();
+}
+
+class _PlaylistManagerSheetState extends ConsumerState<_PlaylistManagerSheet> {
+  bool _isSelectionMode = false;
+  final Set<String> _selectedPlaylistIds = {};
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  bool _isFavoritePlaylist(Playlist playlist) {
+    return playlist.id == PlaylistService.favoritePlaylistId;
+  }
+
+  void _showBatchDeleteConfirmDialog(
+    BuildContext context,
+    Set<String> playlistIds,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final count = playlistIds.length;
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.deletePlaylists),
+        content: Text(l10n.confirmDeletePlaylists(count)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final idsToDelete = Set<String>.from(playlistIds);
+              await ref
+                  .read(playlistServiceProvider)
+                  .deletePlaylists(idsToDelete);
+              if (mounted) {
+                setState(() {
+                  _selectedPlaylistIds.clear();
+                  _isSelectionMode = false;
+                });
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.playlistsDeleted(count)),
+                  ),
+                );
+              }
+            },
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final playlistService = ref.watch(playlistServiceProvider);
+    final playlists = playlistService.playlists;
+
+    final deletablePlaylists =
+        playlists.where((p) => !_isFavoritePlaylist(p)).toList();
+    final isAllSelected = deletablePlaylists.isNotEmpty &&
+        _selectedPlaylistIds.length >= deletablePlaylists.length;
+
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!_isSelectionMode) ...[
+              ListTile(
+                title: Text(
+                  l10n.managePlaylists,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: deletablePlaylists.isNotEmpty
+                    ? IconButton(
+                        tooltip: l10n.batchDelete,
+                        icon: const Icon(Icons.checklist_rounded),
+                        onPressed: () {
+                          setState(() {
+                            _isSelectionMode = true;
+                          });
+                        },
+                      )
+                    : null,
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.file_download_outlined),
+                title: Text(l10n.importPlaylist),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onImportM3u();
+                },
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: playlists.length,
+                  itemBuilder: (context, index) {
+                    final playlist = playlists[index];
+                    final isFav = _isFavoritePlaylist(playlist);
+                    return ListTile(
+                      leading: Icon(
+                        isFav
+                            ? Icons.favorite_rounded
+                            : Icons.playlist_play,
+                        color: isFav ? Colors.redAccent : null,
+                      ),
+                      title: Text(localizedPlaylistName(context, playlist)),
+                      subtitle: Text(
+                        '${l10n.songCount(playlist.songs.length)} · ${_formatDate(playlist.updatedAt)}',
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.more_vert),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          widget.onShowOptions(playlist);
+                        },
+                      ),
+                      onTap: () {
+                        playlistService.setCurrentPlaylist(playlist.id);
+                        Navigator.pop(context);
+                      },
+                      onLongPress: isFav
+                          ? null
+                          : () {
+                              setState(() {
+                                _isSelectionMode = true;
+                                _selectedPlaylistIds.add(playlist.id);
+                              });
+                            },
+                    );
+                  },
+                ),
+              ),
+            ] else ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 4.0,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip: l10n.cancel,
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () {
+                        setState(() {
+                          _isSelectionMode = false;
+                          _selectedPlaylistIds.clear();
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.selectedPlaylistsCount(_selectedPlaylistIds.length),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (deletablePlaylists.isNotEmpty)
+                      IconButton(
+                        tooltip:
+                            isAllSelected ? l10n.deselectAll : l10n.selectAll,
+                        icon: Icon(
+                          isAllSelected
+                              ? Icons.deselect_rounded
+                              : Icons.select_all_rounded,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            if (isAllSelected) {
+                              _selectedPlaylistIds.clear();
+                            } else {
+                              _selectedPlaylistIds.addAll(
+                                deletablePlaylists.map((p) => p.id),
+                              );
+                            }
+                          });
+                        },
+                      ),
+                    IconButton(
+                      tooltip: l10n.delete,
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        color: _selectedPlaylistIds.isNotEmpty
+                            ? Colors.redAccent
+                            : null,
+                      ),
+                      onPressed: _selectedPlaylistIds.isNotEmpty
+                          ? () => _showBatchDeleteConfirmDialog(
+                                context,
+                                _selectedPlaylistIds,
+                              )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: playlists.length,
+                  itemBuilder: (context, index) {
+                    final playlist = playlists[index];
+                    final isFav = _isFavoritePlaylist(playlist);
+                    final isSelected =
+                        _selectedPlaylistIds.contains(playlist.id);
+
+                    if (isFav) {
+                      return ListTile(
+                        enabled: false,
+                        leading: const Icon(
+                          Icons.favorite_rounded,
+                          color: Colors.grey,
+                        ),
+                        title: Text(
+                          localizedPlaylistName(context, playlist),
+                          style: TextStyle(color: theme.disabledColor),
+                        ),
+                        subtitle: Text(
+                          '${l10n.songCount(playlist.songs.length)} · ${_formatDate(playlist.updatedAt)}',
+                          style: TextStyle(color: theme.disabledColor),
+                        ),
+                      );
+                    }
+
+                    return ListTile(
+                      selected: isSelected,
+                      leading: Checkbox(
+                        value: isSelected,
+                        onChanged: (val) {
+                          setState(() {
+                            if (val == true) {
+                              _selectedPlaylistIds.add(playlist.id);
+                            } else {
+                              _selectedPlaylistIds.remove(playlist.id);
+                            }
+                          });
+                        },
+                      ),
+                      title: Text(localizedPlaylistName(context, playlist)),
+                      subtitle: Text(
+                        '${l10n.songCount(playlist.songs.length)} · ${_formatDate(playlist.updatedAt)}',
+                      ),
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedPlaylistIds.remove(playlist.id);
+                          } else {
+                            _selectedPlaylistIds.add(playlist.id);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 

@@ -119,6 +119,11 @@
       }
     }
   },
+  "deletePlaylists": "Çalma Listelerini Sil",
+  "confirmDeletePlaylists": "Seçilen {count} çalma listesini silmek istediğinizden emin misiniz?",
+  "playlistsDeleted": "{count} çalma listesi silindi",
+  "selectedPlaylistsCount": "{count} çalma listesi seçildi",
+  "batchDelete": "Toplu Silme",
   "addToPlaylist": "Çalma Listesine Ekle",
   "selectAll": "Tümünü Seç",
   "addToQueue": "Sıraya Ekle",

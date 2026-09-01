@@ -253,6 +253,27 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get deletePlaylists => '删除播放列表';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return '确定要删除选中的 $count 个播放列表吗？';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return '已删除 $count 个播放列表';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return '已选择 $count 个播放列表';
+  }
+
+  @override
+  String get batchDelete => '批量删除';
+
+  @override
   String get addToPlaylist => '添加到播放列表';
 
   @override
@@ -4530,6 +4551,27 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String confirmDeletePlaylist(String name) {
     return '確定要刪除播放清單「$name」嗎？';
   }
+
+  @override
+  String get deletePlaylists => '刪除播放清單';
+
+  @override
+  String confirmDeletePlaylists(int count) {
+    return '確定要刪除選取的 $count 個播放清單嗎？';
+  }
+
+  @override
+  String playlistsDeleted(int count) {
+    return '已刪除 $count 個播放清單';
+  }
+
+  @override
+  String selectedPlaylistsCount(int count) {
+    return '已選擇 $count 個播放清單';
+  }
+
+  @override
+  String get batchDelete => '批次刪除';
 
   @override
   String get addToPlaylist => '新增到播放清單';
