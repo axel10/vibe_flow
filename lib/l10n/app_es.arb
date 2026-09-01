@@ -384,6 +384,7 @@
   "queueGenerateLyrics": "Poner en cola de generación",
   "pauseAutoScroll": "Pausar desplazamiento automático",
   "resumeAutoScroll": "Reanudar desplazamiento automático",
+  "returnToCurrentLine": "Volver a la línea actual",
   "translateLyrics": "Traducir letras",
   "clearLyricsCache": "Limpiar caché de letras actual",
   "clearTranslationCache": "Limpiar caché de traducción actual",

@@ -384,6 +384,7 @@
   "queueGenerateLyrics": "歌詞生成をキューに入れる",
   "pauseAutoScroll": "自動スクロールを一時停止",
   "resumeAutoScroll": "自動スクロールを再開",
+  "returnToCurrentLine": "現在の行に戻る",
   "translateLyrics": "歌詞を翻訳",
   "clearLyricsCache": "現在の歌詞キャッシュをクリア",
   "clearTranslationCache": "現在の翻訳キャッシュをクリア",

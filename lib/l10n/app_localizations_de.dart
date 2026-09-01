@@ -1034,6 +1034,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get resumeAutoScroll => 'Automatisches Scrollen fortsetzen';
 
   @override
+  String get returnToCurrentLine => 'Zur aktuellen Zeile zurückkehren';
+
+  @override
   String get translateLyrics => 'Songtext übersetzen';
 
   @override

@@ -384,6 +384,7 @@
   "queueGenerateLyrics": "가사 생성 대기열",
   "pauseAutoScroll": "자동 스크롤 일시 정지",
   "resumeAutoScroll": "자동 스크롤 재개",
+  "returnToCurrentLine": "현재 줄로 돌아가기",
   "translateLyrics": "가사 번역",
   "clearLyricsCache": "현재 가사 캐시 지우기",
   "clearTranslationCache": "현재 번역 캐시 지우기",

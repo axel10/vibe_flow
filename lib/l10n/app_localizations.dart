@@ -1995,6 +1995,12 @@ abstract class AppLocalizations {
   /// **'恢复自动滚动'**
   String get resumeAutoScroll;
 
+  /// No description provided for @returnToCurrentLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'回到当前行'**
+  String get returnToCurrentLine;
+
   /// No description provided for @translateLyrics.
   ///
   /// In zh, this message translates to:

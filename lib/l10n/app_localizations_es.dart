@@ -1038,6 +1038,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get resumeAutoScroll => 'Reanudar desplazamiento automático';
 
   @override
+  String get returnToCurrentLine => 'Volver a la línea actual';
+
+  @override
   String get translateLyrics => 'Traducir letras';
 
   @override

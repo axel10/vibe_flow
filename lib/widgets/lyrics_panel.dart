@@ -560,6 +560,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     final availableSources = currentSong != null
         ? await _lyricsControllerActions.getAvailableLyricRecords(currentSong)
         : const <LyricsCacheRecord>[];
+    if (!context.mounted || !mounted) return;
 
     final displayLyrics = _lyricsForDisplay();
     final targetLang = lyricsState.lyricsTranslationLanguageCode;
@@ -622,6 +623,16 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
           icon: _isAutoScrollPaused
               ? Icons.play_arrow_rounded
               : Icons.pause_rounded,
+          context: context,
+        ),
+      if (!requeryOnly &&
+          _hasTimedLyrics(displayLines) &&
+          settings.lyricsStyle == LyricsStyle.apple)
+        buildContextMenuItem<String>(
+          value: 'return_to_current_line',
+          enabled: hasCurrentSong,
+          label: l10n.returnToCurrentLine,
+          icon: Icons.filter_center_focus_rounded,
           context: context,
         ),
       if (!requeryOnly)
@@ -711,7 +722,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       items: items,
     );
 
-    if (!mounted) return;
+    if (!mounted || !context.mounted) return;
 
     if (selected == 'toggle_auto_scroll') {
       setState(() {
@@ -723,6 +734,15 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       if (_isAutoScrollPaused) {
         _dismissSeekToast();
       }
+    } else if (selected == 'return_to_current_line') {
+      _dismissSeekToast();
+      setState(() {
+        _overrideActiveIndex = null;
+        _seekTargetTimestamp = null;
+        _isFocusMode = true;
+        _enteringFocusModeTriggered = true;
+      });
+      _scheduleScrollIfNeeded(force: true, itemCenters: _currentItemCenters);
     } else if (selected == 'generate') {
       if (!await checkProGate(context, ref, feature: ProFeature.aiLyrics)) return;
       if (!context.mounted || !mounted) return;

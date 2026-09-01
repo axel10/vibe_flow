@@ -448,6 +448,7 @@
   "queueGenerateLyrics": "Sıradaki İçin Söz Oluştur",
   "pauseAutoScroll": "Otomatik Kaydırmayı Duraklat",
   "resumeAutoScroll": "Otomatik Kaydırmayı Sürdür",
+  "returnToCurrentLine": "Mevcut Satıra Dön",
   "translateLyrics": "Sözleri Çevir",
   "clearLyricsCache": "Söz Önbelleğini Temizle",
   "clearTranslationCache": "Çeviri Önbelleğini Temizle",

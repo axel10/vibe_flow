@@ -389,6 +389,7 @@
   "queueGenerateLyrics": "Queue Lyrics Generation",
   "pauseAutoScroll": "Pause Auto Scroll",
   "resumeAutoScroll": "Resume Auto Scroll",
+  "returnToCurrentLine": "Return to Current Line",
   "translateLyrics": "Translate Lyrics",
   "clearLyricsCache": "Clear Current Lyrics Cache",
   "clearTranslationCache": "Clear Current Translation Cache",

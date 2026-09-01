@@ -384,6 +384,7 @@
   "queueGenerateLyrics": "Generierung einreihen",
   "pauseAutoScroll": "Automatisches Scrollen anhalten",
   "resumeAutoScroll": "Automatisches Scrollen fortsetzen",
+  "returnToCurrentLine": "Zur aktuellen Zeile zurückkehren",
   "translateLyrics": "Songtext übersetzen",
   "clearLyricsCache": "Aktuellen Songtext-Cache leeren",
   "clearTranslationCache": "Aktuellen Übersetzungs-Cache leeren",

@@ -1022,6 +1022,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resumeAutoScroll => 'Resume Auto Scroll';
 
   @override
+  String get returnToCurrentLine => 'Return to Current Line';
+
+  @override
   String get translateLyrics => 'Translate Lyrics';
 
   @override

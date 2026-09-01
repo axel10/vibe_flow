@@ -1036,6 +1036,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resumeAutoScroll => 'Reprendre le défilement automatique';
 
   @override
+  String get returnToCurrentLine => 'Revenir à la ligne actuelle';
+
+  @override
   String get translateLyrics => 'Traduire les paroles';
 
   @override

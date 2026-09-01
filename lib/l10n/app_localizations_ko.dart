@@ -1008,6 +1008,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get resumeAutoScroll => '자동 스크롤 재개';
 
   @override
+  String get returnToCurrentLine => '현재 줄로 돌아가기';
+
+  @override
   String get translateLyrics => '가사 번역';
 
   @override

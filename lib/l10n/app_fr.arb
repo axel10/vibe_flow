@@ -384,6 +384,7 @@
   "queueGenerateLyrics": "Mettre en file de génération",
   "pauseAutoScroll": "Pause du défilement automatique",
   "resumeAutoScroll": "Reprendre le défilement automatique",
+  "returnToCurrentLine": "Revenir à la ligne actuelle",
   "translateLyrics": "Traduire les paroles",
   "clearLyricsCache": "Vider le cache des paroles actuelles",
   "clearTranslationCache": "Vider le cache de traduction actuel",

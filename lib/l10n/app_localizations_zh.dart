@@ -999,6 +999,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resumeAutoScroll => '恢复自动滚动';
 
   @override
+  String get returnToCurrentLine => '回到当前行';
+
+  @override
   String get translateLyrics => '翻译歌词';
 
   @override
@@ -5314,6 +5317,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get resumeAutoScroll => '恢復自動捲動';
+
+  @override
+  String get returnToCurrentLine => '回到當前行';
 
   @override
   String get translateLyrics => '翻譯歌詞';

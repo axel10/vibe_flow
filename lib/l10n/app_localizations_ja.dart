@@ -1004,6 +1004,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resumeAutoScroll => '自動スクロールを再開';
 
   @override
+  String get returnToCurrentLine => '現在の行に戻る';
+
+  @override
   String get translateLyrics => '歌詞を翻訳';
 
   @override

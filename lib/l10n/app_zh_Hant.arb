@@ -314,6 +314,7 @@
   "queueGenerateLyrics": "排隊生成",
   "pauseAutoScroll": "暫停自動捲動",
   "resumeAutoScroll": "恢復自動捲動",
+  "returnToCurrentLine": "回到當前行",
   "translateLyrics": "翻譯歌詞",
   "clearLyricsCache": "清除目前歌詞快取",
   "clearTranslationCache": "清除目前翻譯快取",

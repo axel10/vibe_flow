@@ -1024,6 +1024,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get resumeAutoScroll => 'Otomatik Kaydırmayı Sürdür';
 
   @override
+  String get returnToCurrentLine => 'Mevcut Satıra Dön';
+
+  @override
   String get translateLyrics => 'Sözleri Çevir';
 
   @override

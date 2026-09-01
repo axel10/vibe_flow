@@ -904,6 +904,7 @@
   "queueGenerateLyrics": "排队生成",
   "pauseAutoScroll": "暂停自动滚动",
   "resumeAutoScroll": "恢复自动滚动",
+  "returnToCurrentLine": "回到当前行",
   "translateLyrics": "翻译歌词",
   "clearLyricsCache": "清除当前歌词缓存",
   "clearTranslationCache": "清除当前翻译缓存",
