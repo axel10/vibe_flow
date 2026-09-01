@@ -7,6 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import '../../../models/music_file.dart';
 
+import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'package:audio_core/audio_core.dart';
 import '../remote_server_models.dart';
 import '../remote_server_storage.dart';
@@ -361,4 +365,97 @@ class RemoteMediaResolver {
     }
     return null;
   }
+
+  /// Downloads or copies a cached remote track to a temporary file for local operations (e.g. transcoding).
+  /// Returns the temporary [File].
+  Future<File> downloadRemoteTrackToTempFile(
+    MusicFile song, {
+    void Function(int received, int total)? onProgress,
+  }) async {
+    final info = parseUri(song.path);
+    if (info == null) {
+      throw ArgumentError('Not a remote track: ${song.path}');
+    }
+
+    final servers = storage.loadServers();
+    final server = servers.firstWhere(
+      (s) => s.id == info.serverId,
+      orElse: () => throw StateError('Server with ID ${info.serverId} not found'),
+    );
+
+    final cacheKey = '${server.id}:${info.trackIdOrPath}';
+
+    final tempDir = await getTemporaryDirectory();
+    final uniqueId = '${DateTime.now().microsecondsSinceEpoch}_${song.hashCode.abs()}';
+    final taskTempDir = Directory(p.join(tempDir.path, 'transcode_temp', uniqueId));
+    if (!await taskTempDir.exists()) {
+      await taskTempDir.create(recursive: true);
+    }
+
+    // Determine extension
+    String ext = p.extension(song.name);
+    if (ext.isEmpty && info.trackIdOrPath.contains('.')) {
+      ext = p.extension(info.trackIdOrPath);
+    }
+    if (ext.isEmpty) {
+      ext = '.tmp';
+    }
+
+    final baseName = p.basenameWithoutExtension(song.name.isNotEmpty ? song.name : song.displayName);
+    final sanitizedBaseName = baseName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    final tempFilePath = p.join(taskTempDir.path, '$sanitizedBaseName$ext');
+    final tempFile = File(tempFilePath);
+
+    // 1. Check if audio is already cached in AudioStreamCacheManager
+    if (await cacheManager.isTrackCached(cacheKey)) {
+      final cachedFile = await cacheManager.getCacheFile(cacheKey);
+      if (await cachedFile.exists() && await cachedFile.length() > 0) {
+        await cachedFile.copy(tempFile.path);
+        onProgress?.call(await tempFile.length(), await tempFile.length());
+        return tempFile;
+      }
+    }
+
+    // 2. Download from remote server
+    final password = await storage.getPassword(server.id) ?? '';
+    String downloadUrl;
+    Map<String, String>? headers;
+
+    if (info.type == RemoteServerType.subsonic) {
+      final client = SubsonicClient(server: server, password: password);
+      downloadUrl = client.buildDownloadUrl(info.trackIdOrPath);
+    } else {
+      final client = WebDavClient(server: server, password: password);
+      downloadUrl = client.buildStreamUrl(info.trackIdOrPath);
+      headers = client.authHeaders;
+    }
+
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(minutes: 10),
+        headers: headers,
+      ),
+    );
+
+    if (server.ignoreSsl) {
+      final adapter = dio.httpClientAdapter;
+      if (adapter is IOHttpClientAdapter) {
+        adapter.createHttpClient = () {
+          final client = HttpClient();
+          client.badCertificateCallback = (cert, host, port) => true;
+          return client;
+        };
+      }
+    }
+
+    await dio.download(
+      downloadUrl,
+      tempFile.path,
+      onReceiveProgress: onProgress,
+    );
+
+    return tempFile;
+  }
 }
+

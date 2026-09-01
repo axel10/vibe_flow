@@ -17,6 +17,9 @@ import '../transcode/transcode_service.dart';
 import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/pro/pro_models.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/remote/remote_service_providers.dart';
+import 'package:vynody/player/sharing/sharing_riverpod.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/widgets/pro/pro_badge.dart';
@@ -156,6 +159,9 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
 
   bool get _isLosslessPresetlessFormat => !_supportsBitRateControls;
 
+  bool get _hasRemoteSongs =>
+      widget.songs.any((s) => RemoteMediaResolver.isRemoteUri(s.path));
+
   @override
   void initState() {
     super.initState();
@@ -187,7 +193,18 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
     super.dispose();
   }
 
-  String _initialOutputDirectory() {
+  String? _initialOutputDirectory() {
+    if (_hasRemoteSongs) {
+      final customPath = ref.read(settingsServiceProvider).lanSharingFolderPath;
+      if (customPath.trim().isNotEmpty) {
+        return customPath.trim();
+      }
+      final sharingPath = ref.read(sharingServiceProvider).sharingFolderPath;
+      if (sharingPath.trim().isNotEmpty) {
+        return sharingPath.trim();
+      }
+      return null;
+    }
     return File(widget.songs.first.path).parent.path;
   }
 
@@ -198,9 +215,24 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
           .getCapabilities();
       if (!mounted) return;
       final supported = capabilities.supportedOutputFormats;
+
+      String? resolvedOutputDir = _draft.outputDirectory;
+      if ((resolvedOutputDir == null ||
+              resolvedOutputDir.isEmpty ||
+              RemoteMediaResolver.isRemoteUri(resolvedOutputDir)) &&
+          !Platform.isAndroid) {
+        try {
+          resolvedOutputDir =
+              await ref.read(sharingServiceProvider).getDefaultSharingFolderPath();
+        } catch (_) {}
+      }
+
       setState(() {
         _capabilities = capabilities;
         _isLoadingCapabilities = false;
+        if (resolvedOutputDir != null && resolvedOutputDir.isNotEmpty) {
+          _draft = _draft.copyWith(outputDirectory: resolvedOutputDir);
+        }
         if (supported.isNotEmpty && !supported.contains(_draft.outputFormat)) {
           _resetDraftForPreset(
             outputFormat: supported.first,
@@ -295,25 +327,31 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
   }
 
   String _previewOutputPath() {
+    final firstSong = widget.songs.first;
+    final baseName = p.basenameWithoutExtension(
+      firstSong.name.isNotEmpty ? firstSong.name : firstSong.displayName,
+    );
+
     if (Platform.isAndroid) {
       final selected = _androidOutputDirectory;
       if (selected == null) {
         return '';
       }
-      final baseName = p.basenameWithoutExtension(widget.songs.first.path);
       return p.join(
         selected.displayPath,
         '$baseName.${_draft.outputFormat.value}',
       );
     }
 
-    return ref
-        .read(transcodeServiceProvider)
-        .buildPreviewOutputPath(
-          inputPath: widget.songs.first.path,
-          outputFormat: _draft.outputFormat,
-          outputDirectory: _draft.outputDirectory,
-        );
+    final outputDir = _draft.outputDirectory ?? _initialOutputDirectory();
+    if (outputDir == null || outputDir.isEmpty || RemoteMediaResolver.isRemoteUri(outputDir)) {
+      return '';
+    }
+
+    return p.join(
+      outputDir,
+      '$baseName.${_draft.outputFormat.value}',
+    );
   }
 
   Future<void> _submit() async {
@@ -323,12 +361,22 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
       ref,
       feature: ProFeature.transcoder,
     );
-    if (!allowed) return;
+    if (!allowed || !mounted) return;
 
     final l10n = AppLocalizations.of(context)!;
     if (Platform.isAndroid && _androidOutputDirectory == null) {
       setState(() {
         _errorText = l10n.chooseAndroidOutputDirectoryFirst;
+      });
+      return;
+    }
+
+    if (!Platform.isAndroid &&
+        (_draft.outputDirectory == null ||
+            _draft.outputDirectory!.trim().isEmpty ||
+            RemoteMediaResolver.isRemoteUri(_draft.outputDirectory!))) {
+      setState(() {
+        _errorText = l10n.pleaseChooseOutputDirectory;
       });
       return;
     }
@@ -345,10 +393,9 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
       _errorText = null;
     });
 
-    final songPaths = widget.songs.map((s) => s.path).toList();
-    final metadataPaths = widget.songs
-        .map((s) => TranscodeService.resolveMetadataSourcePath(s))
-        .toList();
+    final tempDirectoriesToClean = <Directory>[];
+    final songPaths = <String>[];
+    final metadataPaths = <String>[];
 
     var successCount = 0;
     var failureCount = 0;
@@ -357,6 +404,48 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
     final outputPaths = <String>[];
 
     try {
+      RemoteMediaResolver? resolver;
+      if (_hasRemoteSongs) {
+        resolver = await ref.read(remoteMediaResolverProvider.future);
+      }
+
+      for (var i = 0; i < widget.songs.length; i++) {
+        final song = widget.songs[i];
+        if (RemoteMediaResolver.isRemoteUri(song.path)) {
+          setState(() {
+            _submitLabel = l10n.downloadStarted(song.displayName);
+            _currentFileLabel = song.displayName;
+            _overallProgress =
+                widget.songs.length > 1 ? (i / widget.songs.length) : null;
+            _currentFileProgress = null;
+          });
+
+          final tempFile = await resolver!.downloadRemoteTrackToTempFile(
+            song,
+            onProgress: (received, total) {
+              if (!mounted) return;
+              setState(() {
+                _currentFileProgress =
+                    total > 0 ? (received / total).clamp(0.0, 1.0) : null;
+              });
+            },
+          );
+          tempDirectoriesToClean.add(tempFile.parent);
+          songPaths.add(tempFile.path);
+          metadataPaths.add(tempFile.path);
+        } else {
+          songPaths.add(song.path);
+          metadataPaths.add(TranscodeService.resolveMetadataSourcePath(song));
+        }
+      }
+
+      setState(() {
+        _currentFileProgress = 0;
+        _overallProgress = 0;
+        _submitLabel = l10n.transcodePreparing;
+        _currentFileLabel = null;
+      });
+
       final results = await service.convertMultipleToOutputDirectory(
         inputPaths: songPaths,
         draft: draft,
@@ -403,6 +492,16 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
         });
       }
       return;
+    } finally {
+      for (final dir in tempDirectoriesToClean) {
+        try {
+          if (await dir.exists()) {
+            await dir.delete(recursive: true);
+          }
+        } catch (e) {
+          debugPrint('[Transcode] Failed to clean temp dir: $e');
+        }
+      }
     }
 
     if (!mounted) return;
@@ -957,24 +1056,25 @@ class _TranscodeDialogState extends ConsumerState<TranscodeDialog> {
               icon: const Icon(Icons.folder_open_rounded),
               label: Text(l10n.transcodeChooseDirectory),
             ),
-            OutlinedButton.icon(
-              onPressed: _isSubmitting
-                  ? null
-                  : () {
-                      setState(() {
-                        if (Platform.isAndroid) {
-                          _androidOutputDirectory = null;
-                          _draft = _draft.copyWith(outputDirectory: null);
-                        } else {
-                          _draft = _draft.copyWith(
-                            outputDirectory: _initialOutputDirectory(),
-                          );
-                        }
-                      });
-                    },
-              icon: const Icon(Icons.undo_rounded),
-              label: Text(l10n.transcodeUseSourceDirectory),
-            ),
+            if (!_hasRemoteSongs)
+              OutlinedButton.icon(
+                onPressed: _isSubmitting
+                    ? null
+                    : () {
+                        setState(() {
+                          if (Platform.isAndroid) {
+                            _androidOutputDirectory = null;
+                            _draft = _draft.copyWith(outputDirectory: null);
+                          } else {
+                            _draft = _draft.copyWith(
+                              outputDirectory: _initialOutputDirectory(),
+                            );
+                          }
+                        });
+                      },
+                icon: const Icon(Icons.undo_rounded),
+                label: Text(l10n.transcodeUseSourceDirectory),
+              ),
           ],
         ),
       ],
