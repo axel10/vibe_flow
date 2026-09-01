@@ -11,8 +11,12 @@
 </p>
 
 <p align="center">
-  <a href="https://apps.apple.com/app/id6799339894"><img src="https://img.shields.io/badge/App_Store-Download-0D96F6?logo=apple&logoColor=white" alt="App Store"></a>
-  <a href="https://apps.microsoft.com/detail/9nmzrzz6rsd3"><img src="https://img.shields.io/badge/Microsoft_Store-Download-0078D4?logo=microsoft&logoColor=white" alt="Microsoft Store"></a>
+  <a href="https://apps.apple.com/app/id6799339894"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="42" alt="Download on the App Store"></a>
+  &nbsp;&nbsp;
+  <a href="https://apps.microsoft.com/detail/9nmzrzz6rsd3"><img src="https://get.microsoft.com/images/en-us%20dark.svg" height="42" alt="Get it from Microsoft"></a>
+</p>
+
+<p align="center">
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter"></a>
   <a href="https://www.rust-lang.org"><img src="https://img.shields.io/badge/Rust-Core-000000?logo=rust&logoColor=white" alt="Rust"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" alt="License: GPL v3"></a>
@@ -29,6 +33,12 @@ The project currently targets the following platforms:
 - Android
 
 ## Downloads
+
+<p align="center">
+  <a href="https://apps.apple.com/app/id6799339894"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="42" alt="Download on the App Store"></a>
+  &nbsp;&nbsp;
+  <a href="https://apps.microsoft.com/detail/9nmzrzz6rsd3"><img src="https://get.microsoft.com/images/en-us%20dark.svg" height="42" alt="Get it from Microsoft"></a>
+</p>
 
 | Platform | Channel | Link |
 | :--- | :--- | :--- |
@@ -242,6 +252,12 @@ Vynody 是一款以本地音乐播放为核心的跨平台播放器，使用 Flu
 - Android
 
 ## 下载与安装
+
+<p align="center">
+  <a href="https://apps.apple.com/app/id6799339894"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="42" alt="在 App Store 下载"></a>
+  &nbsp;&nbsp;
+  <a href="https://apps.microsoft.com/detail/9nmzrzz6rsd3"><img src="https://get.microsoft.com/images/en-us%20dark.svg" height="42" alt="从 Microsoft Store 获取"></a>
+</p>
 
 | 平台 | 获取渠道 | 链接 |
 | :--- | :--- | :--- |
