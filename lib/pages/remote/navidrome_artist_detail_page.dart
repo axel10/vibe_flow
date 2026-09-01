@@ -913,14 +913,10 @@ class _NavidromeArtistDetailContentState
                   width: 32,
                   child: Center(
                     child: isSelectionMode
-                        ? Icon(
-                            isSelected
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            size: 20,
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.outlineVariant,
+                        ? Checkbox(
+                            value: isSelected,
+                            onChanged: (_) =>
+                                toggleSongSelection(song.path),
                           )
                         : (isPlaying
                             ? PlayingEqualizerIcon(

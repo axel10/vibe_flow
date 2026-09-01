@@ -1628,25 +1628,28 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                           ),
                                         ),
                                         if (_isAlbumSelectionMode)
+                                          Positioned.fill(
+                                            child: Container(
+                                              color: isSelected
+                                                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+                                                  : Colors.black26,
+                                            ),
+                                          ),
+                                        if (_isAlbumSelectionMode)
                                           Positioned(
                                             top: 8,
-                                            right: 8,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(2),
-                                              decoration: BoxDecoration(
-                                                color: isSelected
-                                                    ? theme.colorScheme.primary
-                                                    : Colors.black.withValues(alpha: 0.5),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: Icon(
-                                                isSelected
-                                                    ? Icons.check_rounded
-                                                    : Icons.radio_button_unchecked_rounded,
-                                                size: 18,
-                                                color: isSelected
-                                                    ? theme.colorScheme.onPrimary
-                                                    : Colors.white,
+                                            left: 8,
+                                            child: SizedBox(
+                                              width: 28,
+                                              height: 28,
+                                              child: Checkbox(
+                                                value: isSelected,
+                                                onChanged: (_) => _toggleAlbumSelection(albumId),
+                                                fillColor: WidgetStateProperty.all(Colors.white),
+                                                checkColor: Colors.black,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -2087,14 +2090,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   ),
                 ),
                 if (_isArtistSelectionMode)
-                  Icon(
-                    isMultiSelected
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    color: isMultiSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.outlineVariant,
-                    size: 20,
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: isMultiSelected,
+                      onChanged: (_) {
+                        _toggleArtistSelection(artistId);
+                      },
+                    ),
                   )
                 else
                   IconButton(
@@ -2469,14 +2473,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   ),
                 ),
                 if (_isPlaylistSelectionMode)
-                  Icon(
-                    isMultiSelected
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    color: isMultiSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.outlineVariant,
-                    size: 20,
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Checkbox(
+                      value: isMultiSelected,
+                      onChanged: (_) {
+                        _togglePlaylistSelection(playlistId);
+                      },
+                    ),
                   )
                 else if (!isStarredItem)
                   IconButton(
@@ -2748,31 +2753,31 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                 ),
                               ),
                               if (_isAlbumSelectionMode)
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(6),
+                                      color: isSelected
+                                          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
+                                          : Colors.black26,
+                                    ),
+                                  ),
+                                ),
+                              if (_isAlbumSelectionMode)
                                 Positioned(
                                   top: 4,
-                                  right: 4,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(2),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? theme.colorScheme.primary
-                                          : theme.colorScheme.surface.withValues(alpha: 0.8),
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.2),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      isSelected
-                                          ? Icons.check_rounded
-                                          : Icons.circle_outlined,
-                                      size: 14,
-                                      color: isSelected
-                                          ? theme.colorScheme.onPrimary
-                                          : theme.colorScheme.onSurfaceVariant,
+                                  left: 4,
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Checkbox(
+                                      value: isSelected,
+                                      onChanged: (_) => _toggleAlbumSelection(albumId),
+                                      fillColor: WidgetStateProperty.all(Colors.white),
+                                      checkColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
                                     ),
                                   ),
                                 ),

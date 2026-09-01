@@ -10,7 +10,6 @@ import 'package:vynody/player/audio/playback_source.dart';
 import 'artist_detail_page.dart';
 import '../widgets/artist_avatar.dart';
 import '../widgets/scroll_to_top_wrapper.dart';
-import '../utils/song_context_menu_utils.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
 import '../models/music_file.dart';
@@ -315,53 +314,38 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab>
             return Stack(
               children: [
                 Positioned.fill(child: mainContent),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    reverseDuration: const Duration(milliseconds: 200),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final offsetAnimation = Tween<Offset>(
-                        begin: const Offset(0, 1.0),
-                        end: Offset.zero,
-                      ).animate(animation);
-                      return SlideTransition(position: offsetAnimation, child: child);
-                    },
-                    child: isSelectionMode
-                        ? LibrarySelectionPanel(
-                            key: const ValueKey('artist-selection-panel'),
-                            selectedSongs: selectedSongs,
-                            allSongs: allSongs,
-                            title: l10n.selectedArtistsCount(selectedCount),
-                            onToggleSelectAll: () =>
-                                toggleSelectAll(visibleArtists.map((a) => a.queryKey)),
-                            onCancel: cancelSelection,
-                          )
-                        : (isLandscape && isSongSelectionMode
-                            ? LibrarySelectionPanel(
-                                key: const ValueKey('song-selection-panel'),
-                                selectedSongs: (selectedArtist?.songs ?? const <MusicFile>[])
-                                    .where((s) => currentSelection.selectedKeys.contains(s.path))
-                                    .toList(),
-                                allSongs: selectedArtist?.songs ?? const <MusicFile>[],
-                                onToggleSelectAll: () {
-                                  if (selectedArtist != null) {
-                                    ref.read(librarySelectionStateProvider.notifier).toggleSelectAll(
-                                      selectedArtist.songs.map((s) => s.path),
-                                      scope: LibrarySelectionScope.library,
-                                    );
-                                  }
-                                },
-                                onCancel: () {
-                                  ref.read(librarySelectionStateProvider.notifier).clear();
-                                },
-                              )
-                            : const SizedBox.shrink(key: ValueKey('artist-selection-panel-hidden'))),
-                  ),
+                AnimatedSelectionPanel(
+                  isVisible: isSelectionMode || (isLandscape && isSongSelectionMode),
+                  child: isSelectionMode
+                      ? LibrarySelectionPanel(
+                          key: const ValueKey('artist-selection-panel'),
+                          selectedSongs: selectedSongs,
+                          allSongs: allSongs,
+                          title: l10n.selectedArtistsCount(selectedCount),
+                          onToggleSelectAll: () =>
+                              toggleSelectAll(visibleArtists.map((a) => a.queryKey)),
+                          onCancel: cancelSelection,
+                        )
+                      : (isLandscape && isSongSelectionMode
+                          ? LibrarySelectionPanel(
+                              key: const ValueKey('song-selection-panel'),
+                              selectedSongs: (selectedArtist?.songs ?? const <MusicFile>[])
+                                  .where((s) => currentSelection.selectedKeys.contains(s.path))
+                                  .toList(),
+                              allSongs: selectedArtist?.songs ?? const <MusicFile>[],
+                              onToggleSelectAll: () {
+                                if (selectedArtist != null) {
+                                  ref.read(librarySelectionStateProvider.notifier).toggleSelectAll(
+                                    selectedArtist.songs.map((s) => s.path),
+                                    scope: LibrarySelectionScope.library,
+                                  );
+                                }
+                              },
+                              onCancel: () {
+                                ref.read(librarySelectionStateProvider.notifier).clear();
+                              },
+                            )
+                          : const SizedBox.shrink(key: ValueKey('artist-selection-panel-hidden'))),
                 ),
               ],
             );
@@ -654,12 +638,10 @@ class _ArtistDetailPane extends StatelessWidget {
   const _ArtistDetailPane({
     required this.artist,
     required this.emptyLabel,
-    this.songSelectionController,
   });
 
   final ArtistSummary? artist;
   final String emptyLabel;
-  final ArtistSongSelectionController? songSelectionController;
 
   @override
   Widget build(BuildContext context) {
@@ -708,7 +690,6 @@ class _ArtistDetailPane extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: ArtistDetailContent(
           artist: currentArtist,
-          songSelectionController: songSelectionController,
         ),
       ),
     );

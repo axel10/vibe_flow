@@ -57,11 +57,9 @@ class ArtistDetailContent extends ConsumerStatefulWidget {
   const ArtistDetailContent({
     super.key,
     required this.artist,
-    this.songSelectionController,
   });
 
   final ArtistSummary artist;
-  final ArtistSongSelectionController? songSelectionController;
 
   @override
   ConsumerState<ArtistDetailContent> createState() => _ArtistDetailContentState();
@@ -89,14 +87,6 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent>
       _cachedDisplaySongs = _cachedAlbumSections!
           .expand((section) => section.songs)
           .toList(growable: false);
-    }
-  }
-
-  void _toggleSelectionMode() {
-    if (isSelectionMode) {
-      cancelSongSelection();
-    } else {
-      enterSongSelectionMode();
     }
   }
 
@@ -255,31 +245,14 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent>
             ),
           ],
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            reverseDuration: const Duration(milliseconds: 200),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (child, animation) {
-              final offsetAnimation = Tween<Offset>(
-                begin: const Offset(0, 1.0),
-                end: Offset.zero,
-              ).animate(animation);
-              return SlideTransition(position: offsetAnimation, child: child);
-            },
-            child: (widget.songSelectionController != null ? false : isSelectionMode)
-                ? LibrarySelectionPanel(
-                    key: const ValueKey('library-selection-panel'),
-                    selectedSongs: selectedSongs,
-                    allSongs: displaySongs,
-                    onToggleSelectAll: () => toggleSelectAllSongs(displaySongs),
-                    onCancel: cancelSongSelection,
-                  )
-                : const SizedBox.shrink(key: ValueKey('library-selection-panel-hidden')),
+        AnimatedSelectionPanel(
+          isVisible: isSelectionMode,
+          child: LibrarySelectionPanel(
+            key: const ValueKey('library-selection-panel'),
+            selectedSongs: selectedSongs,
+            allSongs: displaySongs,
+            onToggleSelectAll: () => toggleSelectAllSongs(displaySongs),
+            onCancel: cancelSongSelection,
           ),
         ),
       ],

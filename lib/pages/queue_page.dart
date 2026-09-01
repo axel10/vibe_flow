@@ -582,71 +582,49 @@ class _QueuePageState extends ConsumerState<QueuePage>
                 ),
               ],
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                reverseDuration: const Duration(milliseconds: 200),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  final offsetAnimation = Tween<Offset>(
-                    begin: const Offset(0, 1.0),
-                    end: Offset.zero,
-                  ).animate(animation);
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: child,
-                  );
-                },
-                child: isSelectionMode
-                    ? LibrarySelectionPanel(
-                        key: const ValueKey('library-selection-panel'),
-                        selectedSongs: _selectedSongsFromDisplay(
-                          displayQueue,
-                        ),
-                        allSongs: displayQueue,
-                        onToggleSelectAll: () => toggleSelectAll(
-                          List.generate(displayQueue.length, (i) => i),
-                        ),
-                        onCancel: cancelSelection,
-                        replaceFavoritesWithSongDetails: true,
-                        onDelete: _viewIndex == 0
-                            ? () {
-                                final sortedIndices =
-                                    selectedKeys.toList()..sort();
-                                // Remove in reverse order to maintain indices
-                                for (
-                                  int i = sortedIndices.length - 1;
-                                  i >= 0;
-                                  i--
-                                ) {
-                                  ref
-                                      .read(audioServiceProvider)
-                                      .removeFromPlaylist(sortedIndices[i]);
-                                }
-                                cancelSelection();
-                                if (context.mounted) {
-                                  AppSnackBar.show(
-                                    context,
-                                    ref,
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.deletedSongs(sortedIndices.length),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
-                            : null,
-                      )
-                    : const SizedBox.shrink(
-                        key: ValueKey('library-selection-panel-hidden'),
-                      ),
+            AnimatedSelectionPanel(
+              isVisible: isSelectionMode,
+              child: LibrarySelectionPanel(
+                key: const ValueKey('library-selection-panel'),
+                selectedSongs: _selectedSongsFromDisplay(
+                  displayQueue,
+                ),
+                allSongs: displayQueue,
+                onToggleSelectAll: () => toggleSelectAll(
+                  List.generate(displayQueue.length, (i) => i),
+                ),
+                onCancel: cancelSelection,
+                replaceFavoritesWithSongDetails: true,
+                onDelete: _viewIndex == 0
+                    ? () {
+                        final sortedIndices =
+                            selectedKeys.toList()..sort();
+                        // Remove in reverse order to maintain indices
+                        for (
+                          int i = sortedIndices.length - 1;
+                          i >= 0;
+                          i--
+                        ) {
+                          ref
+                              .read(audioServiceProvider)
+                              .removeFromPlaylist(sortedIndices[i]);
+                        }
+                        cancelSelection();
+                        if (context.mounted) {
+                          AppSnackBar.show(
+                            context,
+                            ref,
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.deletedSongs(sortedIndices.length),
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    : null,
               ),
             ),
           ],

@@ -803,49 +803,30 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
               ),
             ],
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              reverseDuration: const Duration(milliseconds: 200),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) {
-                final offsetAnimation = Tween<Offset>(
-                  begin: const Offset(0, 1.0),
-                  end: Offset.zero,
-                ).animate(animation);
-                return SlideTransition(position: offsetAnimation, child: child);
+          AnimatedSelectionPanel(
+            isVisible: isSelectionMode,
+            child: LibrarySelectionPanel(
+              key: const ValueKey('library-selection-panel'),
+              selectedSongs: selectedSongs,
+              allSongs: activePlaylist.songs,
+              onToggleSelectAll: () => toggleSelectAll(
+                List.generate(activePlaylist.songs.length, (i) => i),
+              ),
+              onCancel: cancelSelection,
+              replaceFavoritesWithSongDetails: true,
+              onDelete: () {
+                final indices = selectedKeys.toList()..sort();
+                playlistService.removeSongsFromPlaylist(
+                  activePlaylist.id,
+                  indices,
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.deletedSongs(indices.length)),
+                  ),
+                );
+                cancelSelection();
               },
-              child: isSelectionMode
-                  ? LibrarySelectionPanel(
-                      key: const ValueKey('library-selection-panel'),
-                      selectedSongs: selectedSongs,
-                      allSongs: activePlaylist.songs,
-                      onToggleSelectAll: () => toggleSelectAll(
-                        List.generate(activePlaylist.songs.length, (i) => i),
-                      ),
-                      onCancel: cancelSelection,
-                      replaceFavoritesWithSongDetails: true,
-                      onDelete: () {
-                        final indices = selectedKeys.toList()..sort();
-                        playlistService.removeSongsFromPlaylist(
-                          activePlaylist.id,
-                          indices,
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.deletedSongs(indices.length)),
-                          ),
-                        );
-                        cancelSelection();
-                      },
-                    )
-                  : const SizedBox.shrink(
-                      key: ValueKey('library-selection-panel-hidden'),
-                    ),
             ),
           ),
         ],

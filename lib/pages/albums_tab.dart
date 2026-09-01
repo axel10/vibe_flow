@@ -313,33 +313,16 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                 return Stack(
                   children: [
                     Positioned.fill(child: mainContent),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        reverseDuration: const Duration(milliseconds: 200),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          final offsetAnimation = Tween<Offset>(
-                            begin: const Offset(0, 1.0),
-                            end: Offset.zero,
-                          ).animate(animation);
-                          return SlideTransition(position: offsetAnimation, child: child);
-                        },
-                        child: isSelectionMode
-                            ? LibrarySelectionPanel(
-                                key: const ValueKey('album-selection-panel'),
-                                selectedSongs: selectedSongs,
-                                allSongs: allSongs,
-                                title: l10n.selectedAlbumsCount(selectedCount),
-                                onToggleSelectAll: () =>
-                                    toggleSelectAll(visibleAlbums.map((a) => a.id)),
-                                onCancel: cancelSelection,
-                              )
-                            : const SizedBox.shrink(key: ValueKey('album-selection-panel-hidden')),
+                    AnimatedSelectionPanel(
+                      isVisible: isSelectionMode,
+                      child: LibrarySelectionPanel(
+                        key: const ValueKey('album-selection-panel'),
+                        selectedSongs: selectedSongs,
+                        allSongs: allSongs,
+                        title: l10n.selectedAlbumsCount(selectedCount),
+                        onToggleSelectAll: () =>
+                            toggleSelectAll(visibleAlbums.map((a) => a.id)),
+                        onCancel: cancelSelection,
                       ),
                     ),
                   ],
