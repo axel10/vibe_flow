@@ -27,11 +27,12 @@ class AlbumDetailPage extends ConsumerStatefulWidget {
   ConsumerState<AlbumDetailPage> createState() => _AlbumDetailPageState();
 }
 
-class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
-  bool _isSelectionMode = false;
-  final Set<String> _selectedSongPaths = {};
+class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage>
+    with SongSelectionMixin<AlbumDetailPage> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
+
   int? _lastAnchorIndex;
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
   late final ScrollController _scrollController;
   bool _isCoverVisible = true;
 
@@ -39,8 +40,6 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
-    _librarySelectionScopeController =
-        ref.read(librarySelectionScopeProvider.notifier);
   }
 
   void _onScroll() {
@@ -53,54 +52,16 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
   }
 
   void _toggleSelectionMode() {
-    setState(() {
-      _isSelectionMode = !_isSelectionMode;
-      if (!_isSelectionMode) {
-        _selectedSongPaths.clear();
-        _librarySelectionScopeController.clear();
-      } else {
-        _librarySelectionScopeController.setScope(
-          LibrarySelectionScope.library,
-        );
-      }
-    });
-  }
-
-  void _toggleSelection(String path) {
-    setState(() {
-      if (_selectedSongPaths.contains(path)) {
-        _selectedSongPaths.remove(path);
-      } else {
-        _selectedSongPaths.add(path);
-      }
-    });
-  }
-
-  void _toggleSelectAll() {
-    final allSongs = widget.album.songs;
-    setState(() {
-      if (_selectedSongPaths.length == allSongs.length) {
-        _selectedSongPaths.clear();
-      } else {
-        _selectedSongPaths.addAll(allSongs.map((s) => s.path));
-      }
-    });
-  }
-
-  void _cancelSelection() {
-    setState(() {
-      _isSelectionMode = false;
-      _selectedSongPaths.clear();
-      _librarySelectionScopeController.clear();
-    });
+    if (isSelectionMode) {
+      cancelSongSelection();
+    } else {
+      enterSongSelectionMode();
+    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    Future.microtask(() {
-      _librarySelectionScopeController.clear();
-    });
     super.dispose();
   }
 
@@ -118,8 +79,8 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
     final bool showCustomTitleBar =
         Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
-    final selectedSongs = _isSelectionMode
-        ? widget.album.songs.where((song) => _selectedSongPaths.contains(song.path)).toList()
+    final selectedSongs = isSelectionMode
+        ? getSelectedSongs(widget.album.songs)
         : const <MusicFile>[];
     final isLargeAlbum = widget.album.songs.length >= 100;
     final unknownArtist = l10n.unknownArtist;
@@ -230,14 +191,14 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                 itemBuilder: (context, index) {
                   final song = widget.album.songs[index];
                   final isCurrent = currentMusic?.path == song.path;
-                  final isSelected = _selectedSongPaths.contains(song.path);
+                  final isSelected = isSongSelected(song.path);
 
                   return _AlbumSongItem(
                     song: song,
                     index: index,
                     isCurrent: isCurrent,
                     isSelected: isSelected,
-                    isSelectionMode: _isSelectionMode,
+                    isSelectionMode: isSelectionMode,
                     isLargeAlbum: isLargeAlbum,
                     unknownArtist: unknownArtist,
                     onTap: () {
@@ -245,27 +206,23 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                       final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
 
                       if (isShift) {
-                        if (!_isSelectionMode) {
-                          _toggleSelectionMode();
-                        }
                         final anchor = _lastAnchorIndex ?? index;
                         final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                        setState(() {
-                          for (final i in range) {
-                            if (i >= 0 && i < widget.album.songs.length) {
-                              _selectedSongPaths.add(widget.album.songs[i].path);
-                            }
+                        final newPaths = Set<String>.from(selectedSongPaths);
+                        for (final i in range) {
+                          if (i >= 0 && i < widget.album.songs.length) {
+                            newPaths.add(widget.album.songs[i].path);
                           }
-                        });
-                      } else if (isCtrl) {
-                        if (!_isSelectionMode) {
-                          _toggleSelectionMode();
                         }
-                        _toggleSelection(song.path);
+                        ref
+                            .read(librarySelectionStateProvider.notifier)
+                            .setSelection(newPaths, scope: selectionScope);
+                      } else if (isCtrl) {
+                        toggleSongSelection(song.path);
                         _lastAnchorIndex = index;
                       } else {
-                        if (_isSelectionMode) {
-                          _toggleSelection(song.path);
+                        if (isSelectionMode) {
+                          toggleSongSelection(song.path);
                           _lastAnchorIndex = index;
                         } else {
                           _lastAnchorIndex = index;
@@ -283,19 +240,18 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                     },
                     onLongPress: () {
                       _lastAnchorIndex = index;
-                      if (!_isSelectionMode) {
-                        _toggleSelectionMode();
-                        _toggleSelection(song.path);
+                      if (!isSelectionMode) {
+                        enterSongSelectionMode(song.path);
                       }
                     },
                     onSecondaryTapDown: (details) {
-                      if (!_isSelectionMode) {
+                      if (!isSelectionMode) {
                         showSongBottomSheet(context, ref, song);
                       }
                     },
                     onToggleSelection: () {
                       _lastAnchorIndex = index;
-                      _toggleSelection(song.path);
+                      toggleSongSelection(song.path);
                     },
                   );
                 },
@@ -305,7 +261,7 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                   height: MiniPlayerUiTuning.getListBottomPadding(
                     context,
                     hasPlayingMusic: currentMusic != null,
-                    isSelectionMode: _isSelectionMode,
+                    isSelectionMode: isSelectionMode,
                     selectionPanelHeight: 220.0,
                   ),
                 ),
@@ -328,15 +284,18 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage> {
                 ).animate(animation);
                 return SlideTransition(position: offsetAnimation, child: child);
               },
-              child: _isSelectionMode
+              child: isSelectionMode
                   ? LibrarySelectionPanel(
                       key: const ValueKey('library-selection-panel'),
                       selectedSongs: selectedSongs,
                       allSongs: widget.album.songs,
-                      onToggleSelectAll: _toggleSelectAll,
-                      onCancel: _cancelSelection,
+                      onToggleSelectAll: () =>
+                          toggleSelectAllSongs(widget.album.songs),
+                      onCancel: cancelSongSelection,
                     )
-                  : const SizedBox.shrink(key: ValueKey('library-selection-panel-hidden')),
+                  : const SizedBox.shrink(
+                      key: ValueKey('library-selection-panel-hidden'),
+                    ),
             ),
           ),
         ],

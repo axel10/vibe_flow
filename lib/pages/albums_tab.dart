@@ -34,14 +34,17 @@ class AlbumsTab extends ConsumerStatefulWidget {
   ConsumerState<AlbumsTab> createState() => _AlbumsTabState();
 }
 
-class _AlbumsTabState extends ConsumerState<AlbumsTab> {
-  final TextEditingController _searchController = TextEditingController();
+class _AlbumsTabState extends ConsumerState<AlbumsTab>
+    with SelectionStateMixin<AlbumsTab, String> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.album;
+
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   _AlbumSortField _sortField = _AlbumSortField.artist;
   bool _sortAscending = true;
   late bool _is3DView;
-  final Set<String> _selectedAlbumIds = {};
   bool _isShuffledMode = false;
   List<AlbumSummary>? _shuffledAlbums;
   final GlobalKey<_Album3DCoverFlowViewState> _coverFlowKey = GlobalKey();
@@ -53,45 +56,18 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
   List<AlbumSummary>? _cachedFilteredAlbums;
   List<AlbumSummary>? _cachedKnownAlbums;
   List<AlbumSummary>? _cachedUnknownAlbums;
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
 
   @override
   void initState() {
     super.initState();
     _is3DView = widget.initial3DView;
-    _librarySelectionScopeController =
-        ref.read(librarySelectionScopeProvider.notifier);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
-    try {
-      _librarySelectionScopeController.clear();
-    } catch (_) {}
     super.dispose();
-  }
-
-  void _toggleAlbumSelection(String albumId) {
-    setState(() {
-      if (_selectedAlbumIds.contains(albumId)) {
-        _selectedAlbumIds.remove(albumId);
-        if (_selectedAlbumIds.isEmpty) {
-          ref.read(librarySelectionScopeProvider.notifier).clear();
-        }
-      } else {
-        _selectedAlbumIds.add(albumId);
-      }
-    });
-  }
-
-  void _enterAlbumSelectionMode(String albumId) {
-    ref.read(librarySelectionScopeProvider.notifier).setScope(LibrarySelectionScope.album);
-    setState(() {
-      _selectedAlbumIds.clear();
-      _selectedAlbumIds.add(albumId);
-    });
   }
 
   @override
@@ -99,18 +75,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
     final albumsAsync = ref.watch(albumLibraryProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final l10n = AppLocalizations.of(context)!;
-    final selectionScope = ref.watch(librarySelectionScopeProvider);
     final isSelectionMode = selectionScope == LibrarySelectionScope.album;
-
-    if (!isSelectionMode && _selectedAlbumIds.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _selectedAlbumIds.clear();
-          });
-        }
-      });
-    }
 
     return albumsAsync.when(
       loading: () => Center(
@@ -168,7 +133,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           selectedSongs = <MusicFile>[];
           final seenSelectedPaths = <String>{};
           for (final album in visibleAlbums) {
-            if (_selectedAlbumIds.contains(album.id)) {
+            if (isSelected(album.id)) {
               for (final song in album.songs) {
                 if (seenSelectedPaths.add(song.path)) {
                   selectedSongs.add(song);
@@ -288,11 +253,11 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                                       albums: visibleAlbums,
                                       initialIndex: widget.initial3DIndex,
                                       isSelectionMode: isSelectionMode,
-                                      selectedAlbumIds: _selectedAlbumIds,
+                                      selectedAlbumIds: selectedKeys,
                                       bottomOffset: bottomOffset,
                                       isHeroEnabled: _is3DView,
-                                      onToggleSelection: _toggleAlbumSelection,
-                                      onEnterSelectionMode: _enterAlbumSelectionMode,
+                                      onToggleSelection: toggleSelection,
+                                      onEnterSelectionMode: enterSelectionMode,
                                     ),
                             ),
                           ],
@@ -370,25 +335,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                                 key: const ValueKey('album-selection-panel'),
                                 selectedSongs: selectedSongs,
                                 allSongs: allSongs,
-                                title: l10n.selectedAlbumsCount(_selectedAlbumIds.length),
-                                onToggleSelectAll: () {
-                                  final isAllSelected = _selectedAlbumIds.length == visibleAlbums.length && visibleAlbums.isNotEmpty;
-                                  setState(() {
-                                    if (isAllSelected) {
-                                      _selectedAlbumIds.clear();
-                                      ref.read(librarySelectionScopeProvider.notifier).clear();
-                                    } else {
-                                      _selectedAlbumIds.clear();
-                                      _selectedAlbumIds.addAll(visibleAlbums.map((a) => a.id));
-                                    }
-                                  });
-                                },
-                                onCancel: () {
-                                  setState(() {
-                                    _selectedAlbumIds.clear();
-                                  });
-                                  ref.read(librarySelectionScopeProvider.notifier).clear();
-                                },
+                                title: l10n.selectedAlbumsCount(selectedCount),
+                                onToggleSelectAll: () =>
+                                    toggleSelectAll(visibleAlbums.map((a) => a.id)),
+                                onCancel: cancelSelection,
                               )
                             : const SizedBox.shrink(key: ValueKey('album-selection-panel-hidden')),
                       ),
@@ -496,7 +446,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               final album = albums[index];
-              final isSelected = _selectedAlbumIds.contains(album.id);
+              final isSelected = this.isSelected(album.id);
               return _AlbumCard(
                 album: album,
                 isSelectionMode: isSelectionMode,
@@ -504,7 +454,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                 isHeroEnabled: isHeroEnabled,
                 onTap: () {
                   if (isSelectionMode) {
-                    _toggleAlbumSelection(album.id);
+                    toggleSelection(album.id);
                   } else {
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(builder: (_) => AlbumDetailPage(album: album)),
@@ -513,9 +463,9 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab> {
                 },
                 onLongPress: () {
                   if (isSelectionMode) {
-                    _toggleAlbumSelection(album.id);
+                    toggleSelection(album.id);
                   } else {
-                    _enterAlbumSelectionMode(album.id);
+                    enterSelectionMode(album.id);
                   }
                 },
               );

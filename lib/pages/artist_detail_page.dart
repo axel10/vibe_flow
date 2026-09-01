@@ -67,11 +67,12 @@ class ArtistDetailContent extends ConsumerStatefulWidget {
   ConsumerState<ArtistDetailContent> createState() => _ArtistDetailContentState();
 }
 
-class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
-  bool _isSelectionMode = false;
-  final Set<String> _selectedSongPaths = {};
+class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent>
+    with SongSelectionMixin<ArtistDetailContent> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
+
   int? _lastAnchorIndex;
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
 
   List<MusicFile>? _lastArtistSongs;
   String? _lastUnknownAlbumLabel;
@@ -91,85 +92,12 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
     }
   }
 
-  bool get _effectiveIsSelectionMode => widget.songSelectionController != null
-      ? widget.songSelectionController!.isSelectionMode
-      : _isSelectionMode;
-
-  Set<String> get _effectiveSelectedSongPaths => widget.songSelectionController != null
-      ? widget.songSelectionController!.selectedSongPaths
-      : _selectedSongPaths;
-
-  @override
-  void initState() {
-    super.initState();
-    _librarySelectionScopeController =
-        ref.read(librarySelectionScopeProvider.notifier);
-    widget.songSelectionController?.addListener(_onControllerChanged);
-  }
-
-  void _onControllerChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  @override
-  void didUpdateWidget(ArtistDetailContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.songSelectionController != widget.songSelectionController) {
-      oldWidget.songSelectionController?.removeListener(_onControllerChanged);
-      widget.songSelectionController?.addListener(_onControllerChanged);
-    }
-  }
-
   void _toggleSelectionMode() {
-    setState(() {
-      _isSelectionMode = !_isSelectionMode;
-      if (!_isSelectionMode) {
-        _selectedSongPaths.clear();
-        _librarySelectionScopeController.clear();
-      } else {
-        _librarySelectionScopeController.setScope(
-          LibrarySelectionScope.library,
-        );
-      }
-    });
-  }
-
-  void _toggleSelection(String path) {
-    if (widget.songSelectionController != null) {
-      widget.songSelectionController!.toggleSelection(path);
-      return;
+    if (isSelectionMode) {
+      cancelSongSelection();
+    } else {
+      enterSongSelectionMode();
     }
-    setState(() {
-      if (_selectedSongPaths.contains(path)) {
-        _selectedSongPaths.remove(path);
-      } else {
-        _selectedSongPaths.add(path);
-      }
-    });
-  }
-
-  void _cancelSelection() {
-    if (widget.songSelectionController != null) {
-      widget.songSelectionController!.cancelSelection();
-      _librarySelectionScopeController.clear();
-      return;
-    }
-    setState(() {
-      _isSelectionMode = false;
-      _selectedSongPaths.clear();
-      _librarySelectionScopeController.clear();
-    });
-  }
-
-  @override
-  void dispose() {
-    widget.songSelectionController?.removeListener(_onControllerChanged);
-    Future.microtask(() {
-      _librarySelectionScopeController.clear();
-    });
-    super.dispose();
   }
 
   @override
@@ -179,8 +107,6 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
     final theme = Theme.of(context);
     final audio = ref.read(audioServiceProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
-    final selectionScope = ref.watch(librarySelectionScopeProvider);
-    final hasSelectionPanel = selectionScope != LibrarySelectionScope.none;
     final headerColor = theme.colorScheme.tertiaryContainer.withValues(
       alpha: 0.65,
     );
@@ -188,27 +114,9 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
     final albumSections = _cachedAlbumSections!;
     final displaySongs = _cachedDisplaySongs!;
 
-    if (widget.songSelectionController != null) {
-      widget.songSelectionController!.setAllSongs(displaySongs);
-    }
-
-    final selectedSongs = (_effectiveIsSelectionMode || hasSelectionPanel)
-        ? displaySongs.where((song) => _effectiveSelectedSongPaths.contains(song.path)).toList()
+    final selectedSongs = isSelectionMode
+        ? getSelectedSongs(displaySongs)
         : const <MusicFile>[];
-
-    void toggleSelectAll() {
-      if (widget.songSelectionController != null) {
-        widget.songSelectionController!.toggleSelectAll();
-        return;
-      }
-      setState(() {
-        if (_selectedSongPaths.length == displaySongs.length) {
-          _selectedSongPaths.clear();
-        } else {
-          _selectedSongPaths.addAll(displaySongs.map((s) => s.path));
-        }
-      });
-    }
 
     return Stack(
       children: [
@@ -284,42 +192,23 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                     final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
 
                     if (isShift) {
-                      if (!_effectiveIsSelectionMode) {
-                        if (widget.songSelectionController != null) {
-                          _librarySelectionScopeController.setScope(
-                            LibrarySelectionScope.library,
-                          );
-                          widget.songSelectionController!.enterSelectionMode(song.path);
-                        } else {
-                          _toggleSelectionMode();
-                        }
-                      }
                       final anchor = _lastAnchorIndex ?? globalIndex;
                       final range = ModifierKeyUtils.getIndexRange(anchor, globalIndex);
+                      final newPaths = Set<String>.from(selectedSongPaths);
                       for (final idx in range) {
                         if (idx >= 0 && idx < displaySongs.length) {
-                          final path = displaySongs[idx].path;
-                          if (!_effectiveSelectedSongPaths.contains(path)) {
-                            _toggleSelection(path);
-                          }
+                          newPaths.add(displaySongs[idx].path);
                         }
                       }
+                      ref
+                          .read(librarySelectionStateProvider.notifier)
+                          .setSelection(newPaths, scope: selectionScope);
                     } else if (isCtrl) {
-                      if (!_effectiveIsSelectionMode) {
-                        if (widget.songSelectionController != null) {
-                          _librarySelectionScopeController.setScope(
-                            LibrarySelectionScope.library,
-                          );
-                          widget.songSelectionController!.enterSelectionMode(song.path);
-                        } else {
-                          _toggleSelectionMode();
-                        }
-                      }
-                      _toggleSelection(song.path);
+                      toggleSongSelection(song.path);
                       _lastAnchorIndex = globalIndex;
                     } else {
-                      if (_effectiveIsSelectionMode) {
-                        _toggleSelection(song.path);
+                      if (isSelectionMode) {
+                        toggleSongSelection(song.path);
                         _lastAnchorIndex = globalIndex;
                       } else {
                         _lastAnchorIndex = globalIndex;
@@ -336,7 +225,7 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                     }
                   },
                   onSongSecondaryTapDown: (details, song) {
-                    if (!_effectiveIsSelectionMode) {
+                    if (!isSelectionMode) {
                       showSongBottomSheet(context, ref, song);
                     }
                   },
@@ -345,23 +234,12 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                     if (songIndex != -1) {
                       _lastAnchorIndex = albumSections[i].startIndex + songIndex;
                     }
-                    if (!_effectiveIsSelectionMode) {
-                      final scope = ref.read(librarySelectionScopeProvider);
-                      if (scope == LibrarySelectionScope.none) {
-                        if (widget.songSelectionController != null) {
-                          _librarySelectionScopeController.setScope(
-                            LibrarySelectionScope.library,
-                          );
-                          widget.songSelectionController!.enterSelectionMode(song.path);
-                        } else {
-                          _toggleSelectionMode();
-                          _toggleSelection(song.path);
-                        }
-                      }
+                    if (!isSelectionMode) {
+                      enterSongSelectionMode(song.path);
                     }
                   },
-                  isSelectionMode: _effectiveIsSelectionMode,
-                  selectedSongPaths: _effectiveSelectedSongPaths,
+                  isSelectionMode: isSelectionMode,
+                  selectedSongPaths: selectedSongPaths,
                 ),
               ],
             ],
@@ -370,7 +248,7 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
                 height: MiniPlayerUiTuning.getListBottomPadding(
                   context,
                   hasPlayingMusic: currentMusic != null,
-                  isSelectionMode: hasSelectionPanel,
+                  isSelectionMode: isSelectionMode,
                   selectionPanelHeight: 220.0,
                 ),
               ),
@@ -393,13 +271,13 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent> {
               ).animate(animation);
               return SlideTransition(position: offsetAnimation, child: child);
             },
-            child: (widget.songSelectionController != null ? false : _isSelectionMode)
+            child: (widget.songSelectionController != null ? false : isSelectionMode)
                 ? LibrarySelectionPanel(
                     key: const ValueKey('library-selection-panel'),
                     selectedSongs: selectedSongs,
                     allSongs: displaySongs,
-                    onToggleSelectAll: toggleSelectAll,
-                    onCancel: _cancelSelection,
+                    onToggleSelectAll: () => toggleSelectAllSongs(displaySongs),
+                    onCancel: cancelSongSelection,
                   )
                 : const SizedBox.shrink(key: ValueKey('library-selection-panel-hidden')),
           ),

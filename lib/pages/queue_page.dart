@@ -21,12 +21,14 @@ class QueuePage extends ConsumerStatefulWidget {
   ConsumerState<QueuePage> createState() => _QueuePageState();
 }
 
-class _QueuePageState extends ConsumerState<QueuePage> {
-  final Set<int> _selectedIndices = {};
+class _QueuePageState extends ConsumerState<QueuePage>
+    with SelectionStateMixin<QueuePage, int> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.queue;
+
   int? _lastAnchorIndex;
   final Map<String, GlobalKey> _songTileKeys = {};
   int _viewIndex = 0; // 0: Normal Queue, 1: Random History, 2: Random Queue
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
   late final ScrollController _scrollController;
   int? _highlightedIndex;
   Timer? _highlightTimer;
@@ -35,56 +37,20 @@ class _QueuePageState extends ConsumerState<QueuePage> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _librarySelectionScopeController =
-        ref.read(librarySelectionScopeProvider.notifier);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _highlightTimer?.cancel();
-    Future.microtask(() {
-      _librarySelectionScopeController.clear();
-    });
     super.dispose();
   }
 
-  void _toggleSelectionMode() {
-    final isSelectionMode =
-        ref.read(librarySelectionScopeProvider) ==
-        LibrarySelectionScope.queue;
-    _librarySelectionScopeController.setScope(
-      isSelectionMode ? LibrarySelectionScope.none : LibrarySelectionScope.queue,
-    );
-    setState(() {
-      if (isSelectionMode) {
-        _selectedIndices.clear();
-      }
-    });
-  }
-
-  void _cancelSelection() {
-    _librarySelectionScopeController.clear();
-    setState(() {
-      _selectedIndices.clear();
-    });
-  }
-
-  void _toggleSelection(int index) {
-    setState(() {
-      if (_selectedIndices.contains(index)) {
-        _selectedIndices.remove(index);
-      } else {
-        _selectedIndices.add(index);
-      }
-    });
-  }
-
   void _reorderSelectedIndices(int oldIndex, int newIndex) {
-    if (_selectedIndices.isEmpty) return;
+    if (selectedKeys.isEmpty) return;
 
     final updated = <int>{};
-    for (final index in _selectedIndices) {
+    for (final index in selectedKeys) {
       if (index == oldIndex) {
         updated.add(newIndex);
       } else if (oldIndex < newIndex) {
@@ -104,13 +70,13 @@ class _QueuePageState extends ConsumerState<QueuePage> {
       }
     }
 
-    _selectedIndices
-      ..clear()
-      ..addAll(updated);
+    ref
+        .read(librarySelectionStateProvider.notifier)
+        .setSelection(updated, scope: selectionScope);
   }
 
   List<MusicFile> _selectedSongsFromDisplay(List<MusicFile> displayQueue) {
-    return _selectedIndices
+    return selectedKeys
         .where((index) => index >= 0 && index < displayQueue.length)
         .map((index) => displayQueue[index])
         .toList(growable: false);
@@ -434,8 +400,8 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                             } else {
                               isCurrent = (currentIndex == index);
                             }
-                            final isSelected = _selectedIndices.contains(index);
-                            final songsToAdd = _selectedIndices.isNotEmpty
+                            final isSelected = this.isSelected(index);
+                            final songsToAdd = selectedKeys.isNotEmpty
                                 ? _selectedSongsFromDisplay(displayQueue)
                                 : <MusicFile>[song];
 
@@ -482,11 +448,9 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                                         _viewIndex == 1 ||
                                         _viewIndex == 2)
                                     ? null
-                                    : () {
-                                        ref
-                                            .read(audioServiceProvider)
-                                            .removeFromPlaylist(index);
-                                      },
+                                    : () => ref
+                                          .read(audioServiceProvider)
+                                          .removeFromPlaylist(index),
                               );
                             }
 
@@ -524,39 +488,51 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                                         return;
                                       }
 
-                                      final isShift = ModifierKeyUtils.isRangeSelectPressed;
-                                      final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
+                                      final isShift =
+                                          ModifierKeyUtils.isRangeSelectPressed;
+                                      final isCtrl = ModifierKeyUtils
+                                          .isDiscreteSelectPressed;
 
                                       if (isShift) {
-                                        if (!isSelectionMode) {
-                                          _toggleSelectionMode();
-                                        }
                                         final anchor = _lastAnchorIndex ?? index;
-                                        final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                                        setState(() {
-                                          for (final i in range) {
-                                            if (i >= 0 && i < displayQueue.length) {
-                                              _selectedIndices.add(i);
-                                            }
+                                        final range =
+                                            ModifierKeyUtils.getIndexRange(
+                                              anchor,
+                                              index,
+                                            );
+                                        final nextKeys = Set<int>.from(
+                                          selectedKeys,
+                                        );
+                                        for (final i in range) {
+                                          if (i >= 0 &&
+                                              i < displayQueue.length) {
+                                            nextKeys.add(i);
                                           }
-                                        });
-                                      } else if (isCtrl) {
-                                        if (!isSelectionMode) {
-                                          _toggleSelectionMode();
                                         }
-                                        _toggleSelection(index);
+                                        ref
+                                            .read(
+                                              librarySelectionStateProvider
+                                                  .notifier,
+                                            )
+                                            .setSelection(
+                                              nextKeys,
+                                              scope: selectionScope,
+                                            );
+                                      } else if (isCtrl) {
+                                        toggleSelection(index);
                                         _lastAnchorIndex = index;
                                       } else {
                                         if (isSelectionMode) {
-                                          _toggleSelection(index);
+                                          toggleSelection(index);
                                           _lastAnchorIndex = index;
                                         } else {
                                           _lastAnchorIndex = index;
                                           if (_viewIndex == 1 ||
                                               _viewIndex == 2) {
-                                            final actualIndex = queue.indexWhere(
-                                              (s) => s.path == song.path,
-                                            );
+                                            final actualIndex = queue
+                                                .indexWhere(
+                                                  (s) => s.path == song.path,
+                                                );
                                             if (actualIndex >= 0) {
                                               ref
                                                   .read(audioServiceProvider)
@@ -573,8 +549,7 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                                     onLongPress: () {
                                       _lastAnchorIndex = index;
                                       if (!isSelectionMode) {
-                                        _toggleSelectionMode();
-                                        _toggleSelection(index);
+                                        enterSelectionMode(index);
                                       }
                                     },
                                     onSecondaryTapDown: (details) {
@@ -586,13 +561,13 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                                     onMorePressed: (buttonContext) {
                                       final renderObject = buttonContext
                                           .findRenderObject();
-                                      final renderBox = renderObject is RenderBox
-                                          ? renderObject
-                                          : null;
+                                      final renderBox =
+                                          renderObject is RenderBox
+                                              ? renderObject
+                                              : null;
                                       if (renderBox == null) return;
-                                      final Offset offset = renderBox.localToGlobal(
-                                        Offset.zero,
-                                      );
+                                      final Offset offset = renderBox
+                                          .localToGlobal(Offset.zero);
                                       handleShowMenu(buttonContext, offset);
                                     },
                                   ),
@@ -621,31 +596,27 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                     begin: const Offset(0, 1.0),
                     end: Offset.zero,
                   ).animate(animation);
-                  return SlideTransition(position: offsetAnimation, child: child);
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
                 },
                 child: isSelectionMode
                     ? LibrarySelectionPanel(
                         key: const ValueKey('library-selection-panel'),
-                        selectedSongs: _selectedSongsFromDisplay(displayQueue),
+                        selectedSongs: _selectedSongsFromDisplay(
+                          displayQueue,
+                        ),
                         allSongs: displayQueue,
-                        onToggleSelectAll: () {
-                          setState(() {
-                            if (_selectedIndices.length == displayQueue.length) {
-                              _selectedIndices.clear();
-                            } else {
-                              _selectedIndices.clear();
-                              _selectedIndices.addAll(
-                                List.generate(displayQueue.length, (i) => i),
-                              );
-                            }
-                          });
-                        },
-                        onCancel: _cancelSelection,
+                        onToggleSelectAll: () => toggleSelectAll(
+                          List.generate(displayQueue.length, (i) => i),
+                        ),
+                        onCancel: cancelSelection,
                         replaceFavoritesWithSongDetails: true,
                         onDelete: _viewIndex == 0
                             ? () {
                                 final sortedIndices =
-                                    _selectedIndices.toList()..sort();
+                                    selectedKeys.toList()..sort();
                                 // Remove in reverse order to maintain indices
                                 for (
                                   int i = sortedIndices.length - 1;
@@ -656,7 +627,7 @@ class _QueuePageState extends ConsumerState<QueuePage> {
                                       .read(audioServiceProvider)
                                       .removeFromPlaylist(sortedIndices[i]);
                                 }
-                                _cancelSelection();
+                                cancelSelection();
                                 if (context.mounted) {
                                   AppSnackBar.show(
                                     context,

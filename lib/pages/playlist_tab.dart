@@ -26,66 +26,30 @@ class PlaylistTab extends ConsumerStatefulWidget {
   ConsumerState<PlaylistTab> createState() => _PlaylistTabState();
 }
 
-class _PlaylistTabState extends ConsumerState<PlaylistTab> {
-  final Set<int> _selectedIndices = {};
+class _PlaylistTabState extends ConsumerState<PlaylistTab>
+    with SelectionStateMixin<PlaylistTab, int> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.playlist;
+
   int? _lastAnchorIndex;
   final ScrollController _scrollController = ScrollController();
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
 
   @override
   void initState() {
     super.initState();
-    _librarySelectionScopeController = ref.read(
-      librarySelectionScopeProvider.notifier,
-    );
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    Future.microtask(() {
-      _librarySelectionScopeController.clear();
-    });
     super.dispose();
   }
 
-  void _toggleSelectionMode() {
-    final isSelectionMode =
-        ref.read(librarySelectionScopeProvider) ==
-        LibrarySelectionScope.playlist;
-    final nextMode = !isSelectionMode;
-    _librarySelectionScopeController.setScope(
-      nextMode ? LibrarySelectionScope.playlist : LibrarySelectionScope.none,
-    );
-    setState(() {
-      if (isSelectionMode) {
-        _selectedIndices.clear();
-      }
-    });
-  }
-
-  void _cancelSelection() {
-    _librarySelectionScopeController.clear();
-    setState(() {
-      _selectedIndices.clear();
-    });
-  }
-
-  void _toggleSelection(int index) {
-    setState(() {
-      if (_selectedIndices.contains(index)) {
-        _selectedIndices.remove(index);
-      } else {
-        _selectedIndices.add(index);
-      }
-    });
-  }
-
   void _reorderSelectedIndices(int oldIndex, int newIndex) {
-    if (_selectedIndices.isEmpty) return;
+    if (selectedKeys.isEmpty) return;
 
     final updated = <int>{};
-    for (final index in _selectedIndices) {
+    for (final index in selectedKeys) {
       if (index == oldIndex) {
         updated.add(newIndex);
       } else if (oldIndex < newIndex) {
@@ -105,9 +69,9 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
       }
     }
 
-    _selectedIndices
-      ..clear()
-      ..addAll(updated);
+    ref
+        .read(librarySelectionStateProvider.notifier)
+        .setSelection(updated, scope: selectionScope);
   }
 
   void _showAddToPlaylistDialog(
@@ -120,7 +84,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
       playlistService,
       selectedSongs,
       onPlaylistCreatedOrUpdated: () {
-        _cancelSelection();
+        cancelSelection();
       },
     );
   }
@@ -672,22 +636,9 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     }
 
     final Playlist activePlaylist = currentPlaylist;
-    final selectedSongs = _selectedIndices
+    final selectedSongs = selectedKeys
         .map((i) => activePlaylist.songs[i])
         .toList();
-
-    void toggleSelectAll() {
-      setState(() {
-        if (_selectedIndices.length == activePlaylist.songs.length) {
-          _selectedIndices.clear();
-        } else {
-          _selectedIndices.clear();
-          _selectedIndices.addAll(
-            List.generate(activePlaylist.songs.length, (i) => i),
-          );
-        }
-      });
-    }
 
     return Stack(
       children: [
@@ -721,14 +672,14 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                     final isCurrent =
                         currentIndex == index &&
                         currentMusic?.path == song.path;
-                    final isSelected = _selectedIndices.contains(index);
+                    final isSelected = this.isSelected(index);
 
                     void handleShowMenu(
                       BuildContext menuContext,
                       Offset position,
                     ) {
-                      final songsToAdd = _selectedIndices.isNotEmpty
-                          ? _selectedIndices
+                      final songsToAdd = selectedKeys.isNotEmpty
+                          ? selectedKeys
                                 .map((i) => activePlaylist.songs[i])
                                 .toList()
                           : <MusicFile>[song];
@@ -791,27 +742,23 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                               final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
 
                               if (isShift) {
-                                if (!isSelectionMode) {
-                                  _toggleSelectionMode();
-                                }
                                 final anchor = _lastAnchorIndex ?? index;
                                 final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                                setState(() {
-                                  for (final i in range) {
-                                    if (i >= 0 && i < activePlaylist.songs.length) {
-                                      _selectedIndices.add(i);
-                                    }
+                                final nextKeys = Set<int>.from(selectedKeys);
+                                for (final i in range) {
+                                  if (i >= 0 && i < activePlaylist.songs.length) {
+                                    nextKeys.add(i);
                                   }
-                                });
-                              } else if (isCtrl) {
-                                if (!isSelectionMode) {
-                                  _toggleSelectionMode();
                                 }
-                                _toggleSelection(index);
+                                ref
+                                    .read(librarySelectionStateProvider.notifier)
+                                    .setSelection(nextKeys, scope: selectionScope);
+                              } else if (isCtrl) {
+                                toggleSelection(index);
                                 _lastAnchorIndex = index;
                               } else {
                                 if (isSelectionMode) {
-                                  _toggleSelection(index);
+                                  toggleSelection(index);
                                   _lastAnchorIndex = index;
                                 } else {
                                   _lastAnchorIndex = index;
@@ -830,8 +777,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                             onLongPress: () {
                               _lastAnchorIndex = index;
                               if (!isSelectionMode) {
-                                _toggleSelectionMode();
-                                _toggleSelection(index);
+                                enterSelectionMode(index);
                               }
                             },
                             onSecondaryTapDown: (details) {
@@ -878,11 +824,13 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                       key: const ValueKey('library-selection-panel'),
                       selectedSongs: selectedSongs,
                       allSongs: activePlaylist.songs,
-                      onToggleSelectAll: toggleSelectAll,
-                      onCancel: _cancelSelection,
+                      onToggleSelectAll: () => toggleSelectAll(
+                        List.generate(activePlaylist.songs.length, (i) => i),
+                      ),
+                      onCancel: cancelSelection,
                       replaceFavoritesWithSongDetails: true,
                       onDelete: () {
-                        final indices = _selectedIndices.toList()..sort();
+                        final indices = selectedKeys.toList()..sort();
                         playlistService.removeSongsFromPlaylist(
                           activePlaylist.id,
                           indices,
@@ -892,7 +840,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                             content: Text(l10n.deletedSongs(indices.length)),
                           ),
                         );
-                        _cancelSelection();
+                        cancelSelection();
                       },
                     )
                   : const SizedBox.shrink(

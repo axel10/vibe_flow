@@ -39,54 +39,21 @@ class LibraryRankedSongList extends ConsumerStatefulWidget {
   ConsumerState<LibraryRankedSongList> createState() => _LibraryRankedSongListState();
 }
 
-class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
-  bool _isSelectionMode = false;
-  final Set<String> _selectedSongPaths = {};
+class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
+    with SongSelectionMixin<LibraryRankedSongList> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
+
   int? _lastAnchorIndex;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
   bool _isSearchExpanded = false;
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
 
   @override
   void initState() {
     super.initState();
-    _librarySelectionScopeController =
-        ref.read(librarySelectionScopeProvider.notifier);
-  }
-
-  void _toggleSelectionMode() {
-    setState(() {
-      _isSelectionMode = !_isSelectionMode;
-      if (!_isSelectionMode) {
-        _selectedSongPaths.clear();
-        _librarySelectionScopeController.clear();
-      } else {
-        _librarySelectionScopeController.setScope(
-          LibrarySelectionScope.library,
-        );
-      }
-    });
-  }
-
-  void _toggleSelection(String path) {
-    setState(() {
-      if (_selectedSongPaths.contains(path)) {
-        _selectedSongPaths.remove(path);
-      } else {
-        _selectedSongPaths.add(path);
-      }
-    });
-  }
-
-  void _cancelSelection() {
-    setState(() {
-      _isSelectionMode = false;
-      _selectedSongPaths.clear();
-      _librarySelectionScopeController.clear();
-    });
   }
 
   @override
@@ -94,9 +61,6 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     _scrollController.dispose();
-    Future.microtask(() {
-      _librarySelectionScopeController.clear();
-    });
     super.dispose();
   }
 
@@ -166,24 +130,10 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
     final audio = ref.read(audioServiceProvider);
 
     final filteredItems = _filterItems(widget.items);
-
-    final selectedSongs = _isSelectionMode
-        ? filteredItems
-            .where((entry) => _selectedSongPaths.contains(entry.song.path))
-            .map((entry) => entry.song)
-            .toList()
+    final filteredSongs = filteredItems.map((e) => e.song).toList();
+    final selectedSongs = isSelectionMode
+        ? getSelectedSongs(filteredSongs)
         : const <MusicFile>[];
-
-    void toggleSelectAll() {
-      setState(() {
-        final filteredPaths = filteredItems.map((s) => s.song.path).toSet();
-        if (_selectedSongPaths.containsAll(filteredPaths) && filteredPaths.isNotEmpty) {
-          _selectedSongPaths.removeAll(filteredPaths);
-        } else {
-          _selectedSongPaths.addAll(filteredPaths);
-        }
-      });
-    }
 
     Widget currentBody = NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -449,13 +399,13 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
             )
           else
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(12, 12, 12, 140 + (_isSelectionMode ? 220.0 : 0.0)),
+              padding: EdgeInsets.fromLTRB(12, 12, 12, 140 + (isSelectionMode ? 220.0 : 0.0)),
               sliver: SliverFixedExtentList.builder(
                 itemExtent: 74.0,
                 itemCount: filteredItems.length,
                 itemBuilder: (context, index) {
                   final entry = filteredItems[index];
-                  final isSelected = _selectedSongPaths.contains(entry.song.path);
+                  final isSelected = isSongSelected(entry.song.path);
                   return Align(
                     key: ValueKey(entry.song.path),
                     alignment: Alignment.center,
@@ -468,39 +418,35 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                           l10n: l10n,
                           audio: audio,
                           trailingBuilder: widget.trailingBuilder,
-                          isSelectionMode: _isSelectionMode,
+                          isSelectionMode: isSelectionMode,
                           isSelected: isSelected,
                           onTap: () {
                             final isShift = ModifierKeyUtils.isRangeSelectPressed;
                             final isCtrl = ModifierKeyUtils.isDiscreteSelectPressed;
 
                             if (isShift) {
-                              if (!_isSelectionMode) {
-                                _toggleSelectionMode();
-                              }
                               final anchor = _lastAnchorIndex ?? index;
                               final range = ModifierKeyUtils.getIndexRange(anchor, index);
-                              setState(() {
-                                for (final i in range) {
-                                  if (i >= 0 && i < filteredItems.length) {
-                                    _selectedSongPaths.add(filteredItems[i].song.path);
-                                  }
+                              final nextPaths = Set<String>.from(selectedSongPaths);
+                              for (final i in range) {
+                                if (i >= 0 && i < filteredItems.length) {
+                                  nextPaths.add(filteredItems[i].song.path);
                                 }
-                              });
-                            } else if (isCtrl) {
-                              if (!_isSelectionMode) {
-                                _toggleSelectionMode();
                               }
-                              _toggleSelection(entry.song.path);
+                              ref
+                                  .read(librarySelectionStateProvider.notifier)
+                                  .setSelection(nextPaths, scope: selectionScope);
+                            } else if (isCtrl) {
+                              toggleSongSelection(entry.song.path);
                               _lastAnchorIndex = index;
                             } else {
-                              if (_isSelectionMode) {
-                                _toggleSelection(entry.song.path);
+                              if (isSelectionMode) {
+                                toggleSongSelection(entry.song.path);
                                 _lastAnchorIndex = index;
                               } else {
                                 _lastAnchorIndex = index;
                                 audio.playPlaylist(
-                                  filteredItems.map((e) => e.song).toList(),
+                                  filteredSongs,
                                   initialIndex: index,
                                 );
                               }
@@ -508,9 +454,8 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
                           },
                           onLongPress: () {
                             _lastAnchorIndex = index;
-                            if (!_isSelectionMode) {
-                              _toggleSelectionMode();
-                              _toggleSelection(entry.song.path);
+                            if (!isSelectionMode) {
+                              enterSongSelectionMode(entry.song.path);
                             }
                           },
                         ),
@@ -543,13 +488,13 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList> {
               ).animate(animation);
               return SlideTransition(position: offsetAnimation, child: child);
             },
-            child: _isSelectionMode
+            child: isSelectionMode
                 ? LibrarySelectionPanel(
                     key: const ValueKey('library-selection-panel'),
                     selectedSongs: selectedSongs,
-                    allSongs: filteredItems.map((e) => e.song).toList(),
-                    onToggleSelectAll: toggleSelectAll,
-                    onCancel: _cancelSelection,
+                    allSongs: filteredSongs,
+                    onToggleSelectAll: () => toggleSelectAllSongs(filteredSongs),
+                    onCancel: cancelSongSelection,
                   )
                 : const SizedBox.shrink(key: ValueKey('library-selection-panel-hidden')),
           ),

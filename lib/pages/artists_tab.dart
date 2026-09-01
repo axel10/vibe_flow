@@ -25,15 +25,17 @@ class ArtistsTab extends ConsumerStatefulWidget {
   ConsumerState<ArtistsTab> createState() => _ArtistsTabState();
 }
 
-class _ArtistsTabState extends ConsumerState<ArtistsTab> {
-  final TextEditingController _searchController = TextEditingController();
+class _ArtistsTabState extends ConsumerState<ArtistsTab>
+    with SelectionStateMixin<ArtistsTab, String> {
+  @override
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.artist;
+
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   _ArtistSortField _sortField = _ArtistSortField.artist;
   bool _sortAscending = true;
   String? _selectedArtistKey;
-  final Set<String> _selectedArtistKeys = {};
-  late final ArtistSongSelectionController _songSelectionController;
 
   List<ArtistSummary>? _lastRawArtists;
   String? _lastSearchQuery;
@@ -41,54 +43,16 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
   bool? _lastSortAscending;
   List<ArtistSummary>? _cachedFilteredArtists;
 
-  late final LibrarySelectionScopeController _librarySelectionScopeController;
-
   @override
   void initState() {
     super.initState();
-    _librarySelectionScopeController =
-        ref.read(librarySelectionScopeProvider.notifier);
-    _songSelectionController = ArtistSongSelectionController()
-      ..addListener(_onSongSelectionChanged);
-  }
-
-  void _onSongSelectionChanged() {
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
-    _songSelectionController.removeListener(_onSongSelectionChanged);
-    _songSelectionController.dispose();
-    Future.microtask(() {
-      _librarySelectionScopeController.clear();
-    });
     super.dispose();
-  }
-
-  void _toggleArtistSelection(String artistKey) {
-    setState(() {
-      if (_selectedArtistKeys.contains(artistKey)) {
-        _selectedArtistKeys.remove(artistKey);
-        if (_selectedArtistKeys.isEmpty) {
-          ref.read(librarySelectionScopeProvider.notifier).clear();
-        }
-      } else {
-        _selectedArtistKeys.add(artistKey);
-      }
-    });
-  }
-
-  void _enterArtistSelectionMode(String artistKey) {
-    ref.read(librarySelectionScopeProvider.notifier).setScope(LibrarySelectionScope.artist);
-    setState(() {
-      _selectedArtistKeys.clear();
-      _selectedArtistKeys.add(artistKey);
-    });
   }
 
   @override
@@ -96,26 +60,9 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
     final artistsAsync = ref.watch(artistLibraryProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final selectionScope = ref.watch(librarySelectionScopeProvider);
-    final isSelectionMode = selectionScope == LibrarySelectionScope.artist;
     final isSongSelectionMode = selectionScope == LibrarySelectionScope.library;
-
-    if (!isSelectionMode && _selectedArtistKeys.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _selectedArtistKeys.clear();
-          });
-        }
-      });
-    }
-
-    if (!isSongSelectionMode && _songSelectionController.isSelectionMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _songSelectionController.cancelSelection();
-        }
-      });
-    }
+    final currentSelection = ref.watch(librarySelectionStateProvider);
+    final isSelectionMode = selectionScope == LibrarySelectionScope.artist;
 
     debugPrint(
       '[ArtistsTab] build loading=${artistsAsync.isLoading} '
@@ -159,11 +106,11 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
         final List<MusicFile> selectedSongs;
         final List<MusicFile> allSongs;
 
-        if (isSelectionMode || isSongSelectionMode) {
+        if (isSelectionMode) {
           selectedSongs = <MusicFile>[];
           final seenSelectedPaths = <String>{};
           for (final artist in visibleArtists) {
-            if (_selectedArtistKeys.contains(artist.queryKey)) {
+            if (isSelected(artist.queryKey)) {
               for (final song in artist.songs) {
                 if (seenSelectedPaths.add(song.path)) {
                   selectedSongs.add(song);
@@ -238,11 +185,11 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                               noArtistsLabel: noArtistsLabel,
                               scrollController: _scrollController,
                               isSelectionMode: isSelectionMode,
-                              selectedArtistKeysInSelectionMode: _selectedArtistKeys,
+                              selectedArtistKeysInSelectionMode: selectedKeys,
                               hasBottomPanel: showBottomPanel,
                               onArtistSelected: (artist) {
                                 if (isSelectionMode) {
-                                  _toggleArtistSelection(artist.queryKey);
+                                  toggleSelection(artist.queryKey);
                                 } else if (!isSongSelectionMode) {
                                   setState(() {
                                     _selectedArtistKey = artist.queryKey;
@@ -251,9 +198,9 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                               },
                               onArtistLongPressed: (artist) {
                                 if (isSelectionMode) {
-                                  _toggleArtistSelection(artist.queryKey);
+                                  toggleSelection(artist.queryKey);
                                 } else if (!isSongSelectionMode) {
-                                  _enterArtistSelectionMode(artist.queryKey);
+                                  enterSelectionMode(artist.queryKey);
                                 }
                               },
                             ),
@@ -263,7 +210,6 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                             child: _ArtistDetailPane(
                               artist: selectedArtist,
                               emptyLabel: noArtistsLabel,
-                              songSelectionController: _songSelectionController,
                             ),
                           ),
                         ],
@@ -329,7 +275,7 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                               }
                               final artistIndex = index ~/ 2;
                               final artist = visibleArtists[artistIndex];
-                              final isSelected = _selectedArtistKeys.contains(artist.queryKey);
+                              final isSelected = this.isSelected(artist.queryKey);
                               return _ArtistListItem(
                                 artist: artist,
                                 selected: false,
@@ -337,7 +283,7 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                                 isSelectedInSelectionMode: isSelected,
                                 onTap: () {
                                   if (isSelectionMode) {
-                                    _toggleArtistSelection(artist.queryKey);
+                                    toggleSelection(artist.queryKey);
                                   } else {
                                     Navigator.of(context).push(
                                       MaterialPageRoute<void>(
@@ -349,12 +295,12 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                                 },
                                 onLongPress: () {
                                   if (isSelectionMode) {
-                                    _toggleArtistSelection(artist.queryKey);
+                                    toggleSelection(artist.queryKey);
                                   } else {
-                                    _enterArtistSelectionMode(artist.queryKey);
+                                    enterSelectionMode(artist.queryKey);
                                   }
                                 },
-                                onSelectionToggled: () => _toggleArtistSelection(artist.queryKey),
+                                onSelectionToggled: () => toggleSelection(artist.queryKey),
                               );
                             },
                             childCount: visibleArtists.length * 2 - 1,
@@ -390,37 +336,28 @@ class _ArtistsTabState extends ConsumerState<ArtistsTab> {
                             key: const ValueKey('artist-selection-panel'),
                             selectedSongs: selectedSongs,
                             allSongs: allSongs,
-                            title: l10n.selectedArtistsCount(_selectedArtistKeys.length),
-                            onToggleSelectAll: () {
-                              final isAllSelected = _selectedArtistKeys.length == visibleArtists.length && visibleArtists.isNotEmpty;
-                              setState(() {
-                                if (isAllSelected) {
-                                  _selectedArtistKeys.clear();
-                                  ref.read(librarySelectionScopeProvider.notifier).clear();
-                                } else {
-                                  _selectedArtistKeys.clear();
-                                  _selectedArtistKeys.addAll(visibleArtists.map((a) => a.queryKey));
-                                }
-                              });
-                            },
-                            onCancel: () {
-                              setState(() {
-                                _selectedArtistKeys.clear();
-                              });
-                              ref.read(librarySelectionScopeProvider.notifier).clear();
-                            },
+                            title: l10n.selectedArtistsCount(selectedCount),
+                            onToggleSelectAll: () =>
+                                toggleSelectAll(visibleArtists.map((a) => a.queryKey)),
+                            onCancel: cancelSelection,
                           )
                         : (isLandscape && isSongSelectionMode
                             ? LibrarySelectionPanel(
                                 key: const ValueKey('song-selection-panel'),
-                                selectedSongs: _songSelectionController.allSongs
-                                    .where((s) => _songSelectionController.selectedSongPaths.contains(s.path))
+                                selectedSongs: (selectedArtist?.songs ?? const <MusicFile>[])
+                                    .where((s) => currentSelection.selectedKeys.contains(s.path))
                                     .toList(),
-                                allSongs: _songSelectionController.allSongs,
-                                onToggleSelectAll: _songSelectionController.toggleSelectAll,
+                                allSongs: selectedArtist?.songs ?? const <MusicFile>[],
+                                onToggleSelectAll: () {
+                                  if (selectedArtist != null) {
+                                    ref.read(librarySelectionStateProvider.notifier).toggleSelectAll(
+                                      selectedArtist.songs.map((s) => s.path),
+                                      scope: LibrarySelectionScope.library,
+                                    );
+                                  }
+                                },
                                 onCancel: () {
-                                  _songSelectionController.cancelSelection();
-                                  ref.read(librarySelectionScopeProvider.notifier).clear();
+                                  ref.read(librarySelectionStateProvider.notifier).clear();
                                 },
                               )
                             : const SizedBox.shrink(key: ValueKey('artist-selection-panel-hidden'))),

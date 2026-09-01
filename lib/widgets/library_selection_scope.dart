@@ -16,16 +16,182 @@ enum LibrarySelectionScope {
   bottomSheet,
 }
 
-class LibrarySelectionScopeController extends Notifier<LibrarySelectionScope> {
+@immutable
+class LibrarySelectionState {
+  final LibrarySelectionScope scope;
+  final bool isActive;
+  final Set<dynamic> selectedKeys;
+
+  const LibrarySelectionState({
+    this.scope = LibrarySelectionScope.none,
+    this.isActive = false,
+    this.selectedKeys = const {},
+  });
+
+  int get count => selectedKeys.length;
+  bool isSelected(dynamic key) => selectedKeys.contains(key);
+  bool get isEmpty => selectedKeys.isEmpty;
+  bool get isNotEmpty => selectedKeys.isNotEmpty;
+
+  Set<K> keysAs<K>() => selectedKeys.cast<K>().toSet();
+
+  LibrarySelectionState copyWith({
+    LibrarySelectionScope? scope,
+    bool? isActive,
+    Set<dynamic>? selectedKeys,
+  }) {
+    return LibrarySelectionState(
+      scope: scope ?? this.scope,
+      isActive: isActive ?? this.isActive,
+      selectedKeys: selectedKeys ?? this.selectedKeys,
+    );
+  }
+
   @override
-  LibrarySelectionScope build() => LibrarySelectionScope.none;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LibrarySelectionState &&
+          runtimeType == other.runtimeType &&
+          scope == other.scope &&
+          isActive == other.isActive &&
+          _setEquals(selectedKeys, other.selectedKeys);
+
+  @override
+  int get hashCode =>
+      Object.hash(scope, isActive, Object.hashAll(selectedKeys));
+
+  static bool _setEquals(Set<dynamic> a, Set<dynamic> b) {
+    if (a.length != b.length) return false;
+    return a.containsAll(b);
+  }
+}
+
+class LibrarySelectionController extends Notifier<LibrarySelectionState> {
+  @override
+  LibrarySelectionState build() => const LibrarySelectionState();
+
+  void enter(
+    LibrarySelectionScope scope, {
+    dynamic initialKey,
+    Iterable<dynamic>? initialKeys,
+  }) {
+    final keys = <dynamic>{};
+    if (initialKey != null) keys.add(initialKey);
+    if (initialKeys != null) keys.addAll(initialKeys);
+    state = LibrarySelectionState(
+      scope: scope,
+      isActive: true,
+      selectedKeys: keys,
+    );
+  }
 
   void setScope(LibrarySelectionScope scope) {
-    state = scope;
+    if (scope == LibrarySelectionScope.none) {
+      clear();
+    } else {
+      state = state.copyWith(
+        scope: scope,
+        isActive: true,
+      );
+    }
+  }
+
+  void toggle(dynamic key, {LibrarySelectionScope? scope}) {
+    final targetScope = scope ??
+        (state.scope != LibrarySelectionScope.none
+            ? state.scope
+            : LibrarySelectionScope.library);
+    final currentKeys = Set<dynamic>.from(state.selectedKeys);
+    if (currentKeys.contains(key)) {
+      currentKeys.remove(key);
+      if (currentKeys.isEmpty) {
+        state = const LibrarySelectionState();
+        return;
+      }
+    } else {
+      currentKeys.add(key);
+    }
+    state = LibrarySelectionState(
+      scope: targetScope,
+      isActive: true,
+      selectedKeys: currentKeys,
+    );
+  }
+
+  void toggleSelectAll(
+    Iterable<dynamic> allKeys, {
+    LibrarySelectionScope? scope,
+  }) {
+    final targetScope = scope ??
+        (state.scope != LibrarySelectionScope.none
+            ? state.scope
+            : LibrarySelectionScope.library);
+    final allSet = allKeys.toSet();
+    if (state.selectedKeys.length == allSet.length && allSet.isNotEmpty) {
+      state = const LibrarySelectionState();
+    } else {
+      state = LibrarySelectionState(
+        scope: targetScope,
+        isActive: true,
+        selectedKeys: allSet,
+      );
+    }
+  }
+
+  void setSelection(
+    Iterable<dynamic> keys, {
+    LibrarySelectionScope? scope,
+  }) {
+    final keySet = keys.toSet();
+    if (keySet.isEmpty) {
+      state = const LibrarySelectionState();
+    } else {
+      state = LibrarySelectionState(
+        scope: scope ??
+            (state.scope != LibrarySelectionScope.none
+                ? state.scope
+                : LibrarySelectionScope.library),
+        isActive: true,
+        selectedKeys: keySet,
+      );
+    }
   }
 
   void clear() {
-    state = LibrarySelectionScope.none;
+    if (state.isActive ||
+        state.selectedKeys.isNotEmpty ||
+        state.scope != LibrarySelectionScope.none) {
+      state = const LibrarySelectionState();
+    }
+  }
+}
+
+final librarySelectionStateProvider =
+    NotifierProvider<LibrarySelectionController, LibrarySelectionState>(
+      LibrarySelectionController.new,
+    );
+
+final isLibrarySelectionActiveProvider = Provider<bool>((ref) {
+  final selection = ref.watch(librarySelectionStateProvider);
+  return selection.isActive && selection.scope != LibrarySelectionScope.none;
+});
+
+class LibrarySelectionScopeController extends Notifier<LibrarySelectionScope> {
+  @override
+  LibrarySelectionScope build() {
+    final selection = ref.watch(librarySelectionStateProvider);
+    return (selection.isActive &&
+            selection.scope != LibrarySelectionScope.none)
+        ? selection.scope
+        : LibrarySelectionScope.none;
+  }
+
+  void setScope(LibrarySelectionScope scope) {
+    ref.read(librarySelectionStateProvider.notifier).setScope(scope);
+  }
+
+  void clear() {
+    ref.read(librarySelectionStateProvider.notifier).clear();
   }
 }
 
@@ -35,90 +201,70 @@ final librarySelectionScopeProvider =
     );
 
 /// Mixin for managing generic selection state in [ConsumerStatefulWidget]s
-/// and automatically synchronizing with [librarySelectionScopeProvider].
+/// backed directly by [librarySelectionStateProvider] (Single Source of Truth).
 mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
     on ConsumerState<T> {
-  LibrarySelectionScope get selectionScope => LibrarySelectionScope.navidrome;
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
 
-  bool _isSelectionMode = false;
-  bool get isSelectionMode => _isSelectionMode;
+  bool get isSelectionMode {
+    final state = ref.watch(librarySelectionStateProvider);
+    return state.isActive && state.scope == selectionScope;
+  }
 
-  final Set<K> _selectedKeys = {};
-  Set<K> get selectedKeys => _selectedKeys;
-  int get selectedCount => _selectedKeys.length;
+  Set<K> get selectedKeys {
+    final state = ref.watch(librarySelectionStateProvider);
+    if (state.scope != selectionScope) return const {};
+    return state.selectedKeys.cast<K>().toSet();
+  }
 
-  bool isSelected(K key) => _selectedKeys.contains(key);
+  int get selectedCount => selectedKeys.length;
+
+  bool isSelected(K key) => selectedKeys.contains(key);
 
   void updateSelectionScope(bool active) {
     if (active) {
-      ref.read(librarySelectionScopeProvider.notifier).setScope(selectionScope);
+      ref
+          .read(librarySelectionStateProvider.notifier)
+          .setScope(selectionScope);
     } else {
-      ref.read(librarySelectionScopeProvider.notifier).clear();
+      ref.read(librarySelectionStateProvider.notifier).clear();
     }
   }
 
   void enterSelectionMode([K? initialKey]) {
-    setState(() {
-      _isSelectionMode = true;
-      _selectedKeys.clear();
-      if (initialKey != null) {
-        _selectedKeys.add(initialKey);
-      }
-    });
-    updateSelectionScope(true);
+    ref.read(librarySelectionStateProvider.notifier).enter(
+      selectionScope,
+      initialKey: initialKey,
+    );
   }
 
   void toggleSelection(K key) {
-    bool nextActive = _isSelectionMode;
-    setState(() {
-      if (_selectedKeys.contains(key)) {
-        _selectedKeys.remove(key);
-        if (_selectedKeys.isEmpty) {
-          _isSelectionMode = false;
-          nextActive = false;
-        }
-      } else {
-        _selectedKeys.add(key);
-        _isSelectionMode = true;
-        nextActive = true;
-      }
-    });
-    updateSelectionScope(nextActive);
+    ref.read(librarySelectionStateProvider.notifier).toggle(
+      key,
+      scope: selectionScope,
+    );
   }
 
   void toggleSelectAll(Iterable<K> allKeys) {
-    final allSet = allKeys.toSet();
-    bool nextActive = false;
-    setState(() {
-      if (_selectedKeys.length == allSet.length && allSet.isNotEmpty) {
-        _selectedKeys.clear();
-        _isSelectionMode = false;
-        nextActive = false;
-      } else {
-        _selectedKeys.clear();
-        _selectedKeys.addAll(allSet);
-        _isSelectionMode = true;
-        nextActive = true;
-      }
-    });
-    updateSelectionScope(nextActive);
+    ref.read(librarySelectionStateProvider.notifier).toggleSelectAll(
+      allKeys,
+      scope: selectionScope,
+    );
   }
 
   void cancelSelection() {
-    if (!_isSelectionMode && _selectedKeys.isEmpty) return;
-    setState(() {
-      _selectedKeys.clear();
-      _isSelectionMode = false;
-    });
-    updateSelectionScope(false);
+    ref.read(librarySelectionStateProvider.notifier).clear();
   }
 
   @override
   void dispose() {
-    if (_isSelectionMode) {
+    final current = ref.read(librarySelectionStateProvider);
+    if (current.scope == selectionScope) {
       Future.microtask(() {
         try {
-          ref.read(librarySelectionScopeProvider.notifier).clear();
+          if (ref.read(librarySelectionStateProvider).scope == selectionScope) {
+            ref.read(librarySelectionStateProvider.notifier).clear();
+          }
         } catch (_) {}
       });
     }
@@ -127,93 +273,74 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
 }
 
 /// Mixin for managing song-path selection in [ConsumerStatefulWidget]s
-/// and automatically synchronizing with [librarySelectionScopeProvider].
+/// backed directly by [librarySelectionStateProvider] (Single Source of Truth).
 mixin SongSelectionMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  LibrarySelectionScope get selectionScope => LibrarySelectionScope.navidrome;
+  LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
 
-  bool _isSelectionMode = false;
-  bool get isSelectionMode => _isSelectionMode;
+  bool get isSelectionMode {
+    final state = ref.watch(librarySelectionStateProvider);
+    return state.isActive && state.scope == selectionScope;
+  }
 
-  final Set<String> _selectedSongPaths = {};
-  Set<String> get selectedSongPaths => _selectedSongPaths;
-  int get selectedCount => _selectedSongPaths.length;
+  Set<String> get selectedSongPaths {
+    final state = ref.watch(librarySelectionStateProvider);
+    if (state.scope != selectionScope) return const {};
+    return state.selectedKeys.cast<String>().toSet();
+  }
 
-  bool isSongSelected(String path) => _selectedSongPaths.contains(path);
+  int get selectedCount => selectedSongPaths.length;
+
+  bool isSongSelected(String path) => selectedSongPaths.contains(path);
 
   List<MusicFile> getSelectedSongs(List<MusicFile> allSongs) {
-    return allSongs.where((s) => _selectedSongPaths.contains(s.path)).toList();
+    final paths = selectedSongPaths;
+    return allSongs.where((s) => paths.contains(s.path)).toList();
   }
 
   void updateSelectionScope(bool active) {
     if (active) {
-      ref.read(librarySelectionScopeProvider.notifier).setScope(selectionScope);
+      ref
+          .read(librarySelectionStateProvider.notifier)
+          .setScope(selectionScope);
     } else {
-      ref.read(librarySelectionScopeProvider.notifier).clear();
+      ref.read(librarySelectionStateProvider.notifier).clear();
     }
   }
 
   void enterSongSelectionMode([String? initialPath]) {
-    setState(() {
-      _isSelectionMode = true;
-      _selectedSongPaths.clear();
-      if (initialPath != null) {
-        _selectedSongPaths.add(initialPath);
-      }
-    });
-    updateSelectionScope(true);
+    ref.read(librarySelectionStateProvider.notifier).enter(
+      selectionScope,
+      initialKey: initialPath,
+    );
   }
 
   void toggleSongSelection(String path) {
-    bool nextActive = _isSelectionMode;
-    setState(() {
-      if (_selectedSongPaths.contains(path)) {
-        _selectedSongPaths.remove(path);
-        if (_selectedSongPaths.isEmpty) {
-          _isSelectionMode = false;
-          nextActive = false;
-        }
-      } else {
-        _selectedSongPaths.add(path);
-        _isSelectionMode = true;
-        nextActive = true;
-      }
-    });
-    updateSelectionScope(nextActive);
+    ref.read(librarySelectionStateProvider.notifier).toggle(
+      path,
+      scope: selectionScope,
+    );
   }
 
   void toggleSelectAllSongs(List<MusicFile> allSongs) {
-    final isAll = _selectedSongPaths.length == allSongs.length && allSongs.isNotEmpty;
-    bool nextActive = false;
-    setState(() {
-      if (isAll) {
-        _selectedSongPaths.clear();
-        _isSelectionMode = false;
-        nextActive = false;
-      } else {
-        _selectedSongPaths.clear();
-        _selectedSongPaths.addAll(allSongs.map((s) => s.path));
-        _isSelectionMode = true;
-        nextActive = true;
-      }
-    });
-    updateSelectionScope(nextActive);
+    ref.read(librarySelectionStateProvider.notifier).toggleSelectAll(
+      allSongs.map((s) => s.path),
+      scope: selectionScope,
+    );
   }
 
   void cancelSongSelection() {
-    if (!_isSelectionMode && _selectedSongPaths.isEmpty) return;
-    setState(() {
-      _selectedSongPaths.clear();
-      _isSelectionMode = false;
-    });
-    updateSelectionScope(false);
+    ref.read(librarySelectionStateProvider.notifier).clear();
   }
 
   @override
   void dispose() {
-    if (_isSelectionMode) {
+    final current = ref.read(librarySelectionStateProvider);
+    if (current.scope == selectionScope) {
       Future.microtask(() {
         try {
-          ref.read(librarySelectionScopeProvider.notifier).clear();
+          if (ref.read(librarySelectionStateProvider).scope == selectionScope) {
+            ref.read(librarySelectionStateProvider.notifier).clear();
+          }
         } catch (_) {}
       });
     }
