@@ -280,6 +280,10 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     _uiController = ref.read(mainLayoutUiControllerProvider.notifier);
     _shortcutManager = AppShortcutManager();
     _syncDeletedSongNoticeHandler();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(mainTabIndexProvider.notifier).setIndex(_currentIndex);
+    });
 
     final isProUnlocked = ref.read(isProUnlockedProvider);
     if (settings.lanSharingEnabled && isProUnlocked) {
@@ -626,6 +630,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     if (_currentIndex != 1) {
       ref.read(previousMainTabIndexProvider.notifier).setIndex(_currentIndex);
     }
+    ref.read(mainTabIndexProvider.notifier).setIndex(index);
     await navigateToMainTab(
       context,
       index: index,
@@ -1188,13 +1193,18 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     final bool isLandscape =
         !isSmallWin &&
         (MediaQuery.of(context).orientation == Orientation.landscape);
-    final bool useSidebar = isLandscape;
+    final bool isCoverFlowImmersive =
+        !isDesktop &&
+        isLandscape &&
+        ref.watch(isCoverFlowImmersiveActiveProvider);
+    final bool useSidebar = isLandscape && !isCoverFlowImmersive;
     final bool hideImmersiveTabBar =
         isDesktop &&
         isPlayback &&
         settings.isImmersiveTabBarEnabled &&
         !uiState.showImmersiveTabBar;
-    final bool hideBottomBar = isPlayback && isSmallWin;
+    final bool hideBottomBar =
+        (isPlayback && isSmallWin) || isCoverFlowImmersive;
 
     final double railWidth = (useSidebar && !hideImmersiveTabBar) ? 80.0 : 0.0;
 
@@ -1477,7 +1487,9 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                               (isPlayback &&
                                   settings.isImmersiveTabBarEnabled &&
                                   settings.isUserInactive),
-                          hideMiniPlayer: hideMiniPlayerForSelection,
+                          hideMiniPlayer:
+                              hideMiniPlayerForSelection ||
+                              isCoverFlowImmersive,
                           additionalBottomOffset:
                               uiState.snackBarOffset +
                               (((isRootSelectionMode && _currentIndex == 0) ||

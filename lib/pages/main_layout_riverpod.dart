@@ -108,3 +108,44 @@ final previousMainTabIndexProvider =
       PreviousMainTabIndexNotifier.new,
     );
 
+class IsAlbum3DViewActiveNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) {
+    if (state != value) {
+      state = value;
+    }
+  }
+}
+
+final isAlbum3DViewActiveProvider =
+    NotifierProvider<IsAlbum3DViewActiveNotifier, bool>(
+      IsAlbum3DViewActiveNotifier.new,
+    );
+
+class LibraryActiveTabIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void set(int value) {
+    if (state != value) {
+      state = value;
+    }
+  }
+}
+
+final libraryActiveTabIndexProvider =
+    NotifierProvider<LibraryActiveTabIndexNotifier, int>(
+      LibraryActiveTabIndexNotifier.new,
+    );
+
+final isCoverFlowImmersiveActiveProvider = Provider<bool>((ref) {
+  final mainIndex = ref.watch(mainTabIndexProvider);
+  final libIndex = ref.watch(libraryActiveTabIndexProvider);
+  final is3D = ref.watch(isAlbum3DViewActiveProvider);
+  return mainIndex == 2 && libIndex == 4 && is3D;
+});
+
+
+

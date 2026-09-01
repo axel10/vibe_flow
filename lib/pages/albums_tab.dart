@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import '../widgets/library_selection_panel.dart';
 import '../models/music_file.dart';
 import '../dialogs/sort_options_dialog.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'main_layout_riverpod.dart';
 
 class AlbumsTab extends ConsumerStatefulWidget {
   const AlbumsTab({
@@ -63,6 +65,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
     final settings = ref.read(settingsServiceProvider);
     _sortField = settings.albumSortField;
     _sortAscending = settings.albumSortAscending;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(isAlbum3DViewActiveProvider.notifier).set(_is3DView);
+    });
   }
 
   @override
@@ -172,15 +178,20 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                 };
 
                 final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+                final bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+                final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+                final bool isMobileLandscape3D = !isDesktop && isLandscape && _is3DView;
+
                 final textScale = MediaQuery.textScalerOf(context).scale(10) / 10;
                 final clampedScale = textScale.clamp(1.0, 1.3);
                 final double textHeight = (isPortrait ? 92.0 : 108.0) * clampedScale;
                 final itemWidth = (constraints.maxWidth - 32 - (crossAxisCount - 1) * 16) / crossAxisCount;
                 final childAspectRatio = itemWidth / (itemWidth + textHeight);
 
-                final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
                 final bottomPadding = 120.0 + (isSelectionMode ? 220.0 : 0.0);
-                final bottomOffset = (currentMusic != null ? (isLandscape ? 96.0 : 140.0) : 40.0) + (isSelectionMode ? 220.0 : 0.0);
+                final bottomOffset = isMobileLandscape3D
+                    ? (isSelectionMode ? 120.0 : 0.0)
+                    : ((currentMusic != null ? (isLandscape ? 96.0 : 140.0) : 40.0) + (isSelectionMode ? 220.0 : 0.0));
 
                 final toolbar = _AlbumsToolbar(
                   searchController: _searchController,
@@ -216,6 +227,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                     setState(() {
                       _is3DView = !_is3DView;
                     });
+                    ref.read(isAlbum3DViewActiveProvider.notifier).set(_is3DView);
                   },
                   onShufflePressed: () => _onShufflePressed(albums),
                 );
@@ -240,32 +252,87 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                     );
                   },
                   child: _is3DView
-                      ? Column(
-                          key: const ValueKey('album_3d_cover_flow_view'),
-                          children: [
-                            toolbar,
-                            Expanded(
-                              child: visibleAlbums.isEmpty
-                                  ? Center(
-                                      child: Text(
-                                        l10n.noAlbums,
-                                        style: Theme.of(context).textTheme.titleMedium,
-                                      ),
-                                    )
-                                  : _Album3DCoverFlowView(
-                                      key: _coverFlowKey,
-                                      albums: visibleAlbums,
-                                      initialIndex: widget.initial3DIndex,
-                                      isSelectionMode: isSelectionMode,
-                                      selectedAlbumIds: selectedKeys,
-                                      bottomOffset: bottomOffset,
-                                      isHeroEnabled: _is3DView,
-                                      onToggleSelection: toggleSelection,
-                                      onEnterSelectionMode: enterSelectionMode,
-                                    ),
-                            ),
-                          ],
-                        )
+                      ? (isMobileLandscape3D
+                          ? Stack(
+                              key: const ValueKey('album_3d_cover_flow_view_immersive'),
+                              fit: StackFit.expand,
+                              children: [
+                                Positioned.fill(
+                                  child: visibleAlbums.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            l10n.noAlbums,
+                                            style: Theme.of(context).textTheme.titleMedium,
+                                          ),
+                                        )
+                                      : _Album3DCoverFlowView(
+                                          key: _coverFlowKey,
+                                          albums: visibleAlbums,
+                                          initialIndex: widget.initial3DIndex,
+                                          isSelectionMode: isSelectionMode,
+                                          selectedAlbumIds: selectedKeys,
+                                          bottomOffset: bottomOffset,
+                                          isHeroEnabled: _is3DView,
+                                          onToggleSelection: toggleSelection,
+                                          onEnterSelectionMode: enterSelectionMode,
+                                        ),
+                                ),
+                                Positioned(
+                                  top: MediaQuery.of(context).padding.top + 8,
+                                  left: 16,
+                                  right: 16,
+                                  child: _FloatingCoverFlowToolbar(
+                                    albumCount: visibleAlbums.length,
+                                    sortField: _sortField,
+                                    sortAscending: _sortAscending,
+                                    onViewModeToggled: () {
+                                      setState(() {
+                                        _is3DView = !_is3DView;
+                                      });
+                                      ref.read(isAlbum3DViewActiveProvider.notifier).set(_is3DView);
+                                    },
+                                    onShufflePressed: () => _onShufflePressed(albums),
+                                    onSortChanged: (field, sortAscending) {
+                                      setState(() {
+                                        _sortField = field;
+                                        _sortAscending = sortAscending;
+                                        _isShuffledMode = false;
+                                        _shuffledAlbums = null;
+                                      });
+                                      final settings = ref.read(settingsServiceProvider);
+                                      settings.albumSortField = field;
+                                      settings.albumSortAscending = sortAscending;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              key: const ValueKey('album_3d_cover_flow_view'),
+                              children: [
+                                toolbar,
+                                Expanded(
+                                  child: visibleAlbums.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            l10n.noAlbums,
+                                            style: Theme.of(context).textTheme.titleMedium,
+                                          ),
+                                        )
+                                      : _Album3DCoverFlowView(
+                                          key: _coverFlowKey,
+                                          albums: visibleAlbums,
+                                          initialIndex: widget.initial3DIndex,
+                                          isSelectionMode: isSelectionMode,
+                                          selectedAlbumIds: selectedKeys,
+                                          bottomOffset: bottomOffset,
+                                          isHeroEnabled: _is3DView,
+                                          onToggleSelection: toggleSelection,
+                                          onEnterSelectionMode: enterSelectionMode,
+                                        ),
+                                ),
+                              ],
+                            ))
                       : ScrollToTopWrapper(
                           key: const ValueKey('album_grid_view'),
                           scrollController: _scrollController,
@@ -1089,6 +1156,158 @@ class _AlbumsToolbar extends StatelessWidget {
   }
 }
 
+class _FloatingCoverFlowToolbar extends StatelessWidget {
+  const _FloatingCoverFlowToolbar({
+    required this.albumCount,
+    required this.sortField,
+    required this.sortAscending,
+    required this.onViewModeToggled,
+    required this.onShufflePressed,
+    required this.onSortChanged,
+  });
+
+  final int albumCount;
+  final AlbumSortField sortField;
+  final bool sortAscending;
+  final VoidCallback onViewModeToggled;
+  final VoidCallback onShufflePressed;
+  final void Function(AlbumSortField field, bool sortAscending) onSortChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final pillBg = isDark
+        ? Colors.black.withValues(alpha: 0.65)
+        : Colors.white.withValues(alpha: 0.85);
+    final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.35);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Left: Album badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: pillBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: 0.8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.album_rounded,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${l10n.albums} ($albumCount)',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Right: Control buttons (Shuffle, Sort, Grid View)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: pillBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: 0.8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: l10n.shuffleAlbumOrder,
+                iconSize: 20,
+                visualDensity: VisualDensity.compact,
+                onPressed: onShufflePressed,
+                icon: const Icon(Icons.shuffle_rounded),
+              ),
+              IconButton(
+                tooltip: l10n.albumSort,
+                iconSize: 20,
+                visualDensity: VisualDensity.compact,
+                onPressed: () async {
+                  final result = await showDialog<SortResult<AlbumSortField>>(
+                    context: context,
+                    builder: (context) => SortOptionsDialog<AlbumSortField>(
+                      title: l10n.albumSort,
+                      currentField: sortField,
+                      sortAscending: sortAscending,
+                      options: [
+                        SortOptionItem(
+                          value: AlbumSortField.artist,
+                          label: l10n.sortArtistAsc,
+                          icon: Icons.person_rounded,
+                        ),
+                        SortOptionItem(
+                          value: AlbumSortField.title,
+                          label: l10n.sortTitleAsc,
+                          icon: Icons.album_rounded,
+                        ),
+                        SortOptionItem(
+                          value: AlbumSortField.trackCount,
+                          label: l10n.sortTrackCount,
+                          icon: Icons.format_list_numbered_rounded,
+                        ),
+                        SortOptionItem(
+                          value: AlbumSortField.duration,
+                          label: l10n.sortDuration,
+                          icon: Icons.access_time_rounded,
+                        ),
+                        SortOptionItem(
+                          value: AlbumSortField.recentAdded,
+                          label: l10n.sortRecentAdded,
+                          icon: Icons.add_circle_outline_rounded,
+                        ),
+                      ],
+                    ),
+                  );
+                  if (result != null) {
+                    onSortChanged(result.field, result.sortAscending);
+                  }
+                },
+                icon: const Icon(Icons.sort_rounded),
+              ),
+              IconButton(
+                tooltip: l10n.gridView,
+                iconSize: 20,
+                visualDensity: VisualDensity.compact,
+                onPressed: onViewModeToggled,
+                icon: const Icon(Icons.grid_view_rounded),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _Album3DCoverFlowView extends ConsumerStatefulWidget {
   const _Album3DCoverFlowView({
     super.key,
@@ -1268,10 +1487,13 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
         final double minAvailable = math.min(100.0, math.max(0.0, stageHeight));
         final double availableHeight = (stageHeight - widget.bottomOffset).clamp(minAvailable, math.max(minAvailable, stageHeight));
         final isWide = stageWidth >= 780;
-        final double maxCoverRatio = availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.38 : 0.44);
-        final double maxAllowedCover = math.max(60.0, availableHeight * maxCoverRatio);
-        final double minAllowedCover = math.min(110.0, maxAllowedCover);
-        final double coverSize = (isWide ? 260.0 : 200.0).clamp(minAllowedCover, maxAllowedCover);
+        final bool isImmersiveBottom = widget.bottomOffset <= 24.0;
+        final double maxCoverRatio = isImmersiveBottom
+            ? (availableHeight < 440.0 ? 0.48 : 0.52)
+            : (availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.38 : 0.44));
+        final double maxAllowedCover = math.max(80.0, availableHeight * maxCoverRatio);
+        final double minAllowedCover = math.min(130.0, maxAllowedCover);
+        final double coverSize = (isWide ? 260.0 : (isImmersiveBottom ? 220.0 : 200.0)).clamp(minAllowedCover, maxAllowedCover);
 
         final double shuffleVal = _shuffleAnimController.value;
         double gatherFactor = 0.0;
@@ -1298,12 +1520,16 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
           return distB.compareTo(distA);
         });
 
-        final double centerRatio = availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.36 : 0.38);
+        final double centerRatio = isImmersiveBottom
+            ? 0.40
+            : (availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.36 : 0.38));
         final double minY = coverSize * 0.52;
-        final double maxY = math.max(minY, availableHeight * 0.44);
+        final double maxY = math.max(minY, availableHeight * 0.46);
         final double stageCenterY = (availableHeight * centerRatio).clamp(minY, maxY);
-        final double infoBottomPadding = ((availableHeight - 300.0) / (600.0 - 300.0) * 52.0 + 8.0).clamp(8.0, 60.0);
-        final bool isCompactHeight = availableHeight < 420.0;
+        final double infoBottomPadding = isImmersiveBottom
+            ? 12.0
+            : (((availableHeight - 300.0) / (600.0 - 300.0) * 52.0 + 8.0).clamp(8.0, 60.0));
+        final bool isCompactHeight = availableHeight < 460.0;
 
         return Focus(
           focusNode: _focusNode,
@@ -1476,7 +1702,6 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                     );
                   }),
 
-
                   if (widget.albums.length > 1) ...[
                     Positioned(
                       left: 16,
@@ -1519,7 +1744,10 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.titleLarge?.copyWith(
+                                style: (isCompactHeight
+                                        ? theme.textTheme.titleMedium
+                                        : theme.textTheme.titleLarge)
+                                    ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1529,60 +1757,117 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
+                                style: (isCompactHeight
+                                        ? theme.textTheme.bodySmall
+                                        : theme.textTheme.bodyMedium)
+                                    ?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              SizedBox(height: isCompactHeight ? 8 : 14),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  FilledButton.icon(
-                                    onPressed: () {
-                                      audio.playPlaylist(
-                                        activeAlbum.songs,
-                                        source: PlaybackSource(
-                                          type: PlaybackSourceType.album,
-                                          id: activeAlbum.id,
-                                          name: activeAlbum.title,
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.play_arrow_rounded),
-                                    label: Text(l10n.playAll),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  FilledButton.tonalIcon(
-                                    onPressed: () {
-                                      audio.playPlaylist(
-                                        List.of(activeAlbum.songs)..shuffle(),
-                                        source: PlaybackSource(
-                                          type: PlaybackSourceType.album,
-                                          id: activeAlbum.id,
-                                          name: activeAlbum.title,
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.shuffle_rounded),
-                                    label: Text(l10n.shufflePlay),
-                                  ),
-                                  if (stageWidth >= 450) ...[
-                                    const SizedBox(width: 12),
-                                    OutlinedButton.icon(
+                              SizedBox(height: isCompactHeight ? 6 : 14),
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    FilledButton.icon(
+                                      style: isCompactHeight
+                                          ? FilledButton.styleFrom(
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              padding: const EdgeInsets
+                                                  .symmetric(
+                                                horizontal: 12,
+                                                vertical: 0,
+                                              ),
+                                              textStyle: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            )
+                                          : null,
                                       onPressed: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute<void>(
-                                            builder: (_) =>
-                                                AlbumDetailPage(album: activeAlbum),
+                                        audio.playPlaylist(
+                                          activeAlbum.songs,
+                                          source: PlaybackSource(
+                                            type: PlaybackSourceType.album,
+                                            id: activeAlbum.id,
+                                            name: activeAlbum.title,
                                           ),
                                         );
                                       },
-                                      icon: const Icon(Icons.album_rounded),
-                                      label: Text(l10n.viewAlbumDetails),
+                                      icon: Icon(
+                                        Icons.play_arrow_rounded,
+                                        size: isCompactHeight ? 18 : 24,
+                                      ),
+                                      label: Text(l10n.playAll),
                                     ),
+                                    const SizedBox(width: 10),
+                                    FilledButton.tonalIcon(
+                                      style: isCompactHeight
+                                          ? FilledButton.styleFrom(
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              padding: const EdgeInsets
+                                                  .symmetric(
+                                                horizontal: 12,
+                                                vertical: 0,
+                                              ),
+                                              textStyle: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            )
+                                          : null,
+                                      onPressed: () {
+                                        audio.playPlaylist(
+                                          List.of(activeAlbum.songs)..shuffle(),
+                                          source: PlaybackSource(
+                                            type: PlaybackSourceType.album,
+                                            id: activeAlbum.id,
+                                            name: activeAlbum.title,
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.shuffle_rounded,
+                                        size: isCompactHeight ? 18 : 24,
+                                      ),
+                                      label: Text(l10n.shufflePlay),
+                                    ),
+                                    if (stageWidth >= 550) ...[
+                                      const SizedBox(width: 10),
+                                      OutlinedButton.icon(
+                                        style: isCompactHeight
+                                            ? OutlinedButton.styleFrom(
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                padding: const EdgeInsets
+                                                    .symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 0,
+                                                ),
+                                                textStyle: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              )
+                                            : null,
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute<void>(
+                                              builder: (_) =>
+                                                  AlbumDetailPage(album: activeAlbum),
+                                            ),
+                                          );
+                                        },
+                                        icon: Icon(
+                                          Icons.album_rounded,
+                                          size: isCompactHeight ? 18 : 24,
+                                        ),
+                                        label: Text(l10n.viewAlbumDetails),
+                                      ),
+                                    ],
                                   ],
-                                ],
+                                ),
                               ),
                             ],
                           ),

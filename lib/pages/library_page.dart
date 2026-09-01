@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,7 @@ import 'recently_played_tab.dart';
 import '../widgets/library_selection_scope.dart';
 import 'playlist_tab.dart';
 import 'recently_added_tab.dart';
+import 'main_layout_riverpod.dart';
 
 // 媒体库页面
 
@@ -29,7 +31,7 @@ class LibraryPage extends ConsumerStatefulWidget {
 }
 
 class _LibraryPageState extends ConsumerState<LibraryPage>
-    with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   int _tabIndex = 0;
 
@@ -46,8 +48,14 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
         if (_tabController.indexIsChanging) return;
         if (_tabIndex == _tabController.index) return;
         _tabIndex = _tabController.index;
+        ref.read(libraryActiveTabIndexProvider.notifier).set(_tabIndex);
         ref.read(librarySelectionScopeProvider.notifier).clear();
       });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(libraryActiveTabIndexProvider.notifier).set(_tabIndex);
+    });
   }
 
   @override
@@ -60,28 +68,36 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isCoverFlowImmersive =
+        !isDesktop && isLandscape && ref.watch(isCoverFlowImmersiveActiveProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        notificationPredicate: (_) => false,
-        title:TabBar(
-          controller: _tabController,
-          isScrollable: isPortrait,
-          tabAlignment: isPortrait ? TabAlignment.center : TabAlignment.fill,
-          tabs: [
-            Tab(text: l10n.playlist),
-            Tab(text: l10n.recentlyPlayed),
-            Tab(text: l10n.mostPlayed),
-            Tab(text: l10n.recentlyAdded),
-            Tab(text: l10n.albums),
-            Tab(text: l10n.artists),
-          ],
-        )
-      ),
+      appBar: isCoverFlowImmersive
+          ? null
+          : AppBar(
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              notificationPredicate: (_) => false,
+              title: TabBar(
+                controller: _tabController,
+                isScrollable: isPortrait,
+                tabAlignment:
+                    isPortrait ? TabAlignment.center : TabAlignment.fill,
+                tabs: [
+                  Tab(text: l10n.playlist),
+                  Tab(text: l10n.recentlyPlayed),
+                  Tab(text: l10n.mostPlayed),
+                  Tab(text: l10n.recentlyAdded),
+                  Tab(text: l10n.albums),
+                  Tab(text: l10n.artists),
+                ],
+              ),
+            ),
       body: TabBarView(
         controller: _tabController,
+        physics: isCoverFlowImmersive ? const NeverScrollableScrollPhysics() : null,
         children: [
           const KeepAliveWrapper(child: PlaylistTab()),
           const KeepAliveWrapper(child: RecentlyPlayedTab()),

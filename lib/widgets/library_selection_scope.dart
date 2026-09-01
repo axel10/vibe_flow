@@ -322,7 +322,10 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
     final controller = _selectionController;
     if (controller != null) {
       Future.microtask(() {
-        controller.clearIfScope(selectionScope);
+        try {
+          if (!controller.ref.mounted) return;
+          controller.clearIfScope(selectionScope);
+        } catch (_) {}
       });
     }
     super.dispose();
