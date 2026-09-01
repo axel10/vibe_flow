@@ -1667,5 +1667,13 @@
   "openFolder": "Abrir carpeta",
   "copyFolderName": "Copiar nombre de carpeta",
   "copyFolderPath": "Copiar ruta de carpeta",
-  "errorWithMessage": "Error: {error}"
+  "errorWithMessage": "Error: {error}",
+  "importPlaylist": "Importar lista de reproducción",
+  "exportPlaylist": "Exportar lista de reproducción",
+  "exportPlaylistAsM3u": "Exportar como M3U",
+  "importPlaylistSuccess": "Lista \"{name}\" importada con éxito ({count} canciones)",
+  "exportPlaylistSuccess": "Lista de reproducción exportada",
+  "importPlaylistFailed": "Error al importar lista: {error}",
+  "exportPlaylistFailed": "Error al exportar lista: {error}",
+  "noSongsInPlaylist": "No hay canciones en la lista"
 }

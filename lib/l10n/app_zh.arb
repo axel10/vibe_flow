@@ -2592,5 +2592,55 @@
         "type": "String"
       }
     }
+  },
+  "importPlaylist": "导入播放列表",
+  "@importPlaylist": {
+    "description": "Import playlist"
+  },
+  "exportPlaylist": "导出播放列表",
+  "@exportPlaylist": {
+    "description": "Export playlist"
+  },
+  "exportPlaylistAsM3u": "导出为 M3U",
+  "@exportPlaylistAsM3u": {
+    "description": "Export playlist as M3U"
+  },
+  "importPlaylistSuccess": "成功导入播放列表“{name}”（共 {count} 首歌曲）",
+  "@importPlaylistSuccess": {
+    "description": "Import playlist success message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportPlaylistSuccess": "播放列表已导出",
+  "@exportPlaylistSuccess": {
+    "description": "Export playlist success message"
+  },
+  "importPlaylistFailed": "导入播放列表失败: {error}",
+  "@importPlaylistFailed": {
+    "description": "Import playlist failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPlaylistFailed": "导出播放列表失败: {error}",
+  "@exportPlaylistFailed": {
+    "description": "Export playlist failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noSongsInPlaylist": "播放列表中没有歌曲",
+  "@noSongsInPlaylist": {
+    "description": "Empty playlist message"
   }
 }

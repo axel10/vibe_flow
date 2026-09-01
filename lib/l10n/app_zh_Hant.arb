@@ -1362,5 +1362,13 @@
   "openFolder": "打開資料夾",
   "copyFolderName": "複製資料夾名稱",
   "copyFolderPath": "複製資料夾路徑",
-  "errorWithMessage": "錯誤: {error}"
+  "errorWithMessage": "錯誤: {error}",
+  "importPlaylist": "匯入播放清單",
+  "exportPlaylist": "匯出播放清單",
+  "exportPlaylistAsM3u": "匯出為 M3U",
+  "importPlaylistSuccess": "成功匯入播放清單「{name}」（共 {count} 首歌曲）",
+  "exportPlaylistSuccess": "播放清單已匯出",
+  "importPlaylistFailed": "匯入播放清單失敗: {error}",
+  "exportPlaylistFailed": "匯出播放清單失敗: {error}",
+  "noSongsInPlaylist": "播放清單中沒有歌曲"
 }

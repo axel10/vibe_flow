@@ -4254,4 +4254,34 @@ class AppLocalizationsKo extends AppLocalizations {
   String errorWithMessage(String error) {
     return '오류: $error';
   }
+
+  @override
+  String get importPlaylist => '재생목록 가져오기';
+
+  @override
+  String get exportPlaylist => '재생목록 내보내기';
+
+  @override
+  String get exportPlaylistAsM3u => 'M3U로 내보내기';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return '재생목록 \"$name\"을(를) 가져왔습니다 ($count곡)';
+  }
+
+  @override
+  String get exportPlaylistSuccess => '재생목록을 내보냈습니다';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return '재생목록 가져오기 실패: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return '재생목록 내보내기 실패: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => '재생목록에 곡이 없습니다';
 }

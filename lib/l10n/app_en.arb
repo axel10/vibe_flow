@@ -1884,5 +1884,55 @@
         "type": "String"
       }
     }
+  },
+  "importPlaylist": "Import Playlist",
+  "@importPlaylist": {
+    "description": "Import playlist"
+  },
+  "exportPlaylist": "Export Playlist",
+  "@exportPlaylist": {
+    "description": "Export playlist"
+  },
+  "exportPlaylistAsM3u": "Export as M3U",
+  "@exportPlaylistAsM3u": {
+    "description": "Export playlist as M3U"
+  },
+  "importPlaylistSuccess": "Successfully imported playlist \"{name}\" ({count} songs)",
+  "@importPlaylistSuccess": {
+    "description": "Import playlist success message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportPlaylistSuccess": "Playlist exported successfully",
+  "@exportPlaylistSuccess": {
+    "description": "Export playlist success message"
+  },
+  "importPlaylistFailed": "Failed to import playlist: {error}",
+  "@importPlaylistFailed": {
+    "description": "Import playlist failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPlaylistFailed": "Failed to export playlist: {error}",
+  "@exportPlaylistFailed": {
+    "description": "Export playlist failed message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "noSongsInPlaylist": "No songs in playlist",
+  "@noSongsInPlaylist": {
+    "description": "Empty playlist message"
   }
 }

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +11,7 @@ import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
 import 'package:vynody/player/library/playlist_service.dart';
 import '../widgets/song_tile.dart';
+import 'package:vynody/utils/file_selector_helper.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
 import 'package:vynody/utils/playlist_name.dart';
@@ -268,6 +271,85 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
     );
   }
 
+  Future<void> _importM3uPlaylist(BuildContext context) async {
+    try {
+      final filePaths = await FileSelectorHelper.pickFiles(
+        extensions: ['m3u', 'm3u8'],
+        label: 'M3U Playlist',
+      );
+      if (filePaths == null || filePaths.isEmpty || !context.mounted) return;
+
+      final playlistService = ref.read(playlistServiceProvider);
+      final l10n = AppLocalizations.of(context)!;
+      final imported = await playlistService.importPlaylistsFromM3u(filePaths);
+
+      if (!context.mounted) return;
+      if (imported.isNotEmpty) {
+        final last = imported.last;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n.importPlaylistSuccess(last.name, last.songs.length),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.importPlaylistFailed(e.toString())),
+        ),
+      );
+    }
+  }
+
+  Future<void> _exportPlaylistAsM3u(
+    BuildContext context,
+    Playlist playlist,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (playlist.songs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.noSongsInPlaylist),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final playlistService = ref.read(playlistServiceProvider);
+      final m3uContent = playlistService.exportPlaylistToM3u(playlist);
+      final bytes = Uint8List.fromList(utf8.encode(m3uContent));
+      final safeName = playlist.name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final suggestedName = '$safeName.m3u8';
+
+      final savedPath = await FileSelectorHelper.saveFile(
+        suggestedName: suggestedName,
+        extensions: ['m3u8', 'm3u'],
+        label: 'M3U8 Playlist',
+        bytes: bytes,
+      );
+
+      if (savedPath != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.exportPlaylistSuccess),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.exportPlaylistFailed(e.toString())),
+        ),
+      );
+    }
+  }
+
   void _showPlaylistOptions(BuildContext context, Playlist playlist) {
     showModalBottomSheet(
       context: context,
@@ -276,6 +358,14 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            ListTile(
+              leading: const Icon(Icons.file_upload_outlined),
+              title: Text(AppLocalizations.of(context)!.exportPlaylistAsM3u),
+              onTap: () {
+                Navigator.pop(context);
+                _exportPlaylistAsM3u(context, playlist);
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.edit),
               title: Text(AppLocalizations.of(context)!.rename),
@@ -388,6 +478,15 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                 ),
               ),
               const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.file_download_outlined),
+                title: Text(AppLocalizations.of(context)!.importPlaylist),
+                onTap: () {
+                  Navigator.pop(context);
+                  _importM3uPlaylist(context);
+                },
+              ),
+              const Divider(height: 1),
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
@@ -408,12 +507,10 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.more_vert),
-                          onPressed: _isFavoritePlaylist(playlist)
-                              ? null
-                              : () {
-                                  Navigator.pop(context);
-                                  _showPlaylistOptions(context, playlist);
-                                },
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _showPlaylistOptions(context, playlist);
+                          },
                         ),
                         onTap: () {
                           playlistService.setCurrentPlaylist(playlist.id);
@@ -535,6 +632,10 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                       _showCreatePlaylistDialog(context);
                     } else if (value == 'manage') {
                       _showPlaylistManager(context);
+                    } else if (value == 'import') {
+                      _importM3uPlaylist(context);
+                    } else if (value == 'export' && currentPlaylist != null) {
+                      _exportPlaylistAsM3u(context, currentPlaylist);
                     }
                   },
                   itemBuilder: (context) => [
@@ -550,6 +651,19 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab> {
                       icon: Icons.list_rounded,
                       context: context,
                     ),
+                    buildContextMenuItem<String>(
+                      value: 'import',
+                      label: l10n.importPlaylist,
+                      icon: Icons.file_download_outlined,
+                      context: context,
+                    ),
+                    if (currentPlaylist != null && currentPlaylist.songs.isNotEmpty)
+                      buildContextMenuItem<String>(
+                        value: 'export',
+                        label: l10n.exportPlaylist,
+                        icon: Icons.file_upload_outlined,
+                        context: context,
+                      ),
                   ],
                 ),
               ],

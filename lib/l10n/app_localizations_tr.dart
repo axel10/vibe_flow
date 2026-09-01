@@ -4416,4 +4416,34 @@ class AppLocalizationsTr extends AppLocalizations {
   String errorWithMessage(String error) {
     return 'Hata: $error';
   }
+
+  @override
+  String get importPlaylist => 'Çalma Listesini İçe Aktar';
+
+  @override
+  String get exportPlaylist => 'Çalma Listesini Dışa Aktar';
+
+  @override
+  String get exportPlaylistAsM3u => 'M3U Olarak Dışa Aktar';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return '\"$name\" çalma listesi başarıyla içe aktarıldı ($count şarkı)';
+  }
+
+  @override
+  String get exportPlaylistSuccess => 'Çalma listesi başarıyla dışa aktarıldı';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return 'Çalma listesi içe aktarılamadı: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return 'Çalma listesi dışa aktarılamadı: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => 'Çalma listesinde şarkı yok';
 }

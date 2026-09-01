@@ -1791,5 +1791,13 @@
   "openFolder": "Klasörü Aç",
   "copyFolderName": "Klasör Adını Kopyala",
   "copyFolderPath": "Klasör Yolunu Kopyala",
-  "errorWithMessage": "Hata: {error}"
+  "errorWithMessage": "Hata: {error}",
+  "importPlaylist": "Çalma Listesini İçe Aktar",
+  "exportPlaylist": "Çalma Listesini Dışa Aktar",
+  "exportPlaylistAsM3u": "M3U Olarak Dışa Aktar",
+  "importPlaylistSuccess": "\"{name}\" çalma listesi başarıyla içe aktarıldı ({count} şarkı)",
+  "exportPlaylistSuccess": "Çalma listesi başarıyla dışa aktarıldı",
+  "importPlaylistFailed": "Çalma listesi içe aktarılamadı: {error}",
+  "exportPlaylistFailed": "Çalma listesi dışa aktarılamadı: {error}",
+  "noSongsInPlaylist": "Çalma listesinde şarkı yok"
 }

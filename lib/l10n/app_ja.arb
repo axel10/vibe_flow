@@ -1766,5 +1766,13 @@
   "openFolder": "フォルダーを開く",
   "copyFolderName": "フォルダー名をコピー",
   "copyFolderPath": "フォルダーパスをコピー",
-  "errorWithMessage": "エラー: {error}"
+  "errorWithMessage": "エラー: {error}",
+  "importPlaylist": "プレイリストをインポート",
+  "exportPlaylist": "プレイリストをエクスポート",
+  "exportPlaylistAsM3u": "M3Uとしてエクスポート",
+  "importPlaylistSuccess": "プレイリスト「{name}」をインポートしました（{count}曲）",
+  "exportPlaylistSuccess": "プレイリストをエクスポートしました",
+  "importPlaylistFailed": "プレイリストのインポートに失敗しました: {error}",
+  "exportPlaylistFailed": "プレイリストのエクスポートに失敗しました: {error}",
+  "noSongsInPlaylist": "プレイリストに曲がありません"
 }

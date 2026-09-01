@@ -4402,4 +4402,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorWithMessage(String error) {
     return 'Error: $error';
   }
+
+  @override
+  String get importPlaylist => 'Import Playlist';
+
+  @override
+  String get exportPlaylist => 'Export Playlist';
+
+  @override
+  String get exportPlaylistAsM3u => 'Export as M3U';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return 'Successfully imported playlist \"$name\" ($count songs)';
+  }
+
+  @override
+  String get exportPlaylistSuccess => 'Playlist exported successfully';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return 'Failed to import playlist: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return 'Failed to export playlist: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => 'No songs in playlist';
 }

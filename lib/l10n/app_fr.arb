@@ -1667,5 +1667,13 @@
   "openFolder": "Ouvrir le dossier",
   "copyFolderName": "Copier le nom du dossier",
   "copyFolderPath": "Copier le chemin du dossier",
-  "errorWithMessage": "Erreur : {error}"
+  "errorWithMessage": "Erreur : {error}",
+  "importPlaylist": "Importer une liste de lecture",
+  "exportPlaylist": "Exporter la liste de lecture",
+  "exportPlaylistAsM3u": "Exporter en M3U",
+  "importPlaylistSuccess": "Liste de lecture \"{name}\" importée avec succès ({count} morceaux)",
+  "exportPlaylistSuccess": "Liste de lecture exportée avec succès",
+  "importPlaylistFailed": "Échec de l'importation de la liste: {error}",
+  "exportPlaylistFailed": "Échec de l'exportation de la liste: {error}",
+  "noSongsInPlaylist": "Aucun morceau dans la liste de lecture"
 }

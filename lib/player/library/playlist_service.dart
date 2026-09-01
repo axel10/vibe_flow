@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
+import 'package:vynody/utils/m3u_utils.dart';
 
 /// 播放列表模型
 class Playlist {
@@ -218,6 +221,69 @@ class PlaylistService extends ChangeNotifier {
       if (excludeId != null && p.id == excludeId) return false;
       return p.name.trim().toLowerCase() == searchName;
     });
+  }
+
+  /// 生成不重复的播放列表名称
+  String generateUniquePlaylistName(String baseName) {
+    final trimmed = baseName.trim();
+    if (trimmed.isEmpty) return generateUniquePlaylistName('新建歌单');
+    if (!playlistExists(trimmed)) return trimmed;
+
+    int counter = 1;
+    while (playlistExists('$trimmed ($counter)')) {
+      counter++;
+    }
+    return '$trimmed ($counter)';
+  }
+
+  /// 从 M3U 文件导入播放列表
+  Future<Playlist> importPlaylistFromM3u(String filePath) async {
+    final file = File(filePath);
+    String content;
+    try {
+      content = await file.readAsString(encoding: utf8);
+    } catch (_) {
+      content = await file.readAsString(encoding: latin1);
+    }
+
+    final data = M3uUtils.parse(content, baseDir: p.dirname(filePath));
+    final rawName = data.playlistName?.trim().isNotEmpty == true
+        ? data.playlistName!.trim()
+        : p.basenameWithoutExtension(filePath);
+    final playlistName = generateUniquePlaylistName(rawName);
+
+    final songs = await M3uUtils.resolveMusicFiles(data.entries);
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final playlist = Playlist(
+      id: id,
+      name: playlistName,
+      songs: songs,
+    );
+
+    _playlists.add(playlist);
+    _currentPlaylistId = id;
+    await _savePlaylists();
+    notifyListeners();
+    return playlist;
+  }
+
+  /// 批量从 M3U 文件导入播放列表
+  Future<List<Playlist>> importPlaylistsFromM3u(List<String> filePaths) async {
+    final imported = <Playlist>[];
+    for (final path in filePaths) {
+      try {
+        final playlist = await importPlaylistFromM3u(path);
+        imported.add(playlist);
+      } catch (e) {
+        debugPrint('Error importing playlist from $path: $e');
+      }
+    }
+    return imported;
+  }
+
+  /// 导出播放列表为 M3U8 字符串
+  String exportPlaylistToM3u(Playlist playlist) {
+    return M3uUtils.generate(playlist.songs, playlistName: playlist.name);
   }
 
   /// 删除播放列表

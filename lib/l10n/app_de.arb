@@ -1667,5 +1667,13 @@
   "openFolder": "Ordner öffnen",
   "copyFolderName": "Ordnernamen kopieren",
   "copyFolderPath": "Ordnerpfad kopieren",
-  "errorWithMessage": "Fehler: {error}"
+  "errorWithMessage": "Fehler: {error}",
+  "importPlaylist": "Playlist importieren",
+  "exportPlaylist": "Playlist exportieren",
+  "exportPlaylistAsM3u": "Als M3U exportieren",
+  "importPlaylistSuccess": "Playlist \"{name}\" erfolgreich importiert ({count} Titel)",
+  "exportPlaylistSuccess": "Playlist erfolgreich exportiert",
+  "importPlaylistFailed": "Playlist-Import fehlgeschlagen: {error}",
+  "exportPlaylistFailed": "Playlist-Export fehlgeschlagen: {error}",
+  "noSongsInPlaylist": "Keine Titel in der Playlist"
 }

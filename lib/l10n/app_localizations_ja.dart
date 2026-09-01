@@ -4251,4 +4251,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String errorWithMessage(String error) {
     return 'エラー: $error';
   }
+
+  @override
+  String get importPlaylist => 'プレイリストをインポート';
+
+  @override
+  String get exportPlaylist => 'プレイリストをエクスポート';
+
+  @override
+  String get exportPlaylistAsM3u => 'M3Uとしてエクスポート';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return 'プレイリスト「$name」をインポートしました（$count曲）';
+  }
+
+  @override
+  String get exportPlaylistSuccess => 'プレイリストをエクスポートしました';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return 'プレイリストのインポートに失敗しました: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return 'プレイリストのエクスポートに失敗しました: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => 'プレイリストに曲がありません';
 }

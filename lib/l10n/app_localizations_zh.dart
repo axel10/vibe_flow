@@ -4186,6 +4186,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String errorWithMessage(String error) {
     return '错误: $error';
   }
+
+  @override
+  String get importPlaylist => '导入播放列表';
+
+  @override
+  String get exportPlaylist => '导出播放列表';
+
+  @override
+  String get exportPlaylistAsM3u => '导出为 M3U';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return '成功导入播放列表“$name”（共 $count 首歌曲）';
+  }
+
+  @override
+  String get exportPlaylistSuccess => '播放列表已导出';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return '导入播放列表失败: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return '导出播放列表失败: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => '播放列表中没有歌曲';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -8370,4 +8400,34 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String errorWithMessage(String error) {
     return '錯誤: $error';
   }
+
+  @override
+  String get importPlaylist => '匯入播放清單';
+
+  @override
+  String get exportPlaylist => '匯出播放清單';
+
+  @override
+  String get exportPlaylistAsM3u => '匯出為 M3U';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return '成功匯入播放清單「$name」（共 $count 首歌曲）';
+  }
+
+  @override
+  String get exportPlaylistSuccess => '播放清單已匯出';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return '匯入播放清單失敗: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return '匯出播放清單失敗: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => '播放清單中沒有歌曲';
 }

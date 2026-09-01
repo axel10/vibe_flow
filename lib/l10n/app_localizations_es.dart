@@ -4464,4 +4464,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String errorWithMessage(String error) {
     return 'Error: $error';
   }
+
+  @override
+  String get importPlaylist => 'Importar lista de reproducción';
+
+  @override
+  String get exportPlaylist => 'Exportar lista de reproducción';
+
+  @override
+  String get exportPlaylistAsM3u => 'Exportar como M3U';
+
+  @override
+  String importPlaylistSuccess(String name, int count) {
+    return 'Lista \"$name\" importada con éxito ($count canciones)';
+  }
+
+  @override
+  String get exportPlaylistSuccess => 'Lista de reproducción exportada';
+
+  @override
+  String importPlaylistFailed(String error) {
+    return 'Error al importar lista: $error';
+  }
+
+  @override
+  String exportPlaylistFailed(String error) {
+    return 'Error al exportar lista: $error';
+  }
+
+  @override
+  String get noSongsInPlaylist => 'No hay canciones en la lista';
 }

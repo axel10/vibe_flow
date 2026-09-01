@@ -7844,6 +7844,54 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'错误: {error}'**
   String errorWithMessage(String error);
+
+  /// Import playlist
+  ///
+  /// In zh, this message translates to:
+  /// **'导入播放列表'**
+  String get importPlaylist;
+
+  /// Export playlist
+  ///
+  /// In zh, this message translates to:
+  /// **'导出播放列表'**
+  String get exportPlaylist;
+
+  /// Export playlist as M3U
+  ///
+  /// In zh, this message translates to:
+  /// **'导出为 M3U'**
+  String get exportPlaylistAsM3u;
+
+  /// Import playlist success message
+  ///
+  /// In zh, this message translates to:
+  /// **'成功导入播放列表“{name}”（共 {count} 首歌曲）'**
+  String importPlaylistSuccess(String name, int count);
+
+  /// Export playlist success message
+  ///
+  /// In zh, this message translates to:
+  /// **'播放列表已导出'**
+  String get exportPlaylistSuccess;
+
+  /// Import playlist failed message
+  ///
+  /// In zh, this message translates to:
+  /// **'导入播放列表失败: {error}'**
+  String importPlaylistFailed(String error);
+
+  /// Export playlist failed message
+  ///
+  /// In zh, this message translates to:
+  /// **'导出播放列表失败: {error}'**
+  String exportPlaylistFailed(String error);
+
+  /// Empty playlist message
+  ///
+  /// In zh, this message translates to:
+  /// **'播放列表中没有歌曲'**
+  String get noSongsInPlaylist;
 }
 
 class _AppLocalizationsDelegate
