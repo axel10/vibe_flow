@@ -1809,6 +1809,7 @@
   "pullPlaylistsFromDeviceAction": "Bu Cihazdan Çalma Listelerini Al",
   "selectPlaylistsToSend": "Gönderilecek Çalma Listelerini Seç",
   "sendPlaylistsSuccess": "{count} çalma listesi başarıyla gönderildi",
+  "receivePlaylistsSuccess": "{count} çalma listesi başarıyla alındı",
   "pullPlaylistsSuccess": "{count} çalma listesi başarıyla içe aktarıldı",
   "sendPlaylistsFailed": "Çalma listeleri gönderilemedi: {error}",
   "pullPlaylistsFailed": "Çalma listeleri alınamadı: {error}",

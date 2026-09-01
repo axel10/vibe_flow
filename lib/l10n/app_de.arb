@@ -1685,6 +1685,7 @@
   "pullPlaylistsFromDeviceAction": "Playlists von diesem Gerät laden",
   "selectPlaylistsToSend": "Zu sendende Playlists auswählen",
   "sendPlaylistsSuccess": "{count} Playlist(s) erfolgreich gesendet",
+  "receivePlaylistsSuccess": "{count} Playlist(s) erfolgreich empfangen",
   "pullPlaylistsSuccess": "{count} Playlist(s) erfolgreich importiert",
   "sendPlaylistsFailed": "Playlists senden fehlgeschlagen: {error}",
   "pullPlaylistsFailed": "Playlists laden fehlgeschlagen: {error}",

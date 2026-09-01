@@ -1380,6 +1380,7 @@
   "pullPlaylistsFromDeviceAction": "從該裝置拉取播放清單",
   "selectPlaylistsToSend": "選擇要傳送的播放清單",
   "sendPlaylistsSuccess": "成功傳送 {count} 個播放清單",
+  "receivePlaylistsSuccess": "成功接收 {count} 個播放清單",
   "pullPlaylistsSuccess": "成功匯入 {count} 個播放清單",
   "sendPlaylistsFailed": "傳送播放清單失敗: {error}",
   "pullPlaylistsFailed": "拉取播放清單失敗: {error}",

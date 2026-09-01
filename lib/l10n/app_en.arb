@@ -1961,6 +1961,15 @@
       }
     }
   },
+  "receivePlaylistsSuccess": "Successfully received {count} playlist(s)",
+  "@receivePlaylistsSuccess": {
+    "description": "Receive playlists success message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pullPlaylistsSuccess": "Successfully imported {count} playlist(s)",
   "@pullPlaylistsSuccess": {
     "description": "Pull playlists success message",

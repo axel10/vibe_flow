@@ -1685,6 +1685,7 @@
   "pullPlaylistsFromDeviceAction": "Obtenir des listes de cet appareil",
   "selectPlaylistsToSend": "Sélectionner les listes à envoyer",
   "sendPlaylistsSuccess": "{count} liste(s) envoyée(s) avec succès",
+  "receivePlaylistsSuccess": "{count} liste(s) reçue(s) avec succès",
   "pullPlaylistsSuccess": "{count} liste(s) importée(s) avec succès",
   "sendPlaylistsFailed": "Échec de l'envoi des listes : {error}",
   "pullPlaylistsFailed": "Échec de l'obtention des listes : {error}",

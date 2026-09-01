@@ -4253,6 +4253,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return '成功接收 $count 个播放列表';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return '成功导入 $count 个播放列表';
   }
@@ -8550,6 +8555,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String sendPlaylistsSuccess(int count) {
     return '成功傳送 $count 個播放清單';
+  }
+
+  @override
+  String receivePlaylistsSuccess(int count) {
+    return '成功接收 $count 個播放清單';
   }
 
   @override

@@ -107,6 +107,19 @@ final incomingPlaylistRequestProvider =
       IncomingPlaylistRequest?
     >(IncomingPlaylistRequestNotifier.new);
 
+class IncomingPlaylistReceivedNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+
+  void notify(int count) => state = count;
+  void clear() => state = null;
+}
+
+final incomingPlaylistReceivedProvider =
+    NotifierProvider<IncomingPlaylistReceivedNotifier, int?>(
+      IncomingPlaylistReceivedNotifier.new,
+    );
+
 class SharingWarningNotifier extends Notifier<String?> {
   @override
   String? build() => null;
@@ -2893,6 +2906,8 @@ class SharingService {
     }
 
     final stats = await _importPlaylistsPayload(playlists);
+    final count = stats['imported_playlists'] ?? playlists.length;
+    _ref.read(incomingPlaylistReceivedProvider.notifier).notify(count);
 
     request.response.statusCode = HttpStatus.ok;
     request.response.headers.contentType = ContentType.json;

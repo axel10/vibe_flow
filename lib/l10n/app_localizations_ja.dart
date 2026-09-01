@@ -4318,6 +4318,11 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return '$count 個のプレイリストを受信しました';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return '$count 個のプレイリストをインポートしました';
   }

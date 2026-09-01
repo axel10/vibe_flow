@@ -1042,6 +1042,23 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       }
     });
 
+    // Listen for incoming playlist received completion
+    ref.listen<int?>(incomingPlaylistReceivedProvider, (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        AppSnackBar.show(
+          context,
+          ref,
+          SnackBar(
+            content: Text(l10n.receivePlaylistsSuccess(next)),
+          ),
+        );
+        ref.read(incomingPlaylistReceivedProvider.notifier).clear();
+      }
+    });
+
     // Listen for incoming remote control pair requests
     ref.listen<IncomingRemotePairRequest?>(incomingRemotePairProvider, (
       previous,

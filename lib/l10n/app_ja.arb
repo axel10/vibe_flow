@@ -1784,6 +1784,7 @@
   "pullPlaylistsFromDeviceAction": "デバイスからプレイリストを取得",
   "selectPlaylistsToSend": "送信するプレイリストを選択",
   "sendPlaylistsSuccess": "{count} 個のプレイリストを送信しました",
+  "receivePlaylistsSuccess": "{count} 個のプレイリストを受信しました",
   "pullPlaylistsSuccess": "{count} 個のプレイリストをインポートしました",
   "sendPlaylistsFailed": "プレイリストの送信に失敗しました: {error}",
   "pullPlaylistsFailed": "プレイリストの取得に失敗しました: {error}",

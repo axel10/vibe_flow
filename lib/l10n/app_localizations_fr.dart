@@ -4529,6 +4529,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return '$count liste(s) reçue(s) avec succès';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return '$count liste(s) importée(s) avec succès';
   }

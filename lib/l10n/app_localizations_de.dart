@@ -4520,6 +4520,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return '$count Playlist(s) erfolgreich empfangen';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return '$count Playlist(s) erfolgreich importiert';
   }

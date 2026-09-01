@@ -2696,6 +2696,15 @@
       }
     }
   },
+  "receivePlaylistsSuccess": "成功接收 {count} 个播放列表",
+  "@receivePlaylistsSuccess": {
+    "description": "Receive playlists success message",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "pullPlaylistsSuccess": "成功导入 {count} 个播放列表",
   "@pullPlaylistsSuccess": {
     "description": "Pull playlists success message",

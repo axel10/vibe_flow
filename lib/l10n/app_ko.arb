@@ -1685,6 +1685,7 @@
   "pullPlaylistsFromDeviceAction": "이 기기에서 재생목록 가져오기",
   "selectPlaylistsToSend": "전송할 재생목록 선택",
   "sendPlaylistsSuccess": "{count}개의 재생목록을 전송했습니다",
+  "receivePlaylistsSuccess": "{count}개의 재생목록을 수신했습니다",
   "pullPlaylistsSuccess": "{count}개의 재생목록을 가져왔습니다",
   "sendPlaylistsFailed": "재생목록 전송 실패: {error}",
   "pullPlaylistsFailed": "재생목록 가져오기 실패: {error}",

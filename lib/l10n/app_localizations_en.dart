@@ -4469,6 +4469,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return 'Successfully received $count playlist(s)';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return 'Successfully imported $count playlist(s)';
   }

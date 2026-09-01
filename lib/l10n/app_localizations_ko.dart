@@ -4321,6 +4321,11 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return '$count개의 재생목록을 수신했습니다';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return '$count개의 재생목록을 가져왔습니다';
   }

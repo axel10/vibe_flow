@@ -4484,6 +4484,11 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String receivePlaylistsSuccess(int count) {
+    return '$count çalma listesi başarıyla alındı';
+  }
+
+  @override
   String pullPlaylistsSuccess(int count) {
     return '$count çalma listesi başarıyla içe aktarıldı';
   }

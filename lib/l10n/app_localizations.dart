@@ -7947,6 +7947,12 @@ abstract class AppLocalizations {
   /// **'成功发送 {count} 个播放列表'**
   String sendPlaylistsSuccess(int count);
 
+  /// Receive playlists success message
+  ///
+  /// In zh, this message translates to:
+  /// **'成功接收 {count} 个播放列表'**
+  String receivePlaylistsSuccess(int count);
+
   /// Pull playlists success message
   ///
   /// In zh, this message translates to:
