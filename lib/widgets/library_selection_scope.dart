@@ -164,6 +164,12 @@ class LibrarySelectionController extends Notifier<LibrarySelectionState> {
       state = const LibrarySelectionState();
     }
   }
+
+  void clearIfScope(LibrarySelectionScope scope) {
+    if (state.scope == scope) {
+      clear();
+    }
+  }
 }
 
 final librarySelectionStateProvider =
@@ -205,6 +211,13 @@ final librarySelectionScopeProvider =
 mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
     on ConsumerState<T> {
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
+  LibrarySelectionController? _selectionController;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectionController = ref.read(librarySelectionStateProvider.notifier);
+  }
 
   bool get isSelectionMode {
     final state = ref.watch(librarySelectionStateProvider);
@@ -258,24 +271,27 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
 
   @override
   void dispose() {
-    final current = ref.read(librarySelectionStateProvider);
-    if (current.scope == selectionScope) {
+    final controller = _selectionController;
+    if (controller != null) {
       Future.microtask(() {
-        try {
-          if (ref.read(librarySelectionStateProvider).scope == selectionScope) {
-            ref.read(librarySelectionStateProvider.notifier).clear();
-          }
-        } catch (_) {}
+        controller.clearIfScope(selectionScope);
       });
     }
     super.dispose();
   }
 }
 
-/// Mixin for managing song-path selection in [ConsumerStatefulWidget]s
+/// Mixin for managing generic selection state in [ConsumerStatefulWidget]s
 /// backed directly by [librarySelectionStateProvider] (Single Source of Truth).
 mixin SongSelectionMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.library;
+  LibrarySelectionController? _selectionController;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectionController = ref.read(librarySelectionStateProvider.notifier);
+  }
 
   bool get isSelectionMode {
     final state = ref.watch(librarySelectionStateProvider);
@@ -334,14 +350,10 @@ mixin SongSelectionMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   @override
   void dispose() {
-    final current = ref.read(librarySelectionStateProvider);
-    if (current.scope == selectionScope) {
+    final controller = _selectionController;
+    if (controller != null) {
       Future.microtask(() {
-        try {
-          if (ref.read(librarySelectionStateProvider).scope == selectionScope) {
-            ref.read(librarySelectionStateProvider.notifier).clear();
-          }
-        } catch (_) {}
+        controller.clearIfScope(selectionScope);
       });
     }
     super.dispose();

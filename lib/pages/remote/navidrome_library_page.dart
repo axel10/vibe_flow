@@ -476,13 +476,21 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     });
   }
 
+  LibrarySelectionScopeController? _selectionScopeController;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _selectionScopeController =
+        ref.read(librarySelectionScopeProvider.notifier);
+  }
+
   @override
   void dispose() {
     if (_isSelectionMode) {
+      final controller = _selectionScopeController;
       Future.microtask(() {
-        try {
-          ref.read(librarySelectionScopeProvider.notifier).clear();
-        } catch (_) {}
+        controller?.clear();
       });
     }
     _tabController.removeListener(_handleTabChanged);
