@@ -87,16 +87,14 @@ class PlaybackProgressSection extends ConsumerWidget {
           ? horizontalPadding
           : PlaybackHeroCardUiTuning.waveformStandardHorizontalPadding;
 
-      final double thumbRadius = 7 * controlsScale;
-
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: pad),
         child: SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            trackHeight: thumbRadius * 2,
+            trackHeight: 4 * controlsScale,
             trackShape: const ZeroPaddingTrackShape(),
             thumbShape: RoundSliderThumbShape(
-              enabledThumbRadius: thumbRadius,
+              enabledThumbRadius: 7 * controlsScale,
             ),
             overlayShape: RoundSliderOverlayShape(
               overlayRadius: 16 * controlsScale,
