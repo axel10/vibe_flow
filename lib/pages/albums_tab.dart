@@ -75,7 +75,6 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
     final albumsAsync = ref.watch(albumLibraryProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final l10n = AppLocalizations.of(context)!;
-    final isSelectionMode = selectionScope == LibrarySelectionScope.album;
 
     return albumsAsync.when(
       loading: () => Center(
