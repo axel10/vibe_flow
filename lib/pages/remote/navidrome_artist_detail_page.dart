@@ -18,6 +18,8 @@ import '../../player/remote/services/remote_download_service.dart';
 import '../../player/remote/navidrome_navigation.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/remote_context_menu_utils.dart';
+import '../../widgets/library_selection_panel.dart';
+import '../../widgets/library_selection_scope.dart';
 import 'remote_download_manager_page.dart';
 
 class NavidromeArtistDetailPage extends ConsumerWidget {
@@ -144,7 +146,8 @@ class _NavidromeAlbumSectionData {
 }
 
 class _NavidromeArtistDetailContentState
-    extends ConsumerState<NavidromeArtistDetailContent> {
+    extends ConsumerState<NavidromeArtistDetailContent>
+    with SongSelectionMixin {
   bool _isLoading = true;
   String? _error;
   List<_NavidromeAlbumSectionData> _albumSections = [];
@@ -342,7 +345,10 @@ class _NavidromeArtistDetailContentState
     final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
       context,
       hasPlayingMusic: currentMusic != null,
+      isSelectionMode: isSelectionMode,
+      selectionPanelHeight: 220.0,
     );
+    final selectedSongs = getSelectedSongs(_allSongs);
     final headerColor = theme.colorScheme.tertiaryContainer.withValues(
       alpha: 0.65,
     );
@@ -393,175 +399,222 @@ class _NavidromeArtistDetailContentState
     final totalAlbumCount = widget.albumCount ?? _albumSections.length;
     final biography = _artistInfo?['biography'] as String?;
 
-    return RefreshIndicator(
-      onRefresh: _loadArtistData,
-      child: CustomScrollView(
-        slivers: [
-          // Artist Header (Styled similarly to local ArtistDetailContent)
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [headerColor, theme.colorScheme.surface],
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.artistLabel.toUpperCase(),
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.artistName,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _InfoChip(label: l10n.albumCount(totalAlbumCount)),
-                      if (totalSongCount > 0)
-                        _InfoChip(label: l10n.songCount(totalSongCount)),
-                    ],
-                  ),
-                  if (biography != null && biography.trim().isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      biography.trim(),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: RefreshIndicator(
+            onRefresh: _loadArtistData,
+            child: CustomScrollView(
+              slivers: [
+                // Artist Header (Styled similarly to local ArtistDetailContent)
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [headerColor, theme.colorScheme.surface],
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 18),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      FilledButton.icon(
-                        onPressed: _allSongs.isNotEmpty ? () => _playAll(shuffle: false) : null,
-                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                        label: Text(l10n.playAll),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _allSongs.isNotEmpty ? () => _playAll(shuffle: true) : null,
-                        icon: const Icon(Icons.shuffle_rounded, size: 18),
-                        label: Text(l10n.shufflePlay),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _allSongs.isNotEmpty
-                            ? () async {
-                                final notifier = ref.read(
-                                    remoteDownloadTasksProvider.notifier);
-                                await notifier.enqueueSubsonicTracks(
-                                  server: widget.server,
-                                  password: widget.password,
-                                  songs: _allSongs,
-                                  collectionName: widget.artistName,
-                                );
-                                if (context.mounted) {
-                                  AppSnackBar.show(
-                                    context,
-                                    ref,
-                                    SnackBar(
-                                      content: Text(
-                                        l10n.batchAddedToDownloadQueue(
-                                            _allSongs.length),
-                                      ),
-                                      action: SnackBarAction(
-                                        label: l10n.viewDownloadProgress,
-                                        onPressed: () {
-                                          Navigator.of(context, rootNavigator: true).push(
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const RemoteDownloadManagerPage(),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
-                            : null,
-                        icon: const Icon(Icons.download_rounded, size: 18),
-                        label: Text(l10n.download),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          final client = SubsonicClient(
-                            server: widget.server,
-                            password: widget.password,
-                          );
-                          if (_isStarred) {
-                            final ok = await client.unstar(artistId: widget.artistId);
-                            if (ok && mounted) {
-                              setState(() => _isStarred = false);
-                              showToast(l10n.unstarredSuccess);
-                            }
-                          } else {
-                            final ok = await client.star(artistId: widget.artistId);
-                            if (ok && mounted) {
-                              setState(() => _isStarred = true);
-                              showToast(l10n.starredSuccess);
-                            }
-                          }
-                        },
-                        icon: Icon(
-                          _isStarred ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          size: 18,
-                          color: _isStarred ? theme.colorScheme.primary : null,
-                        ),
-                        label: Text(
-                          l10n.btnFavorite,
-                          style: TextStyle(
-                            color: _isStarred ? theme.colorScheme.primary : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.artistLabel.toUpperCase(),
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          if (_albumSections.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(
-                child: Text(
-                  l10n.noAlbumsForArtist,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.artistName,
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _InfoChip(label: l10n.albumCount(totalAlbumCount)),
+                            if (totalSongCount > 0)
+                              _InfoChip(label: l10n.songCount(totalSongCount)),
+                          ],
+                        ),
+                        if (biography != null && biography.trim().isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            biography.trim(),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 18),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            FilledButton.icon(
+                              onPressed: _allSongs.isNotEmpty ? () => _playAll(shuffle: false) : null,
+                              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                              label: Text(l10n.playAll),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _allSongs.isNotEmpty ? () => _playAll(shuffle: true) : null,
+                              icon: const Icon(Icons.shuffle_rounded, size: 18),
+                              label: Text(l10n.shufflePlay),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _allSongs.isNotEmpty
+                                  ? () async {
+                                      final notifier = ref.read(
+                                          remoteDownloadTasksProvider.notifier);
+                                      await notifier.enqueueSubsonicTracks(
+                                        server: widget.server,
+                                        password: widget.password,
+                                        songs: _allSongs,
+                                        collectionName: widget.artistName,
+                                      );
+                                      if (context.mounted) {
+                                        AppSnackBar.show(
+                                          context,
+                                          ref,
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.batchAddedToDownloadQueue(
+                                                  _allSongs.length),
+                                            ),
+                                            action: SnackBarAction(
+                                              label: l10n.viewDownloadProgress,
+                                              onPressed: () {
+                                                Navigator.of(context, rootNavigator: true).push(
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const RemoteDownloadManagerPage(),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.download_rounded, size: 18),
+                              label: Text(l10n.download),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                final client = SubsonicClient(
+                                  server: widget.server,
+                                  password: widget.password,
+                                );
+                                if (_isStarred) {
+                                  final ok = await client.unstar(artistId: widget.artistId);
+                                  if (ok && mounted) {
+                                    setState(() => _isStarred = false);
+                                    showToast(l10n.unstarredSuccess);
+                                  }
+                                } else {
+                                  final ok = await client.star(artistId: widget.artistId);
+                                  if (ok && mounted) {
+                                    setState(() => _isStarred = true);
+                                    showToast(l10n.starredSuccess);
+                                  }
+                                }
+                              },
+                              icon: Icon(
+                                _isStarred ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                size: 18,
+                                color: _isStarred ? theme.colorScheme.primary : null,
+                              ),
+                              label: Text(
+                                l10n.btnFavorite,
+                                style: TextStyle(
+                                  color: _isStarred ? theme.colorScheme.primary : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            )
-          else ...[
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            for (int i = 0; i < _albumSections.length; i++) ...[
-              if (i > 0) const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              _buildAlbumSection(theme, _albumSections[i], currentMusic),
-            ],
-          ],
-          SliverToBoxAdapter(child: SizedBox(height: bottomOffset)),
-        ],
-      ),
+
+                if (_albumSections.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Text(
+                        l10n.noAlbumsForArtist,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  )
+                else ...[
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  for (int i = 0; i < _albumSections.length; i++) ...[
+                    if (i > 0) const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                    _buildAlbumSection(theme, _albumSections[i], currentMusic),
+                  ],
+                ],
+                SliverToBoxAdapter(child: SizedBox(height: bottomOffset)),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSelectionPanel(
+          isVisible: isSelectionMode,
+          child: LibrarySelectionPanel(
+            key: const ValueKey('navidrome-artist-selection-panel'),
+            selectedSongs: selectedSongs,
+            allSongs: _allSongs,
+            onToggleSelectAll: () => toggleSelectAllSongs(_allSongs),
+            onCancel: cancelSongSelection,
+            onDownload: () async {
+              final sel = List<MusicFile>.from(selectedSongs);
+              if (sel.isEmpty) return;
+              final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+              await notifier.enqueueSubsonicTracks(
+                server: widget.server,
+                password: widget.password,
+                songs: sel,
+                collectionName: widget.artistName,
+              );
+              cancelSongSelection();
+              if (context.mounted) {
+                AppSnackBar.show(
+                  context,
+                  ref,
+                  SnackBar(
+                    content: Text(l10n.batchAddedToDownloadQueue(sel.length)),
+                    action: SnackBarAction(
+                      label: l10n.viewDownloadProgress,
+                      onPressed: () {
+                        Navigator.of(context, rootNavigator: true).push(
+                          MaterialPageRoute(
+                            builder: (_) => const RemoteDownloadManagerPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -775,6 +828,7 @@ class _NavidromeArtistDetailContentState
   }) {
     final isPlaying = currentMusic?.path == song.path;
     final isAudioPlaying = ref.watch(audioIsPlayingProvider);
+    final isSelected = isSongSelected(song.path);
     final trackLabel = '$trackNum'.padLeft(2, '0');
     final durationLabel = song.durationMillis != null && song.durationMillis! > 0
         ? _formatDuration(song.durationMillis!)
@@ -814,26 +868,42 @@ class _NavidromeArtistDetailContentState
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: (details) => openContextMenu(details.globalPosition),
-      onLongPressStart: (details) => openContextMenu(details.globalPosition),
+      onSecondaryTapDown: (details) {
+        if (!isSelectionMode) {
+          openContextMenu(details.globalPosition);
+        }
+      },
+      onLongPressStart: (details) {
+        if (!isSelectionMode) {
+          enterSongSelectionMode(song.path);
+        } else {
+          toggleSongSelection(song.path);
+        }
+      },
       child: Material(
-        color: isPlaying
+        color: isSelectionMode && isSelected
             ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-            : Colors.transparent,
+            : (isPlaying
+                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+                : Colors.transparent),
         borderRadius: borderRadius,
         child: InkWell(
           borderRadius: borderRadius,
           onTap: () async {
-            final audio = ref.read(audioServiceProvider);
-            await audio.playPlaylist(
-              playlist,
-              initialIndex: initialIndex,
-              source: PlaybackSource(
-                type: PlaybackSourceType.artist,
-                id: 'remote-${widget.server.id}-${widget.artistId}',
-                name: widget.artistName,
-              ),
-            );
+            if (isSelectionMode) {
+              toggleSongSelection(song.path);
+            } else {
+              final audio = ref.read(audioServiceProvider);
+              await audio.playPlaylist(
+                playlist,
+                initialIndex: initialIndex,
+                source: PlaybackSource(
+                  type: PlaybackSourceType.artist,
+                  id: 'remote-${widget.server.id}-${widget.artistId}',
+                  name: widget.artistName,
+                ),
+              );
+            }
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -842,19 +912,29 @@ class _NavidromeArtistDetailContentState
                 SizedBox(
                   width: 32,
                   child: Center(
-                    child: isPlaying
-                        ? PlayingEqualizerIcon(
-                            color: theme.colorScheme.primary,
-                            size: 16,
-                            isPlaying: isAudioPlaying,
+                    child: isSelectionMode
+                        ? Icon(
+                            isSelected
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            size: 20,
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.outlineVariant,
                           )
-                        : Text(
-                            trackLabel,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                        : (isPlaying
+                            ? PlayingEqualizerIcon(
+                                color: theme.colorScheme.primary,
+                                size: 16,
+                                isPlaying: isAudioPlaying,
+                              )
+                            : Text(
+                                trackLabel,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -878,22 +958,24 @@ class _NavidromeArtistDetailContentState
                     ),
                   ),
                 ],
-                const SizedBox(width: 4),
-                Builder(
-                  builder: (btnContext) => IconButton(
-                    icon: const Icon(Icons.more_vert_rounded, size: 18),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                    onPressed: () {
-                      final renderBox = btnContext.findRenderObject() as RenderBox?;
-                      final offset = renderBox != null
-                          ? renderBox.localToGlobal(Offset.zero)
-                          : Offset.zero;
-                      openContextMenu(offset);
-                    },
+                if (!isSelectionMode) ...[
+                  const SizedBox(width: 4),
+                  Builder(
+                    builder: (btnContext) => IconButton(
+                      icon: const Icon(Icons.more_vert_rounded, size: 18),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                      onPressed: () {
+                        final renderBox = btnContext.findRenderObject() as RenderBox?;
+                        final offset = renderBox != null
+                            ? renderBox.localToGlobal(Offset.zero)
+                            : Offset.zero;
+                        openContextMenu(offset);
+                      },
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

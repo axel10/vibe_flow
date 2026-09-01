@@ -245,16 +245,17 @@ class MiniPlayerUiTuning {
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     double offset = 0.0;
-    if (hasPlayingMusic) {
+    if (isSelectionMode) {
+      // 多选模式下 Mini 播放器会被隐藏，底部预留多选工具栏高度与安全间距
+      final panelHeight =
+          selectionPanelHeight > 0 ? selectionPanelHeight : 100.0;
+      offset = defaultInactiveBottomPadding + safeAreaBottom + panelHeight;
+    } else if (hasPlayingMusic) {
       // 竖屏与横屏基准高度 + 呼吸间距 + 底部安全区
       final baseHeight = isLandscape ? 110.0 : 130.0;
       offset = baseHeight + contentBreathingGap + safeAreaBottom;
     } else {
       offset = defaultInactiveBottomPadding + safeAreaBottom;
-    }
-
-    if (isSelectionMode) {
-      offset += selectionPanelHeight > 0 ? selectionPanelHeight : 100.0;
     }
 
     return offset;

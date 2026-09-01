@@ -16,8 +16,12 @@ import '../../widgets/mini_player_wrapper.dart';
 import '../../widgets/remote_artwork_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/remote_context_menu_utils.dart';
+import '../../utils/song_context_menu_utils.dart';
+import '../../utils/app_snack_bar.dart';
 import '../../player/remote/services/remote_download_service.dart';
 import '../../player/remote/navidrome_navigation.dart';
+import '../../widgets/library_selection_panel.dart';
+import '../../widgets/library_selection_scope.dart';
 import 'navidrome_artist_detail_page.dart';
 import 'navidrome_playlist_detail_page.dart';
 import 'remote_download_manager_page.dart';
@@ -86,6 +90,272 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   List<Map<String, dynamic>> _searchedAlbums = [];
   List<Map<String, dynamic>> _searchedArtists = [];
 
+  // Multi-selection state
+  final Set<String> _selectedAlbumIds = {};
+  final Set<String> _selectedArtistIds = {};
+  final Set<String> _selectedPlaylistIds = {};
+
+  bool get _isAlbumSelectionMode => _selectedAlbumIds.isNotEmpty;
+  bool get _isArtistSelectionMode => _selectedArtistIds.isNotEmpty;
+  bool get _isPlaylistSelectionMode => _selectedPlaylistIds.isNotEmpty;
+  bool get _isSelectionMode =>
+      _isAlbumSelectionMode ||
+      _isArtistSelectionMode ||
+      _isPlaylistSelectionMode;
+
+  void _updateSelectionScope([bool? forceActive]) {
+    final active = forceActive ?? _isSelectionMode;
+    if (active) {
+      ref
+          .read(librarySelectionScopeProvider.notifier)
+          .setScope(LibrarySelectionScope.navidrome);
+    } else {
+      ref.read(librarySelectionScopeProvider.notifier).clear();
+    }
+  }
+
+  void _cancelSelection() {
+    if (_selectedAlbumIds.isNotEmpty ||
+        _selectedArtistIds.isNotEmpty ||
+        _selectedPlaylistIds.isNotEmpty) {
+      setState(() {
+        _selectedAlbumIds.clear();
+        _selectedArtistIds.clear();
+        _selectedPlaylistIds.clear();
+      });
+      _updateSelectionScope(false);
+    }
+  }
+
+  void _toggleAlbumSelection(String albumId) {
+    setState(() {
+      if (_selectedAlbumIds.contains(albumId)) {
+        _selectedAlbumIds.remove(albumId);
+      } else {
+        _selectedAlbumIds.add(albumId);
+      }
+    });
+    _updateSelectionScope();
+  }
+
+  void _toggleSelectAllAlbums(List<Map<String, dynamic>> filteredAlbums) {
+    final allIds = filteredAlbums
+        .map((a) => a['id'] as String? ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    setState(() {
+      if (_selectedAlbumIds.length == allIds.length && allIds.isNotEmpty) {
+        _selectedAlbumIds.clear();
+      } else {
+        _selectedAlbumIds.clear();
+        _selectedAlbumIds.addAll(allIds);
+      }
+    });
+    _updateSelectionScope();
+  }
+
+  void _toggleArtistSelection(String artistId) {
+    setState(() {
+      if (_selectedArtistIds.contains(artistId)) {
+        _selectedArtistIds.remove(artistId);
+      } else {
+        _selectedArtistIds.add(artistId);
+      }
+    });
+    _updateSelectionScope();
+  }
+
+  void _toggleSelectAllArtists(List<Map<String, dynamic>> filteredArtists) {
+    final allIds = filteredArtists
+        .map((a) => a['id'] as String? ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    setState(() {
+      if (_selectedArtistIds.length == allIds.length && allIds.isNotEmpty) {
+        _selectedArtistIds.clear();
+      } else {
+        _selectedArtistIds.clear();
+        _selectedArtistIds.addAll(allIds);
+      }
+    });
+    _updateSelectionScope();
+  }
+
+  void _togglePlaylistSelection(String playlistId) {
+    setState(() {
+      if (_selectedPlaylistIds.contains(playlistId)) {
+        _selectedPlaylistIds.remove(playlistId);
+      } else {
+        _selectedPlaylistIds.add(playlistId);
+      }
+    });
+    _updateSelectionScope();
+  }
+
+  void _toggleSelectAllPlaylists(List<Map<String, dynamic>> filteredPlaylists) {
+    final allIds = filteredPlaylists
+        .map((p) => p['id'] as String? ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    setState(() {
+      if (_selectedPlaylistIds.length == allIds.length && allIds.isNotEmpty) {
+        _selectedPlaylistIds.clear();
+      } else {
+        _selectedPlaylistIds.clear();
+        _selectedPlaylistIds.addAll(allIds);
+      }
+    });
+    _updateSelectionScope();
+  }
+
+  Future<List<MusicFile>> _fetchSelectedSongs() async {
+    final client = SubsonicClient(
+      server: widget.server,
+      password: widget.password,
+    );
+    final List<MusicFile> allSongs = [];
+    if (_isAlbumSelectionMode) {
+      for (final albumId in _selectedAlbumIds) {
+        final tracks =
+            await fetchSubsonicAlbumTracks(client, widget.server, albumId);
+        allSongs.addAll(tracks);
+      }
+    } else if (_isArtistSelectionMode) {
+      for (final artistId in _selectedArtistIds) {
+        final tracks =
+            await fetchSubsonicArtistTracks(client, widget.server, artistId);
+        allSongs.addAll(tracks);
+      }
+    } else if (_isPlaylistSelectionMode) {
+      for (final playlistId in _selectedPlaylistIds) {
+        final tracks =
+            await fetchSubsonicPlaylistTracks(client, widget.server, playlistId);
+        allSongs.addAll(tracks);
+      }
+    }
+    return allSongs;
+  }
+
+  Future<void> _handleBatchPlayNext() async {
+    final songs = await _fetchSelectedSongs();
+    if (songs.isEmpty) return;
+    final audio = ref.read(audioServiceProvider);
+    await audio.enqueueNext(songs);
+    _cancelSelection();
+  }
+
+  Future<void> _handleBatchAddToQueue() async {
+    final songs = await _fetchSelectedSongs();
+    if (songs.isEmpty) return;
+    final audio = ref.read(audioServiceProvider);
+    await audio.appendToQueue(songs);
+    _cancelSelection();
+  }
+
+  Future<void> _handleBatchAddToPlaylist() async {
+    final songs = await _fetchSelectedSongs();
+    if (songs.isEmpty) return;
+    if (!mounted) return;
+    final playlistService = ref.read(playlistServiceProvider);
+    await showAddSongsToPlaylistDialog(context, playlistService, songs);
+    _cancelSelection();
+  }
+
+  Future<void> _handleBatchDownload() async {
+    final songs = await _fetchSelectedSongs();
+    if (songs.isEmpty) return;
+    final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+    await notifier.enqueueSubsonicTracks(
+      server: widget.server,
+      password: widget.password,
+      songs: songs,
+      collectionName: widget.server.name,
+    );
+    _cancelSelection();
+    if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      AppSnackBar.show(
+        context,
+        ref,
+        SnackBar(
+          content: Text(l10n.batchAddedToDownloadQueue(songs.length)),
+          action: SnackBarAction(
+            label: l10n.viewDownloadProgress,
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (_) => const RemoteDownloadManagerPage(),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleBatchDeletePlaylists() async {
+    final toDelete = _selectedPlaylistIds
+        .where((id) => id != _starredPlaylistId && id != 'starred_songs')
+        .toList();
+    if (toDelete.isEmpty) return;
+    final client = SubsonicClient(
+      server: widget.server,
+      password: widget.password,
+    );
+    for (final plId in toDelete) {
+      await client.deletePlaylist(plId);
+    }
+    _cancelSelection();
+    _loadPlaylists(forceRefresh: true);
+  }
+
+  List<Map<String, dynamic>> _getFilteredAlbums() {
+    return _albums.where((album) {
+      if (_albumSearchQuery.isEmpty) return true;
+      final q = _albumSearchQuery.toLowerCase();
+      final title = (album['title'] as String? ?? album['name'] as String? ?? '')
+          .toLowerCase();
+      final artist = (album['artist'] as String? ?? '').toLowerCase();
+      return title.contains(q) || artist.contains(q);
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _getFilteredArtists() {
+    var result = _artists.where((artist) {
+      if (_artistSearchQuery.isEmpty) return true;
+      final q = _artistSearchQuery.toLowerCase();
+      final name = (artist['name'] as String? ?? '').toLowerCase();
+      return name.contains(q);
+    }).toList();
+    if (_artistStarredOnly) {
+      result =
+          result.where((a) => _starredArtistIds.contains(a['id'])).toList();
+    }
+    return result;
+  }
+
+  List<Map<String, dynamic>> _getFilteredPlaylists() {
+    final l10n = AppLocalizations.of(context)!;
+    final allPlaylists = <Map<String, dynamic>>[
+      {
+        'id': _starredPlaylistId,
+        'name': l10n.starredSongs,
+        'songCount': 0,
+        'duration': 0,
+        'coverArt': null,
+        'isStarred': true,
+      },
+      ..._playlists,
+    ];
+    return allPlaylists.where((pl) {
+      if (_playlistSearchQuery.isEmpty) return true;
+      final q = _playlistSearchQuery.toLowerCase();
+      final name = (pl['name'] as String? ?? '').toLowerCase();
+      return name.contains(q);
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -128,6 +398,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   void _handleTabChanged() {
+    _cancelSelection();
     if (mounted) {
       setState(() {});
     }
@@ -148,6 +419,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
 
   @override
   void dispose() {
+    if (_isSelectionMode) {
+      Future.microtask(() {
+        try {
+          ref.read(librarySelectionScopeProvider.notifier).clear();
+        } catch (_) {}
+      });
+    }
     _tabController.removeListener(_handleTabChanged);
     _tabController.dispose();
     _albumSearchController.dispose();
@@ -502,7 +780,40 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final bottomOffset = MiniPlayerUiTuning.getListBottomPadding(
       context,
       hasPlayingMusic: currentMusic != null,
+      isSelectionMode: _isSelectionMode,
+      selectionPanelHeight: 220.0,
     );
+
+    String? panelTitle;
+    VoidCallback? panelToggleSelectAll;
+    bool? panelIsAllSelected;
+    VoidCallback? panelDelete;
+    String? panelDeleteLabel;
+
+    if (_isAlbumSelectionMode) {
+      final filteredAlbums = _getFilteredAlbums();
+      panelTitle = l10n.selectedAlbumsCount(_selectedAlbumIds.length);
+      panelToggleSelectAll = () => _toggleSelectAllAlbums(filteredAlbums);
+      panelIsAllSelected = _selectedAlbumIds.length == filteredAlbums.length &&
+          filteredAlbums.isNotEmpty;
+    } else if (_isArtistSelectionMode) {
+      final filteredArtists = _getFilteredArtists();
+      panelTitle = l10n.selectedArtistsCount(_selectedArtistIds.length);
+      panelToggleSelectAll = () => _toggleSelectAllArtists(filteredArtists);
+      panelIsAllSelected =
+          _selectedArtistIds.length == filteredArtists.length &&
+              filteredArtists.isNotEmpty;
+    } else if (_isPlaylistSelectionMode) {
+      final filteredPlaylists = _getFilteredPlaylists();
+      panelTitle = l10n.selectedPlaylistsCount(_selectedPlaylistIds.length);
+      panelToggleSelectAll =
+          () => _toggleSelectAllPlaylists(filteredPlaylists);
+      panelIsAllSelected =
+          _selectedPlaylistIds.length == filteredPlaylists.length &&
+              filteredPlaylists.isNotEmpty;
+      panelDelete = _handleBatchDeletePlaylists;
+      panelDeleteLabel = l10n.deletePlaylist;
+    }
 
     Widget content = PopScope(
       canPop: true,
@@ -514,111 +825,138 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         }
       },
       child: Scaffold(
-        body: NestedScrollView(
-          floatHeaderSlivers: true,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                floating: true,
-                snap: false,
-                pinned: false,
-                elevation: 0,
-                scrolledUnderElevation: 0,
-                surfaceTintColor: Colors.transparent,
-                backgroundColor: theme.colorScheme.surface,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  tooltip: l10n.close,
-                  onPressed: () {
-                    ref.read(activeRemoteSessionProvider.notifier).clear();
-                  },
-                ),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.server.name),
-                    Text(
-                      'Navidrome / Subsonic',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: theme.colorScheme.onSurfaceVariant,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: NestedScrollView(
+                floatHeaderSlivers: true,
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    SliverAppBar(
+                      floating: true,
+                      snap: false,
+                      pinned: false,
+                      elevation: 0,
+                      scrolledUnderElevation: 0,
+                      surfaceTintColor: Colors.transparent,
+                      backgroundColor: theme.colorScheme.surface,
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        tooltip: l10n.close,
+                        onPressed: () {
+                          ref.read(activeRemoteSessionProvider.notifier).clear();
+                        },
+                      ),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(widget.server.name),
+                          Text(
+                            'Navidrome / Subsonic',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        IconButton(
+                          icon: const Icon(Icons.refresh_rounded),
+                          tooltip: l10n.refresh,
+                          onPressed: () {
+                            switch (_tabController.index) {
+                              case 0:
+                                _loadAlbums(forceRefresh: true);
+                                break;
+                              case 1:
+                                _loadArtists(forceRefresh: true);
+                                break;
+                              case 2:
+                                _loadPlaylists(forceRefresh: true);
+                                break;
+                              case 3:
+                                if (_searchController.text.isNotEmpty) {
+                                  _onSearchChanged(_searchController.text);
+                                }
+                                break;
+                            }
+                          },
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final activeCount =
+                                ref.watch(activeDownloadsCountProvider);
+                            return IconButton(
+                              icon: Badge(
+                                isLabelVisible: activeCount > 0,
+                                label: Text('$activeCount'),
+                                child: const Icon(Icons.download_rounded),
+                              ),
+                              tooltip: l10n.downloadManager,
+                              onPressed: () {
+                                Navigator.of(context, rootNavigator: true).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const RemoteDownloadManagerPage(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                      bottom: _NavidromeHeaderBottom(
+                        tabBar: TabBar(
+                          controller: _tabController,
+                          tabs: [
+                            Tab(icon: const Icon(Icons.album_rounded), text: l10n.albums),
+                            Tab(icon: const Icon(Icons.person_rounded), text: l10n.artists),
+                            Tab(
+                              icon: const Icon(Icons.playlist_play_rounded),
+                              text: l10n.playlists,
+                            ),
+                            Tab(icon: const Icon(Icons.search_rounded), text: l10n.search),
+                          ],
+                        ),
+                        toolbar: _buildCurrentTabToolbar(theme),
                       ),
                     ),
+                  ];
+                },
+                body: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildAlbumsTab(theme, bottomOffset),
+                    _buildArtistsTab(theme, bottomOffset),
+                    _buildPlaylistsTab(theme, bottomOffset),
+                    _buildSearchTab(theme, bottomOffset),
                   ],
                 ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded),
-                    tooltip: l10n.refresh,
-                    onPressed: () {
-                      switch (_tabController.index) {
-                        case 0:
-                          _loadAlbums(forceRefresh: true);
-                          break;
-                        case 1:
-                          _loadArtists(forceRefresh: true);
-                          break;
-                        case 2:
-                          _loadPlaylists(forceRefresh: true);
-                          break;
-                        case 3:
-                          if (_searchController.text.isNotEmpty) {
-                            _onSearchChanged(_searchController.text);
-                          }
-                          break;
-                      }
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final activeCount =
-                          ref.watch(activeDownloadsCountProvider);
-                      return IconButton(
-                        icon: Badge(
-                          isLabelVisible: activeCount > 0,
-                          label: Text('$activeCount'),
-                          child: const Icon(Icons.download_rounded),
-                        ),
-                        tooltip: l10n.downloadManager,
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const RemoteDownloadManagerPage(),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-                bottom: _NavidromeHeaderBottom(
-                  tabBar: TabBar(
-                    controller: _tabController,
-                    tabs: [
-                      Tab(icon: const Icon(Icons.album_rounded), text: l10n.albums),
-                      Tab(icon: const Icon(Icons.person_rounded), text: l10n.artists),
-                      Tab(
-                        icon: const Icon(Icons.playlist_play_rounded),
-                        text: l10n.playlists,
-                      ),
-                      Tab(icon: const Icon(Icons.search_rounded), text: l10n.search),
-                    ],
-                  ),
-                  toolbar: _buildCurrentTabToolbar(theme),
-                ),
               ),
-            ];
-          },
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildAlbumsTab(theme, bottomOffset),
-              _buildArtistsTab(theme, bottomOffset),
-              _buildPlaylistsTab(theme, bottomOffset),
-              _buildSearchTab(theme, bottomOffset),
-            ],
-          ),
+            ),
+            AnimatedSelectionPanel(
+              isVisible: _isSelectionMode,
+              child: LibrarySelectionPanel(
+                key: ValueKey(
+                  'navidrome-library-selection-panel-${_tabController.index}',
+                ),
+                selectedSongs: const [],
+                allSongs: const [],
+                title: panelTitle,
+                isSelectionEmpty: !_isSelectionMode,
+                isAllSelected: panelIsAllSelected,
+                onToggleSelectAll: panelToggleSelectAll ?? () {},
+                onCancel: _cancelSelection,
+                onPlayNext: _handleBatchPlayNext,
+                onAddToQueue: _handleBatchAddToQueue,
+                onAddToPlaylist: _handleBatchAddToPlaylist,
+                onDownload: _handleBatchDownload,
+                onDelete: panelDelete,
+                deleteLabel: panelDeleteLabel,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1028,13 +1366,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   // ================= ALBUMS TAB =================
   Widget _buildAlbumsTab(ThemeData theme, double bottomOffset) {
     final l10n = AppLocalizations.of(context)!;
-    final filteredAlbums = _albums.where((album) {
-      if (_albumSearchQuery.isEmpty) return true;
-      final q = _albumSearchQuery.toLowerCase();
-      final title = (album['title'] as String? ?? album['name'] as String? ?? '').toLowerCase();
-      final artist = (album['artist'] as String? ?? '').toLowerCase();
-      return title.contains(q) || artist.contains(q);
-    }).toList();
+    final filteredAlbums = _getFilteredAlbums();
 
     if (_isLoadingAlbums) {
       return const Center(child: CircularProgressIndicator());
@@ -1105,6 +1437,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       itemBuilder: (context, index) {
                         final album = filteredAlbums[index];
                         final albumId = album['id'] as String? ?? '';
+                        final isSelected = _selectedAlbumIds.contains(albumId);
                         final title = album['title'] as String? ??
                             album['name'] as String? ??
                             l10n.unknownAlbum;
@@ -1117,70 +1450,54 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                         return GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onSecondaryTapDown: (details) {
-                            showRemoteAlbumContextMenu(
-                              context: context,
-                              globalPosition: details.globalPosition,
-                              ref: ref,
-                              server: widget.server,
-                              password: widget.password,
-                              albumId: albumId,
-                              albumTitle: title,
-                              artistName: artist,
-                              coverArtId: coverId,
-                              onViewDetails: () {
-                                NavidromeNavUtils.openAlbum(
-                                   context,
-                                   ref,
-                                   server: widget.server,
-                                   password: widget.password,
-                                   albumId: albumId,
-                                   albumName: title,
-                                   artistName: artist,
-                                   coverArtId: coverId,
-                                 );
-                              },
-                            );
+                            if (!_isAlbumSelectionMode) {
+                              showRemoteAlbumContextMenu(
+                                context: context,
+                                globalPosition: details.globalPosition,
+                                ref: ref,
+                                server: widget.server,
+                                password: widget.password,
+                                albumId: albumId,
+                                albumTitle: title,
+                                artistName: artist,
+                                coverArtId: coverId,
+                                onViewDetails: () {
+                                  NavidromeNavUtils.openAlbum(
+                                    context,
+                                    ref,
+                                    server: widget.server,
+                                    password: widget.password,
+                                    albumId: albumId,
+                                    albumName: title,
+                                    artistName: artist,
+                                    coverArtId: coverId,
+                                  );
+                                },
+                              );
+                            }
                           },
                           onLongPressStart: (details) {
-                            showRemoteAlbumContextMenu(
-                              context: context,
-                              globalPosition: details.globalPosition,
-                              ref: ref,
-                              server: widget.server,
-                              password: widget.password,
-                              albumId: albumId,
-                              albumTitle: title,
-                              artistName: artist,
-                              coverArtId: coverId,
-                              onViewDetails: () {
-                                NavidromeNavUtils.openAlbum(
-                                   context,
-                                   ref,
-                                   server: widget.server,
-                                   password: widget.password,
-                                   albumId: albumId,
-                                   albumName: title,
-                                   artistName: artist,
-                                   coverArtId: coverId,
-                                 );
-                              },
-                            );
+                            _toggleAlbumSelection(albumId);
                           },
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
                               onTap: () {
-                                NavidromeNavUtils.openAlbum(
-                                  context,
-                                  ref,
-                                  server: widget.server,
-                                  password: widget.password,
-                                  albumId: albumId,
-                                  albumName: title,
-                                  artistName: artist,
-                                  coverArtId: coverId,
-                                );
+                                if (_isAlbumSelectionMode) {
+                                  _toggleAlbumSelection(albumId);
+                                } else {
+                                  NavidromeNavUtils.openAlbum(
+                                    context,
+                                    ref,
+                                    server: widget.server,
+                                    password: widget.password,
+                                    albumId: albumId,
+                                    albumName: title,
+                                    artistName: artist,
+                                    coverArtId: coverId,
+                                  );
+                                }
                               },
                               child: Ink(
                                 decoration: BoxDecoration(
@@ -1188,38 +1505,74 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
-                                    colors: [
-                                      theme.colorScheme.primaryContainer
-                                          .withValues(alpha: 0.25),
-                                      theme.colorScheme.surfaceContainerHighest
-                                          .withValues(alpha: 0.45),
-                                    ],
+                                    colors: isSelected
+                                        ? [
+                                            theme.colorScheme.primaryContainer
+                                                .withValues(alpha: 0.6),
+                                            theme.colorScheme.primaryContainer
+                                                .withValues(alpha: 0.35),
+                                          ]
+                                        : [
+                                            theme.colorScheme.primaryContainer
+                                                .withValues(alpha: 0.25),
+                                            theme.colorScheme.surfaceContainerHighest
+                                                .withValues(alpha: 0.45),
+                                          ],
                                   ),
                                   border: Border.all(
-                                    color: theme.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.35),
-                                    width: 0.8,
+                                    color: isSelected
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.outlineVariant
+                                            .withValues(alpha: 0.35),
+                                    width: isSelected ? 2.0 : 0.8,
                                   ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(11),
-                                        topRight: Radius.circular(11),
-                                      ),
-                                      child: AspectRatio(
-                                        aspectRatio: 1,
-                                        child: RemoteArtworkWidget(
-                                          server: widget.server,
-                                          password: widget.password,
-                                          coverArtId: coverId,
-                                          size: 220,
-                                          borderRadius: BorderRadius.zero,
+                                    Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(11),
+                                            topRight: Radius.circular(11),
+                                          ),
+                                          child: AspectRatio(
+                                            aspectRatio: 1,
+                                            child: RemoteArtworkWidget(
+                                              server: widget.server,
+                                              password: widget.password,
+                                              coverArtId: coverId,
+                                              size: 220,
+                                              borderRadius: BorderRadius.zero,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        if (_isAlbumSelectionMode)
+                                          Positioned(
+                                            top: 8,
+                                            right: 8,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                color: isSelected
+                                                    ? theme.colorScheme.primary
+                                                    : Colors.black.withValues(alpha: 0.5),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(
+                                                isSelected
+                                                    ? Icons.check_rounded
+                                                    : Icons.radio_button_unchecked_rounded,
+                                                size: 18,
+                                                color: isSelected
+                                                    ? theme.colorScheme.onPrimary
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     Expanded(
                                       child: Padding(
@@ -1250,6 +1603,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                                     fontSize: isPortrait
                                                         ? 12
                                                         : 13,
+                                                    color: isSelected
+                                                        ? theme.colorScheme.primary
+                                                        : null,
                                                   ),
                                                   maxLines: 1,
                                                   overflow:
@@ -1301,28 +1657,29 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                                         .ellipsis,
                                                   ),
                                                 ),
-                                                IconButton(
-                                                  visualDensity:
-                                                      VisualDensity.compact,
-                                                  padding: EdgeInsets.zero,
-                                                  constraints:
-                                                      const BoxConstraints(),
-                                                  tooltip: l10n.playAlbum,
-                                                  onPressed: () =>
-                                                      _playAlbumDirectly(
-                                                    albumId,
-                                                    title,
+                                                if (!_isAlbumSelectionMode)
+                                                  IconButton(
+                                                    visualDensity:
+                                                        VisualDensity.compact,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints:
+                                                        const BoxConstraints(),
+                                                    tooltip: l10n.playAlbum,
+                                                    onPressed: () =>
+                                                        _playAlbumDirectly(
+                                                      albumId,
+                                                      title,
+                                                    ),
+                                                    icon: Icon(
+                                                      Icons
+                                                          .play_circle_filled_rounded,
+                                                      size: isPortrait
+                                                          ? 22
+                                                          : 26,
+                                                      color: theme
+                                                          .colorScheme.primary,
+                                                    ),
                                                   ),
-                                                  icon: Icon(
-                                                    Icons
-                                                        .play_circle_filled_rounded,
-                                                    size: isPortrait
-                                                        ? 22
-                                                        : 26,
-                                                    color: theme
-                                                        .colorScheme.primary,
-                                                  ),
-                                                ),
                                               ],
                                             ),
                                           ],
@@ -1366,16 +1723,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       );
     }
 
-    final filteredArtists = _artists.where((artist) {
-      if (_artistStarredOnly) {
-        final id = artist['id'] as String?;
-        if (id == null || !_starredArtistIds.contains(id)) return false;
-      }
-      if (_artistSearchQuery.isEmpty) return true;
-      final q = _artistSearchQuery.toLowerCase();
-      final name = (artist['name'] as String? ?? '').toLowerCase();
-      return name.contains(q);
-    }).toList();
+    final filteredArtists = _getFilteredArtists();
 
     filteredArtists.sort((a, b) {
       if (_artistSortField == 'albumCount') {
@@ -1548,52 +1896,56 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final coverArtId = artist['coverArt'] as String?;
     final artistId = artist['id'] as String? ?? '';
     final isStarred = _starredArtistIds.contains(artistId);
+    final isMultiSelected = _selectedArtistIds.contains(artistId);
 
-    final backgroundColor = isSelected
+    final backgroundColor = _isArtistSelectionMode && isMultiSelected
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
+        : (isSelected
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35));
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapDown: (details) {
-        showRemoteArtistContextMenu(
-          context: context,
-          globalPosition: details.globalPosition,
-          ref: ref,
-          server: widget.server,
-          password: widget.password,
-          artistId: artistId,
-          artistName: name,
-          onViewDetails: onTap,
-        );
+        if (!_isArtistSelectionMode) {
+          showRemoteArtistContextMenu(
+            context: context,
+            globalPosition: details.globalPosition,
+            ref: ref,
+            server: widget.server,
+            password: widget.password,
+            artistId: artistId,
+            artistName: name,
+            onViewDetails: onTap,
+          );
+        }
       },
       onLongPressStart: (details) {
-        showRemoteArtistContextMenu(
-          context: context,
-          globalPosition: details.globalPosition,
-          ref: ref,
-          server: widget.server,
-          password: widget.password,
-          artistId: artistId,
-          artistName: name,
-          onViewDetails: onTap,
-        );
+        _toggleArtistSelection(artistId);
       },
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
+          onTap: () {
+            if (_isArtistSelectionMode) {
+              _toggleArtistSelection(artistId);
+            } else {
+              onTap();
+            }
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected
+                color: (_isArtistSelectionMode && isMultiSelected) || isSelected
                     ? theme.colorScheme.primary.withValues(alpha: 0.5)
                     : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                width: isSelected ? 1.5 : 0.8,
+                width: (_isArtistSelectionMode && isMultiSelected) || isSelected
+                    ? 1.5
+                    : 0.8,
               ),
             ),
             child: Row(
@@ -1618,11 +1970,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             child: Text(
                               name,
                               style: TextStyle(
-                                fontWeight: isSelected
+                                fontWeight: (_isArtistSelectionMode &&
+                                            isMultiSelected) ||
+                                        isSelected
                                     ? FontWeight.bold
                                     : FontWeight.w600,
                                 fontSize: 13,
-                                color: isSelected
+                                color: (_isArtistSelectionMode &&
+                                            isMultiSelected) ||
+                                        isSelected
                                     ? theme.colorScheme.primary
                                     : null,
                               ),
@@ -1652,34 +2008,45 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                     ],
                   ),
                 ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: Icon(
-                    Icons.more_vert_rounded,
+                if (_isArtistSelectionMode)
+                  Icon(
+                    isMultiSelected
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: isMultiSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outlineVariant,
                     size: 20,
-                    color: theme.colorScheme.onSurfaceVariant,
+                  )
+                else
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(
+                      Icons.more_vert_rounded,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    tooltip: l10n.more,
+                    onPressed: () {
+                      final box = context.findRenderObject() as RenderBox?;
+                      final pos = box != null
+                          ? box.localToGlobal(
+                              Offset(box.size.width / 2, box.size.height / 2))
+                          : Offset.zero;
+                      showRemoteArtistContextMenu(
+                        context: context,
+                        globalPosition: pos,
+                        ref: ref,
+                        server: widget.server,
+                        password: widget.password,
+                        artistId: artistId,
+                        artistName: name,
+                        onViewDetails: onTap,
+                      );
+                    },
                   ),
-                  tooltip: l10n.more,
-                  onPressed: () {
-                    final box = context.findRenderObject() as RenderBox?;
-                    final pos = box != null
-                        ? box.localToGlobal(
-                            Offset(box.size.width / 2, box.size.height / 2))
-                        : Offset.zero;
-                    showRemoteArtistContextMenu(
-                      context: context,
-                      globalPosition: pos,
-                      ref: ref,
-                      server: widget.server,
-                      password: widget.password,
-                      artistId: artistId,
-                      artistName: name,
-                      onViewDetails: onTap,
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -1710,24 +2077,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       );
     }
 
-    final starredPlaylist = {
-      'id': _starredPlaylistId,
-      'name': l10n.starredSongs,
-      'isStarred': true,
-      'comment': l10n.starredSongsDesc,
-    };
-
-    final List<Map<String, dynamic>> allPlaylists = [
-      starredPlaylist,
-      ..._playlists,
-    ];
-
-    final filteredPlaylists = allPlaylists.where((pl) {
-      if (_playlistSearchQuery.isEmpty) return true;
-      final q = _playlistSearchQuery.toLowerCase();
-      final name = (pl['name'] as String? ?? '').toLowerCase();
-      return name.contains(q);
-    }).toList();
+    final filteredPlaylists = _getFilteredPlaylists();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1904,14 +2254,17 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final playlistId = playlist['id'] as String? ?? '';
     final isStarredItem =
         playlist['isStarred'] == true || playlistId == _starredPlaylistId;
+    final isMultiSelected = _selectedPlaylistIds.contains(playlistId);
 
-    final backgroundColor = isSelected
+    final backgroundColor = _isPlaylistSelectionMode && isMultiSelected
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
+        : (isSelected
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35));
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: isStarredItem
+      onSecondaryTapDown: isStarredItem || _isPlaylistSelectionMode
           ? null
           : (details) {
               showRemotePlaylistContextMenu(
@@ -1927,37 +2280,32 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 onDelete: () => _loadPlaylists(forceRefresh: true),
               );
             },
-      onLongPressStart: isStarredItem
-          ? null
-          : (details) {
-              showRemotePlaylistContextMenu(
-                context: context,
-                globalPosition: details.globalPosition,
-                ref: ref,
-                server: widget.server,
-                password: widget.password,
-                playlistId: playlistId,
-                playlistName: name,
-                onViewDetails: onTap,
-                onRename: () => _loadPlaylists(forceRefresh: true),
-                onDelete: () => _loadPlaylists(forceRefresh: true),
-              );
-            },
+      onLongPressStart: (details) {
+        _togglePlaylistSelection(playlistId);
+      },
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
+          onTap: () {
+            if (_isPlaylistSelectionMode) {
+              _togglePlaylistSelection(playlistId);
+            } else {
+              onTap();
+            }
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: backgroundColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected
+                color: (_isPlaylistSelectionMode && isMultiSelected) || isSelected
                     ? theme.colorScheme.primary.withValues(alpha: 0.5)
                     : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                width: isSelected ? 1.5 : 0.8,
+                width: (_isPlaylistSelectionMode && isMultiSelected) || isSelected
+                    ? 1.5
+                    : 0.8,
               ),
             ),
             child: Row(
@@ -2002,11 +2350,15 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                             child: Text(
                               isStarredItem ? l10n.starredSongs : name,
                               style: TextStyle(
-                                fontWeight: isSelected
+                                fontWeight: (_isPlaylistSelectionMode &&
+                                            isMultiSelected) ||
+                                        isSelected
                                     ? FontWeight.bold
                                     : FontWeight.w600,
                                 fontSize: 13,
-                                color: isSelected
+                                color: (_isPlaylistSelectionMode &&
+                                            isMultiSelected) ||
+                                        isSelected
                                     ? theme.colorScheme.primary
                                     : (isStarredItem
                                         ? Colors.redAccent
@@ -2038,7 +2390,17 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                     ],
                   ),
                 ),
-                if (!isStarredItem)
+                if (_isPlaylistSelectionMode)
+                  Icon(
+                    isMultiSelected
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: isMultiSelected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outlineVariant,
+                    size: 20,
+                  )
+                else if (!isStarredItem)
                   IconButton(
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,

@@ -21,7 +21,7 @@ import 'song_context_menu_utils.dart';
 import '../widgets/app_context_menu.dart';
 
 /// Helper to fetch tracks of an album on-demand if not already supplied
-Future<List<MusicFile>> _fetchAlbumTracks(
+Future<List<MusicFile>> fetchSubsonicAlbumTracks(
   SubsonicClient client,
   RemoteServer server,
   String albumId,
@@ -44,8 +44,14 @@ Future<List<MusicFile>> _fetchAlbumTracks(
   return [];
 }
 
+Future<List<MusicFile>> _fetchAlbumTracks(
+  SubsonicClient client,
+  RemoteServer server,
+  String albumId,
+) => fetchSubsonicAlbumTracks(client, server, albumId);
+
 /// Helper to fetch tracks of an artist on-demand
-Future<List<MusicFile>> _fetchArtistTracks(
+Future<List<MusicFile>> fetchSubsonicArtistTracks(
   SubsonicClient client,
   RemoteServer server,
   String artistId,
@@ -83,6 +89,51 @@ Future<List<MusicFile>> _fetchArtistTracks(
   } catch (_) {}
   return [];
 }
+
+Future<List<MusicFile>> _fetchArtistTracks(
+  SubsonicClient client,
+  RemoteServer server,
+  String artistId,
+) => fetchSubsonicArtistTracks(client, server, artistId);
+
+/// Helper to fetch tracks of a playlist on-demand
+Future<List<MusicFile>> fetchSubsonicPlaylistTracks(
+  SubsonicClient client,
+  RemoteServer server,
+  String playlistId,
+) async {
+  try {
+    if (playlistId == '__navidrome_starred_songs__' ||
+        playlistId == 'starred_songs') {
+      final songList = await client.getStarredSongs();
+      if (songList.isNotEmpty) {
+        final List<MusicFile> parsed = [];
+        for (final item in songList) {
+          parsed.add(
+            RemoteMediaResolver.buildMusicFileFromSubsonic(item, server),
+          );
+        }
+        return parsed;
+      }
+    } else {
+      final pl = await client.getPlaylist(playlistId);
+      final entryList = pl?['entry'] as List?;
+      if (entryList != null && entryList.isNotEmpty) {
+        final List<MusicFile> parsed = [];
+        for (final item in entryList) {
+          if (item is Map<String, dynamic>) {
+            parsed.add(
+              RemoteMediaResolver.buildMusicFileFromSubsonic(item, server),
+            );
+          }
+        }
+        return parsed;
+      }
+    }
+  } catch (_) {}
+  return [];
+}
+
 
 /// Shows context menu for a remote Navidrome album.
 Future<void> showRemoteAlbumContextMenu({
