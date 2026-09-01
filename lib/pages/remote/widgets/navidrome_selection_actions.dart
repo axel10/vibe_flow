@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
+import '../../../dialogs/transcode_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/music_file.dart';
 import '../../../player/audio/audio_riverpod.dart';
@@ -16,6 +17,63 @@ import '../remote_download_manager_page.dart';
 
 class NavidromeSelectionActions {
   static const String starredPlaylistId = '__navidrome_starred_songs__';
+
+  static Future<T?> _withLoading<T>({
+    required BuildContext context,
+    required String message,
+    required Future<T> Function() task,
+  }) async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: true,
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            elevation: 8,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
+                  const SizedBox(width: 16),
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await task();
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      return result;
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      rethrow;
+    }
+  }
 
   static Future<List<MusicFile>> fetchSelectedSongs({
     required RemoteServer server,
@@ -110,27 +168,47 @@ class NavidromeSelectionActions {
   }
 
   static Future<void> handleBatchPlayNext({
+    required BuildContext context,
     required WidgetRef ref,
     required Future<List<MusicFile>> Function() onFetchSongs,
     required VoidCallback onClearSelection,
   }) async {
-    final songs = await onFetchSongs();
-    if (songs.isEmpty) return;
-    final audio = ref.read(audioServiceProvider);
-    await audio.enqueueNext(songs);
-    onClearSelection();
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final songs = await _withLoading(
+        context: context,
+        message: l10n.loadingAlbumTracks,
+        task: onFetchSongs,
+      );
+      if (songs == null || songs.isEmpty) return;
+      final audio = ref.read(audioServiceProvider);
+      await audio.enqueueNext(songs);
+      onClearSelection();
+    } catch (e) {
+      showToast(e.toString());
+    }
   }
 
   static Future<void> handleBatchAddToQueue({
+    required BuildContext context,
     required WidgetRef ref,
     required Future<List<MusicFile>> Function() onFetchSongs,
     required VoidCallback onClearSelection,
   }) async {
-    final songs = await onFetchSongs();
-    if (songs.isEmpty) return;
-    final audio = ref.read(audioServiceProvider);
-    await audio.appendToQueue(songs);
-    onClearSelection();
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final songs = await _withLoading(
+        context: context,
+        message: l10n.loadingAlbumTracks,
+        task: onFetchSongs,
+      );
+      if (songs == null || songs.isEmpty) return;
+      final audio = ref.read(audioServiceProvider);
+      await audio.appendToQueue(songs);
+      onClearSelection();
+    } catch (e) {
+      showToast(e.toString());
+    }
   }
 
   static Future<void> handleBatchAddToPlaylist({
@@ -139,12 +217,21 @@ class NavidromeSelectionActions {
     required Future<List<MusicFile>> Function() onFetchSongs,
     required VoidCallback onClearSelection,
   }) async {
-    final songs = await onFetchSongs();
-    if (songs.isEmpty) return;
-    if (!context.mounted) return;
-    final playlistService = ref.read(playlistServiceProvider);
-    await showAddSongsToPlaylistDialog(context, playlistService, songs);
-    onClearSelection();
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final songs = await _withLoading(
+        context: context,
+        message: l10n.loadingAlbumTracks,
+        task: onFetchSongs,
+      );
+      if (songs == null || songs.isEmpty) return;
+      if (!context.mounted) return;
+      final playlistService = ref.read(playlistServiceProvider);
+      await showAddSongsToPlaylistDialog(context, playlistService, songs);
+      onClearSelection();
+    } catch (e) {
+      showToast(e.toString());
+    }
   }
 
   static Future<void> handleBatchDownload({
@@ -155,35 +242,67 @@ class NavidromeSelectionActions {
     required Future<List<MusicFile>> Function() onFetchSongs,
     required VoidCallback onClearSelection,
   }) async {
-    final songs = await onFetchSongs();
-    if (songs.isEmpty) return;
-    final notifier = ref.read(remoteDownloadTasksProvider.notifier);
-    await notifier.enqueueSubsonicTracks(
-      server: server,
-      password: password,
-      songs: songs,
-      collectionName: server.name,
-    );
-    onClearSelection();
-    if (context.mounted) {
-      final l10n = AppLocalizations.of(context)!;
-      AppSnackBar.show(
-        context,
-        ref,
-        SnackBar(
-          content: Text(l10n.batchAddedToDownloadQueue(songs.length)),
-          action: SnackBarAction(
-            label: l10n.viewDownloadProgress,
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) => const RemoteDownloadManagerPage(),
-                ),
-              );
-            },
-          ),
-        ),
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final songs = await _withLoading(
+        context: context,
+        message: l10n.loadingAlbumTracks,
+        task: onFetchSongs,
       );
+      if (songs == null || songs.isEmpty) return;
+      final notifier = ref.read(remoteDownloadTasksProvider.notifier);
+      await notifier.enqueueSubsonicTracks(
+        server: server,
+        password: password,
+        songs: songs,
+        collectionName: server.name,
+      );
+      onClearSelection();
+      if (context.mounted) {
+        AppSnackBar.show(
+          context,
+          ref,
+          SnackBar(
+            content: Text(l10n.batchAddedToDownloadQueue(songs.length)),
+            action: SnackBarAction(
+              label: l10n.viewDownloadProgress,
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RemoteDownloadManagerPage(),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      showToast(e.toString());
+    }
+  }
+
+  static Future<void> handleBatchTranscode({
+    required BuildContext context,
+    required Future<List<MusicFile>> Function() onFetchSongs,
+    required VoidCallback onClearSelection,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final songs = await _withLoading(
+        context: context,
+        message: l10n.loadingAlbumTracks,
+        task: onFetchSongs,
+      );
+      if (songs == null || songs.isEmpty) return;
+      if (!context.mounted) return;
+      await showTranscodeDialog(
+        context,
+        songs: songs,
+      );
+      onClearSelection();
+    } catch (e) {
+      showToast(e.toString());
     }
   }
 

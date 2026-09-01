@@ -29,6 +29,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
     this.onAddToPlaylist,
     this.onAddToFavorites,
     this.onDownload,
+    this.onTranscode,
     this.isSelectionEmpty,
     this.isAllSelected,
   });
@@ -50,6 +51,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
   final VoidCallback? onAddToPlaylist;
   final VoidCallback? onAddToFavorites;
   final VoidCallback? onDownload;
+  final VoidCallback? onTranscode;
   final bool? isSelectionEmpty;
   final bool? isAllSelected;
 
@@ -105,11 +107,15 @@ class LibrarySelectionPanel extends ConsumerWidget {
             onPressed: isEmpty
                 ? null
                 : () async {
-                    await showTranscodeDialog(
-                      context,
-                      songs: selectedSongs,
-                    );
-                    onCancel();
+                    if (onTranscode != null) {
+                      onTranscode!();
+                    } else {
+                      await showTranscodeDialog(
+                        context,
+                        songs: selectedSongs,
+                      );
+                      onCancel();
+                    }
                   },
           ),
         );
@@ -219,11 +225,15 @@ class LibrarySelectionPanel extends ConsumerWidget {
             onPressed: isEmpty
                 ? null
                 : () async {
-                    await showTranscodeDialog(
-                      context,
-                      songs: selectedSongs,
-                    );
-                    onCancel();
+                    if (onTranscode != null) {
+                      onTranscode!();
+                    } else {
+                      await showTranscodeDialog(
+                        context,
+                        songs: selectedSongs,
+                      );
+                      onCancel();
+                    }
                   },
           ),
         );

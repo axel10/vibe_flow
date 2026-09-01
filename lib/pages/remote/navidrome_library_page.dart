@@ -1013,12 +1013,14 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 onToggleSelectAll: panelToggleSelectAll ?? () {},
                 onCancel: _cancelSelection,
                 onPlayNext: () => NavidromeSelectionActions.handleBatchPlayNext(
+                  context: context,
                   ref: ref,
                   onFetchSongs: _fetchSelectedSongs,
                   onClearSelection: _cancelSelection,
                 ),
                 onAddToQueue: () =>
                     NavidromeSelectionActions.handleBatchAddToQueue(
+                  context: context,
                   ref: ref,
                   onFetchSongs: _fetchSelectedSongs,
                   onClearSelection: _cancelSelection,
@@ -1035,6 +1037,12 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   ref: ref,
                   server: widget.server,
                   password: widget.password,
+                  onFetchSongs: _fetchSelectedSongs,
+                  onClearSelection: _cancelSelection,
+                ),
+                onTranscode: () =>
+                    NavidromeSelectionActions.handleBatchTranscode(
+                  context: context,
                   onFetchSongs: _fetchSelectedSongs,
                   onClearSelection: _cancelSelection,
                 ),

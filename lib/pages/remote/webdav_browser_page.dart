@@ -16,6 +16,7 @@ import '../../player/remote/services/webdav_metadata_helper.dart';
 import '../../player/library/playlist_service.dart';
 import '../../player/metadata/metadata_database.dart';
 import '../../player/settings/settings_service.dart';
+import '../../dialogs/transcode_dialog.dart';
 import '../../utils/app_snack_bar.dart';
 import '../../utils/folder_helpers.dart';
 import '../../utils/remote_context_menu_utils.dart';
@@ -1499,6 +1500,20 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                                 ),
                               );
                             }
+                          }
+                          _clearAllSelection();
+                        },
+                        onTranscode: () async {
+                          final songs = await _resolveAllSelectedSongs(
+                            sourceList: displayedItems,
+                          );
+                          if (songs.isNotEmpty && mounted) {
+                            await showTranscodeDialog(
+                              context,
+                              songs: songs,
+                            );
+                          } else if (mounted) {
+                            showToast('No audio files in selected items');
                           }
                           _clearAllSelection();
                         },
