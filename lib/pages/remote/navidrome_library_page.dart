@@ -2,30 +2,26 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oktoast/oktoast.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
-import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
-import '../../widgets/remote_artwork_widget.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/remote_context_menu_utils.dart';
-import '../../utils/song_context_menu_utils.dart';
-import '../../utils/app_snack_bar.dart';
 import '../../player/remote/services/remote_download_service.dart';
-import '../../player/remote/navidrome_navigation.dart';
 import '../../widgets/library_selection_panel.dart';
 import '../../widgets/library_selection_scope.dart';
-import 'navidrome_artist_detail_page.dart';
-import 'navidrome_playlist_detail_page.dart';
 import 'remote_download_manager_page.dart';
-import '../../utils/selection_utils.dart';
+import 'widgets/navidrome_header_bottom.dart';
+import 'widgets/navidrome_selection_actions.dart';
+import 'widgets/navidrome_albums_tab.dart';
+import 'widgets/navidrome_artists_tab.dart';
+import 'widgets/navidrome_playlists_tab.dart';
+import 'widgets/navidrome_search_tab.dart';
 
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -74,7 +70,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   final Set<String> _starredArtistIds = {};
 
   // Playlists state
-  static const String _starredPlaylistId = '__navidrome_starred_songs__';
+  static const String _starredPlaylistId =
+      NavidromeSelectionActions.starredPlaylistId;
   bool _isLoadingPlaylists = false;
   List<Map<String, dynamic>> _playlists = [];
   String? _playlistsError;
@@ -319,112 +316,20 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     _updateSelectionScope();
   }
 
-  Future<List<MusicFile>> _fetchSelectedSongs() async {
-    final client = SubsonicClient(
+  Future<List<MusicFile>> _fetchSelectedSongs() {
+    return NavidromeSelectionActions.fetchSelectedSongs(
       server: widget.server,
       password: widget.password,
+      isAlbumSelectionMode: _isAlbumSelectionMode,
+      isArtistSelectionMode: _isArtistSelectionMode,
+      isPlaylistSelectionMode: _isPlaylistSelectionMode,
+      isSongSelectionMode: _isSongSelectionMode,
+      selectedAlbumIds: _selectedAlbumIds,
+      selectedArtistIds: _selectedArtistIds,
+      selectedPlaylistIds: _selectedPlaylistIds,
+      selectedSongPaths: _selectedSongPaths,
+      searchedSongs: _searchedSongs,
     );
-    final List<MusicFile> allSongs = [];
-    if (_isAlbumSelectionMode) {
-      for (final albumId in _selectedAlbumIds) {
-        final tracks =
-            await fetchSubsonicAlbumTracks(client, widget.server, albumId);
-        allSongs.addAll(tracks);
-      }
-    } else if (_isArtistSelectionMode) {
-      for (final artistId in _selectedArtistIds) {
-        final tracks =
-            await fetchSubsonicArtistTracks(client, widget.server, artistId);
-        allSongs.addAll(tracks);
-      }
-    } else if (_isPlaylistSelectionMode) {
-      for (final playlistId in _selectedPlaylistIds) {
-        final tracks =
-            await fetchSubsonicPlaylistTracks(client, widget.server, playlistId);
-        allSongs.addAll(tracks);
-      }
-    } else if (_isSongSelectionMode) {
-      for (final song in _searchedSongs) {
-        if (_selectedSongPaths.contains(song.path)) {
-          allSongs.add(song);
-        }
-      }
-    }
-    return allSongs;
-  }
-
-  Future<void> _handleBatchPlayNext() async {
-    final songs = await _fetchSelectedSongs();
-    if (songs.isEmpty) return;
-    final audio = ref.read(audioServiceProvider);
-    await audio.enqueueNext(songs);
-    _cancelSelection();
-  }
-
-  Future<void> _handleBatchAddToQueue() async {
-    final songs = await _fetchSelectedSongs();
-    if (songs.isEmpty) return;
-    final audio = ref.read(audioServiceProvider);
-    await audio.appendToQueue(songs);
-    _cancelSelection();
-  }
-
-  Future<void> _handleBatchAddToPlaylist() async {
-    final songs = await _fetchSelectedSongs();
-    if (songs.isEmpty) return;
-    if (!mounted) return;
-    final playlistService = ref.read(playlistServiceProvider);
-    await showAddSongsToPlaylistDialog(context, playlistService, songs);
-    _cancelSelection();
-  }
-
-  Future<void> _handleBatchDownload() async {
-    final songs = await _fetchSelectedSongs();
-    if (songs.isEmpty) return;
-    final notifier = ref.read(remoteDownloadTasksProvider.notifier);
-    await notifier.enqueueSubsonicTracks(
-      server: widget.server,
-      password: widget.password,
-      songs: songs,
-      collectionName: widget.server.name,
-    );
-    _cancelSelection();
-    if (mounted) {
-      final l10n = AppLocalizations.of(context)!;
-      AppSnackBar.show(
-        context,
-        ref,
-        SnackBar(
-          content: Text(l10n.batchAddedToDownloadQueue(songs.length)),
-          action: SnackBarAction(
-            label: l10n.viewDownloadProgress,
-            onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (_) => const RemoteDownloadManagerPage(),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> _handleBatchDeletePlaylists() async {
-    final toDelete = _selectedPlaylistIds
-        .where((id) => id != _starredPlaylistId && id != 'starred_songs')
-        .toList();
-    if (toDelete.isEmpty) return;
-    final client = SubsonicClient(
-      server: widget.server,
-      password: widget.password,
-    );
-    for (final plId in toDelete) {
-      await client.deletePlaylist(plId);
-    }
-    _cancelSelection();
-    _loadPlaylists(forceRefresh: true);
   }
 
   List<Map<String, dynamic>> _getFilteredAlbums() {
@@ -722,95 +627,6 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     }
   }
 
-
-
-  void _showCreatePlaylistDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.createNewServerPlaylist),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: l10n.playlistName,
-            hintText: l10n.enterPlaylistName,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () async {
-              final name = controller.text.trim();
-              if (name.isNotEmpty) {
-                Navigator.pop(ctx);
-                final created = await _client.createPlaylist(name: name);
-                if (created != null && mounted) {
-                  showToast(l10n.createdPlaylistSuccess(name));
-                  await _loadPlaylists(forceRefresh: true);
-                  final createdId = created['id'] as String?;
-                  if (createdId != null) {
-                    setState(() {
-                      _selectedPlaylistId = createdId;
-                    });
-                    ref
-                        .read(activeRemoteSessionProvider.notifier)
-                        .updateNavidromePlaylists(
-                          selectedPlaylistId: createdId,
-                        );
-                  }
-                }
-              }
-            },
-            child: Text(l10n.confirm),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _playAlbumDirectly(String albumId, String albumTitle) async {
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      showToast(l10n.loadingAlbumTracks);
-      final album = await _client.getAlbum(albumId);
-      final songList = album?['song'] as List?;
-      if (songList != null && songList.isNotEmpty) {
-        final List<MusicFile> parsed = [];
-        for (final item in songList) {
-          if (item is Map<String, dynamic>) {
-            parsed.add(
-              RemoteMediaResolver.buildMusicFileFromSubsonic(
-                item,
-                widget.server,
-              ),
-            );
-          }
-        }
-        if (parsed.isNotEmpty) {
-          final audio = ref.read(audioServiceProvider);
-          await audio.playPlaylist(
-            parsed,
-            source: PlaybackSource(
-              type: PlaybackSourceType.album,
-              id: 'remote-${widget.server.id}-$albumId',
-              name: albumTitle,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      showToast(l10n.playAlbumFailed(e.toString()));
-    }
-  }
-
-
-
   void _onSearchChanged(String query) {
     _searchDebounce?.cancel();
     if (_isSelectionMode) {
@@ -943,7 +759,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       panelIsAllSelected =
           _selectedPlaylistIds.length == filteredPlaylists.length &&
               filteredPlaylists.isNotEmpty;
-      panelDelete = _handleBatchDeletePlaylists;
+      panelDelete = () => NavidromeSelectionActions.handleBatchDeletePlaylists(
+            server: widget.server,
+            password: widget.password,
+            selectedPlaylistIds: _selectedPlaylistIds,
+            onClearSelection: _cancelSelection,
+            onReloadPlaylists: () => _loadPlaylists(forceRefresh: true),
+          );
       panelDeleteLabel = l10n.deletePlaylist;
     } else if (_isSongSelectionMode) {
       final songs = _searchedSongs;
@@ -1044,7 +866,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           },
                         ),
                       ],
-                      bottom: _NavidromeHeaderBottom(
+                      bottom: NavidromeHeaderBottom(
                         tabBar: TabBar(
                           controller: _tabController,
                           tabs: [
@@ -1065,10 +887,110 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 body: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildAlbumsTab(theme, bottomOffset),
-                    _buildArtistsTab(theme, bottomOffset),
-                    _buildPlaylistsTab(theme, bottomOffset),
-                    _buildSearchTab(theme, bottomOffset),
+                    NavidromeAlbumsView(
+                      server: widget.server,
+                      password: widget.password,
+                      albums: _getFilteredAlbums(),
+                      isLoading: _isLoadingAlbums,
+                      error: _albumsError,
+                      onRefresh: () => _loadAlbums(forceRefresh: true),
+                      searchQuery: _albumSearchQuery,
+                      bottomOffset: bottomOffset,
+                      isSelectionMode: _isAlbumSelectionMode,
+                      selectedAlbumIds: _selectedAlbumIds,
+                      lastAlbumAnchorIndex: _lastAlbumAnchorIndex,
+                      onSetSelection: _setAlbumSelection,
+                      onToggleSelection: _toggleAlbumSelection,
+                      onUpdateAnchor: (a) => setState(() => _lastAlbumAnchorIndex = a),
+                      onPlayAlbumDirectly: (id, title) =>
+                          NavidromeSelectionActions.playAlbumDirectly(
+                        context: context,
+                        ref: ref,
+                        server: widget.server,
+                        password: widget.password,
+                        albumId: id,
+                        albumTitle: title,
+                      ),
+                    ),
+                    NavidromeArtistsView(
+                      server: widget.server,
+                      password: widget.password,
+                      artists: _getFilteredArtists(),
+                      starredArtistIds: _starredArtistIds,
+                      selectedArtistId: _selectedArtistId,
+                      isLoading: _isLoadingArtists,
+                      error: _artistsError,
+                      onRefresh: () => _loadArtists(forceRefresh: true),
+                      searchQuery: _artistSearchQuery,
+                      bottomOffset: bottomOffset,
+                      isSelectionMode: _isArtistSelectionMode,
+                      selectedArtistIds: _selectedArtistIds,
+                      lastArtistAnchorIndex: _lastArtistAnchorIndex,
+                      onSelectArtistId: (id) {
+                        setState(() {
+                          _selectedArtistId = id;
+                        });
+                        ref
+                            .read(activeRemoteSessionProvider.notifier)
+                            .updateNavidromeArtists(
+                              selectedArtistId: id,
+                            );
+                      },
+                      onSetSelection: _setArtistSelection,
+                      onToggleSelection: _toggleArtistSelection,
+                      onUpdateAnchor: (a) =>
+                          setState(() => _lastArtistAnchorIndex = a),
+                    ),
+                    NavidromePlaylistsView(
+                      server: widget.server,
+                      password: widget.password,
+                      playlists: _getFilteredPlaylists(),
+                      selectedPlaylistId: _selectedPlaylistId,
+                      isLoading: _isLoadingPlaylists,
+                      error: _playlistsError,
+                      onRefresh: () => _loadPlaylists(forceRefresh: true),
+                      searchQuery: _playlistSearchQuery,
+                      bottomOffset: bottomOffset,
+                      isSelectionMode: _isPlaylistSelectionMode,
+                      selectedPlaylistIds: _selectedPlaylistIds,
+                      lastPlaylistAnchorIndex: _lastPlaylistAnchorIndex,
+                      onSelectPlaylistId: (id) {
+                        setState(() {
+                          _selectedPlaylistId = id;
+                        });
+                        ref
+                            .read(activeRemoteSessionProvider.notifier)
+                            .updateNavidromePlaylists(
+                              selectedPlaylistId: id,
+                            );
+                      },
+                      onSetSelection: _setPlaylistSelection,
+                      onToggleSelection: _togglePlaylistSelection,
+                      onUpdateAnchor: (a) =>
+                          setState(() => _lastPlaylistAnchorIndex = a),
+                    ),
+                    NavidromeSearchView(
+                      server: widget.server,
+                      password: widget.password,
+                      searchController: _searchController,
+                      searchedSongs: _searchedSongs,
+                      searchedAlbums: _searchedAlbums,
+                      searchedArtists: _searchedArtists,
+                      bottomOffset: bottomOffset,
+                      isArtistSelectionMode: _isArtistSelectionMode,
+                      isAlbumSelectionMode: _isAlbumSelectionMode,
+                      isSongSelectionMode: _isSongSelectionMode,
+                      selectedArtistIds: _selectedArtistIds,
+                      selectedAlbumIds: _selectedAlbumIds,
+                      selectedSongPaths: _selectedSongPaths,
+                      lastSongAnchorIndex: _lastSongAnchorIndex,
+                      onSetSongSelection: _setSongSelection,
+                      onToggleSongSelection: _toggleSongSelection,
+                      onUpdateSongAnchor: (a) =>
+                          setState(() => _lastSongAnchorIndex = a),
+                      onToggleArtistSelection: _toggleArtistSelection,
+                      onToggleAlbumSelection: _toggleAlbumSelection,
+                    ),
                   ],
                 ),
               ),
@@ -1090,10 +1012,32 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 isAllSelected: panelIsAllSelected,
                 onToggleSelectAll: panelToggleSelectAll ?? () {},
                 onCancel: _cancelSelection,
-                onPlayNext: _handleBatchPlayNext,
-                onAddToQueue: _handleBatchAddToQueue,
-                onAddToPlaylist: _handleBatchAddToPlaylist,
-                onDownload: _handleBatchDownload,
+                onPlayNext: () => NavidromeSelectionActions.handleBatchPlayNext(
+                  ref: ref,
+                  onFetchSongs: _fetchSelectedSongs,
+                  onClearSelection: _cancelSelection,
+                ),
+                onAddToQueue: () =>
+                    NavidromeSelectionActions.handleBatchAddToQueue(
+                  ref: ref,
+                  onFetchSongs: _fetchSelectedSongs,
+                  onClearSelection: _cancelSelection,
+                ),
+                onAddToPlaylist: () =>
+                    NavidromeSelectionActions.handleBatchAddToPlaylist(
+                  context: context,
+                  ref: ref,
+                  onFetchSongs: _fetchSelectedSongs,
+                  onClearSelection: _cancelSelection,
+                ),
+                onDownload: () => NavidromeSelectionActions.handleBatchDownload(
+                  context: context,
+                  ref: ref,
+                  server: widget.server,
+                  password: widget.password,
+                  onFetchSongs: _fetchSelectedSongs,
+                  onClearSelection: _cancelSelection,
+                ),
                 onDelete: panelDelete,
                 deleteLabel: panelDeleteLabel,
               ),
@@ -1127,1935 +1071,137 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   Widget? _buildCurrentTabToolbar(ThemeData theme) {
     switch (_tabController.index) {
       case 0:
-        return _buildAlbumsToolbar(theme);
-      case 1:
-        return _buildArtistsToolbar(theme);
-      case 2:
-        return _buildPlaylistsToolbar(theme);
-      case 3:
-        return _buildSearchToolbar(theme);
-      default:
-        return null;
-    }
-  }
-
-  Widget _buildAlbumsToolbar(ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-    final sortOptions = [
-      {'key': 'alphabeticalByName', 'label': l10n.sortAllAZ},
-      {'key': 'newest', 'label': l10n.sortRecentAdded},
-      {'key': 'recent', 'label': l10n.sortRecentlyPlayed},
-      {'key': 'frequent', 'label': l10n.sortMostPlayed},
-      {'key': 'starred', 'label': l10n.sortStarred},
-      {'key': 'random', 'label': l10n.sortRandom},
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 650;
-        final searchField = TextField(
-          controller: _albumSearchController,
-          focusNode: _albumSearchFocusNode,
-          onChanged: (val) {
+        return NavidromeAlbumsToolbar(
+          searchController: _albumSearchController,
+          searchFocusNode: _albumSearchFocusNode,
+          searchQuery: _albumSearchQuery,
+          isSearchExpanded: _isAlbumSearchExpanded,
+          sortType: _albumSortType,
+          onSearchChanged: (val) {
             setState(() {
               _albumSearchQuery = val.trim();
             });
           },
-          decoration: InputDecoration(
-            hintText: l10n.filterAlbums,
-            prefixIcon: const Icon(Icons.search_rounded, size: 20),
-            suffixIcon: _albumSearchQuery.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear_rounded, size: 18),
-                    onPressed: () {
-                      _albumSearchController.clear();
-                      setState(() {
-                        _albumSearchQuery = '';
-                      });
-                    },
-                  )
-                : null,
-            filled: true,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
+          onClearSearch: () {
+            _albumSearchController.clear();
+            setState(() {
+              _albumSearchQuery = '';
+            });
+          },
+          onToggleSearchExpanded: (expanded) {
+            setState(() {
+              _isAlbumSearchExpanded = expanded;
+            });
+          },
+          onSortTypeChanged: (newSort) {
+            setState(() {
+              _albumSortType = newSort;
+            });
+            _loadAlbums(forceRefresh: true);
+          },
         );
-
-        final sortChips = SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
-          child: Row(
-            children: sortOptions.map((opt) {
-              final key = opt['key']!;
-              final label = opt['label']!;
-              final isSelected = _albumSortType == key;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                  label: Text(label, style: const TextStyle(fontSize: 12)),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected && _albumSortType != key) {
-                      setState(() {
-                        _albumSortType = key;
-                      });
-                      _loadAlbums(forceRefresh: true);
-                    }
-                  },
-                ),
-              );
-            }).toList(),
-          ),
+      case 1:
+        return NavidromeArtistsToolbar(
+          searchController: _artistSearchController,
+          searchQuery: _artistSearchQuery,
+          starredOnly: _artistStarredOnly,
+          sortAsc: _artistSortAsc,
+          sortField: _artistSortField,
+          onSearchChanged: (val) {
+            setState(() {
+              _artistSearchQuery = val.trim();
+            });
+          },
+          onClearSearch: () {
+            _artistSearchController.clear();
+            setState(() {
+              _artistSearchQuery = '';
+            });
+          },
+          onToggleStarredOnly: (selected) {
+            setState(() {
+              _artistStarredOnly = selected;
+            });
+            if (selected && _starredArtistIds.isEmpty) {
+              _fetchStarredArtists();
+            }
+          },
+          onToggleSort: () {
+            setState(() {
+              if (_artistSortField == 'name') {
+                if (_artistSortAsc) {
+                  _artistSortAsc = false;
+                } else {
+                  _artistSortField = 'albumCount';
+                  _artistSortAsc = false;
+                }
+              } else {
+                _artistSortField = 'name';
+                _artistSortAsc = true;
+              }
+            });
+          },
         );
-
-        final isNarrowExpanded =
-            _isAlbumSearchExpanded || _albumSearchQuery.isNotEmpty;
-
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          child: isWide
-              ? Row(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: searchField,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 6,
-                      child: sortChips,
-                    ),
-                  ],
-                )
-              : AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  ),
-                  child: isNarrowExpanded
-                      ? Row(
-                          key: const ValueKey('album_search_expanded'),
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back_rounded,
-                                  size: 20),
-                              tooltip: l10n.closeSearch,
-                              onPressed: () {
-                                _albumSearchFocusNode.unfocus();
-                                setState(() {
-                                  _isAlbumSearchExpanded = false;
-                                  _albumSearchController.clear();
-                                  _albumSearchQuery = '';
-                                });
-                              },
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(child: searchField),
-                          ],
-                        )
-                      : Row(
-                          key: const ValueKey('album_search_collapsed'),
-                          children: [
-                            IconButton.filledTonal(
-                              style: IconButton.styleFrom(
-                                minimumSize: const Size(32, 32),
-                                fixedSize: const Size(32, 32),
-                                padding: EdgeInsets.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              icon: const Icon(Icons.search_rounded, size: 18),
-                              tooltip: l10n.filterAlbums,
-                              onPressed: () {
-                                setState(() {
-                                  _isAlbumSearchExpanded = true;
-                                });
-                                _albumSearchFocusNode.requestFocus();
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(child: sortChips),
-                          ],
-                        ),
-                ),
-        );
-      },
-    );
-  }
-
-  Widget _buildArtistsToolbar(ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _artistSearchController,
-              onChanged: (val) {
+      case 2:
+        return NavidromePlaylistsToolbar(
+          searchController: _playlistSearchController,
+          onSearchChanged: (val) {
+            setState(() {
+              _playlistSearchQuery = val;
+            });
+            final activeSession = ref.read(activeRemoteSessionProvider);
+            if (activeSession != null &&
+                activeSession.server.id == widget.server.id) {
+              ref
+                  .read(activeRemoteSessionProvider.notifier)
+                  .updateNavidromePlaylistSearchQuery(val);
+            }
+          },
+          onClearSearch: () {
+            _playlistSearchController.clear();
+            setState(() {
+              _playlistSearchQuery = '';
+            });
+            final activeSession = ref.read(activeRemoteSessionProvider);
+            if (activeSession != null &&
+                activeSession.server.id == widget.server.id) {
+              ref
+                  .read(activeRemoteSessionProvider.notifier)
+                  .updateNavidromePlaylistSearchQuery('');
+            }
+          },
+          onCreatePlaylist: () => showCreateNavidromePlaylistDialog(
+            context: context,
+            client: _client,
+            onCreated: (created) async {
+              await _loadPlaylists(forceRefresh: true);
+              final createdId = created['id'] as String?;
+              if (createdId != null && mounted) {
                 setState(() {
-                  _artistSearchQuery = val.trim();
+                  _selectedPlaylistId = createdId;
                 });
-              },
-              decoration: InputDecoration(
-                hintText: l10n.filterArtists,
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _artistSearchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 18),
-                        onPressed: () {
-                          _artistSearchController.clear();
-                          setState(() {
-                            _artistSearchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          FilterChip(
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            visualDensity: VisualDensity.compact,
-            avatar: Icon(
-              _artistStarredOnly
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
-              size: 14,
-              color: _artistStarredOnly ? Colors.redAccent : null,
-            ),
-            label: Text(
-              l10n.starredArtists,
-              style: TextStyle(
-                fontSize: 12,
-                color: _artistStarredOnly ? Colors.redAccent : null,
-              ),
-            ),
-            selected: _artistStarredOnly,
-            onSelected: (selected) {
-              setState(() {
-                _artistStarredOnly = selected;
-              });
-              if (selected && _starredArtistIds.isEmpty) {
-                _fetchStarredArtists();
+                ref
+                    .read(activeRemoteSessionProvider.notifier)
+                    .updateNavidromePlaylists(
+                      selectedPlaylistId: createdId,
+                    );
               }
             },
           ),
-          const SizedBox(width: 8),
-          ActionChip(
-            avatar: Icon(
-              _artistSortAsc
-                  ? Icons.arrow_upward_rounded
-                  : Icons.arrow_downward_rounded,
-              size: 16,
-            ),
-            label: Text(
-              _artistSortField == 'albumCount' ? l10n.albums : 'A-Z',
-              style: const TextStyle(fontSize: 12),
-            ),
-            onPressed: () {
-              setState(() {
-                if (_artistSortField == 'name') {
-                  if (_artistSortAsc) {
-                    _artistSortAsc = false;
-                  } else {
-                    _artistSortField = 'albumCount';
-                    _artistSortAsc = false;
-                  }
-                } else {
-                  _artistSortField = 'name';
-                  _artistSortAsc = true;
-                }
-              });
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaylistsToolbar(ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _playlistSearchController,
-              onChanged: (val) {
-                setState(() {
-                  _playlistSearchQuery = val;
-                });
-                final activeSession = ref.read(activeRemoteSessionProvider);
-                if (activeSession != null &&
-                    activeSession.server.id == widget.server.id) {
-                  ref
-                      .read(activeRemoteSessionProvider.notifier)
-                      .updateNavidromePlaylistSearchQuery(val);
-                }
-              },
-              decoration: InputDecoration(
-                hintText: l10n.searchPlaylists,
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: _playlistSearchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _playlistSearchController.clear();
-                          setState(() {
-                            _playlistSearchQuery = '';
-                          });
-                          final activeSession =
-                              ref.read(activeRemoteSessionProvider);
-                          if (activeSession != null &&
-                              activeSession.server.id == widget.server.id) {
-                            ref
-                                .read(activeRemoteSessionProvider.notifier)
-                                .updateNavidromePlaylistSearchQuery('');
-                          }
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: theme.colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.5),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton.filledTonal(
-            tooltip: l10n.createNewServerPlaylist,
-            icon: const Icon(Icons.add_rounded),
-            onPressed: _showCreatePlaylistDialog,
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            tooltip: l10n.refresh,
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => _loadPlaylists(forceRefresh: true),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchToolbar(ThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-      child: TextField(
-        controller: _searchController,
-        onChanged: _onSearchChanged,
-        decoration: InputDecoration(
-          hintText: l10n.searchRemoteHint,
-          prefixIcon: const Icon(Icons.search_rounded),
-          suffixIcon: _isSearching
-              ? const UnconstrainedBox(
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : (_searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear_rounded),
-                      onPressed: () {
-                        _searchController.clear();
-                        _onSearchChanged('');
-                      },
-                    )
-                  : null),
-          filled: true,
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================= ALBUMS TAB =================
-  Widget _buildAlbumsTab(ThemeData theme, double bottomOffset) {
-    final l10n = AppLocalizations.of(context)!;
-    final filteredAlbums = _getFilteredAlbums();
-
-    if (_isLoadingAlbums) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_albumsError != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(l10n.errorLoadingAlbums(_albumsError!)),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => _loadAlbums(forceRefresh: true),
-              child: Text(l10n.retry),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = switch (constraints.maxWidth) {
-          >= 1350 => 6,
-          >= 1100 => 5,
-          >= 850 => 4,
-          >= 650 => 3,
-          _ => 2,
-        };
-
-        final isPortrait =
-            MediaQuery.of(context).orientation == Orientation.portrait;
-        final textScale = MediaQuery.textScalerOf(context).scale(10) / 10;
-        final clampedScale = textScale.clamp(1.0, 1.3);
-        final double textHeight = (isPortrait ? 96.0 : 116.0) * clampedScale;
-        final itemWidth =
-            (constraints.maxWidth - 32 - (crossAxisCount - 1) * 16) /
-                crossAxisCount;
-        final childAspectRatio = itemWidth / (itemWidth + textHeight);
-
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1600),
-            child: filteredAlbums.isEmpty
-                ? Center(
-                    child: Text(
-                      _albumSearchQuery.isEmpty
-                          ? l10n.noAlbumsOnServer
-                          : l10n.noMatchingAlbums,
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: () => _loadAlbums(forceRefresh: true),
-                    child: GridView.builder(
-                      padding:
-                          EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-                      gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        childAspectRatio: childAspectRatio,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: filteredAlbums.length,
-                      itemBuilder: (context, index) {
-                        final album = filteredAlbums[index];
-                        final albumId = album['id'] as String? ?? '';
-                        final isSelected = _selectedAlbumIds.contains(albumId);
-                        final title = album['title'] as String? ??
-                            album['name'] as String? ??
-                            l10n.unknownAlbum;
-                        final artist = album['artist'] as String? ??
-                            l10n.unknownArtist;
-                        final coverId = album['coverArt'] as String?;
-                        final songCount = album['songCount'] as int?;
-                        final year = album['year'] as int?;
-
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onSecondaryTapDown: (details) {
-                            if (!_isAlbumSelectionMode) {
-                              showRemoteAlbumContextMenu(
-                                context: context,
-                                globalPosition: details.globalPosition,
-                                ref: ref,
-                                server: widget.server,
-                                password: widget.password,
-                                albumId: albumId,
-                                albumTitle: title,
-                                artistName: artist,
-                                coverArtId: coverId,
-                                onViewDetails: () {
-                                  NavidromeNavUtils.openAlbum(
-                                    context,
-                                    ref,
-                                    server: widget.server,
-                                    password: widget.password,
-                                    albumId: albumId,
-                                    albumName: title,
-                                    artistName: artist,
-                                    coverArtId: coverId,
-                                  );
-                                },
-                              );
-                            }
-                          },
-                          onLongPressStart: (details) {
-                            _lastAlbumAnchorIndex = index;
-                            _toggleAlbumSelection(albumId);
-                          },
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () {
-                                SelectionActionHelper.handleItemTap(
-                                  index: index,
-                                  itemKey: albumId,
-                                  items: filteredAlbums,
-                                  keySelector: (a) => a['id'] as String? ?? '',
-                                  isSelectionMode: _isAlbumSelectionMode,
-                                  selectedKeys: _selectedAlbumIds,
-                                  lastAnchorIndex: _lastAlbumAnchorIndex,
-                                  onUpdateAnchor: (a) => setState(() => _lastAlbumAnchorIndex = a),
-                                  onSetSelection: _setAlbumSelection,
-                                  onToggleSelection: _toggleAlbumSelection,
-                                  onNormalTap: () {
-                                    NavidromeNavUtils.openAlbum(
-                                      context,
-                                      ref,
-                                      server: widget.server,
-                                      password: widget.password,
-                                      albumId: albumId,
-                                      albumName: title,
-                                      artistName: artist,
-                                      coverArtId: coverId,
-                                    );
-                                  },
-                                );
-                              },
-                              child: Ink(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: isSelected
-                                        ? [
-                                            theme.colorScheme.primaryContainer
-                                                .withValues(alpha: 0.6),
-                                            theme.colorScheme.primaryContainer
-                                                .withValues(alpha: 0.35),
-                                          ]
-                                        : [
-                                            theme.colorScheme.primaryContainer
-                                                .withValues(alpha: 0.25),
-                                            theme.colorScheme.surfaceContainerHighest
-                                                .withValues(alpha: 0.45),
-                                          ],
-                                  ),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.outlineVariant
-                                            .withValues(alpha: 0.35),
-                                    width: isSelected ? 2.0 : 0.8,
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(11),
-                                            topRight: Radius.circular(11),
-                                          ),
-                                          child: AspectRatio(
-                                            aspectRatio: 1,
-                                            child: RemoteArtworkWidget(
-                                              server: widget.server,
-                                              password: widget.password,
-                                              coverArtId: coverId,
-                                              size: 220,
-                                              borderRadius: BorderRadius.zero,
-                                            ),
-                                          ),
-                                        ),
-                                        if (_isAlbumSelectionMode)
-                                          Positioned.fill(
-                                            child: Container(
-                                              color: isSelected
-                                                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-                                                  : Colors.black26,
-                                            ),
-                                          ),
-                                        if (_isAlbumSelectionMode)
-                                          Positioned(
-                                            top: 8,
-                                            left: 8,
-                                            child: SizedBox(
-                                              width: 28,
-                                              height: 28,
-                                              child: Checkbox(
-                                                value: isSelected,
-                                                onChanged: (_) => _toggleAlbumSelection(albumId),
-                                                fillColor: WidgetStateProperty.all(Colors.white),
-                                                checkColor: Colors.black,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(4),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      child: Padding(
-                                        padding: EdgeInsets.fromLTRB(
-                                          isPortrait ? 10 : 12,
-                                          isPortrait ? 6 : 8,
-                                          isPortrait ? 10 : 12,
-                                          isPortrait ? 4 : 6,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  title,
-                                                  style: theme
-                                                      .textTheme.titleSmall
-                                                      ?.copyWith(
-                                                    fontWeight:
-                                                        FontWeight.w600,
-                                                    fontSize: isPortrait
-                                                        ? 12
-                                                        : 13,
-                                                    color: isSelected
-                                                        ? theme.colorScheme.primary
-                                                        : null,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  artist,
-                                                  style: theme
-                                                      .textTheme.bodySmall
-                                                      ?.copyWith(
-                                                    color: theme.colorScheme
-                                                        .onSurfaceVariant,
-                                                    fontSize: isPortrait
-                                                        ? 11
-                                                        : 12,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    songCount != null
-                                                        ? l10n.trackCountShort(songCount)
-                                                        : (year != null &&
-                                                                year > 0
-                                                            ? '$year'
-                                                            : ''),
-                                                    style: theme
-                                                        .textTheme.bodySmall
-                                                        ?.copyWith(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .onSurfaceVariant,
-                                                      fontSize: isPortrait
-                                                          ? 10
-                                                          : 11,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow
-                                                        .ellipsis,
-                                                  ),
-                                                ),
-                                                if (!_isAlbumSelectionMode)
-                                                  IconButton(
-                                                    visualDensity:
-                                                        VisualDensity.compact,
-                                                    padding: EdgeInsets.zero,
-                                                    constraints:
-                                                        const BoxConstraints(),
-                                                    tooltip: l10n.playAlbum,
-                                                    onPressed: () =>
-                                                        _playAlbumDirectly(
-                                                      albumId,
-                                                      title,
-                                                    ),
-                                                    icon: Icon(
-                                                      Icons
-                                                          .play_circle_filled_rounded,
-                                                      size: isPortrait
-                                                          ? 22
-                                                          : 26,
-                                                      color: theme
-                                                          .colorScheme.primary,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-          ),
+          onRefresh: () => _loadPlaylists(forceRefresh: true),
         );
-      },
-    );
-  }
-
-  // ================= ARTISTS TAB =================
-  Widget _buildArtistsTab(ThemeData theme, double bottomOffset) {
-    final l10n = AppLocalizations.of(context)!;
-    if (_isLoadingArtists) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_artistsError != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(l10n.errorLoadingArtists(_artistsError!)),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => _loadArtists(forceRefresh: true),
-              child: Text(l10n.retry),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final filteredArtists = _getFilteredArtists();
-
-    filteredArtists.sort((a, b) {
-      if (_artistSortField == 'albumCount') {
-        final countA = (a['albumCount'] as num?)?.toInt() ?? 0;
-        final countB = (b['albumCount'] as num?)?.toInt() ?? 0;
-        final cmp = countA.compareTo(countB);
-        return _artistSortAsc ? cmp : -cmp;
-      } else {
-        final nameA = (a['name'] as String? ?? '').toLowerCase();
-        final nameB = (b['name'] as String? ?? '').toLowerCase();
-        final cmp = nameA.compareTo(nameB);
-        return _artistSortAsc ? cmp : -cmp;
-      }
-    });
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isLandscape = constraints.maxWidth >= 750;
-
-        // Ensure a selected artist exists for landscape split view
-        final selectedArtist = filteredArtists.firstWhere(
-          (a) => a['id'] == _selectedArtistId,
-          orElse: () =>
-              filteredArtists.isNotEmpty ? filteredArtists.first : const {},
-        );
-
-        if (isLandscape && filteredArtists.isNotEmpty) {
-          // Master-Detail Split View for Desktop / Landscape
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left: Artist Master List
-              SizedBox(
-                width: 320,
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 12, 8, 16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant
-                          .withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: RefreshIndicator(
-                    onRefresh: () => _loadArtists(forceRefresh: true),
-                    child: ListView.builder(
-                      padding:
-                          EdgeInsets.fromLTRB(12, 12, 12, bottomOffset),
-                      itemCount: filteredArtists.length,
-                      itemBuilder: (context, index) {
-                        final artist = filteredArtists[index];
-                        final isSelected =
-                            artist['id'] == selectedArtist['id'];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: _buildArtistItem(
-                            theme: theme,
-                            artist: artist,
-                            index: index,
-                            allArtists: filteredArtists,
-                            isSelected: isSelected,
-                            onTap: () {
-                              final id = artist['id'] as String?;
-                              setState(() {
-                                _selectedArtistId = id;
-                              });
-                              ref
-                                  .read(
-                                      activeRemoteSessionProvider.notifier)
-                                  .updateNavidromeArtists(
-                                    selectedArtistId: id,
-                                  );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-
-              // Right: Artist Detail Pane
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(8, 12, 16, 16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant
-                          .withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: selectedArtist.isNotEmpty
-                        ? NavidromeArtistDetailContent(
-                            key: ValueKey(selectedArtist['id']),
-                            server: widget.server,
-                            password: widget.password,
-                            artistId: selectedArtist['id'] as String? ?? '',
-                            artistName: selectedArtist['name'] as String? ??
-                                l10n.unknownArtist,
-                            coverArtId: selectedArtist['coverArt'] as String?,
-                            albumCount: selectedArtist['albumCount'] as int?,
-                          )
-                        : Center(child: Text(l10n.noArtistSelected)),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }
-
-        // Portrait: Vertical List of Artist Cards
-        return filteredArtists.isEmpty
-            ? Center(
-                child: Text(
-                  _artistSearchQuery.isEmpty
-                      ? l10n.noArtistsFound
-                      : l10n.noMatchingArtists,
-                  style: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: () => _loadArtists(forceRefresh: true),
-                child: ListView.builder(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-                  itemCount: filteredArtists.length,
-                  itemBuilder: (context, index) {
-                    final artist = filteredArtists[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: _buildArtistItem(
-                        theme: theme,
-                        artist: artist,
-                        index: index,
-                        allArtists: filteredArtists,
-                        isSelected: false,
-                        onTap: () {
-                          NavidromeNavUtils.openArtist(
-                            context,
-                            ref,
-                            server: widget.server,
-                            password: widget.password,
-                            artistId: artist['id'] as String? ?? '',
-                            artistName: artist['name'] as String? ??
-                                l10n.unknownArtist,
-                            coverArtId: artist['coverArt'] as String?,
-                            albumCount: artist['albumCount'] as int?,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              );
-      },
-    );
-  }
-
-  Widget _buildArtistItem({
-    required ThemeData theme,
-    required Map<String, dynamic> artist,
-    required int index,
-    required List<Map<String, dynamic>> allArtists,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final l10n = AppLocalizations.of(context)!;
-    final name = artist['name'] as String? ?? l10n.unknownArtist;
-    final albumCount = artist['albumCount'] as int? ?? 0;
-    final coverArtId = artist['coverArt'] as String?;
-    final artistId = artist['id'] as String? ?? '';
-    final isStarred = _starredArtistIds.contains(artistId);
-    final isMultiSelected = _selectedArtistIds.contains(artistId);
-
-    final backgroundColor = _isArtistSelectionMode && isMultiSelected
-        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : (isSelected
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35));
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: (details) {
-        if (!_isArtistSelectionMode) {
-          showRemoteArtistContextMenu(
-            context: context,
-            globalPosition: details.globalPosition,
-            ref: ref,
-            server: widget.server,
-            password: widget.password,
-            artistId: artistId,
-            artistName: name,
-            onViewDetails: onTap,
-          );
-        }
-      },
-      onLongPressStart: (details) {
-        _lastArtistAnchorIndex = index;
-        _toggleArtistSelection(artistId);
-      },
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            SelectionActionHelper.handleItemTap(
-              index: index,
-              itemKey: artistId,
-              items: allArtists,
-              keySelector: (a) => a['id'] as String? ?? '',
-              isSelectionMode: _isArtistSelectionMode,
-              selectedKeys: _selectedArtistIds,
-              lastAnchorIndex: _lastArtistAnchorIndex,
-              onUpdateAnchor: (a) => setState(() => _lastArtistAnchorIndex = a),
-              onSetSelection: _setArtistSelection,
-              onToggleSelection: _toggleArtistSelection,
-              onNormalTap: onTap,
-            );
+      case 3:
+        return NavidromeSearchToolbar(
+          searchController: _searchController,
+          isSearching: _isSearching,
+          onSearchChanged: _onSearchChanged,
+          onClearSearch: () {
+            _searchController.clear();
+            _onSearchChanged('');
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: (_isArtistSelectionMode && isMultiSelected) || isSelected
-                    ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                width: (_isArtistSelectionMode && isMultiSelected) || isSelected
-                    ? 1.5
-                    : 0.8,
-              ),
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: RemoteArtworkWidget(
-                    server: widget.server,
-                    password: widget.password,
-                    coverArtId: coverArtId,
-                    size: 40,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: TextStyle(
-                                fontWeight: (_isArtistSelectionMode &&
-                                            isMultiSelected) ||
-                                        isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w600,
-                                fontSize: 13,
-                                color: (_isArtistSelectionMode &&
-                                            isMultiSelected) ||
-                                        isSelected
-                                    ? theme.colorScheme.primary
-                                    : null,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isStarred)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 4.0),
-                              child: Icon(
-                                Icons.favorite_rounded,
-                                size: 14,
-                                color: Colors.redAccent,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.albumCount(albumCount),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_isArtistSelectionMode)
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Checkbox(
-                      value: isMultiSelected,
-                      onChanged: (_) {
-                        _toggleArtistSelection(artistId);
-                      },
-                    ),
-                  )
-                else
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      Icons.more_vert_rounded,
-                      size: 20,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    tooltip: l10n.more,
-                    onPressed: () {
-                      final box = context.findRenderObject() as RenderBox?;
-                      final pos = box != null
-                          ? box.localToGlobal(
-                              Offset(box.size.width / 2, box.size.height / 2))
-                          : Offset.zero;
-                      showRemoteArtistContextMenu(
-                        context: context,
-                        globalPosition: pos,
-                        ref: ref,
-                        server: widget.server,
-                        password: widget.password,
-                        artistId: artistId,
-                        artistName: name,
-                        onViewDetails: onTap,
-                      );
-                    },
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================= PLAYLISTS TAB =================
-  Widget _buildPlaylistsTab(ThemeData theme, double bottomOffset) {
-    final l10n = AppLocalizations.of(context)!;
-    if (_isLoadingPlaylists) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_playlistsError != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(l10n.errorLoadingPlaylists(_playlistsError!)),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: () => _loadPlaylists(forceRefresh: true),
-              child: Text(l10n.retry),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final filteredPlaylists = _getFilteredPlaylists();
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isLandscape =
-            constraints.maxWidth >= 750 && filteredPlaylists.isNotEmpty;
-
-        final selectedPlaylist = filteredPlaylists.firstWhere(
-          (pl) => pl['id'] == _selectedPlaylistId,
-          orElse: () => filteredPlaylists.isNotEmpty
-              ? filteredPlaylists.first
-              : const {},
         );
-
-        if (isLandscape) {
-          // Master-Detail Split View for Playlists (Desktop/Landscape)
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left: Playlist List Pane
-              SizedBox(
-                width: constraints.maxWidth >= 1100 ? 380 : 320,
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 12, 8, 16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant
-                          .withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: RefreshIndicator(
-                    onRefresh: () => _loadPlaylists(forceRefresh: true),
-                    child: ListView.builder(
-                      padding: EdgeInsets.fromLTRB(12, 12, 12, bottomOffset),
-                      itemCount: filteredPlaylists.length,
-                      itemBuilder: (context, index) {
-                        final pl = filteredPlaylists[index];
-                        final isSelected =
-                            pl['id'] == selectedPlaylist['id'];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: _buildPlaylistItem(
-                            theme: theme,
-                            playlist: pl,
-                            index: index,
-                            allPlaylists: filteredPlaylists,
-                            isSelected: isSelected,
-                            onTap: () {
-                              final id = pl['id'] as String?;
-                              setState(() {
-                                _selectedPlaylistId = id;
-                              });
-                              ref
-                                  .read(activeRemoteSessionProvider.notifier)
-                                  .updateNavidromePlaylists(
-                                    selectedPlaylistId: id,
-                                  );
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-
-              // Right: Playlist Detail Pane
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(8, 12, 16, 16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.outlineVariant
-                          .withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: selectedPlaylist.isNotEmpty
-                        ? NavidromePlaylistDetailContent(
-                            key: ValueKey(selectedPlaylist['id']),
-                            server: widget.server,
-                            password: widget.password,
-                            playlistId:
-                                selectedPlaylist['id'] as String? ?? '',
-                            playlistName:
-                                selectedPlaylist['name'] as String? ??
-                                    l10n.playlist,
-                            coverArtId:
-                                selectedPlaylist['coverArt'] as String?,
-                            songCount: selectedPlaylist['songCount'] as int?,
-                            duration: selectedPlaylist['duration'] as int?,
-                            isStarred: selectedPlaylist['isStarred'] == true ||
-                                selectedPlaylist['id'] == _starredPlaylistId,
-                            onPlaylistModified: () =>
-                                _loadPlaylists(forceRefresh: true),
-                            onDeleted: () {
-                              _loadPlaylists(forceRefresh: true);
-                            },
-                          )
-                        : Center(child: Text(l10n.noPlaylistSelected)),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }
-
-        // Portrait: Vertical List of Playlist Cards
-        return filteredPlaylists.isEmpty
-            ? Center(
-                child: Text(
-                  _playlistSearchQuery.isEmpty
-                      ? l10n.noPlaylistsFound
-                      : l10n.noMatchingPlaylists,
-                  style: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              )
-            : RefreshIndicator(
-                onRefresh: () => _loadPlaylists(forceRefresh: true),
-                child: ListView.builder(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-                  itemCount: filteredPlaylists.length,
-                  itemBuilder: (context, index) {
-                    final pl = filteredPlaylists[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: _buildPlaylistItem(
-                        theme: theme,
-                        playlist: pl,
-                        index: index,
-                        allPlaylists: filteredPlaylists,
-                        isSelected: false,
-                        onTap: () {
-                          NavidromeNavUtils.openPlaylist(
-                            context,
-                            ref,
-                            server: widget.server,
-                            password: widget.password,
-                            playlistId: pl['id'] as String? ?? '',
-                            playlistName:
-                                pl['name'] as String? ?? l10n.playlist,
-                            coverArtId: pl['coverArt'] as String?,
-                            songCount: pl['songCount'] as int?,
-                            duration: pl['duration'] as int?,
-                            isStarred: pl['isStarred'] == true ||
-                                pl['id'] == _starredPlaylistId,
-                            onPlaylistModified: () =>
-                                _loadPlaylists(forceRefresh: true),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              );
-      },
-    );
-  }
-
-  Widget _buildPlaylistItem({
-    required ThemeData theme,
-    required Map<String, dynamic> playlist,
-    required int index,
-    required List<Map<String, dynamic>> allPlaylists,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final l10n = AppLocalizations.of(context)!;
-    final name = playlist['name'] as String? ?? l10n.playlist;
-    final songCount = playlist['songCount'] as int? ?? 0;
-    final durationSec = playlist['duration'] as int? ?? 0;
-    final durationMin = durationSec ~/ 60;
-    final coverArt = playlist['coverArt'] as String?;
-    final playlistId = playlist['id'] as String? ?? '';
-    final isStarredItem =
-        playlist['isStarred'] == true || playlistId == _starredPlaylistId;
-    final isMultiSelected = _selectedPlaylistIds.contains(playlistId);
-
-    final backgroundColor = _isPlaylistSelectionMode && isMultiSelected
-        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : (isSelected
-            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35));
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onSecondaryTapDown: isStarredItem || _isPlaylistSelectionMode
-          ? null
-          : (details) {
-              showRemotePlaylistContextMenu(
-                context: context,
-                globalPosition: details.globalPosition,
-                ref: ref,
-                server: widget.server,
-                password: widget.password,
-                playlistId: playlistId,
-                playlistName: name,
-                onViewDetails: onTap,
-                onRename: () => _loadPlaylists(forceRefresh: true),
-                onDelete: () => _loadPlaylists(forceRefresh: true),
-              );
-            },
-      onLongPressStart: (details) {
-        _lastPlaylistAnchorIndex = index;
-        _togglePlaylistSelection(playlistId);
-      },
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            SelectionActionHelper.handleItemTap(
-              index: index,
-              itemKey: playlistId,
-              items: allPlaylists,
-              keySelector: (p) => p['id'] as String? ?? '',
-              isSelectionMode: _isPlaylistSelectionMode,
-              selectedKeys: _selectedPlaylistIds,
-              lastAnchorIndex: _lastPlaylistAnchorIndex,
-              onUpdateAnchor: (a) => setState(() => _lastPlaylistAnchorIndex = a),
-              onSetSelection: _setPlaylistSelection,
-              onToggleSelection: _togglePlaylistSelection,
-              onNormalTap: onTap,
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: (_isPlaylistSelectionMode && isMultiSelected) || isSelected
-                    ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                    : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                width: (_isPlaylistSelectionMode && isMultiSelected) || isSelected
-                    ? 1.5
-                    : 0.8,
-              ),
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: coverArt != null && coverArt.isNotEmpty
-                      ? RemoteArtworkWidget(
-                          server: widget.server,
-                          password: widget.password,
-                          coverArtId: coverArt,
-                          size: 44,
-                        )
-                      : Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: isStarredItem
-                                ? Colors.redAccent.withValues(alpha: 0.15)
-                                : theme.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            isStarredItem
-                                ? Icons.favorite_rounded
-                                : Icons.playlist_play_rounded,
-                            color: isStarredItem
-                                ? Colors.redAccent
-                                : theme.colorScheme.primary,
-                            size: 24,
-                          ),
-                        ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isStarredItem ? l10n.starredSongs : name,
-                              style: TextStyle(
-                                fontWeight: (_isPlaylistSelectionMode &&
-                                            isMultiSelected) ||
-                                        isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w600,
-                                fontSize: 13,
-                                color: (_isPlaylistSelectionMode &&
-                                            isMultiSelected) ||
-                                        isSelected
-                                    ? theme.colorScheme.primary
-                                    : (isStarredItem
-                                        ? Colors.redAccent
-                                        : null),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isStarredItem)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 4.0),
-                              child: Icon(
-                                Icons.favorite_rounded,
-                                size: 14,
-                                color: Colors.redAccent,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${l10n.trackCountShort(songCount)} • $durationMin min',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_isPlaylistSelectionMode)
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Checkbox(
-                      value: isMultiSelected,
-                      onChanged: (_) {
-                        _togglePlaylistSelection(playlistId);
-                      },
-                    ),
-                  )
-                else if (!isStarredItem)
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      Icons.more_vert_rounded,
-                      size: 20,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    tooltip: l10n.more,
-                    onPressed: () {
-                      final box = context.findRenderObject() as RenderBox?;
-                      final pos = box != null
-                          ? box.localToGlobal(
-                              Offset(box.size.width / 2, box.size.height / 2))
-                          : Offset.zero;
-                      showRemotePlaylistContextMenu(
-                        context: context,
-                        globalPosition: pos,
-                        ref: ref,
-                        server: widget.server,
-                        password: widget.password,
-                        playlistId: playlistId,
-                        playlistName: name,
-                        onViewDetails: onTap,
-                        onRename: () => _loadPlaylists(forceRefresh: true),
-                        onDelete: () => _loadPlaylists(forceRefresh: true),
-                      );
-                    },
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ================= SEARCH TAB =================
-  Widget _buildSearchTab(ThemeData theme, double bottomOffset) {
-    final l10n = AppLocalizations.of(context)!;
-    if (_searchedSongs.isEmpty &&
-        _searchedAlbums.isEmpty &&
-        _searchedArtists.isEmpty) {
-      return Center(
-        child: Text(
-          _searchController.text.trim().isEmpty
-              ? l10n.typeToSearch
-              : l10n.noMatchingResults,
-          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-        ),
-      );
+      default:
+        return null;
     }
-
-    return ListView(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-      children: [
-        if (_searchedArtists.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              '${l10n.artists} (${_searchedArtists.length})',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          for (final artist in _searchedArtists) () {
-            final artistId = artist['id'] as String? ?? '';
-            final artistName = artist['name'] as String? ?? l10n.unknownArtist;
-            final coverArtId = artist['coverArt'] as String?;
-            final albumCount = artist['albumCount'] as int?;
-            final isMultiSelected = _selectedArtistIds.contains(artistId);
-
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onSecondaryTapDown: (details) {
-                if (!_isArtistSelectionMode) {
-                  showRemoteArtistContextMenu(
-                    context: context,
-                    globalPosition: details.globalPosition,
-                    ref: ref,
-                    server: widget.server,
-                    password: widget.password,
-                    artistId: artistId,
-                    artistName: artistName,
-                    onViewDetails: () {
-                      NavidromeNavUtils.openArtist(
-                        context,
-                        ref,
-                        server: widget.server,
-                        password: widget.password,
-                        artistId: artistId,
-                        artistName: artistName,
-                        coverArtId: coverArtId,
-                        albumCount: albumCount,
-                      );
-                    },
-                  );
-                }
-              },
-              onLongPressStart: (details) {
-                _toggleArtistSelection(artistId);
-              },
-              child: Material(
-                color: _isArtistSelectionMode && isMultiSelected
-                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    if (_isArtistSelectionMode) {
-                      _toggleArtistSelection(artistId);
-                    } else {
-                      NavidromeNavUtils.openArtist(
-                        context,
-                        ref,
-                        server: widget.server,
-                        password: widget.password,
-                        artistId: artistId,
-                        artistName: artistName,
-                        coverArtId: coverArtId,
-                        albumCount: albumCount,
-                      );
-                    }
-                  },
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: RemoteArtworkWidget(
-                        server: widget.server,
-                        password: widget.password,
-                        coverArtId: coverArtId,
-                        size: 40,
-                      ),
-                    ),
-                    title: Text(
-                      artistName,
-                      style: TextStyle(
-                        fontWeight: _isArtistSelectionMode && isMultiSelected
-                            ? FontWeight.bold
-                            : null,
-                        color: _isArtistSelectionMode && isMultiSelected
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                    ),
-                    subtitle: albumCount != null
-                        ? Text(l10n.albumCount(albumCount))
-                        : null,
-                    trailing: _isArtistSelectionMode
-                        ? Icon(
-                            isMultiSelected
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            color: isMultiSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.outlineVariant,
-                            size: 20,
-                          )
-                        : null,
-                  ),
-                ),
-              ),
-            );
-          }(),
-          const SizedBox(height: 12),
-        ],
-        if (_searchedAlbums.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              '${l10n.albums} (${_searchedAlbums.length})',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          SizedBox(
-            height: 124,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _searchedAlbums.length,
-              itemBuilder: (context, index) {
-                final album = _searchedAlbums[index];
-                final albumId = album['id'] as String? ?? '';
-                final title = album['name'] as String? ??
-                    album['title'] as String? ??
-                    l10n.unknownAlbum;
-                final artist =
-                    album['artist'] as String? ?? l10n.unknownArtist;
-                final coverId = album['coverArt'] as String?;
-                final isSelected = _selectedAlbumIds.contains(albumId);
-
-                return Container(
-                  width: 100,
-                  margin: const EdgeInsets.only(right: 12),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onSecondaryTapDown: (details) {
-                      if (!_isAlbumSelectionMode) {
-                        showRemoteAlbumContextMenu(
-                          context: context,
-                          globalPosition: details.globalPosition,
-                          ref: ref,
-                          server: widget.server,
-                          password: widget.password,
-                          albumId: albumId,
-                          albumTitle: title,
-                          artistName: artist,
-                          coverArtId: coverId,
-                          onViewDetails: () {
-                            NavidromeNavUtils.openAlbum(
-                              context,
-                              ref,
-                              server: widget.server,
-                              password: widget.password,
-                              albumId: albumId,
-                              albumName: title,
-                              artistName: artist,
-                              coverArtId: coverId,
-                            );
-                          },
-                        );
-                      }
-                    },
-                    onLongPressStart: (details) {
-                      _toggleAlbumSelection(albumId);
-                    },
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () {
-                        if (_isAlbumSelectionMode) {
-                          _toggleAlbumSelection(albumId);
-                        } else {
-                          NavidromeNavUtils.openAlbum(
-                            context,
-                            ref,
-                            server: widget.server,
-                            password: widget.password,
-                            albumId: albumId,
-                            albumName: title,
-                            artistName: artist,
-                            coverArtId: coverId,
-                          );
-                        }
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _isAlbumSelectionMode && isSelected
-                                        ? theme.colorScheme.primary
-                                        : Colors.transparent,
-                                    width: _isAlbumSelectionMode && isSelected ? 2 : 0,
-                                  ),
-                                ),
-                                child: RemoteArtworkWidget(
-                                  server: widget.server,
-                                  password: widget.password,
-                                  coverArtId: coverId,
-                                  size: 80,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              if (_isAlbumSelectionMode)
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(6),
-                                      color: isSelected
-                                          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-                                          : Colors.black26,
-                                    ),
-                                  ),
-                                ),
-                              if (_isAlbumSelectionMode)
-                                Positioned(
-                                  top: 4,
-                                  left: 4,
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: Checkbox(
-                                      value: isSelected,
-                                      onChanged: (_) => _toggleAlbumSelection(albumId),
-                                      fillColor: WidgetStateProperty.all(Colors.white),
-                                      checkColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(3),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: _isAlbumSelectionMode && isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: _isAlbumSelectionMode && isSelected
-                                  ? theme.colorScheme.primary
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (_searchedSongs.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              '${l10n.songs} (${_searchedSongs.length})',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          for (int i = 0; i < _searchedSongs.length; i++) () {
-            final song = _searchedSongs[i];
-            final isSelected = _selectedSongPaths.contains(song.path);
-
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onSecondaryTapDown: (details) {
-                if (!_isSongSelectionMode) {
-                  showRemoteSongContextMenu(
-                    context: context,
-                    globalPosition: details.globalPosition,
-                    ref: ref,
-                    server: widget.server,
-                    password: widget.password,
-                    song: song,
-                  );
-                }
-              },
-              onLongPressStart: (details) {
-                _lastSongAnchorIndex = i;
-                _toggleSongSelection(song.path);
-              },
-              child: Material(
-                color: _isSongSelectionMode && isSelected
-                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () {
-                    SelectionActionHelper.handleItemTap(
-                      index: i,
-                      itemKey: song.path,
-                      items: _searchedSongs,
-                      keySelector: (s) => s.path,
-                      isSelectionMode: _isSongSelectionMode,
-                      selectedKeys: _selectedSongPaths,
-                      lastAnchorIndex: _lastSongAnchorIndex,
-                      onUpdateAnchor: (a) => setState(() => _lastSongAnchorIndex = a),
-                      onSetSelection: _setSongSelection,
-                      onToggleSelection: _toggleSongSelection,
-                      onNormalTap: () async {
-                        final audioService = ref.read(audioServiceProvider);
-                        await audioService.playPlaylist(
-                          _searchedSongs,
-                          initialIndex: i,
-                        );
-                      },
-                    );
-                  },
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    leading: _isSongSelectionMode
-                        ? Icon(
-                            isSelected
-                                ? Icons.check_circle_rounded
-                                : Icons.radio_button_unchecked_rounded,
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.outlineVariant,
-                            size: 20,
-                          )
-                        : const Icon(Icons.music_note_rounded),
-                    title: Text(
-                      song.title ?? song.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: _isSongSelectionMode && isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: _isSongSelectionMode && isSelected
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                    ),
-                    subtitle: Text(
-                      _buildSongSubtitle(song, l10n),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }(),
-        ],
-      ],
-    );
-  }
-
-  String _buildSongSubtitle(MusicFile song, AppLocalizations l10n) {
-    final album = song.album?.trim();
-    final artist = song.artist?.trim();
-    final parts = [
-      if (album != null && album.isNotEmpty) album,
-      if (artist != null && artist.isNotEmpty) artist,
-    ];
-    if (parts.isNotEmpty) {
-      return parts.join(' - ');
-    }
-    return l10n.unknownArtist;
-  }
-}
-
-class _NavidromeHeaderBottom extends StatelessWidget
-    implements PreferredSizeWidget {
-  final TabBar tabBar;
-  final Widget? toolbar;
-
-  const _NavidromeHeaderBottom({
-    required this.tabBar,
-    this.toolbar,
-  });
-
-  @override
-  Size get preferredSize => Size.fromHeight(
-        tabBar.preferredSize.height + (toolbar != null ? 52.0 : 0.0),
-      );
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        tabBar,
-        if (toolbar != null)
-          SizedBox(
-            height: 52.0,
-            child: toolbar!,
-          ),
-      ],
-    );
   }
 }
