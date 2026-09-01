@@ -469,40 +469,23 @@ class NavidromePlaylistItem extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              isStarredItem ? l10n.starredSongs : name,
-                              style: TextStyle(
-                                fontWeight: (isSelectionMode &&
-                                            isMultiSelected) ||
-                                        isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w600,
-                                fontSize: 13,
-                                color: (isSelectionMode &&
-                                            isMultiSelected) ||
-                                        isSelected
-                                    ? theme.colorScheme.primary
-                                    : (isStarredItem
-                                        ? Colors.redAccent
-                                        : null),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (isStarredItem)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 4.0),
-                              child: Icon(
-                                Icons.favorite_rounded,
-                                size: 14,
-                                color: Colors.redAccent,
-                              ),
-                            ),
-                        ],
+                      Text(
+                        isStarredItem ? l10n.starredSongs : name,
+                        style: TextStyle(
+                          fontWeight: (isSelectionMode &&
+                                      isMultiSelected) ||
+                                  isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
+                          fontSize: 13,
+                          color: (isSelectionMode &&
+                                      isMultiSelected) ||
+                                  isSelected
+                              ? theme.colorScheme.primary
+                              : null,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
