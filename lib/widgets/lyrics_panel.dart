@@ -1028,7 +1028,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
 
     bool shouldScroll = true;
 
-    final isInitialScroll = _lastActiveIndex == -1 || activeIndex == 0;
+    final isInitialScroll = _lastActiveIndex == -1;
     final lyricsStyle = ref.read(settingsServiceProvider).lyricsStyle;
     if (lyricsStyle == LyricsStyle.apple) {
       if (!force) {
@@ -1048,14 +1048,12 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
                   shouldScroll = false;
                 } else {
                   _lastActiveIndex = activeIndex;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) {
-                      setState(() {
-                        _isFocusMode = true;
-                        _enteringFocusModeTriggered = true;
-                      });
-                    }
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _isFocusMode = true;
+                      _enteringFocusModeTriggered = true;
+                    });
+                  }
                 }
               } else {
                 if (_activePointers == 0) {
@@ -1433,8 +1431,10 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
       if (lyricsStyle == LyricsStyle.apple && _isFocusMode && !isGenerating) {
         final delta = target - currentOffset;
         final isEntering = _enteringFocusModeTriggered;
-        final maxDelta = isEntering ? math.max(1200.0, viewportHeight * 1.5) : 300.0;
-        final bool isBigJump = delta.abs() > maxDelta || index == 0 || isInitialScroll;
+        final maxDelta = isEntering
+            ? math.max(1500.0, viewportHeight * 1.5)
+            : math.max(800.0, viewportHeight * 0.9);
+        final bool isBigJump = delta.abs() > maxDelta || isInitialScroll;
         _scrollController.jumpTo(target);
         _enteringFocusModeTriggered = false;
         final firstVisible = _findClosestLineIndex(target, itemCenters);

@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:vynody/models/lyric_line.dart';
@@ -508,8 +507,8 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                         final bool isInStaggerRange = widget.lyricsStyle == LyricsStyle.apple &&
                             widget.isFocusMode &&
                             !widget.isGenerating &&
-                            index >= widget.firstVisibleIndex - 5 &&
-                            index <= widget.firstVisibleIndex + 25;
+                            index >= widget.firstVisibleIndex - 10 &&
+                            index <= widget.firstVisibleIndex + 30;
 
                         if (isInStaggerRange) {
                           resultWidget = StaggeredAppleLyricsScrollWrapper(
@@ -697,7 +696,7 @@ class _StaggeredAppleLyricsScrollWrapperState
       curve: Curves.easeOutCubic,
     );
 
-    final double maxDelta = widget.isEnteringFocusMode ? 1200.0 : 300.0;
+    final double maxDelta = widget.isEnteringFocusMode ? 1500.0 : 800.0;
     final timePassed = DateTime.now().millisecondsSinceEpoch - widget.scrollTriggerTime;
     if (widget.scrollTriggerTime > 0 &&
         !widget.isTransitioning &&
@@ -735,7 +734,7 @@ class _StaggeredAppleLyricsScrollWrapperState
   void didUpdateWidget(StaggeredAppleLyricsScrollWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final double maxDelta = widget.isEnteringFocusMode ? 1200.0 : 300.0;
+    final double maxDelta = widget.isEnteringFocusMode ? 1500.0 : 800.0;
     if (widget.isTransitioning ||
         widget.scrollTriggerTime <= 0 ||
         widget.scrollDelta.abs() > maxDelta) {
@@ -756,7 +755,7 @@ class _StaggeredAppleLyricsScrollWrapperState
     _delayTimer?.cancel();
     _controller.stop();
 
-    final double maxDelta = widget.isEnteringFocusMode ? 1200.0 : 300.0;
+    final double maxDelta = widget.isEnteringFocusMode ? 1500.0 : 800.0;
     if (widget.scrollDelta.abs() > maxDelta || widget.scrollTriggerTime <= 0) {
       _currentOffset = 0.0;
       _startOffset = 0.0;
