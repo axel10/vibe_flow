@@ -316,6 +316,24 @@ class AudioService extends Notifier<AudioSnapshot> {
         await setVolume(targetVolume, showVolumeHud: false);
         _initialVolumeApplied = true;
 
+        if (Platform.isWindows) {
+          final isExclusive =
+              settingsService.windowsAudioOutputMode == 'wasapi_exclusive';
+          final devId = settingsService.windowsAudioDeviceId.trim().isEmpty
+              ? null
+              : settingsService.windowsAudioDeviceId.trim();
+          await _player.setAudioOutputMode(
+            mode: isExclusive
+                ? AudioOutputMode.wasapiExclusive
+                : AudioOutputMode.shared,
+            deviceId: devId,
+            releaseOnPause: settingsService.wasapiReleaseOnPause,
+            bitPerfect: settingsService.wasapiBitPerfect,
+          ).catchError((e) {
+            debugPrint('[AudioService] Initial setAudioOutputMode failed: $e');
+          });
+        }
+
         _visualizerOptions.loadOptions().then((_) => notifyListeners());
         if (_disposed) return;
         _initializeMiniPlayerFftStream();
@@ -3189,6 +3207,51 @@ class AudioService extends Notifier<AudioSnapshot> {
       );
     }
 
+    notifyListeners();
+  }
+
+  /// Gets the available output audio devices on Windows.
+  Future<List<AudioDeviceDesc>> getAudioOutputDevices() async {
+    return await _player.getAudioOutputDevices();
+  }
+
+  /// Gets the current active hardware audio output format.
+  Future<ActiveAudioHardwareFormat?> getActiveAudioHardwareFormat() async {
+    return await _player.getActiveAudioHardwareFormat();
+  }
+
+  /// Updates Windows audio output configuration and applies it immediately.
+  Future<void> updateWindowsAudioOutput({
+    required String mode,
+    String? deviceId,
+    bool? releaseOnPause,
+    bool? bitPerfect,
+  }) async {
+    if (!Platform.isWindows) return;
+    settingsService.windowsAudioOutputMode = mode;
+    if (deviceId != null) {
+      settingsService.windowsAudioDeviceId = deviceId;
+    }
+    if (releaseOnPause != null) {
+      settingsService.wasapiReleaseOnPause = releaseOnPause;
+    }
+    if (bitPerfect != null) {
+      settingsService.wasapiBitPerfect = bitPerfect;
+    }
+
+    final isExclusive = mode == 'wasapi_exclusive';
+    final targetDevId = settingsService.windowsAudioDeviceId.trim().isEmpty
+        ? null
+        : settingsService.windowsAudioDeviceId.trim();
+
+    await _player.setAudioOutputMode(
+      mode: isExclusive
+          ? AudioOutputMode.wasapiExclusive
+          : AudioOutputMode.shared,
+      deviceId: targetDevId,
+      releaseOnPause: settingsService.wasapiReleaseOnPause,
+      bitPerfect: settingsService.wasapiBitPerfect,
+    );
     notifyListeners();
   }
 

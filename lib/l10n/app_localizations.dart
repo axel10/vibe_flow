@@ -8052,6 +8052,84 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'播放列表共享请求已被对方拒绝'**
   String get playlistRequestRejected;
+
+  /// No description provided for @windowsAudioOutputTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'音频输出模式 (Windows)'**
+  String get windowsAudioOutputTitle;
+
+  /// No description provided for @windowsAudioOutputDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择共享输出或 WASAPI 独占输出模式（独占模式可绕过 Windows 系统混音器，实现高保真 Bit-Perfect 点对点播放）。'**
+  String get windowsAudioOutputDescription;
+
+  /// No description provided for @audioOutputModeShared.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准共享模式 (Shared)'**
+  String get audioOutputModeShared;
+
+  /// No description provided for @audioOutputModeExclusive.
+  ///
+  /// In zh, this message translates to:
+  /// **'WASAPI 独占模式 (Exclusive / Bit-Perfect)'**
+  String get audioOutputModeExclusive;
+
+  /// No description provided for @audioOutputDeviceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'音频输出设备'**
+  String get audioOutputDeviceTitle;
+
+  /// No description provided for @audioOutputDeviceDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统默认音频设备'**
+  String get audioOutputDeviceDefault;
+
+  /// No description provided for @wasapiBitPerfectTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动切换采样率 (Bit-Perfect)'**
+  String get wasapiBitPerfectTitle;
+
+  /// No description provided for @wasapiBitPerfectDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随音源文件的原生采样率和声道动态配置 DAC 硬件输出，避免重采样失真。'**
+  String get wasapiBitPerfectDescription;
+
+  /// No description provided for @wasapiReleaseOnPauseTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂停时释放独占占用'**
+  String get wasapiReleaseOnPauseTitle;
+
+  /// No description provided for @wasapiReleaseOnPauseDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'播放暂停时临时释放音频设备，允许其他应用程序发声。'**
+  String get wasapiReleaseOnPauseDescription;
+
+  /// No description provided for @activeHardwareFormatTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前硬件输出规格'**
+  String get activeHardwareFormatTitle;
+
+  /// No description provided for @activeHardwareFormatDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'DAC 实际工作采样率与位深'**
+  String get activeHardwareFormatDescription;
+
+  /// No description provided for @activeHardwareBitPerfectBadge.
+  ///
+  /// In zh, this message translates to:
+  /// **'Bit-Perfect 点对点直通'**
+  String get activeHardwareBitPerfectBadge;
 }
 
 class _AppLocalizationsDelegate

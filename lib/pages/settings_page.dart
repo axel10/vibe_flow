@@ -3012,6 +3012,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           l10n.audioSettings,
           l10n.audioSettingsDescription,
         ),
+        if (Platform.isWindows) _buildWindowsAudioOutputCard(context, settings),
         _buildGroupCard(
           context,
           title: l10n.equalizerBandCount,
@@ -3067,6 +3068,206 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildWindowsAudioOutputCard(
+    BuildContext context,
+    SettingsService settings,
+  ) {
+    if (!Platform.isWindows) return const SizedBox.shrink();
+
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final audioService = ref.read(audioServiceProvider);
+    final isExclusive = settings.windowsAudioOutputMode == 'wasapi_exclusive';
+
+    return _buildGroupCard(
+      context,
+      title: l10n.windowsAudioOutputTitle,
+      icon: Icons.speaker_group_rounded,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Text(
+            l10n.windowsAudioOutputDescription,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        _buildDropdownTile<String>(
+          context: context,
+          title: l10n.windowsAudioOutputTitle,
+          icon: Icons.audio_file_rounded,
+          value: settings.windowsAudioOutputMode,
+          options: [
+            _DropdownOption(
+              value: 'shared',
+              label: l10n.audioOutputModeShared,
+            ),
+            _DropdownOption(
+              value: 'wasapi_exclusive',
+              label: l10n.audioOutputModeExclusive,
+            ),
+          ],
+          onChanged: (newMode) {
+            if (newMode != null) {
+              unawaited(audioService.updateWindowsAudioOutput(mode: newMode));
+            }
+          },
+        ),
+        if (isExclusive) ...[
+          FutureBuilder<List<AudioDeviceDesc>>(
+            future: audioService.getAudioOutputDevices(),
+            builder: (context, snapshot) {
+              final devices = snapshot.data ?? const <AudioDeviceDesc>[];
+              final currentId = settings.windowsAudioDeviceId.trim();
+
+              final options = <_DropdownOption<String>>[
+                _DropdownOption(
+                  value: '',
+                  label: l10n.audioOutputDeviceDefault,
+                ),
+                for (final dev in devices)
+                  _DropdownOption(
+                    value: dev.id,
+                    label: dev.name + (dev.isDefault ? ' (*)' : ''),
+                  ),
+              ];
+
+              return _buildDropdownTile<String>(
+                context: context,
+                title: l10n.audioOutputDeviceTitle,
+                icon: Icons.speaker_rounded,
+                value: options.any((opt) => opt.value == currentId) ? currentId : '',
+                options: options,
+                onChanged: (newDeviceId) {
+                  if (newDeviceId != null) {
+                    unawaited(
+                      audioService.updateWindowsAudioOutput(
+                        mode: settings.windowsAudioOutputMode,
+                        deviceId: newDeviceId,
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.auto_fix_high_rounded),
+            title: Text(l10n.wasapiBitPerfectTitle),
+            subtitle: Text(l10n.wasapiBitPerfectDescription),
+            value: settings.wasapiBitPerfect,
+            onChanged: (val) {
+              unawaited(
+                audioService.updateWindowsAudioOutput(
+                  mode: settings.windowsAudioOutputMode,
+                  bitPerfect: val,
+                ),
+              );
+            },
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.pause_circle_outline_rounded),
+            title: Text(l10n.wasapiReleaseOnPauseTitle),
+            subtitle: Text(l10n.wasapiReleaseOnPauseDescription),
+            value: settings.wasapiReleaseOnPause,
+            onChanged: (val) {
+              unawaited(
+                audioService.updateWindowsAudioOutput(
+                  mode: settings.windowsAudioOutputMode,
+                  releaseOnPause: val,
+                ),
+              );
+            },
+          ),
+          FutureBuilder<ActiveAudioHardwareFormat?>(
+            future: audioService.getActiveAudioHardwareFormat(),
+            builder: (context, snapshot) {
+              final fmt = snapshot.data;
+              if (fmt == null) return const SizedBox.shrink();
+
+              final sampleRateFormatted =
+                  '${(fmt.sampleRate / 1000).toStringAsFixed(fmt.sampleRate % 1000 == 0 ? 0 : 1)} kHz';
+              final channelDesc =
+                  fmt.channels == 2 ? 'Stereo (2.0)' : '${fmt.channels} Channels';
+              final formatStr =
+                  '$sampleRateFormatted / ${fmt.bitDepth}-bit / $channelDesc';
+
+              return Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                l10n.activeHardwareFormatTitle,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              if (fmt.isBitPerfect) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    l10n.activeHardwareBitPerfectBadge,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${fmt.deviceName} • $formatStr',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ],
     );
   }

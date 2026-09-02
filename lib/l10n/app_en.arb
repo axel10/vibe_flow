@@ -2059,5 +2059,18 @@
   "playlistRequestRejected": "Playlist request was rejected by peer",
   "@playlistRequestRejected": {
     "description": "Toast when playlist request is rejected"
-  }
+  },
+  "windowsAudioOutputTitle": "Audio Output Mode (Windows)",
+  "windowsAudioOutputDescription": "Select Shared mode or WASAPI Exclusive mode (Exclusive mode bypasses Windows Audio Engine for Bit-Perfect high fidelity output).",
+  "audioOutputModeShared": "Standard Shared Mode",
+  "audioOutputModeExclusive": "WASAPI Exclusive Mode (Bit-Perfect)",
+  "audioOutputDeviceTitle": "Audio Output Device",
+  "audioOutputDeviceDefault": "System Default Audio Device",
+  "wasapiBitPerfectTitle": "Auto Match Sample Rate (Bit-Perfect)",
+  "wasapiBitPerfectDescription": "Automatically configure DAC hardware sample rate to match audio tracks without resampling.",
+  "wasapiReleaseOnPauseTitle": "Release Device on Pause",
+  "wasapiReleaseOnPauseDescription": "Temporarily release the audio endpoint on pause so other applications can play audio.",
+  "activeHardwareFormatTitle": "Active Hardware Format",
+  "activeHardwareFormatDescription": "DAC active sample rate and bit depth",
+  "activeHardwareBitPerfectBadge": "Bit-Perfect Direct"
 }

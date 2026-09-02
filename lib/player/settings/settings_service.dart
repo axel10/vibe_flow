@@ -346,6 +346,10 @@ class SettingsService extends ChangeNotifier {
   static const String _keyCloseToTray = 'close_to_tray';
   static const String _keyCloseWindowAction = 'close_window_action';
   static const String _keyImmersiveTabBar = 'immersive_tab_bar_enabled';
+  static const String _keyWindowsAudioOutputMode = 'windows_audio_output_mode';
+  static const String _keyWindowsAudioDeviceId = 'windows_audio_device_id';
+  static const String _keyWasapiReleaseOnPause = 'wasapi_release_on_pause';
+  static const String _keyWasapiBitPerfect = 'wasapi_bit_perfect';
   static const List<String> defaultTopButtonsOrder = [
     'more',
     'favorite',
@@ -842,6 +846,34 @@ class SettingsService extends ChangeNotifier {
 
   late final _enableSystemTrayProperty = SettingProperty<bool>(
     key: _keyEnableSystemTray,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _windowsAudioOutputModeProperty = SettingProperty<String>(
+    key: _keyWindowsAudioOutputMode,
+    defaultValue: 'shared',
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _windowsAudioDeviceIdProperty = SettingProperty<String>(
+    key: _keyWindowsAudioDeviceId,
+    defaultValue: '',
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _wasapiReleaseOnPauseProperty = SettingProperty<bool>(
+    key: _keyWasapiReleaseOnPause,
+    defaultValue: false,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _wasapiBitPerfectProperty = SettingProperty<bool>(
+    key: _keyWasapiBitPerfect,
     defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
@@ -2435,6 +2467,22 @@ class SettingsService extends ChangeNotifier {
   FolderViewMode get folderViewMode => _folderViewModeProperty.value;
   set folderViewMode(FolderViewMode value) =>
       _folderViewModeProperty.value = value;
+
+  String get windowsAudioOutputMode => _windowsAudioOutputModeProperty.value;
+  set windowsAudioOutputMode(String value) =>
+      _windowsAudioOutputModeProperty.value = value;
+
+  String get windowsAudioDeviceId => _windowsAudioDeviceIdProperty.value;
+  set windowsAudioDeviceId(String value) =>
+      _windowsAudioDeviceIdProperty.value = value;
+
+  bool get wasapiReleaseOnPause => _wasapiReleaseOnPauseProperty.value;
+  set wasapiReleaseOnPause(bool value) =>
+      _wasapiReleaseOnPauseProperty.value = value;
+
+  bool get wasapiBitPerfect => _wasapiBitPerfectProperty.value;
+  set wasapiBitPerfect(bool value) =>
+      _wasapiBitPerfectProperty.value = value;
 
   AlbumSortField get albumSortField => _albumSortFieldProperty.value;
   set albumSortField(AlbumSortField value) =>

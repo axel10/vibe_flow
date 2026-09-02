@@ -4538,4 +4538,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playlistRequestRejected => 'Playlist request was rejected by peer';
+
+  @override
+  String get windowsAudioOutputTitle => 'Audio Output Mode (Windows)';
+
+  @override
+  String get windowsAudioOutputDescription =>
+      'Select Shared mode or WASAPI Exclusive mode (Exclusive mode bypasses Windows Audio Engine for Bit-Perfect high fidelity output).';
+
+  @override
+  String get audioOutputModeShared => 'Standard Shared Mode';
+
+  @override
+  String get audioOutputModeExclusive => 'WASAPI Exclusive Mode (Bit-Perfect)';
+
+  @override
+  String get audioOutputDeviceTitle => 'Audio Output Device';
+
+  @override
+  String get audioOutputDeviceDefault => 'System Default Audio Device';
+
+  @override
+  String get wasapiBitPerfectTitle => 'Auto Match Sample Rate (Bit-Perfect)';
+
+  @override
+  String get wasapiBitPerfectDescription =>
+      'Automatically configure DAC hardware sample rate to match audio tracks without resampling.';
+
+  @override
+  String get wasapiReleaseOnPauseTitle => 'Release Device on Pause';
+
+  @override
+  String get wasapiReleaseOnPauseDescription =>
+      'Temporarily release the audio endpoint on pause so other applications can play audio.';
+
+  @override
+  String get activeHardwareFormatTitle => 'Active Hardware Format';
+
+  @override
+  String get activeHardwareFormatDescription =>
+      'DAC active sample rate and bit depth';
+
+  @override
+  String get activeHardwareBitPerfectBadge => 'Bit-Perfect Direct';
 }

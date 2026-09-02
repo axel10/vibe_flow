@@ -4600,4 +4600,46 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get playlistRequestRejected => 'La demande de listes a été refusée';
+
+  @override
+  String get windowsAudioOutputTitle => '音频输出模式 (Windows)';
+
+  @override
+  String get windowsAudioOutputDescription =>
+      '选择共享输出或 WASAPI 独占输出模式（独占模式可绕过 Windows 系统混音器，实现高保真 Bit-Perfect 点对点播放）。';
+
+  @override
+  String get audioOutputModeShared => '标准共享模式 (Shared)';
+
+  @override
+  String get audioOutputModeExclusive =>
+      'WASAPI 独占模式 (Exclusive / Bit-Perfect)';
+
+  @override
+  String get audioOutputDeviceTitle => '音频输出设备';
+
+  @override
+  String get audioOutputDeviceDefault => '系统默认音频设备';
+
+  @override
+  String get wasapiBitPerfectTitle => '自动切换采样率 (Bit-Perfect)';
+
+  @override
+  String get wasapiBitPerfectDescription =>
+      '跟随音源文件的原生采样率和声道动态配置 DAC 硬件输出，避免重采样失真。';
+
+  @override
+  String get wasapiReleaseOnPauseTitle => '暂停时释放独占占用';
+
+  @override
+  String get wasapiReleaseOnPauseDescription => '播放暂停时临时释放音频设备，允许其他应用程序发声。';
+
+  @override
+  String get activeHardwareFormatTitle => '当前硬件输出规格';
+
+  @override
+  String get activeHardwareFormatDescription => 'DAC 实际工作采样率与位深';
+
+  @override
+  String get activeHardwareBitPerfectBadge => 'Bit-Perfect 点对点直通';
 }
