@@ -2072,5 +2072,7 @@
   "wasapiReleaseOnPauseDescription": "Temporarily release the audio endpoint on pause so other applications can play audio.",
   "activeHardwareFormatTitle": "Active Hardware Format",
   "activeHardwareFormatDescription": "DAC active sample rate and bit depth",
-  "activeHardwareBitPerfectBadge": "Bit-Perfect Direct"
+  "activeHardwareBitPerfectBadge": "Bit-Perfect Direct",
+  "exclusiveModeTitle": "Exclusive Mode",
+  "exclusiveModeTooltip": "WASAPI Exclusive Mode is active (audio device is exclusively held)"
 }

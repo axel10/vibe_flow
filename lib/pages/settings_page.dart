@@ -38,7 +38,7 @@ import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/widgets/pro/pro_badge.dart';
 import 'package:vynody/widgets/lyrics_provider_icon.dart';
 
-enum _SettingsSection {
+enum SettingsSection {
   home,
   general,
   audio,
@@ -185,18 +185,27 @@ Widget _buildDropdownTile<T>({
 }
 
 class SettingsPage extends ConsumerStatefulWidget {
-  const SettingsPage({super.key});
+  final SettingsSection initialSection;
+
+  const SettingsPage({
+    super.key,
+    this.initialSection = SettingsSection.home,
+  });
 
   @override
-  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => SettingsPageState();
 }
 
-class _SettingsPageState extends ConsumerState<SettingsPage> {
+class SettingsPageState extends ConsumerState<SettingsPage> {
   String _appVersion = '';
   bool _isAssociated = false;
   bool _isCheckingUpdates = false;
   bool _isExportingLogs = false;
-  _SettingsSection _currentSection = _SettingsSection.home;
+  late SettingsSection _currentSection = widget.initialSection;
+
+  void openSection(SettingsSection section) {
+    _openSection(section);
+  }
 
   @override
   void initState() {
@@ -448,7 +457,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  void _openSection(_SettingsSection section) {
+  void _openSection(SettingsSection section) {
     setState(() {
       _currentSection = section;
     });
@@ -456,56 +465,56 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   void _goHome() {
     setState(() {
-      _currentSection = _SettingsSection.home;
+      _currentSection = SettingsSection.home;
     });
   }
 
-  String _sectionTitle(BuildContext context, _SettingsSection section) {
+  String _sectionTitle(BuildContext context, SettingsSection section) {
     final l10n = AppLocalizations.of(context)!;
     return switch (section) {
-      _SettingsSection.home => l10n.settings,
-      _SettingsSection.general => l10n.generalSectionTitle,
-      _SettingsSection.audio => l10n.audioSettings,
-      _SettingsSection.scanning => l10n.scanSectionTitle,
-      _SettingsSection.tags => l10n.tags,
-      _SettingsSection.transcode => l10n.transcodeSectionTitle,
-      _SettingsSection.lyrics => l10n.lyricsSectionTitle,
-      _SettingsSection.acoustid => l10n.acoustidSectionTitle,
-      _SettingsSection.storage => l10n.storageAndCache,
-      _SettingsSection.shortcuts => l10n.shortcutSettingsTitle,
-      _SettingsSection.windows => l10n.windowsSettingsTitle,
-      _SettingsSection.about => l10n.about,
+      SettingsSection.home => l10n.settings,
+      SettingsSection.general => l10n.generalSectionTitle,
+      SettingsSection.audio => l10n.audioSettings,
+      SettingsSection.scanning => l10n.scanSectionTitle,
+      SettingsSection.tags => l10n.tags,
+      SettingsSection.transcode => l10n.transcodeSectionTitle,
+      SettingsSection.lyrics => l10n.lyricsSectionTitle,
+      SettingsSection.acoustid => l10n.acoustidSectionTitle,
+      SettingsSection.storage => l10n.storageAndCache,
+      SettingsSection.shortcuts => l10n.shortcutSettingsTitle,
+      SettingsSection.windows => l10n.windowsSettingsTitle,
+      SettingsSection.about => l10n.about,
     };
   }
 
-  List<_SettingsSection> get _sidebarSections => [
-        _SettingsSection.general,
-        _SettingsSection.audio,
-        _SettingsSection.scanning,
-        _SettingsSection.tags,
-        _SettingsSection.transcode,
-        _SettingsSection.lyrics,
-        _SettingsSection.acoustid,
-        _SettingsSection.storage,
-        _SettingsSection.shortcuts,
-        if (Platform.isWindows) _SettingsSection.windows,
-        _SettingsSection.about,
+  List<SettingsSection> get _sidebarSections => [
+        SettingsSection.general,
+        SettingsSection.audio,
+        SettingsSection.scanning,
+        SettingsSection.tags,
+        SettingsSection.transcode,
+        SettingsSection.lyrics,
+        SettingsSection.acoustid,
+        SettingsSection.storage,
+        SettingsSection.shortcuts,
+        if (Platform.isWindows) SettingsSection.windows,
+        SettingsSection.about,
       ];
 
-  IconData _sectionIcon(_SettingsSection section) {
+  IconData _sectionIcon(SettingsSection section) {
     return switch (section) {
-      _SettingsSection.home => Icons.settings,
-      _SettingsSection.general => Icons.tune_rounded,
-      _SettingsSection.audio => Icons.graphic_eq_rounded,
-      _SettingsSection.scanning => Icons.search_rounded,
-      _SettingsSection.tags => Icons.label_outline_rounded,
-      _SettingsSection.transcode => Icons.swap_horiz_rounded,
-      _SettingsSection.lyrics => Icons.auto_awesome_rounded,
-      _SettingsSection.acoustid => Icons.radar_rounded,
-      _SettingsSection.storage => Icons.storage_rounded,
-      _SettingsSection.shortcuts => Icons.keyboard_rounded,
-      _SettingsSection.windows => Icons.open_in_new_rounded,
-      _SettingsSection.about => Icons.info_outline_rounded,
+      SettingsSection.home => Icons.settings,
+      SettingsSection.general => Icons.tune_rounded,
+      SettingsSection.audio => Icons.graphic_eq_rounded,
+      SettingsSection.scanning => Icons.search_rounded,
+      SettingsSection.tags => Icons.label_outline_rounded,
+      SettingsSection.transcode => Icons.swap_horiz_rounded,
+      SettingsSection.lyrics => Icons.auto_awesome_rounded,
+      SettingsSection.acoustid => Icons.radar_rounded,
+      SettingsSection.storage => Icons.storage_rounded,
+      SettingsSection.shortcuts => Icons.keyboard_rounded,
+      SettingsSection.windows => Icons.open_in_new_rounded,
+      SettingsSection.about => Icons.info_outline_rounded,
     };
   }
 
@@ -2085,68 +2094,68 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           context,
           icon: Icons.tune_rounded,
           title: l10n.generalSectionTitle,
-          onTap: () => _openSection(_SettingsSection.general),
+          onTap: () => _openSection(SettingsSection.general),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.graphic_eq_rounded,
           title: l10n.audioSettings,
-          onTap: () => _openSection(_SettingsSection.audio),
+          onTap: () => _openSection(SettingsSection.audio),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.search_rounded,
           title: l10n.scanSectionTitle,
-          onTap: () => _openSection(_SettingsSection.scanning),
+          onTap: () => _openSection(SettingsSection.scanning),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.label_outline_rounded,
           title: l10n.tags,
-          onTap: () => _openSection(_SettingsSection.tags),
+          onTap: () => _openSection(SettingsSection.tags),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.swap_horiz_rounded,
           title: l10n.transcodeSectionTitle,
-          onTap: () => _openSection(_SettingsSection.transcode),
+          onTap: () => _openSection(SettingsSection.transcode),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.auto_awesome_rounded,
           title: l10n.lyricsSectionTitle,
-          onTap: () => _openSection(_SettingsSection.lyrics),
+          onTap: () => _openSection(SettingsSection.lyrics),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.radar_rounded,
           title: l10n.acoustidSectionTitle,
-          onTap: () => _openSection(_SettingsSection.acoustid),
+          onTap: () => _openSection(SettingsSection.acoustid),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.storage_rounded,
           title: l10n.storageAndCache,
-          onTap: () => _openSection(_SettingsSection.storage),
+          onTap: () => _openSection(SettingsSection.storage),
         ),
         _buildHomeSectionTile(
           context,
           icon: Icons.keyboard_rounded,
           title: l10n.shortcutSettingsTitle,
-          onTap: () => _openSection(_SettingsSection.shortcuts),
+          onTap: () => _openSection(SettingsSection.shortcuts),
         ),
         if (Platform.isWindows)
           _buildHomeSectionTile(
             context,
             icon: Icons.open_in_new_rounded,
             title: l10n.windowsSettingsTitle,
-            onTap: () => _openSection(_SettingsSection.windows),
+            onTap: () => _openSection(SettingsSection.windows),
           ),
         _buildHomeSectionTile(
           context,
           icon: Icons.info_outline_rounded,
           title: l10n.about,
-          onTap: () => _openSection(_SettingsSection.about),
+          onTap: () => _openSection(SettingsSection.about),
         ),
       ],
     );
@@ -3291,21 +3300,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget _buildSectionContent(
     BuildContext context,
     SettingsService settings,
-    _SettingsSection section,
+    SettingsSection section,
   ) {
     return switch (section) {
-      _SettingsSection.home => _buildHomeBody(context),
-      _SettingsSection.general => _buildGeneralPage(context, settings),
-      _SettingsSection.audio => _buildAudioPage(context, settings),
-      _SettingsSection.scanning => _buildScanningPage(context, settings),
-      _SettingsSection.tags => _buildTagsPage(context, settings),
-      _SettingsSection.transcode => _buildTranscodePage(context, settings),
-      _SettingsSection.lyrics => _buildLyricsPage(context, settings),
-      _SettingsSection.acoustid => _buildAcoustidPage(context, settings),
-      _SettingsSection.storage => _StorageAndCachePage(settings: settings),
-      _SettingsSection.shortcuts => _buildShortcutsPage(context),
-      _SettingsSection.windows => _buildWindowsPage(context),
-      _SettingsSection.about => _buildAboutPage(context),
+      SettingsSection.home => _buildHomeBody(context),
+      SettingsSection.general => _buildGeneralPage(context, settings),
+      SettingsSection.audio => _buildAudioPage(context, settings),
+      SettingsSection.scanning => _buildScanningPage(context, settings),
+      SettingsSection.tags => _buildTagsPage(context, settings),
+      SettingsSection.transcode => _buildTranscodePage(context, settings),
+      SettingsSection.lyrics => _buildLyricsPage(context, settings),
+      SettingsSection.acoustid => _buildAcoustidPage(context, settings),
+      SettingsSection.storage => _StorageAndCachePage(settings: settings),
+      SettingsSection.shortcuts => _buildShortcutsPage(context),
+      SettingsSection.windows => _buildWindowsPage(context),
+      SettingsSection.about => _buildAboutPage(context),
     };
   }
 
@@ -3315,7 +3324,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return (screenWidth * 0.35).clamp(220.0, 300.0);
   }
 
-  Widget _buildSidebar(BuildContext context, _SettingsSection activeSection) {
+  Widget _buildSidebar(BuildContext context, SettingsSection activeSection) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -3391,7 +3400,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget _buildDetailPane(
     BuildContext context,
     SettingsService settings,
-    _SettingsSection activeSection,
+    SettingsSection activeSection,
   ) {
     final currentBody = _buildSectionContent(context, settings, activeSection);
 
@@ -3415,8 +3424,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final l10n = AppLocalizations.of(context)!;
 
     if (isLandscape) {
-      final activeSection = _currentSection == _SettingsSection.home
-          ? _SettingsSection.general
+      final activeSection = _currentSection == SettingsSection.home
+          ? SettingsSection.general
           : _currentSection;
       final sidebarWidth = _calculateSidebarWidth(context);
 
@@ -3459,7 +3468,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             body: _buildHomeBody(context),
           ),
         ),
-        if (_currentSection != _SettingsSection.home)
+        if (_currentSection != SettingsSection.home)
           _buildPage(
             key: ValueKey('settings-detail-${_currentSection.name}'),
             child: Scaffold(
@@ -3514,7 +3523,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final canPop = isLandscape || _currentSection == _SettingsSection.home;
+    final canPop = isLandscape || _currentSection == SettingsSection.home;
 
     return PopScope(
       canPop: canPop,

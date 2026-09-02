@@ -8130,6 +8130,18 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'Bit-Perfect 点对点直通'**
   String get activeHardwareBitPerfectBadge;
+
+  /// No description provided for @exclusiveModeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'独占模式'**
+  String get exclusiveModeTitle;
+
+  /// No description provided for @exclusiveModeTooltip.
+  ///
+  /// In zh, this message translates to:
+  /// **'WASAPI 独占模式已启用（已独占音频输出设备）'**
+  String get exclusiveModeTooltip;
 }
 
 class _AppLocalizationsDelegate

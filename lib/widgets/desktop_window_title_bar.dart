@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import '../player/audio/audio_riverpod.dart';
 import '../player/settings/settings_service.dart';
+import '../pages/settings_page.dart';
 import '../l10n/app_localizations.dart';
 
 class DesktopWindowTitleBar extends ConsumerStatefulWidget {
@@ -216,6 +217,23 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
           Expanded(
             child: dragGestureArea,
           ),
+          if (Platform.isWindows &&
+              settings.windowsAudioOutputMode == 'wasapi_exclusive')
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: hideButtons ? 0.0 : 1.0,
+              curve: Curves.easeInOut,
+              child: IgnorePointer(
+                ignoring: hideButtons,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: _WasapiExclusiveBadge(
+                    brightness: widget.brightness,
+                    height: widget.height,
+                  ),
+                ),
+              ),
+            ),
           if (isWindowsOrLinux)
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
@@ -625,5 +643,102 @@ class _WindowsCapsuleButtonState extends State<_WindowsCapsuleButton> {
     }
 
     return buttonWidget;
+  }
+}
+
+class _WasapiExclusiveBadge extends StatefulWidget {
+  final Brightness brightness;
+  final double height;
+
+  const _WasapiExclusiveBadge({
+    required this.brightness,
+    required this.height,
+  });
+
+  @override
+  State<_WasapiExclusiveBadge> createState() => _WasapiExclusiveBadgeState();
+}
+
+class _WasapiExclusiveBadgeState extends State<_WasapiExclusiveBadge> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final l10n = AppLocalizations.of(context);
+    final badgeText = l10n?.exclusiveModeTitle ?? '独占模式';
+    final tooltipText = l10n?.exclusiveModeTooltip ??
+        'WASAPI 独占模式已启用（已独占音频输出设备）';
+
+    return Center(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
+        child: AppTooltip(
+          message: tooltipText,
+          child: GestureDetector(
+            onTap: () {
+              final settingsState =
+                  context.findAncestorStateOfType<SettingsPageState>();
+              if (settingsState != null) {
+                settingsState.openSection(SettingsSection.audio);
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SettingsPage(
+                      initialSection: SettingsSection.audio,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              height: 22,
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              decoration: BoxDecoration(
+                color: _isHovered
+                    ? primaryColor.withValues(alpha: isDark ? 0.28 : 0.20)
+                    : primaryColor.withValues(alpha: isDark ? 0.16 : 0.10),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: primaryColor.withValues(
+                    alpha: _isHovered
+                        ? (isDark ? 0.6 : 0.5)
+                        : (isDark ? 0.35 : 0.25),
+                  ),
+                  width: 0.8,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.graphic_eq_rounded,
+                    size: 13,
+                    color: primaryColor,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: primaryColor,
+                      height: 1.1,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

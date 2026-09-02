@@ -4581,4 +4581,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeHardwareBitPerfectBadge => 'Bit-Perfect Direct';
+
+  @override
+  String get exclusiveModeTitle => 'Exclusive Mode';
+
+  @override
+  String get exclusiveModeTooltip =>
+      'WASAPI Exclusive Mode is active (audio device is exclusively held)';
 }

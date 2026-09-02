@@ -4364,6 +4364,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get activeHardwareBitPerfectBadge => 'Bit-Perfect 点对点直通';
+
+  @override
+  String get exclusiveModeTitle => '独占模式';
+
+  @override
+  String get exclusiveModeTooltip => 'WASAPI 独占模式已启用（已独占音频输出设备）';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
