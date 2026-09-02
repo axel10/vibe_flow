@@ -1048,12 +1048,8 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
                   shouldScroll = false;
                 } else {
                   _lastActiveIndex = activeIndex;
-                  if (mounted) {
-                    setState(() {
-                      _isFocusMode = true;
-                      _enteringFocusModeTriggered = true;
-                    });
-                  }
+                  _isFocusMode = true;
+                  _enteringFocusModeTriggered = true;
                 }
               } else {
                 if (_activePointers == 0) {
