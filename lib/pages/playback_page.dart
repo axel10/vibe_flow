@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:audio_core/audio_core.dart';
 import 'package:window_manager/window_manager.dart';
 import '../l10n/app_localizations.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
@@ -18,7 +17,7 @@ import 'package:vynody/player/metadata/musicbrainz_tag_completion_service.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import '../widgets/playback_hero_card.dart';
-import '../widgets/visualizer_painter.dart';
+import '../widgets/playback/playback_visualizer_layer.dart';
 import '../widgets/volume_controls.dart';
 import '../widgets/dynamic_mesh_background.dart';
 import 'package:vynody/utils/playback_utils.dart';
@@ -1221,7 +1220,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                   isSmallWin,
                 ),
                 if (shouldDrawVisualizer)
-                  _buildVisualizerLayer(context, orientation),
+                  PlaybackVisualizerLayer(orientation: orientation),
                 _buildLyricsModeScrim(
                   isLyricsMode,
                   backgroundType,
@@ -1630,52 +1629,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
     );
   }
 
-  Widget _buildVisualizerLayer(BuildContext context, Orientation orientation) {
-    return Positioned.fill(
-      child: RepaintBoundary(
-        child: StreamBuilder<FftFrame>(
-          stream: ref.read(audioServiceProvider).visualizerStream,
-          builder: (context, snapshot) {
-            final frame = snapshot.data;
-            if (frame == null) return const SizedBox.shrink();
 
-            final settings = ref.watch(settingsServiceProvider);
-            final dynamicStartColor = ref.watch(audioDynamicStartColorProvider);
-            final dynamicEndColor = ref.watch(audioDynamicEndColorProvider);
-            final isLandscape = orientation == Orientation.landscape;
-            final gap = isLandscape
-                ? settings.landscapeGap
-                : settings.portraitGap;
-
-            return ExcludeSemantics(
-              child: CustomPaint(
-                painter: FftPainter(
-                  values: frame.values,
-                  style: settings.visualizerStyle,
-                  gap: gap,
-                  capDropSpeed: settings.visualizerCapDropSpeed,
-                  color: settings.isVisualizerDynamicColor
-                      ? (dynamicStartColor ?? settings.visualizerColor)
-                      : settings.visualizerColor,
-                  opacity: settings.visualizerOpacity,
-                  useGradient: settings.isVisualizerGradientEnabled,
-                  startColor: settings.isVisualizerDynamicStartColor
-                      ? (dynamicStartColor ?? settings.visualizerStartColor)
-                      : settings.visualizerStartColor,
-                  endColor: settings.isVisualizerDynamicEndColor
-                      ? (dynamicEndColor ?? settings.visualizerEndColor)
-                      : settings.visualizerEndColor,
-                  gradientStop1: settings.visualizerGradientStop1,
-                  gradientStop2: settings.visualizerGradientStop2,
-                  gradientTileMode: settings.visualizerGradientTileMode,
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
 
   Widget _buildTipCard(
     BuildContext context, {

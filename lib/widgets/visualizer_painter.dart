@@ -1,9 +1,11 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 
 class FftPainter extends CustomPainter {
-  final List<double> values;
+  final List<double>? _values;
+  final ValueListenable<List<double>>? listenable;
   final VisualizerStyle style;
   final Color color;
   final double opacity;
@@ -24,7 +26,8 @@ class FftPainter extends CustomPainter {
   static int _lastCapTimestamp = 0;
 
   FftPainter({
-    required this.values,
+    List<double>? values,
+    this.listenable,
     this.style = VisualizerStyle.bars,
     required this.color,
     this.opacity = 0.2,
@@ -36,7 +39,11 @@ class FftPainter extends CustomPainter {
     this.gradientTileMode,
     this.gap = 1.0,
     this.capDropSpeed = 0.20,
-  });
+    Listenable? repaint,
+  })  : _values = values,
+        super(repaint: repaint ?? listenable);
+
+  List<double> get values => listenable?.value ?? _values ?? const [];
 
   Shader _getOrCreateShader(Size size) {
     final resolvedStart = (startColor ?? color).withValues(alpha: opacity);
