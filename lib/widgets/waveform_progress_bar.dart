@@ -59,7 +59,7 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
   List<double> _targetWaveform = [];
 
   // Smooth progress states
-  late double _smoothProgress;
+  late final ValueNotifier<double> _smoothProgressNotifier;
   Ticker? _ticker;
   Duration? _lastFrameTime;
   bool _isDragging = false;
@@ -89,7 +89,7 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
       });
     });
 
-    _smoothProgress = widget.progress.clamp(0.0, 1.0);
+    _smoothProgressNotifier = ValueNotifier<double>(widget.progress.clamp(0.0, 1.0));
     _ticker = createTicker(_onTick);
     _updateTickerState();
     WidgetsBinding.instance.addObserver(this);
@@ -100,6 +100,7 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
     WidgetsBinding.instance.removeObserver(this);
     _animationController.dispose();
     _ticker?.dispose();
+    _smoothProgressNotifier.dispose();
     if (_isDoubleSpeedActive || _isDoubleSpeedLocked) {
       try {
         ref.read(audioServiceProvider).setPlaybackSpeed(_originalSpeed);
@@ -115,29 +116,23 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
     _lastFrameTime = elapsed;
 
     if (_isDragging) {
-      if (_smoothProgress != widget.progress) {
-        setState(() {
-          _smoothProgress = widget.progress.clamp(0.0, 1.0);
-        });
+      if (_smoothProgressNotifier.value != widget.progress) {
+        _smoothProgressNotifier.value = widget.progress.clamp(0.0, 1.0);
       }
       return;
     }
 
     if (widget.isPlaying && widget.duration.inMicroseconds > 0) {
       final double deltaProgress = delta.inMicroseconds / widget.duration.inMicroseconds;
-      double newProgress = _smoothProgress + deltaProgress;
+      double newProgress = _smoothProgressNotifier.value + deltaProgress;
 
       // Gently nudge towards the target progress to correct any time drift
       newProgress = lerpDouble(newProgress, widget.progress, 0.05) ?? newProgress;
 
-      setState(() {
-        _smoothProgress = newProgress.clamp(0.0, 1.0);
-      });
+      _smoothProgressNotifier.value = newProgress.clamp(0.0, 1.0);
     } else {
-      if (_smoothProgress != widget.progress) {
-        setState(() {
-          _smoothProgress = widget.progress.clamp(0.0, 1.0);
-        });
+      if (_smoothProgressNotifier.value != widget.progress) {
+        _smoothProgressNotifier.value = widget.progress.clamp(0.0, 1.0);
       }
     }
   }
@@ -227,16 +222,16 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
     }
 
     // Check if progress or play state changed
-    final double diff = (widget.progress - _smoothProgress).abs();
+    final double diff = (widget.progress - _smoothProgressNotifier.value).abs();
     final double snapThreshold = widget.duration.inMilliseconds > 0
         ? 1000.0 / widget.duration.inMilliseconds
         : 0.01;
 
     // Snap immediately on large leaps (seeks/song changes) or when not playing or when transitioning ended
     if (!widget.isTransitioning && (diff > snapThreshold || !widget.isPlaying || _isDragging)) {
-      _smoothProgress = widget.progress.clamp(0.0, 1.0);
+      _smoothProgressNotifier.value = widget.progress.clamp(0.0, 1.0);
     } else if (oldWidget.isTransitioning && !widget.isTransitioning) {
-      _smoothProgress = widget.progress.clamp(0.0, 1.0);
+      _smoothProgressNotifier.value = widget.progress.clamp(0.0, 1.0);
     }
 
     _updateTickerState();
@@ -271,12 +266,10 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
           },
           child: GestureDetector(
             onHorizontalDragStart: (details) {
-              setState(() {
-                _isDragging = true;
-                _dragStartX = details.localPosition.dx;
-                _dragStartProgress = widget.progress;
-                _smoothProgress = widget.progress.clamp(0.0, 1.0);
-              });
+              _isDragging = true;
+              _dragStartX = details.localPosition.dx;
+              _dragStartProgress = widget.progress;
+              _smoothProgressNotifier.value = widget.progress.clamp(0.0, 1.0);
               _updateTickerState();
             },
             onHorizontalDragUpdate: (details) {
@@ -293,12 +286,12 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
               }
               
               widget.onScrubbing(newProgress);
-              setState(() {
-                _smoothProgress = newProgress;
-                if (!widget.isScrolling) {
+              _smoothProgressNotifier.value = newProgress;
+              if (!widget.isScrolling) {
+                setState(() {
                   _hoverProgress = newProgress;
-                }
-              });
+                });
+              }
             },
             onHorizontalDragEnd: (details) {
               widget.onSeek(widget.progress);
@@ -313,9 +306,7 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
                 final double newProgress = (details.localPosition.dx / width).clamp(0.0, 1.0);
                 widget.onScrubbing(newProgress);
                 widget.onSeek(newProgress);
-                setState(() {
-                  _smoothProgress = newProgress;
-                });
+                _smoothProgressNotifier.value = newProgress;
               }
             },
             onLongPressStart: (details) {
@@ -394,7 +385,7 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
                             size: Size(width, widget.height),
                             painter: WaveformPainter(
                               waveform: _animatedWaveform,
-                              progress: _smoothProgress,
+                              progressNotifier: _smoothProgressNotifier,
                               activeColor: widget.activeColor,
                               inactiveColor: widget.inactiveColor,
                               isScrolling: widget.isScrolling,
@@ -429,7 +420,8 @@ class _WaveformProgressBarState extends ConsumerState<WaveformProgressBar> with 
 
 class WaveformPainter extends CustomPainter {
   final List<double> waveform;
-  final double progress;
+  final ValueListenable<double>? progressNotifier;
+  final double _progress;
   final Color activeColor;
   final Color inactiveColor;
   final bool isScrolling;
@@ -438,13 +430,17 @@ class WaveformPainter extends CustomPainter {
 
   WaveformPainter({
     required this.waveform,
-    required this.progress,
+    this.progressNotifier,
+    double progress = 0.0,
     required this.activeColor,
     required this.inactiveColor,
     required this.isScrolling,
     required this.barWidth,
     required this.barGap,
-  });
+  })  : _progress = progress,
+        super(repaint: progressNotifier);
+
+  double get progress => progressNotifier?.value ?? _progress;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -453,55 +449,14 @@ class WaveformPainter extends CustomPainter {
     final double centerY = size.height / 2;
     final double maxBarHeight = size.height * 0.9;
     final double totalBarWidth = barWidth + barGap;
-    
+
     // 计算当前进度对应的索引（浮点数，用于精确偏移）
-    final double currentIdx = progress * (waveform.length - 1);
-    
+    final double currentProgress = progress.clamp(0.0, 1.0);
+    final double currentIdx = currentProgress * (waveform.length - 1);
+
     // 绘制区域的中心 X (播放头位置)
-    final double centerX = isScrolling ? size.width / 2 : size.width * progress;
-
-    // 1. 绘制底色层 (全量绘制未激活颜色)
-    _drawWaveformLayer(
-      canvas,
-      size,
-      centerY,
-      maxBarHeight,
-      totalBarWidth,
-      currentIdx,
-      inactiveColor,
-    );
-
-    // 2. 绘制激活层 (使用裁剪实现像素级颜色平滑过渡，并通过 maxExclusiveX 限制绘制的索引范围)
-    canvas.save();
-    canvas.clipRect(Rect.fromLTWH(0, 0, centerX, size.height));
-    _drawWaveformLayer(
-      canvas,
-      size,
-      centerY,
-      maxBarHeight,
-      totalBarWidth,
-      currentIdx,
-      activeColor,
-      maxExclusiveX: centerX,
-    );
-    canvas.restore();
-  }
-
-  void _drawWaveformLayer(
-    Canvas canvas,
-    Size size,
-    double centerY,
-    double maxBarHeight,
-    double totalBarWidth,
-    double currentIdx,
-    Color color, {
-    double? maxExclusiveX,
-  }) {
+    final double centerX = isScrolling ? size.width / 2 : size.width * currentProgress;
     final double viewCenterX = size.width / 2;
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = color;
-
     final double stepWidth = isScrolling ? totalBarWidth : (size.width / math.max(1, waveform.length));
 
     // 计算起点与终点索引，仅绘制屏幕内可见的波形条
@@ -514,42 +469,65 @@ class WaveformPainter extends CustomPainter {
 
       final double endFloat = currentIdx + (size.width - viewCenterX) / stepWidth;
       endIndex = math.min(waveform.length, endFloat.ceil() + 1);
-
-      if (maxExclusiveX != null) {
-        // 在滚动模式下，播放头 centerX 就是 viewCenterX
-        // 任何 x > viewCenterX 的波形条都不需要被激活层绘制
-        // viewCenterX + (i - currentIdx) * stepWidth <= viewCenterX  =>  i <= currentIdx
-        endIndex = math.min(endIndex, currentIdx.ceil() + 1);
-      }
-    } else {
-      if (maxExclusiveX != null) {
-        // x = i * stepWidth <= maxExclusiveX
-        // => i <= maxExclusiveX / stepWidth
-        final double maxIndexFloat = maxExclusiveX / stepWidth;
-        endIndex = math.min(endIndex, maxIndexFloat.ceil() + 1);
-      }
     }
 
-    for (int i = startIndex; i < endIndex; i++) {
-      double x;
-      if (isScrolling) {
-        x = viewCenterX + (i - currentIdx) * stepWidth;
-      } else {
-        x = i * stepWidth;
-      }
+    final double barRadius = barWidth / 2;
+    final Path activePath = Path();
+    final Path inactivePath = Path();
+    bool hasActive = false;
+    bool hasInactive = false;
 
+    RRect? splitRRect;
+    double? splitX;
+
+    for (int i = startIndex; i < endIndex; i++) {
+      final double x = isScrolling ? (viewCenterX + (i - currentIdx) * stepWidth) : (i * stepWidth);
       if (x + barWidth < 0 || x > size.width) continue;
-      if (maxExclusiveX != null && x > maxExclusiveX) continue;
 
       final double barHeight = math.max(barWidth, waveform[i] * maxBarHeight);
       final double y = centerY - barHeight / 2;
 
       final RRect rrect = RRect.fromRectAndRadius(
         Rect.fromLTWH(x, y, barWidth, barHeight),
-        Radius.circular(barWidth / 2),
+        Radius.circular(barRadius),
       );
-      
-      canvas.drawRRect(rrect, paint);
+
+      final double xEnd = x + barWidth;
+      if (xEnd <= centerX) {
+        activePath.addRRect(rrect);
+        hasActive = true;
+      } else if (x >= centerX) {
+        inactivePath.addRRect(rrect);
+        hasInactive = true;
+      } else {
+        // 跨越播放头的分界柱子：底色完整绘制，激活色仅绘制左半部分
+        inactivePath.addRRect(rrect);
+        hasInactive = true;
+        splitRRect = rrect;
+        splitX = x;
+      }
+    }
+
+    final activePaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = activeColor;
+    final inactivePaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = inactiveColor;
+
+    if (hasInactive) {
+      canvas.drawPath(inactivePath, inactivePaint);
+    }
+    if (hasActive) {
+      canvas.drawPath(activePath, activePaint);
+    }
+
+    // 针对唯一一根跨越播放头的柱子，做局部微小矩形剪裁并绘制激活色，实现像素级平滑分割且零 Overdraw
+    if (splitRRect != null && splitX != null) {
+      canvas.save();
+      canvas.clipRect(Rect.fromLTRB(splitX, 0, centerX, size.height));
+      canvas.drawRRect(splitRRect, activePaint);
+      canvas.restore();
     }
   }
 
@@ -559,6 +537,8 @@ class WaveformPainter extends CustomPainter {
         oldDelegate.progress != progress ||
         oldDelegate.activeColor != activeColor ||
         oldDelegate.inactiveColor != inactiveColor ||
-        oldDelegate.isScrolling != isScrolling;
+        oldDelegate.isScrolling != isScrolling ||
+        oldDelegate.barWidth != barWidth ||
+        oldDelegate.barGap != barGap;
   }
 }
