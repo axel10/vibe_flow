@@ -1197,6 +1197,8 @@
   "proFeatureDynamicMeshBackgroundDesc": "基於封面色彩的高畫質流體漸變動效與流動速度自訂",
   "proFeatureCustomImageBackgroundTitle": "自訂播放背景桌布",
   "proFeatureCustomImageBackgroundDesc": "自由匯入本機高畫質桌布與照片作為播放頁沉浸背景",
+  "proFeatureWasapiExclusiveTitle": "WASAPI 獨佔輸出與 Bit-Perfect",
+  "proFeatureWasapiExclusiveDesc": "繞過 Windows 系統混音器直接獨佔音訊硬體，實現原生取樣率直出與發燒級點對點輸出",
   "proCommunityUnlocked": "社群完全版已永久解鎖全部高級特性",
   "proTrialActive": "免費試用期生效中 (剩餘 {days} 天)",
   "proTrialExpired": "免費試用期已結束，升級解鎖高級體驗",

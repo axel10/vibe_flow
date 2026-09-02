@@ -38,7 +38,10 @@ enum ProFeature {
   dynamicMeshBackground,
 
   /// Custom photo and wallpaper playback background
-  customImageBackground;
+  customImageBackground,
+
+  /// Windows WASAPI Exclusive Mode & Bit-Perfect audio output
+  wasapiExclusive;
 
   String getTitle(AppLocalizations l10n) {
     switch (this) {
@@ -65,6 +68,8 @@ enum ProFeature {
         return l10n.proFeatureDynamicMeshBackgroundTitle;
       case ProFeature.customImageBackground:
         return l10n.proFeatureCustomImageBackgroundTitle;
+      case ProFeature.wasapiExclusive:
+        return l10n.proFeatureWasapiExclusiveTitle;
     }
   }
 
@@ -93,6 +98,8 @@ enum ProFeature {
         return l10n.proFeatureDynamicMeshBackgroundDesc;
       case ProFeature.customImageBackground:
         return l10n.proFeatureCustomImageBackgroundDesc;
+      case ProFeature.wasapiExclusive:
+        return l10n.proFeatureWasapiExclusiveDesc;
     }
   }
 
@@ -121,6 +128,8 @@ enum ProFeature {
         return Icons.blur_on_rounded;
       case ProFeature.customImageBackground:
         return Icons.wallpaper_rounded;
+      case ProFeature.wasapiExclusive:
+        return Icons.speaker_group_rounded;
     }
   }
 }

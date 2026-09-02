@@ -3635,6 +3635,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get proFeatureCustomImageBackgroundDesc => '自由导入本地高清壁纸与照片作为播放页沉浸背景';
 
   @override
+  String get proFeatureWasapiExclusiveTitle => 'WASAPI 独占输出与 Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      '绕过 Windows 系统混音器直接独占音频硬件，实现原生采样率直出与发烧级点对点输出';
+
+  @override
   String get proCommunityUnlocked => '社区完全版已永久解锁全部高级特性';
 
   @override
@@ -8001,6 +8008,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get proFeatureCustomImageBackgroundDesc => '自由匯入本機高畫質桌布與照片作為播放頁沉浸背景';
+
+  @override
+  String get proFeatureWasapiExclusiveTitle => 'WASAPI 獨佔輸出與 Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      '繞過 Windows 系統混音器直接獨佔音訊硬體，實現原生取樣率直出與發燒級點對點輸出';
 
   @override
   String get proCommunityUnlocked => '社群完全版已永久解鎖全部高級特性';

@@ -1502,6 +1502,8 @@
   "proFeatureDynamicMeshBackgroundDesc": "Animación de degradado fluido generado a partir de la carátula con velocidad personalizable",
   "proFeatureCustomImageBackgroundTitle": "Fondo de reproducción personalizado",
   "proFeatureCustomImageBackgroundDesc": "Importe sus imágenes y fotos favoritas como fondo inmersivo de reproducción",
+  "proFeatureWasapiExclusiveTitle": "Modo exclusivo WASAPI y Bit-Perfect",
+  "proFeatureWasapiExclusiveDesc": "Omite el mezclador de Windows para una salida de audio directa y perfecta",
   "proCommunityUnlocked": "Edición comunitaria: todas las funciones Pro desbloqueadas permanentemente",
   "proTrialActive": "Prueba gratuita activa (quedan {days} días)",
   "proTrialExpired": "Prueba gratuita finalizada. Actualice a Pro para desbloquear",

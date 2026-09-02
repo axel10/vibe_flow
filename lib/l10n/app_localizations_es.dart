@@ -3882,6 +3882,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Importe sus imágenes y fotos favoritas como fondo inmersivo de reproducción';
 
   @override
+  String get proFeatureWasapiExclusiveTitle =>
+      'Modo exclusivo WASAPI y Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Omite el mezclador de Windows para una salida de audio directa y perfecta';
+
+  @override
   String get proCommunityUnlocked =>
       'Edición comunitaria: todas las funciones Pro desbloqueadas permanentemente';
 

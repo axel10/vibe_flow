@@ -3888,6 +3888,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Importez vos propres photos et fonds d\'écran comme arrière-plan immersif';
 
   @override
+  String get proFeatureWasapiExclusiveTitle =>
+      'Mode exclusif WASAPI & Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Contournez le mixeur Windows pour une sortie matérielle pure et bit-perfect';
+
+  @override
   String get proCommunityUnlocked =>
       'Édition communautaire : toutes les fonctionnalités Pro débloquées à vie';
 

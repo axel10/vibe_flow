@@ -1502,6 +1502,8 @@
   "proFeatureDynamicMeshBackgroundDesc": "Animation de dégradé fluide basée sur les couleurs de la pochette avec vitesse réglable",
   "proFeatureCustomImageBackgroundTitle": "Fond de lecture personnalisé",
   "proFeatureCustomImageBackgroundDesc": "Importez vos propres photos et fonds d'écran comme arrière-plan immersif",
+  "proFeatureWasapiExclusiveTitle": "Mode exclusif WASAPI & Bit-Perfect",
+  "proFeatureWasapiExclusiveDesc": "Contournez le mixeur Windows pour une sortie matérielle pure et bit-perfect",
   "proCommunityUnlocked": "Édition communautaire : toutes les fonctionnalités Pro débloquées à vie",
   "proTrialActive": "Période d'essai gratuite active ({days} jours restants)",
   "proTrialExpired": "Période d'essai terminée. Passez à Pro pour débloquer les fonctionnalités",

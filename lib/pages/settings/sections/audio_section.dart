@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/widgets/pro/pro_badge.dart';
 import '../widgets/settings_dropdown_tile.dart';
 import '../widgets/settings_group_card.dart';
 import '../widgets/settings_section_header.dart';
@@ -28,7 +31,9 @@ class AudioSection extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final audioService = ref.read(audioServiceProvider);
-    final isExclusive = settings.windowsAudioOutputMode == 'wasapi_exclusive';
+    final isProUnlocked = ref.watch(isProUnlockedProvider);
+    final isExclusive =
+        settings.windowsAudioOutputMode == 'wasapi_exclusive' && isProUnlocked;
 
     return SettingsGroupCard(
       title: l10n.windowsAudioOutputTitle,
@@ -46,7 +51,7 @@ class AudioSection extends ConsumerWidget {
         SettingsDropdownTile<String>(
           title: l10n.windowsAudioOutputTitle,
           icon: Icons.audio_file_rounded,
-          value: settings.windowsAudioOutputMode,
+          value: isExclusive ? 'wasapi_exclusive' : 'shared',
           options: [
             SettingsDropdownOption(
               value: 'shared',
@@ -55,9 +60,18 @@ class AudioSection extends ConsumerWidget {
             SettingsDropdownOption(
               value: 'wasapi_exclusive',
               label: l10n.audioOutputModeExclusive,
+              trailing: !isProUnlocked ? const ProBadge(size: 9.5) : null,
             ),
           ],
-          onChanged: (newMode) {
+          onChanged: (newMode) async {
+            if (newMode == 'wasapi_exclusive') {
+              final allowed = await checkProGate(
+                context,
+                ref,
+                feature: ProFeature.wasapiExclusive,
+              );
+              if (!allowed) return;
+            }
             if (newMode != null) {
               unawaited(audioService.updateWindowsAudioOutput(mode: newMode));
             }

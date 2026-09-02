@@ -1626,6 +1626,8 @@
   "proFeatureDynamicMeshBackgroundDesc": "Albüm kapağı renklerinden üretilen akıcı gradyan animasyonu ve ayarlanabilir hız",
   "proFeatureCustomImageBackgroundTitle": "Özel Çalma Arka Plan Duvar Kağıdı",
   "proFeatureCustomImageBackgroundDesc": "Favori yerel resimlerinizi ve fotoğraflarınızı oynatıcı arka planı olarak ayarlayın",
+  "proFeatureWasapiExclusiveTitle": "WASAPI Özel Mod ve Bit-Perfect",
+  "proFeatureWasapiExclusiveDesc": "Saf ses kalitesi ve bit-perfect doğrudan donanım çıkışı için Windows mikserini atlayın",
   "proCommunityUnlocked": "Topluluk Sürümü: Tüm Pro özelliklerinin kilidi kalıcı olarak açıldı",
   "proTrialActive": "Ücretsiz deneme süresi etkin ({days} gün kaldı)",
   "proTrialExpired": "Ücretsiz deneme süresi doldu. Pro'ya yükseltin",

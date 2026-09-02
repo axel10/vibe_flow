@@ -6,6 +6,7 @@ import 'app_tooltip.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import '../player/audio/audio_riverpod.dart';
+import '../player/pro/pro_license_service.dart';
 import '../player/settings/settings_service.dart';
 import '../pages/settings_page.dart';
 import '../l10n/app_localizations.dart';
@@ -217,8 +218,7 @@ class _DesktopWindowTitleBarState extends ConsumerState<DesktopWindowTitleBar>
           Expanded(
             child: dragGestureArea,
           ),
-          if (Platform.isWindows &&
-              settings.windowsAudioOutputMode == 'wasapi_exclusive')
+          if (ref.watch(isEffectiveWasapiExclusiveProvider))
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
               opacity: hideButtons ? 0.0 : 1.0,

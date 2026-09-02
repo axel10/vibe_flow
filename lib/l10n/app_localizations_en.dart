@@ -3835,6 +3835,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import your favorite local photos and wallpapers for an immersive playback background';
 
   @override
+  String get proFeatureWasapiExclusiveTitle =>
+      'WASAPI Exclusive Mode & Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Bypass Windows system audio mixer for bit-perfect, pure audiophile hardware output';
+
+  @override
   String get proCommunityUnlocked =>
       'Community edition: all Pro features permanently unlocked';
 

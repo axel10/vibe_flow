@@ -3875,7 +3875,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get proFeatureCustomImageBackgroundDesc =>
-      'Eigene Bilder und Fotos als immersiven Wiedergabehintergrund importieren';
+      'Importieren Sie Ihre Lieblingsfotos und Hintergrundbilder für ein immersives Wiedergabeerlebnis';
+
+  @override
+  String get proFeatureWasapiExclusiveTitle =>
+      'WASAPI Exklusivmodus & Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Windows-Audiomixer umgehen für bitgenaue audiophile Direktausgabe';
 
   @override
   String get proCommunityUnlocked =>

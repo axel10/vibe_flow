@@ -2184,6 +2184,14 @@
     "description": "Pro feature description for custom image background"
   },
   "proFeatureCustomImageBackgroundDesc": "自由导入本地高清壁纸与照片作为播放页沉浸背景",
+  "@proFeatureWasapiExclusiveTitle": {
+    "description": "Pro feature title for WASAPI exclusive mode and bit-perfect playback"
+  },
+  "proFeatureWasapiExclusiveTitle": "WASAPI 独占输出与 Bit-Perfect",
+  "@proFeatureWasapiExclusiveDesc": {
+    "description": "Pro feature description for WASAPI exclusive mode and bit-perfect playback"
+  },
+  "proFeatureWasapiExclusiveDesc": "绕过 Windows 系统混音器直接独占音频硬件，实现原生采样率直出与发烧级点对点输出",
   "@proCommunityUnlocked": {
     "description": "Status text for unlimited community release"
   },

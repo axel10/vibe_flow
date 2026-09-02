@@ -6861,6 +6861,18 @@ abstract class AppLocalizations {
   /// **'自由导入本地高清壁纸与照片作为播放页沉浸背景'**
   String get proFeatureCustomImageBackgroundDesc;
 
+  /// Pro feature title for WASAPI exclusive mode and bit-perfect playback
+  ///
+  /// In zh, this message translates to:
+  /// **'WASAPI 独占输出与 Bit-Perfect'**
+  String get proFeatureWasapiExclusiveTitle;
+
+  /// Pro feature description for WASAPI exclusive mode and bit-perfect playback
+  ///
+  /// In zh, this message translates to:
+  /// **'绕过 Windows 系统混音器直接独占音频硬件，实现原生采样率直出与发烧级点对点输出'**
+  String get proFeatureWasapiExclusiveDesc;
+
   /// Status text for unlimited community release
   ///
   /// In zh, this message translates to:

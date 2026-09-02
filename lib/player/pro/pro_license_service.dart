@@ -243,6 +243,18 @@ final isEffectiveWaveformEnabledProvider = Provider<bool>((ref) {
   return isProUnlocked && isWaveformSettingEnabled;
 });
 
+/// Provider for whether WASAPI exclusive mode is effectively enabled (Windows, Pro unlocked & setting enabled).
+final isEffectiveWasapiExclusiveProvider = Provider<bool>((ref) {
+  if (!Platform.isWindows) return false;
+  final isProUnlocked = ref.watch(isProUnlockedProvider);
+  final isExclusiveSetting = ref.watch(
+    settingsServiceProvider.select(
+      (s) => s.windowsAudioOutputMode == 'wasapi_exclusive',
+    ),
+  );
+  return isProUnlocked && isExclusiveSetting;
+});
+
 /// Check access for a specific Pro feature. If locked, opens the upgrade dialog.
 /// Returns true if access is granted, false if blocked.
 Future<bool> checkProGate(

@@ -3696,6 +3696,13 @@ class AppLocalizationsJa extends AppLocalizations {
       'お好みの画像や写真をインポートして再生画面の背景に設定';
 
   @override
+  String get proFeatureWasapiExclusiveTitle => 'WASAPI 排他モード & Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Windows ミキサーをバイパスし、ビットパーフェクトな高音質ダイレクト出力を実現';
+
+  @override
   String get proCommunityUnlocked => 'コミュニティ版：すべてのPro機能が無制限で永久解放されています';
 
   @override

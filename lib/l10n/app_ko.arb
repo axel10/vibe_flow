@@ -1502,6 +1502,8 @@
   "proFeatureDynamicMeshBackgroundDesc": "앨범 아트 색상 기반의 유체 그라데이션 애니메이션 및 속도 조절",
   "proFeatureCustomImageBackgroundTitle": "사용자 지정 재생 배경",
   "proFeatureCustomImageBackgroundDesc": "로컬 이미지와 사진을 재생 화면 배경으로 자유롭게 설정",
+  "proFeatureWasapiExclusiveTitle": "WASAPI 독점 모드 & Bit-Perfect",
+  "proFeatureWasapiExclusiveDesc": "Windows 믹서를 우회하여 오디오 하드웨어를 직접 독점하고 비트 퍼펙트 출력을 지원합니다",
   "proCommunityUnlocked": "커뮤니티 버전: 모든 Pro 기능이 영구 잠금 해제되었습니다",
   "proTrialActive": "무료 체험 진행 중 (남은 기간: {days}일)",
   "proTrialExpired": "무료 체험 기간이 만료되었습니다. Pro로 업그레이드하세요",

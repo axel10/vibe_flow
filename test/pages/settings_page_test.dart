@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/pages/settings/sections/about_section.dart';
 import 'package:vynody/pages/settings/sections/acoustid_section.dart';
+import 'package:vynody/pages/settings/sections/audio_section.dart';
 import 'package:vynody/pages/settings/sections/shortcuts_section.dart';
 import 'package:vynody/pages/settings/sections/tags_section.dart';
 import 'package:vynody/pages/settings/sections/transcode_section.dart';
@@ -12,7 +13,10 @@ import 'package:vynody/pages/settings/widgets/settings_dropdown_tile.dart';
 import 'package:vynody/pages/settings/widgets/settings_group_card.dart';
 import 'package:vynody/pages/settings/widgets/settings_section_header.dart';
 import 'package:vynody/pages/settings_page.dart';
+import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/widgets/pro/pro_badge.dart';
 
 void main() {
   setUp(() {
@@ -25,6 +29,11 @@ void main() {
     expect(SettingsSection.sidebarSections.contains(SettingsSection.audio), isTrue);
     expect(SettingsSection.sidebarSections.contains(SettingsSection.lyrics), isTrue);
     expect(SettingsSection.sidebarSections.contains(SettingsSection.about), isTrue);
+  });
+
+  test('ProFeature.wasapiExclusive exists and provides metadata', () {
+    expect(ProFeature.values.contains(ProFeature.wasapiExclusive), isTrue);
+    expect(ProFeature.wasapiExclusive.icon, Icons.speaker_group_rounded);
   });
 
   testWidgets('SettingsSectionHeader renders title and description', (tester) async {
@@ -62,7 +71,7 @@ void main() {
     expect(find.text('Child 2'), findsOneWidget);
   });
 
-  testWidgets('SettingsDropdownTile renders selection and options', (tester) async {
+  testWidgets('SettingsDropdownTile renders selection and options with trailing badge', (tester) async {
     String selected = 'opt1';
     await tester.pumpWidget(
       MaterialApp(
@@ -72,7 +81,11 @@ void main() {
             value: selected,
             options: const [
               SettingsDropdownOption(value: 'opt1', label: 'Option 1'),
-              SettingsDropdownOption(value: 'opt2', label: 'Option 2'),
+              SettingsDropdownOption(
+                value: 'opt2',
+                label: 'Option 2',
+                trailing: Text('PRO_BADGE'),
+              ),
             ],
             onChanged: (val) {
               if (val != null) selected = val;
@@ -99,6 +112,25 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ShortcutsSection), findsOneWidget);
+  });
+
+  testWidgets('AudioSection renders correctly', (tester) async {
+    final prefs = await SharedPreferences.getInstance();
+    final settings = SettingsService(prefs);
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: AudioSection(settings: settings),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AudioSection), findsOneWidget);
   });
 
   testWidgets('TagsSection renders correctly', (tester) async {

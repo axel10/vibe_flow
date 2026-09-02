@@ -4,12 +4,14 @@ class SettingsDropdownOption<T> {
   final T value;
   final String label;
   final Widget? leading;
+  final Widget? trailing;
   final bool enabled;
 
   const SettingsDropdownOption({
     required this.value,
     required this.label,
     this.leading,
+    this.trailing,
     this.enabled = true,
   });
 }
@@ -97,6 +99,10 @@ class SettingsDropdownTile<T> extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (opt.trailing != null) ...[
+                    const SizedBox(width: 8),
+                    opt.trailing!,
+                  ],
                   if (isSelected) ...[
                     const SizedBox(width: 12),
                     Icon(
@@ -141,6 +147,10 @@ class SettingsDropdownTile<T> extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (selectedOption?.trailing != null) ...[
+                  const SizedBox(width: 6),
+                  selectedOption!.trailing!,
+                ],
                 const SizedBox(width: 6),
                 Icon(
                   Icons.unfold_more_rounded,

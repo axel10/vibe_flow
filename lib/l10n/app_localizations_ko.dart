@@ -3698,6 +3698,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '로컬 이미지와 사진을 재생 화면 배경으로 자유롭게 설정';
 
   @override
+  String get proFeatureWasapiExclusiveTitle => 'WASAPI 독점 모드 & Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Windows 믹서를 우회하여 오디오 하드웨어를 직접 독점하고 비트 퍼펙트 출력을 지원합니다';
+
+  @override
   String get proCommunityUnlocked => '커뮤니티 버전: 모든 Pro 기능이 영구 잠금 해제되었습니다';
 
   @override

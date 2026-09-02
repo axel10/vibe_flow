@@ -1601,6 +1601,8 @@
   "proFeatureDynamicMeshBackgroundDesc": "アートワークの色から生成される流体グラデーションアニメーションと速度調整",
   "proFeatureCustomImageBackgroundTitle": "カスタム再生背景壁紙",
   "proFeatureCustomImageBackgroundDesc": "お好みの画像や写真をインポートして再生画面の背景に設定",
+  "proFeatureWasapiExclusiveTitle": "WASAPI 排他モード & Bit-Perfect",
+  "proFeatureWasapiExclusiveDesc": "Windows ミキサーをバイパスし、ビットパーフェクトな高音質ダイレクト出力を実現",
   "proCommunityUnlocked": "コミュニティ版：すべてのPro機能が無制限で永久解放されています",
   "proTrialActive": "無料トライアル適用中（残り {days} 日）",
   "proTrialExpired": "無料トライアル期間が終了しました。Proにアップグレードしてください",

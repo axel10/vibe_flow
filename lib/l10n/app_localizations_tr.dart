@@ -3843,6 +3843,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Favori yerel resimlerinizi ve fotoğraflarınızı oynatıcı arka planı olarak ayarlayın';
 
   @override
+  String get proFeatureWasapiExclusiveTitle => 'WASAPI Özel Mod ve Bit-Perfect';
+
+  @override
+  String get proFeatureWasapiExclusiveDesc =>
+      'Saf ses kalitesi ve bit-perfect doğrudan donanım çıkışı için Windows mikserini atlayın';
+
+  @override
   String get proCommunityUnlocked =>
       'Topluluk Sürümü: Tüm Pro özelliklerinin kilidi kalıcı olarak açıldı';
 
