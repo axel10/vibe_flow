@@ -163,7 +163,10 @@ class AudioSection extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 4,
                             children: [
                               Text(
                                 l10n.activeHardwareFormatTitle,
@@ -172,8 +175,7 @@ class AudioSection extends ConsumerWidget {
                                   color: colorScheme.primary,
                                 ),
                               ),
-                              if (fmt.isBitPerfect) ...[
-                                const SizedBox(width: 8),
+                              if (fmt.isBitPerfect)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 6,
@@ -192,7 +194,6 @@ class AudioSection extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                              ],
                             ],
                           ),
                           const SizedBox(height: 2),
