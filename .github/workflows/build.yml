@@ -282,10 +282,11 @@ jobs:
           
           Write-Host "Vynody.exe launched and running successfully (PID: $($appProcess.Id)). Terminating test process..."
           Stop-Process -Id $appProcess.Id -Force -ErrorAction SilentlyContinue
-          cmd /c "taskkill /F /IM Vynody.exe /T 2>nul" | Out-Null
+          Get-Process -Name "Vynody" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
           
           # Clean up test installation directory
           Remove-Item -Path $testInstallDir -Recurse -Force -ErrorAction SilentlyContinue
+          $global:LASTEXITCODE = 0
           Write-Host "Windows installer smoke test passed successfully."
 
       - name: Package and rename Windows artifacts
