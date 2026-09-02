@@ -19,6 +19,7 @@ import '../widgets/song_thumbnail.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/utils/folder_helpers.dart';
 import 'package:vynody/utils/selection_utils.dart';
+import 'package:vynody/utils/song_locator_helper.dart';
 import '../widgets/folder_header_nav_bar.dart';
 import '../widgets/folder_layout_utils.dart';
 import '../widgets/folder_content_slivers.dart';
@@ -38,10 +39,10 @@ class FolderDetailView extends ConsumerStatefulWidget {
     required this.onToggleSelection,
     required this.onSelectAllVisible,
     required this.onClearAllSelection,
-    required this.onLocateCurrentSong,
+    this.onLocateCurrentSong,
     required this.onShowFolderBottomSheet,
     required this.onShowFolderContextMenu,
-    required this.highlightedSongPath,
+    this.highlightedSongPath,
   });
 
   final MusicFolder folder;
@@ -56,7 +57,7 @@ class FolderDetailView extends ConsumerStatefulWidget {
   final void Function(String) onToggleSelection;
   final VoidCallback onSelectAllVisible;
   final VoidCallback onClearAllSelection;
-  final VoidCallback onLocateCurrentSong;
+  final VoidCallback? onLocateCurrentSong;
   final void Function(MusicFolder, {required bool isRoot}) onShowFolderBottomSheet;
   final void Function(MusicFolder, Offset, {required bool isRoot}) onShowFolderContextMenu;
   final String? highlightedSongPath;
@@ -126,19 +127,25 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     _scrollProgress.value = (targetOffset / 160.0).clamp(0.0, 1.0);
     _localScrollController.addListener(_onScroll);
 
-    if (widget.highlightedSongPath != null) {
-      _lastHighlightedPath = widget.highlightedSongPath;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlightedSong());
+    final initialHighlight =
+        widget.highlightedSongPath ?? ref.read(songHighlightProvider);
+    if (initialHighlight != null) {
+      _lastHighlightedPath = initialHighlight;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _scrollToHighlightedSong(initialHighlight),
+      );
     }
-
   }
 
   @override
   void didUpdateWidget(FolderDetailView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.highlightedSongPath != null && widget.highlightedSongPath != _lastHighlightedPath) {
+    if (widget.highlightedSongPath != null &&
+        widget.highlightedSongPath != _lastHighlightedPath) {
       _lastHighlightedPath = widget.highlightedSongPath;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlightedSong());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _scrollToHighlightedSong(widget.highlightedSongPath),
+      );
     }
   }
 
@@ -211,9 +218,11 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
     return results;
   }
 
-  void _scrollToHighlightedSong() {
+  void _scrollToHighlightedSong([String? targetPath]) {
     if (!mounted) return;
-    final songPath = widget.highlightedSongPath;
+    final songPath = targetPath ??
+        widget.highlightedSongPath ??
+        ref.read(songHighlightProvider);
     if (songPath == null) return;
 
     final folder = _effectiveFolder;
@@ -300,6 +309,16 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String?>(songHighlightProvider, (previous, next) {
+      if (next != null && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _scrollToHighlightedSong(next),
+        );
+      }
+    });
+
+    final activeHighlightedSongPath =
+        widget.highlightedSongPath ?? ref.watch(songHighlightProvider);
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     final folder = _effectiveFolder;
     final scanner = ref.watch(scannerServiceProvider);
@@ -526,7 +545,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
             isPlaying: isPlaying,
             isSelectionMode: widget.isSelectionMode,
             selectedSongPaths: widget.selectedSongPaths,
-            highlightedSongPath: widget.highlightedSongPath,
+            highlightedSongPath: activeHighlightedSongPath,
             onSongTap: (file, fileIndex) async {
               SelectionActionHelper.handleItemTap(
                 index: fileIndex,

@@ -35,7 +35,7 @@ class FolderRootView extends ConsumerStatefulWidget {
     required this.onToggleSortMode,
     required this.onDeleteSelectedRootFolders,
     required this.onNavigateTo,
-    required this.onLocateCurrentSong,
+    this.onLocateCurrentSong,
     required this.onShowFolderBottomSheet,
     required this.onShowFolderContextMenu,
   });
@@ -50,7 +50,7 @@ class FolderRootView extends ConsumerStatefulWidget {
   final VoidCallback onToggleSortMode;
   final Future<void> Function() onDeleteSelectedRootFolders;
   final void Function(MusicFolder) onNavigateTo;
-  final VoidCallback onLocateCurrentSong;
+  final VoidCallback? onLocateCurrentSong;
   final void Function(MusicFolder, {required bool isRoot}) onShowFolderBottomSheet;
   final void Function(MusicFolder, Offset, {required bool isRoot}) onShowFolderContextMenu;
 

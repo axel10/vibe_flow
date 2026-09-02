@@ -27,6 +27,7 @@ import '../../utils/remote_context_menu_utils.dart';
 import '../../widgets/library_selection_panel.dart';
 import '../../widgets/library_selection_scope.dart';
 import 'remote_download_manager_page.dart';
+import '../../utils/song_locator_helper.dart';
 
 class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -137,7 +138,6 @@ class _NavidromeAlbumDetailPageState
   Future<void> _locateCurrentSong() async {
     final currentMusic = ref.read(audioCurrentMusicProvider);
     if (currentMusic == null) return;
-    final l10n = AppLocalizations.of(context)!;
 
     final inCurrentAlbum = _tracks.any((t) => t.path == currentMusic.path);
     if (inCurrentAlbum) {
@@ -145,106 +145,7 @@ class _NavidromeAlbumDetailPageState
       return;
     }
 
-    final info = RemoteMediaResolver.parseUri(currentMusic.path);
-    if (info != null &&
-        info.type == RemoteServerType.subsonic &&
-        info.serverId == widget.server.id) {
-      try {
-        final client = SubsonicClient(
-          server: widget.server,
-          password: widget.password,
-        );
-        final songData = await client.getSong(info.trackIdOrPath);
-        if (songData != null) {
-          final albumId =
-              songData['albumId'] as String? ?? songData['parent'] as String?;
-          final albumName = songData['album'] as String? ?? 'Album';
-          final artistName = songData['artist'] as String?;
-          final coverArtId = songData['coverArt'] as String?;
-          if (albumId != null && mounted) {
-            if (albumId == widget.albumId) {
-              _scrollToTrack(currentMusic.path);
-            } else {
-              NavidromeNavUtils.openAlbum(
-                context,
-                ref,
-                server: widget.server,
-                password: widget.password,
-                albumId: albumId,
-                albumName: albumName,
-                artistName: artistName,
-                coverArtId: coverArtId,
-                highlightedSongPath: currentMusic.path,
-              );
-            }
-            return;
-          }
-        }
-      } catch (_) {}
-    } else if (info != null) {
-      final servers = ref.read(remoteServersProvider).asData?.value ?? [];
-      final server = servers.firstWhereOrNull((s) => s.id == info.serverId);
-      if (server != null) {
-        final password = await ref
-                .read(remoteServersProvider.notifier)
-                .getPassword(server.id) ??
-            '';
-        if (info.type == RemoteServerType.webdav) {
-          final targetDir = p.posix.dirname(info.trackIdOrPath);
-          final rootPath = server.customPath?.trim().isNotEmpty == true
-              ? server.customPath!
-              : '/';
-          final stack =
-              ActiveRemoteSession.buildWebDavPathStack(rootPath, targetDir);
-          ref.read(activeRemoteSessionProvider.notifier).setSession(
-                ActiveRemoteSession(
-                  server: server,
-                  password: password,
-                  rootPath: rootPath,
-                  initialPath: targetDir,
-                  webDavPathStack: stack,
-                  webDavHighlightedSongPath: currentMusic.path,
-                ),
-              );
-          return;
-        } else if (info.type == RemoteServerType.subsonic) {
-          try {
-            final client = SubsonicClient(server: server, password: password);
-            final songData = await client.getSong(info.trackIdOrPath);
-            if (songData != null && mounted) {
-              final albumId = songData['albumId'] as String? ??
-                  songData['parent'] as String?;
-              final albumName = songData['album'] as String? ?? 'Album';
-              final artistName = songData['artist'] as String?;
-              final coverArtId = songData['coverArt'] as String?;
-              if (albumId != null) {
-                ref.read(activeRemoteSessionProvider.notifier).setSession(
-                      ActiveRemoteSession(
-                        server: server,
-                        password: password,
-                        navidromeDetailStack: [
-                          NavidromeAlbumRoute(
-                            albumId: albumId,
-                            albumName: albumName,
-                            artistName: artistName,
-                            coverArtId: coverArtId,
-                            highlightedSongPath: currentMusic.path,
-                          ),
-                        ],
-                      ),
-                    );
-                return;
-              }
-            }
-          } catch (_) {}
-        }
-      }
-    } else {
-      ref.read(activeRemoteSessionProvider.notifier).clear();
-      return;
-    }
-
-    showToast(l10n.songNotInScannedFolders);
+    await SongLocatorHelper.locateCurrentPlayingSong(ref, context);
   }
 
   Future<void> _loadAlbumDetails() async {

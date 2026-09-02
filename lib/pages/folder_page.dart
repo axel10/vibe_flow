@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
 import '../utils/file_selector_helper.dart';
+import '../utils/folder_helpers.dart';
+import '../utils/song_locator_helper.dart';
 import 'package:path/path.dart' as p;
 import 'package:collection/collection.dart';
 import '../l10n/app_localizations.dart';
@@ -25,9 +27,6 @@ import 'folder_detail_view.dart';
 import 'package:linux_directory_access/linux_directory_access.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
-import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
-import 'package:vynody/player/remote/clients/subsonic_client.dart';
-import 'package:vynody/player/remote/navidrome_navigation.dart';
 import 'remote/navidrome_library_page.dart';
 import 'remote/navidrome_album_detail_page.dart';
 import 'remote/navidrome_artist_detail_page.dart';
@@ -61,8 +60,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
   late final LibrarySelectionScopeController _librarySelectionScopeController;
   final ValueNotifier<ScanToastState?> _scanToastState =
       ValueNotifier<ScanToastState?>(null);
-  String? _highlightedSongPath;
-  Timer? _highlightTimer;
   late final HeroController _heroController;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
@@ -105,49 +102,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     );
   }
 
-  bool _isUserRootSelectionContext(
-    ScannerService scanner,
-    MusicFolder? currentFolder,
-    List<MusicFolder> navigationHistory,
-  ) {
-    if (currentFolder == null) return false;
-
-    final rootPaths = scanner.rootFolders.map((folder) => folder.path).toSet();
-    rootPaths.add('system');
-    if (rootPaths.contains(currentFolder.path)) {
-      return true;
-    }
-
-    if (navigationHistory.isNotEmpty) {
-      final rootFolder = navigationHistory.first;
-      if (rootPaths.contains(rootFolder.path)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  List<MusicFolder>? _findFolderHistoryByFolderPath(
-    MusicFolder root,
-    String targetFolderPath,
-  ) {
-    List<MusicFolder>? recurse(MusicFolder folder) {
-      if (ScannerPathUtils.pathsEqual(folder.path, targetFolderPath)) {
-        return [folder];
-      }
-      for (final sub in folder.subFolders) {
-        final res = recurse(sub);
-        if (res != null) {
-          return [folder, ...res];
-        }
-      }
-      return null;
-    }
-
-    return recurse(root);
-  }
-
   Future<void> _navigateTo(MusicFolder folder, ScannerService scanner) async {
     final rootPath = scanner.rootPaths.firstWhereOrNull(
       (root) => ScannerPathUtils.pathContains(root, folder.path),
@@ -159,7 +113,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
         (r) => ScannerPathUtils.pathsEqual(r.path, rootPath),
       );
       if (rootFolder != null) {
-        final foundHistory = _findFolderHistoryByFolderPath(
+        final foundHistory = SongLocatorHelper.findFolderHistoryByFolderPath(
           rootFolder,
           folder.path,
         );
@@ -175,7 +129,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     } else if (folder.path == 'system' ||
         ScannerPathUtils.pathContains('system', folder.path)) {
       if (scanner.systemMediaFolder != null) {
-        final foundHistory = _findFolderHistoryByFolderPath(
+        final foundHistory = SongLocatorHelper.findFolderHistoryByFolderPath(
           scanner.systemMediaFolder!,
           folder.path,
         );
@@ -228,7 +182,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
 
     _setFolderSelectionMode(
       _isSelectionMode &&
-          _isUserRootSelectionContext(
+          isUserRootSelectionContext(
             scanner,
             scanner.navigationCurrentFolder,
             scanner.navigationHistory,
@@ -294,197 +248,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     });
     _setFolderSelectionMode(false);
     _librarySelectionScopeController.clear();
-  }
-
-  List<MusicFolder>? _findFolderHistory(MusicFolder root, String songPath) {
-    List<MusicFolder>? recurse(MusicFolder folder) {
-      for (final file in folder.files) {
-        if (p.equals(file.path, songPath)) {
-          return [folder];
-        }
-      }
-      for (final sub in folder.subFolders) {
-        final res = recurse(sub);
-        if (res != null) {
-          return [folder, ...res];
-        }
-      }
-      return null;
-    }
-
-    return recurse(root);
-  }
-
-  Future<void> _locateCurrentSong() async {
-    final currentMusic = ref.read(audioCurrentMusicProvider);
-    if (currentMusic == null) return;
-    final l10n = AppLocalizations.of(context)!;
-    final songPath = currentMusic.path;
-
-    final remoteInfo = RemoteMediaResolver.parseUri(songPath);
-    if (remoteInfo != null) {
-      final servers = ref.read(remoteServersProvider).asData?.value ?? [];
-      final server = servers.firstWhereOrNull((s) => s.id == remoteInfo.serverId);
-      if (server == null) {
-        showToast(l10n.songNotInScannedFolders);
-        return;
-      }
-      final password = await ref.read(remoteServersProvider.notifier).getPassword(server.id) ?? '';
-
-      if (remoteInfo.type == RemoteServerType.webdav) {
-        final targetDir = p.posix.dirname(remoteInfo.trackIdOrPath);
-        final rootPath = server.customPath?.trim().isNotEmpty == true
-            ? server.customPath!
-            : '/';
-        final stack =
-            ActiveRemoteSession.buildWebDavPathStack(rootPath, targetDir);
-        final activeSession = ref.read(activeRemoteSessionProvider);
-        if (activeSession == null || activeSession.server.id != server.id) {
-          ref.read(activeRemoteSessionProvider.notifier).setSession(
-                ActiveRemoteSession(
-                  server: server,
-                  password: password,
-                  rootPath: rootPath,
-                  initialPath: targetDir,
-                  webDavPathStack: stack,
-                  webDavHighlightedSongPath: songPath,
-                ),
-              );
-        } else {
-          ref.read(activeRemoteSessionProvider.notifier).setWebDavLocation(
-                pathStack: stack,
-                highlightedSongPath: songPath,
-              );
-        }
-        return;
-      } else if (remoteInfo.type == RemoteServerType.subsonic) {
-        try {
-          final client = SubsonicClient(server: server, password: password);
-          final songData = await client.getSong(remoteInfo.trackIdOrPath);
-          if (songData != null && mounted) {
-            final albumId =
-                songData['albumId'] as String? ?? songData['parent'] as String?;
-            final albumName = songData['album'] as String? ?? 'Album';
-            final artistName = songData['artist'] as String?;
-            final coverArtId = songData['coverArt'] as String?;
-            if (albumId != null) {
-              final activeSession = ref.read(activeRemoteSessionProvider);
-              if (activeSession == null ||
-                  activeSession.server.id != server.id) {
-                ref.read(activeRemoteSessionProvider.notifier).setSession(
-                      ActiveRemoteSession(
-                        server: server,
-                        password: password,
-                        navidromeDetailStack: [
-                          NavidromeAlbumRoute(
-                            albumId: albumId,
-                            albumName: albumName,
-                            artistName: artistName,
-                            coverArtId: coverArtId,
-                            highlightedSongPath: songPath,
-                          ),
-                        ],
-                      ),
-                    );
-              } else {
-                NavidromeNavUtils.openAlbum(
-                  context,
-                  ref,
-                  server: server,
-                  password: password,
-                  albumId: albumId,
-                  albumName: albumName,
-                  artistName: artistName,
-                  coverArtId: coverArtId,
-                  highlightedSongPath: songPath,
-                );
-              }
-              return;
-            }
-          }
-        } catch (_) {}
-        showToast(l10n.songNotInScannedFolders);
-        return;
-      }
-    }
-
-    final scanner = ref.read(scannerServiceProvider);
-    List<MusicFolder>? foundHistory;
-
-    for (final root in scanner.rootFolders) {
-      foundHistory = _findFolderHistory(root, songPath);
-      if (foundHistory != null) {
-        break;
-      }
-    }
-
-    if (foundHistory == null && scanner.systemMediaFolder != null) {
-      foundHistory = _findFolderHistory(
-        scanner.systemMediaFolder!,
-        songPath,
-      );
-    }
-
-    if (foundHistory == null) {
-      final songMeta = await scanner.getSongMetadata(songPath);
-      final isSystemMedia = songMeta != null &&
-          ((songMeta.sourceFlags ?? 0) & SongSourceFlags.systemMedia) != 0;
-
-      if (!isSystemMedia) {
-        final matchingRootPath = scanner.rootPaths.firstWhereOrNull(
-          (root) => ScannerPathUtils.pathContains(root, songPath),
-        );
-        if (matchingRootPath != null) {
-          await scanner.loadRootFolderSongs(matchingRootPath);
-        } else {
-          for (final rootPath in scanner.rootPaths) {
-            await scanner.loadRootFolderSongs(rootPath);
-          }
-        }
-      }
-
-      for (final root in scanner.rootFolders) {
-        foundHistory = _findFolderHistory(root, songPath);
-        if (foundHistory != null) {
-          break;
-        }
-      }
-
-      if (foundHistory == null && scanner.systemMediaFolder != null) {
-        foundHistory = _findFolderHistory(
-          scanner.systemMediaFolder!,
-          songPath,
-        );
-      }
-    }
-
-    if (!mounted) return;
-
-    if (foundHistory != null && foundHistory.isNotEmpty) {
-      final targetFolder = foundHistory.last;
-      final history = foundHistory.sublist(0, foundHistory.length - 1);
-      final alreadyInFolder =
-          scanner.navigationCurrentFolder?.path == targetFolder.path;
-
-      if (!alreadyInFolder) {
-        scanner.setNavigationState(targetFolder, history);
-      }
-
-      setState(() {
-        _highlightedSongPath = currentMusic.path;
-      });
-
-      _highlightTimer?.cancel();
-      _highlightTimer = Timer(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _highlightedSongPath = null;
-          });
-        }
-      });
-    } else {
-      showToast(AppLocalizations.of(context)!.songNotInScannedFolders);
-    }
   }
 
   void _ensureScanToastVisible() {
@@ -655,11 +418,12 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     if (scanner == null) return;
 
     _setFolderSelectionMode(
-      _isUserRootSelectionContext(
-        scanner,
-        scanner.navigationCurrentFolder,
-        scanner.navigationHistory,
-      ),
+      _isSelectionMode &&
+          isUserRootSelectionContext(
+            scanner,
+            scanner.navigationCurrentFolder,
+            scanner.navigationHistory,
+          ),
     );
   }
 
@@ -724,7 +488,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
     });
     _scanToastUpdateTimer?.cancel();
     _scanToastAutoDismissTimer?.cancel();
-    _highlightTimer?.cancel();
     _scanProgressSubscription?.cancel();
     _scanner?.removeListener(_handleScannerChanged);
     _dismissScanToast(notifyListeners: false);
@@ -876,7 +639,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
           onDeleteSelectedRootFolders: () =>
               _deleteSelectedRootFolders(scanner),
           onNavigateTo: (folder) => _navigateTo(folder, scanner),
-          onLocateCurrentSong: _locateCurrentSong,
           onShowFolderBottomSheet: (folder, {required isRoot}) =>
               showFolderBottomSheet(
                 context,
@@ -925,7 +687,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
               onToggleSelection: _toggleSelection,
               onSelectAllVisible: () => _selectAllVisible(folder),
               onClearAllSelection: _clearAllSelection,
-              onLocateCurrentSong: _locateCurrentSong,
               onShowFolderBottomSheet: (folder, {required isRoot}) =>
                   showFolderBottomSheet(
                     context,
@@ -951,7 +712,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                       });
                     },
                   ),
-              highlightedSongPath: _highlightedSongPath,
             ),
           ),
         );
@@ -975,7 +735,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
             onToggleSelection: _toggleSelection,
             onSelectAllVisible: () => _selectAllVisible(currentFolder),
             onClearAllSelection: _clearAllSelection,
-            onLocateCurrentSong: _locateCurrentSong,
             onShowFolderBottomSheet: (folder, {required isRoot}) =>
                 showFolderBottomSheet(
                   context,
@@ -1001,7 +760,6 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                     });
                   },
                 ),
-            highlightedSongPath: _highlightedSongPath,
           ),
         ),
       );

@@ -6,6 +6,7 @@ import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/utils/song_locator_helper.dart';
 
 class FolderHeaderNavBar extends ConsumerStatefulWidget {
   const FolderHeaderNavBar({
@@ -15,7 +16,7 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
     this.currentFolder,
     this.navigationHistory = const [],
     this.onGoBack,
-    required this.onLocateCurrentSong,
+    this.onLocateCurrentSong,
     required this.onSortPressed,
     this.isSortActive = false,
     this.onClearAllSelection,
@@ -27,7 +28,7 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   final MusicFolder? currentFolder;
   final List<MusicFolder> navigationHistory;
   final VoidCallback? onGoBack;
-  final VoidCallback onLocateCurrentSong;
+  final VoidCallback? onLocateCurrentSong;
   final VoidCallback onSortPressed;
   final bool isSortActive;
   final VoidCallback? onClearAllSelection;
@@ -42,6 +43,14 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
 
   ScrollController get _activeScrollController =>
       widget.scrollController ?? (_internalScrollController ??= ScrollController());
+
+  void _handleLocate() {
+    if (widget.onLocateCurrentSong != null) {
+      widget.onLocateCurrentSong!();
+    } else {
+      SongLocatorHelper.locateCurrentPlayingSong(ref, context);
+    }
+  }
 
   @override
   void dispose() {
@@ -311,7 +320,7 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
               ),
               onSelected: (value) {
                 if (value == 'locate') {
-                  widget.onLocateCurrentSong();
+                  _handleLocate();
                 } else if (value == 'sort') {
                   widget.onSortPressed();
                 } else if (value == 'view_mode') {
@@ -393,7 +402,7 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
                   color: iconColor,
                   shadows: shadows,
                 ),
-                onPressed: widget.onLocateCurrentSong,
+                onPressed: _handleLocate,
               ),
             ],
             IconButton(

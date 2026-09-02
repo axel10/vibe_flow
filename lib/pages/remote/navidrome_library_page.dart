@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:collection/collection.dart';
-import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oktoast/oktoast.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
@@ -12,7 +9,6 @@ import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
-import '../../player/remote/navidrome_navigation.dart';
 import '../../widgets/desktop_window_title_bar.dart';
 import '../../widgets/mini_player_wrapper.dart';
 import '../../l10n/app_localizations.dart';
@@ -26,6 +22,7 @@ import 'widgets/navidrome_albums_tab.dart';
 import 'widgets/navidrome_artists_tab.dart';
 import 'widgets/navidrome_playlists_tab.dart';
 import 'widgets/navidrome_search_tab.dart';
+import '../../utils/song_locator_helper.dart';
 
 class NavidromeLibraryPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -722,102 +719,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   Future<void> _locateCurrentSong() async {
-    final currentMusic = ref.read(audioCurrentMusicProvider);
-    if (currentMusic == null) return;
-    final l10n = AppLocalizations.of(context)!;
-
-    final info = RemoteMediaResolver.parseUri(currentMusic.path);
-    if (info != null &&
-        info.type == RemoteServerType.subsonic &&
-        info.serverId == widget.server.id) {
-      try {
-        final songData = await _client.getSong(info.trackIdOrPath);
-        if (songData != null) {
-          final albumId =
-              songData['albumId'] as String? ?? songData['parent'] as String?;
-          final albumName = songData['album'] as String? ?? 'Album';
-          final artistName = songData['artist'] as String?;
-          final coverArtId = songData['coverArt'] as String?;
-          if (albumId != null && mounted) {
-            NavidromeNavUtils.openAlbum(
-              context,
-              ref,
-              server: widget.server,
-              password: widget.password,
-              albumId: albumId,
-              albumName: albumName,
-              artistName: artistName,
-              coverArtId: coverArtId,
-              highlightedSongPath: currentMusic.path,
-            );
-            return;
-          }
-        }
-      } catch (_) {}
-    } else if (info != null) {
-      final servers = ref.read(remoteServersProvider).asData?.value ?? [];
-      final server = servers.firstWhereOrNull((s) => s.id == info.serverId);
-      if (server != null) {
-        final password = await ref
-                .read(remoteServersProvider.notifier)
-                .getPassword(server.id) ??
-            '';
-        if (info.type == RemoteServerType.webdav) {
-          final targetDir = p.posix.dirname(info.trackIdOrPath);
-          final rootPath = server.customPath?.trim().isNotEmpty == true
-              ? server.customPath!
-              : '/';
-          final stack =
-              ActiveRemoteSession.buildWebDavPathStack(rootPath, targetDir);
-          ref.read(activeRemoteSessionProvider.notifier).setSession(
-                ActiveRemoteSession(
-                  server: server,
-                  password: password,
-                  rootPath: rootPath,
-                  initialPath: targetDir,
-                  webDavPathStack: stack,
-                  webDavHighlightedSongPath: currentMusic.path,
-                ),
-              );
-          return;
-        } else if (info.type == RemoteServerType.subsonic) {
-          try {
-            final client = SubsonicClient(server: server, password: password);
-            final songData = await client.getSong(info.trackIdOrPath);
-            if (songData != null && mounted) {
-              final albumId = songData['albumId'] as String? ??
-                  songData['parent'] as String?;
-              final albumName = songData['album'] as String? ?? 'Album';
-              final artistName = songData['artist'] as String?;
-              final coverArtId = songData['coverArt'] as String?;
-              if (albumId != null) {
-                ref.read(activeRemoteSessionProvider.notifier).setSession(
-                      ActiveRemoteSession(
-                        server: server,
-                        password: password,
-                        navidromeDetailStack: [
-                          NavidromeAlbumRoute(
-                            albumId: albumId,
-                            albumName: albumName,
-                            artistName: artistName,
-                            coverArtId: coverArtId,
-                            highlightedSongPath: currentMusic.path,
-                          ),
-                        ],
-                      ),
-                    );
-                return;
-              }
-            }
-          } catch (_) {}
-        }
-      }
-    } else {
-      ref.read(activeRemoteSessionProvider.notifier).clear();
-      return;
-    }
-
-    showToast(l10n.songNotInScannedFolders);
+    await SongLocatorHelper.locateCurrentPlayingSong(ref, context);
   }
 
   @override

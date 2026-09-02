@@ -24,6 +24,7 @@ import '../../widgets/library_selection_panel.dart';
 import '../../widgets/library_selection_scope.dart';
 import 'navidrome_artist_detail_page.dart';
 import 'remote_download_manager_page.dart';
+import '../../utils/song_locator_helper.dart';
 
 /// Standalone Full-Page for Navidrome Playlist Detail (used in portrait / mobile navigation)
 class NavidromePlaylistDetailPage extends ConsumerWidget {
@@ -282,15 +283,15 @@ class _NavidromePlaylistDetailContentState
     }
   }
 
-  void _locateCurrentSong() {
+  Future<void> _locateCurrentSong() async {
     final currentMusic = ref.read(audioCurrentMusicProvider);
     if (currentMusic == null) return;
     final inCurrentPlaylist = _tracks.any((t) => t.path == currentMusic.path);
     if (inCurrentPlaylist) {
       _scrollToTrack(currentMusic.path);
-    } else {
-      showToast(AppLocalizations.of(context)!.songNotInScannedFolders);
+      return;
     }
+    await SongLocatorHelper.locateCurrentPlayingSong(ref, context);
   }
 
   Future<void> _loadPlaylistDetails({bool forceRefresh = false}) async {
