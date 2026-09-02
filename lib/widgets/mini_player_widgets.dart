@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:vynody/widgets/app_tooltip.dart';
@@ -237,88 +240,145 @@ class MiniInlineVolumeControl extends StatelessWidget {
   }
 }
 
-class MiniSpectrumBackground extends ConsumerWidget {
+class MiniSpectrumBackground extends ConsumerStatefulWidget {
   final AudioService audio;
 
   const MiniSpectrumBackground({super.key, required this.audio});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isPlaying = ref.watch(audioIsPlayingProvider);
-    if (!isPlaying) return const SizedBox.shrink();
-
-    // 使用独立的 FFT 流（专用于迷你播放器）
-    final fftStream = audio.miniPlayerFftStream;
-    if (fftStream == null) return const SizedBox.shrink();
-
-    return StreamBuilder<FftFrame>(
-      stream: fftStream,
-      builder: (context, snapshot) {
-        final frame = snapshot.data;
-        if (frame == null) return const SizedBox.shrink();
-        return RepaintBoundary(
-          child: CustomPaint(
-            painter: _MiniSpectrumPainter(
-              values: frame.values,
-              color:
-                  (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black)
-                      .withValues(alpha: 0.15),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  ConsumerState<MiniSpectrumBackground> createState() =>
+      _MiniSpectrumBackgroundState();
 }
 
-class _MiniSpectrumPainter extends CustomPainter {
-  final List<double> values;
-  final Color color;
-
-  _MiniSpectrumPainter({required this.values, required this.color});
+class _MiniSpectrumBackgroundState
+    extends ConsumerState<MiniSpectrumBackground> {
+  final ValueNotifier<List<double>> _fftNotifier =
+      ValueNotifier<List<double>>(const []);
+  StreamSubscription<FftFrame>? _subscription;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty) return;
+  void initState() {
+    super.initState();
+    _updateSubscription();
+  }
 
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+  @override
+  void didUpdateWidget(covariant MiniSpectrumBackground oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.audio != widget.audio) {
+      _updateSubscription();
+    }
+  }
 
-    // displayCount 控制迷你播放器显示的频段（条形图）数量
-    // 增加此数值会让频谱更细腻，减小则更简约
-    const int displayCount = 80;
-    final double barWidth = size.width / displayCount;
-    const double gap = 3.0;
-
-    for (int i = 0; i < displayCount; i++) {
-      // 从频率数据中采样
-      // 这里将采样范围限制在低中频段（values.length / 1.5），因为这些频段的跳动在视觉上更活跃
-      int index = (i * values.length / (displayCount * 1.5)).floor();
-      if (index >= values.length) index = values.length - 1;
-
-      double value = values[index];
-
-      // Amplify and clamp height
-      double barHeight = (value * size.height * 1.2).clamp(3.0, size.height);
-
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(
-            i * barWidth + gap / 2,
-            (size.height - barHeight) / 2, // Symmetric vertical centering
-            barWidth - gap,
-            barHeight,
-          ),
-          const Radius.circular(2),
-        ),
-        paint,
+  void _updateSubscription({bool isPlaying = true}) {
+    _subscription?.cancel();
+    _subscription = null;
+    if (!isPlaying) {
+      _fftNotifier.value = const [];
+      return;
+    }
+    final fftStream = widget.audio.miniPlayerFftStream;
+    if (fftStream != null) {
+      _subscription = fftStream.listen(
+        (frame) {
+          _fftNotifier.value = frame.values;
+        },
+        onError: (_) {
+          _fftNotifier.value = const [];
+        },
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _MiniSpectrumPainter oldDelegate) => true;
+  void dispose() {
+    _subscription?.cancel();
+    _fftNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isPlaying = ref.watch(audioIsPlayingProvider);
+    if (!isPlaying) {
+      if (_subscription != null) {
+        _updateSubscription(isPlaying: false);
+      }
+      return const SizedBox.shrink();
+    } else if (_subscription == null) {
+      _updateSubscription(isPlaying: true);
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // 0.15 * 0.6 = 0.09：将原本在外层 Opacity(0.6) 产生的半透明效果内聚到画笔颜色中，
+    // 彻底消除 GPU saveLayer 离屏渲染开销
+    final color = (isDark ? Colors.white : Colors.black).withValues(alpha: 0.09);
+
+    return ExcludeSemantics(
+      excluding: true,
+      child: RepaintBoundary(
+        child: CustomPaint(
+          painter: _MiniSpectrumPainter(
+            listenable: _fftNotifier,
+            color: color,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniSpectrumPainter extends CustomPainter {
+  final ValueListenable<List<double>> listenable;
+  final Color color;
+
+  _MiniSpectrumPainter({
+    required this.listenable,
+    required this.color,
+  }) : super(repaint: listenable);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final values = listenable.value;
+    if (values.isEmpty || size.width <= 0 || size.height <= 0) return;
+
+    // displayCount 控制迷你播放器显示的频段（条形图）数量，80 根条形图视觉细腻
+    const int displayCount = 80;
+    final double barWidth = size.width / displayCount;
+    const double gap = 3.0;
+    final double actualBarWidth = math.max(1.0, barWidth - gap);
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final double samplingFactor = values.length / (displayCount * 1.5);
+
+    for (int i = 0; i < displayCount; i++) {
+      int index = (i * samplingFactor).floor();
+      if (index >= values.length) index = values.length - 1;
+
+      final double value = values[index];
+      final double barHeight = (value * size.height * 1.2).clamp(3.0, size.height);
+      final double x = i * barWidth + gap / 2;
+      final double y = (size.height - barHeight) / 2;
+
+      path.addRRect(
+        RRect.fromRectXY(
+          Rect.fromLTWH(x, y, actualBarWidth, barHeight),
+          2.0,
+          2.0,
+        ),
+      );
+    }
+
+    // 单次绘制所有条柱，大幅削减 Skia draw 指令
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MiniSpectrumPainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
 }

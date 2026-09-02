@@ -166,11 +166,8 @@ class MiniPlayerCard extends ConsumerWidget {
           child: Stack(
             children: [
               Positioned.fill(
-                child: Opacity(
-                  opacity: 0.6,
-                  child: MiniSpectrumBackground(
-                    audio: ref.read(audioServiceProvider),
-                  ),
+                child: MiniSpectrumBackground(
+                  audio: ref.read(audioServiceProvider),
                 ),
               ),
               Padding(

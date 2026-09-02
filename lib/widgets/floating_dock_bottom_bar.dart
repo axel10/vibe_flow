@@ -50,8 +50,11 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // 当有正在播放的歌曲且不在全屏播放页且未被多选屏蔽时，展开 Mini 播放器
-    final showMini = currentMusic != null && !widget.isPlayback && !widget.hideMiniPlayer;
+    // 当有正在播放的歌曲且不在全屏播放页且未被多选屏蔽且未隐藏时，展开 Mini 播放器
+    final showMini = currentMusic != null &&
+        !widget.isPlayback &&
+        !widget.hideMiniPlayer &&
+        !widget.isHidden;
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final totalBottomOffset = bottomPadding + 8.0 + widget.additionalBottomOffset;
@@ -242,11 +245,8 @@ class _FloatingDockBottomBarState extends ConsumerState<FloatingDockBottomBar> {
         children: [
           // 0. 背景频谱动画 (像 MiniPlayerCard 那样)
           Positioned.fill(
-            child: Opacity(
-              opacity: 0.6,
-              child: MiniSpectrumBackground(
-                audio: audio,
-              ),
+            child: MiniSpectrumBackground(
+              audio: audio,
             ),
           ),
 

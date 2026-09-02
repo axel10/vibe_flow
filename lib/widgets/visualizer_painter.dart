@@ -25,6 +25,11 @@ class FftPainter extends CustomPainter {
   static List<double> _peakCaps = [];
   static int _lastCapTimestamp = 0;
 
+  // Cached trigonometric lookup table for radial style
+  static int _cachedRadialBarCount = 0;
+  static List<double> _cachedCosTable = const [];
+  static List<double> _cachedSinTable = const [];
+
   FftPainter({
     List<double>? values,
     this.listenable,
@@ -115,22 +120,26 @@ class FftPainter extends CustomPainter {
 
   void _paintBars(Canvas canvas, Size size, Paint paint) {
     final barCount = values.length;
+    if (barCount == 0) return;
     final totalGap = gap * (barCount - 1);
     final barWidth = math.max(0.5, (size.width - totalGap) / barCount);
 
+    final path = Path();
     for (var i = 0; i < barCount; i++) {
       final barHeight = values[i] * size.height * 0.5;
+      if (barHeight <= 0.5) continue;
       final x = i * (barWidth + gap);
       final y = size.height - barHeight;
 
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
+      path.addRRect(
+        RRect.fromRectXY(
           Rect.fromLTWH(x, y, barWidth, barHeight),
-          const Radius.circular(2),
+          2.0,
+          2.0,
         ),
-        paint,
       );
     }
+    canvas.drawPath(path, paint);
   }
 
   void _paintSmoothWave(Canvas canvas, Size size, Paint paint) {
@@ -148,6 +157,9 @@ class FftPainter extends CustomPainter {
     wavePath.moveTo(0, size.height);
     wavePath.lineTo(points.first.dx, points.first.dy);
 
+    final outlinePath = Path();
+    outlinePath.moveTo(points.first.dx, points.first.dy);
+
     for (int i = 0; i < points.length - 1; i++) {
       final p0 = i > 0 ? points[i - 1] : points[i];
       final p1 = points[i];
@@ -160,6 +172,7 @@ class FftPainter extends CustomPainter {
       final cp2y = p2.dy - (p3.dy - p1.dy) / 6.0;
 
       wavePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
+      outlinePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
     }
 
     wavePath.lineTo(size.width, size.height);
@@ -179,27 +192,12 @@ class FftPainter extends CustomPainter {
       strokePaint.color = color.withValues(alpha: math.min(1.0, opacity * 1.8 + 0.15));
     }
 
-    final outlinePath = Path();
-    outlinePath.moveTo(points.first.dx, points.first.dy);
-    for (int i = 0; i < points.length - 1; i++) {
-      final p0 = i > 0 ? points[i - 1] : points[i];
-      final p1 = points[i];
-      final p2 = points[i + 1];
-      final p3 = i + 2 < points.length ? points[i + 2] : p2;
-
-      final cp1x = p1.dx + (p2.dx - p0.dx) / 6.0;
-      final cp1y = p1.dy + (p2.dy - p0.dy) / 6.0;
-      final cp2x = p2.dx - (p3.dx - p1.dx) / 6.0;
-      final cp2y = p2.dy - (p3.dy - p1.dy) / 6.0;
-
-      outlinePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
-    }
-
     canvas.drawPath(outlinePath, strokePaint);
   }
 
   void _paintFloatingBars(Canvas canvas, Size size, Paint paint) {
     final barCount = values.length;
+    if (barCount == 0) return;
     final totalGap = gap * (barCount - 1);
     final barWidth = math.max(0.5, (size.width - totalGap) / barCount);
 
@@ -221,6 +219,9 @@ class FftPainter extends CustomPainter {
       capPaint.color = color.withValues(alpha: math.min(1.0, opacity * 2.0 + 0.2));
     }
 
+    final barsPath = Path();
+    final capsPath = Path();
+
     for (var i = 0; i < barCount; i++) {
       final barHeight = values[i] * size.height * 0.5;
       final x = i * (barWidth + gap);
@@ -231,26 +232,31 @@ class FftPainter extends CustomPainter {
       _peakCaps[i] = currentCap;
 
       // Draw bottom bar
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, y, barWidth, barHeight),
-          const Radius.circular(2),
-        ),
-        paint,
-      );
+      if (barHeight > 0.5) {
+        barsPath.addRRect(
+          RRect.fromRectXY(
+            Rect.fromLTWH(x, y, barWidth, barHeight),
+            2.0,
+            2.0,
+          ),
+        );
+      }
 
       // Draw floating cap
       final capY = size.height - currentCap - 3.5;
       if (capY >= 0 && capY <= size.height) {
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
+        capsPath.addRRect(
+          RRect.fromRectXY(
             Rect.fromLTWH(x, capY, barWidth, 2.5),
-            const Radius.circular(1.5),
+            1.5,
+            1.5,
           ),
-          capPaint,
         );
       }
     }
+
+    canvas.drawPath(barsPath, paint);
+    canvas.drawPath(capsPath, capPaint);
   }
 
   void _paintRadial(Canvas canvas, Size size, Paint paint) {
@@ -307,9 +313,22 @@ class FftPainter extends CustomPainter {
     final totalBars = barCount;
     final halfCount = totalBars / 2.0;
 
-    for (int i = 0; i < totalBars; i++) {
-      final angle = (i / totalBars) * 2 * math.pi - (math.pi / 2);
+    // Precompute / reuse trigonometric lookup tables
+    if (_cachedRadialBarCount != totalBars) {
+      _cachedRadialBarCount = totalBars;
+      final cosTable = List<double>.filled(totalBars, 0.0);
+      final sinTable = List<double>.filled(totalBars, 0.0);
+      for (int i = 0; i < totalBars; i++) {
+        final angle = (i / totalBars) * 2 * math.pi - (math.pi / 2);
+        cosTable[i] = math.cos(angle);
+        sinTable[i] = math.sin(angle);
+      }
+      _cachedCosTable = cosTable;
+      _cachedSinTable = sinTable;
+    }
 
+    final linesPath = Path();
+    for (int i = 0; i < totalBars; i++) {
       // Symmetrical distribution: distance from top (-pi/2) normalized from 0.0 to 1.0
       final distFromTop = (i <= halfCount)
           ? (i / halfCount)
@@ -332,48 +351,49 @@ class FftPainter extends CustomPainter {
 
       final len = math.max(2.0, compressed * maxBarLength);
 
-      final cosA = math.cos(angle);
-      final sinA = math.sin(angle);
+      final cosA = _cachedCosTable[i];
+      final sinA = _cachedSinTable[i];
 
-      final startOffset = Offset(
-        center.dx + cosA * (pulsingRadius + ringPadding),
-        center.dy + sinA * (pulsingRadius + ringPadding),
-      );
-      final endOffset = Offset(
-        center.dx + cosA * (pulsingRadius + ringPadding + len),
-        center.dy + sinA * (pulsingRadius + ringPadding + len),
-      );
+      final innerR = pulsingRadius + ringPadding;
+      final outerR = innerR + len;
 
-      canvas.drawLine(startOffset, endOffset, linePaint);
+      linesPath.moveTo(center.dx + cosA * innerR, center.dy + sinA * innerR);
+      linesPath.lineTo(center.dx + cosA * outerR, center.dy + sinA * outerR);
     }
+
+    canvas.drawPath(linesPath, linePaint);
   }
 
   void _paintMatrix(Canvas canvas, Size size, Paint paint) {
     final barCount = values.length;
+    if (barCount == 0) return;
     final totalGap = gap * (barCount - 1);
     final barWidth = math.max(1.0, (size.width - totalGap) / barCount);
 
     final dotHeight = math.max(2.5, math.min(barWidth, 6.0));
-    final dotGap = 2.5;
+    const dotGap = 2.5;
     final maxAvailableHeight = size.height * 0.5;
     final maxDots =
         math.max(1, (maxAvailableHeight / (dotHeight + dotGap)).floor());
 
+    final matrixPath = Path();
     for (var i = 0; i < barCount; i++) {
       final activeCount = (values[i] * maxDots).round();
+      if (activeCount <= 0) continue;
       final x = i * (barWidth + gap);
 
       for (int d = 0; d < activeCount; d++) {
         final y = size.height - (d + 1) * (dotHeight + dotGap);
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
+        matrixPath.addRRect(
+          RRect.fromRectXY(
             Rect.fromLTWH(x, y, barWidth, dotHeight),
-            const Radius.circular(1.5),
+            1.5,
+            1.5,
           ),
-          paint,
         );
       }
     }
+    canvas.drawPath(matrixPath, paint);
   }
 
   void _paintMirroredWave(Canvas canvas, Size size, Paint paint) {
@@ -395,7 +415,10 @@ class FftPainter extends CustomPainter {
     final wavePath = Path();
     wavePath.moveTo(topPoints.first.dx, topPoints.first.dy);
 
-    // Top curve forward
+    final topOutline = Path();
+    topOutline.moveTo(topPoints.first.dx, topPoints.first.dy);
+
+    // Top curve forward (compute cubic control points once for both fill and outline)
     for (int i = 0; i < topPoints.length - 1; i++) {
       final p0 = i > 0 ? topPoints[i - 1] : topPoints[i];
       final p1 = topPoints[i];
@@ -408,11 +431,15 @@ class FftPainter extends CustomPainter {
       final cp2y = p2.dy - (p3.dy - p1.dy) / 6.0;
 
       wavePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
+      topOutline.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
     }
 
     wavePath.lineTo(bottomPoints.last.dx, bottomPoints.last.dy);
 
-    // Bottom curve backward
+    final bottomOutline = Path();
+    bottomOutline.moveTo(bottomPoints.last.dx, bottomPoints.last.dy);
+
+    // Bottom curve backward (compute cubic control points once for both fill and outline)
     for (int i = bottomPoints.length - 1; i > 0; i--) {
       final p0 =
           i < bottomPoints.length - 1 ? bottomPoints[i + 1] : bottomPoints[i];
@@ -426,6 +453,7 @@ class FftPainter extends CustomPainter {
       final cp2y = p2.dy - (p3.dy - p1.dy) / 6.0;
 
       wavePath.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
+      bottomOutline.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
     }
 
     wavePath.close();
@@ -444,38 +472,7 @@ class FftPainter extends CustomPainter {
           color.withValues(alpha: math.min(1.0, opacity * 1.8 + 0.15));
     }
 
-    final topOutline = Path();
-    topOutline.moveTo(topPoints.first.dx, topPoints.first.dy);
-    for (int i = 0; i < topPoints.length - 1; i++) {
-      final p0 = i > 0 ? topPoints[i - 1] : topPoints[i];
-      final p1 = topPoints[i];
-      final p2 = topPoints[i + 1];
-      final p3 = i + 2 < topPoints.length ? topPoints[i + 2] : p2;
-
-      final cp1x = p1.dx + (p2.dx - p0.dx) / 6.0;
-      final cp1y = p1.dy + (p2.dy - p0.dy) / 6.0;
-      final cp2x = p2.dx - (p3.dx - p1.dx) / 6.0;
-      final cp2y = p2.dy - (p3.dy - p1.dy) / 6.0;
-
-      topOutline.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
-    }
     canvas.drawPath(topOutline, strokePaint);
-
-    final bottomOutline = Path();
-    bottomOutline.moveTo(bottomPoints.first.dx, bottomPoints.first.dy);
-    for (int i = 0; i < bottomPoints.length - 1; i++) {
-      final p0 = i > 0 ? bottomPoints[i - 1] : bottomPoints[i];
-      final p1 = bottomPoints[i];
-      final p2 = bottomPoints[i + 1];
-      final p3 = i + 2 < bottomPoints.length ? bottomPoints[i + 2] : p2;
-
-      final cp1x = p1.dx + (p2.dx - p0.dx) / 6.0;
-      final cp1y = p1.dy + (p2.dy - p0.dy) / 6.0;
-      final cp2x = p2.dx - (p3.dx - p1.dx) / 6.0;
-      final cp2y = p2.dy - (p3.dy - p1.dy) / 6.0;
-
-      bottomOutline.cubicTo(cp1x, cp1y, cp2x, cp2y, p2.dx, p2.dy);
-    }
     canvas.drawPath(bottomOutline, strokePaint);
   }
 
