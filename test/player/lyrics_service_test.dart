@@ -159,7 +159,105 @@ void main() {
         expect(result.lyricsText, contains('君への涙はあの日と同じ'));
       },
     );
+
+    test(
+      'performs dual concurrent searches when artist is provided and picks target from detailed query',
+      () async {
+        final queryHistory = <Map<String, dynamic>>[];
+        final mockClient = _MultiResponseNetworkClient((path, params) {
+          queryHistory.add(params ?? {});
+          if (params != null && params.containsKey('artist_name')) {
+            // Detailed query returns the target song
+            return [
+              {
+                'id': 100,
+                'trackName': 'Hello',
+                'artistName': 'Target Artist',
+                'albumName': 'Special Album',
+                'duration': 200,
+                'plainLyrics': 'Hello from target',
+                'syncedLyrics': '[00:10.00] Hello from target',
+              },
+            ];
+          } else {
+            // Broad title query only returns a different artist
+            return [
+              {
+                'id': 1,
+                'trackName': 'Hello',
+                'artistName': 'Other Superstar',
+                'albumName': 'Pop Album',
+                'duration': 200,
+                'plainLyrics': 'Hello other',
+                'syncedLyrics': '[00:10.00] Hello other',
+              },
+            ];
+          }
+        });
+
+        final service = LyricsService(
+          client: mockClient,
+          cacheRepository: _NoopLyricsCacheRepository(),
+        );
+
+        final result = await service.fetchBestLyrics(
+          query: const LyricsQuery(
+            filePath: '/music/Hello.mp3',
+            fileName: 'Hello.mp3',
+            title: 'Hello',
+            artist: 'Target Artist',
+            album: 'Special Album',
+            duration: Duration(seconds: 200),
+          ),
+        );
+
+        expect(result, isNotNull);
+        expect(result!.track.id, 100);
+        expect(result.track.artistName, 'Target Artist');
+        expect(result.lyricsText, contains('Hello from target'));
+        expect(queryHistory, hasLength(2));
+        // One query is title-only, the other has artist_name / album_name
+        expect(
+          queryHistory.any((p) => p['q'] == 'Hello' && !p.containsKey('artist_name')),
+          isTrue,
+        );
+        expect(
+          queryHistory.any((p) => p['artist_name'] == 'Target Artist'),
+          isTrue,
+        );
+      },
+    );
   });
+}
+
+class _MultiResponseNetworkClient implements NetworkClient {
+  _MultiResponseNetworkClient(this.handler);
+
+  final List<dynamic> Function(String path, Map<String, dynamic>? params) handler;
+  int callCount = 0;
+
+  @override
+  Future<Response<T>> get<T>(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    void Function(int, int)? onReceiveProgress,
+  }) async {
+    callCount++;
+    final result = handler(path, queryParameters);
+    return Response<dynamic>(
+      requestOptions: RequestOptions(path: path),
+      data: result,
+    ) as Response<T>;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Dio get dio => throw UnimplementedError();
 }
 
 class _RecordingNetworkClient implements NetworkClient {
