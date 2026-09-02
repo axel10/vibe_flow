@@ -429,12 +429,15 @@ jobs:
           sleep 7
           if kill -0 $APP_PID 2>/dev/null; then
             echo "Linux .deb launch smoke test passed (PID: $APP_PID)."
-            kill -9 $APP_PID || true
           else
             wait $APP_PID || true
             echo "Linux .deb app exited prematurely or crashed on launch."
             exit 1
           fi
+          # Ensure deb process and any child processes are completely terminated
+          kill -9 $APP_PID 2>/dev/null || true
+          sudo pkill -9 -f vynody || true
+          sleep 2
           
           # 2. Test AppImage launch
           echo "==> Testing AppImage launch..."
@@ -445,12 +448,14 @@ jobs:
           sleep 7
           if kill -0 $APPIMAGE_PID 2>/dev/null; then
             echo "Linux AppImage launch smoke test passed (PID: $APPIMAGE_PID)."
-            kill -9 $APPIMAGE_PID || true
           else
             wait $APPIMAGE_PID || true
             echo "Linux AppImage exited prematurely or crashed on launch."
             exit 1
           fi
+          # Clean up AppImage process
+          kill -9 $APPIMAGE_PID 2>/dev/null || true
+          sudo pkill -9 -f vynody || true
 
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
