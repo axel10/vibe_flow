@@ -281,13 +281,10 @@ jobs:
           }
           
           Write-Host "Vynody.exe launched and running successfully (PID: $($appProcess.Id)). Terminating test process..."
-          Stop-Process -Id $appProcess.Id -Force
+          Stop-Process -Id $appProcess.Id -Force -ErrorAction SilentlyContinue
+          cmd /c "taskkill /F /IM Vynody.exe /T 2>nul" | Out-Null
           
-          # Clean up test installation
-          $uninstaller = Join-Path $testInstallDir "unins000.exe"
-          if (Test-Path $uninstaller) {
-            Start-Process -FilePath $uninstaller -ArgumentList "/VERYSILENT", "/NORESTART" -Wait
-          }
+          # Clean up test installation directory
           Remove-Item -Path $testInstallDir -Recurse -Force -ErrorAction SilentlyContinue
           Write-Host "Windows installer smoke test passed successfully."
 
