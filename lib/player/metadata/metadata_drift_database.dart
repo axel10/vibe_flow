@@ -1028,7 +1028,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     const batchSize = 500;
     await transaction(() async {
       for (var i = 0; i < localPaths.length; i += batchSize) {
-        if (i > 0 && i % 5000 == 0) {
+        if (i > 0 && i % 2000 == 0) {
           await Future<void>.delayed(Duration.zero);
         }
         final chunk = localPaths.sublist(
@@ -1055,6 +1055,9 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
       }
 
       for (var i = 0; i < remotePaths.length; i += batchSize) {
+        if (i > 0 && i % 2000 == 0) {
+          await Future<void>.delayed(Duration.zero);
+        }
         final chunk = remotePaths.sublist(
           i,
           i + batchSize > remotePaths.length
@@ -1618,6 +1621,9 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
     const batchSize = 200;
     await transaction(() async {
       for (var start = 0; start < normalizedPaths.length; start += batchSize) {
+        if (start > 0 && start % 2000 == 0) {
+          await Future<void>.delayed(Duration.zero);
+        }
         final end = start + batchSize < normalizedPaths.length
             ? start + batchSize
             : normalizedPaths.length;
@@ -1813,15 +1819,25 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
         .toList(growable: false);
     if (normalizedSongPaths.isEmpty) return;
 
-    await batch((b) {
-      b.insertAll(
-        songRoots,
-        normalizedSongPaths.map(
-          (p) => SongRootsCompanion.insert(songPath: p, rootPath: normRoot),
-        ),
-        mode: InsertMode.insertOrIgnore,
-      );
-    });
+    const chunkSize = 2500;
+    for (var i = 0; i < normalizedSongPaths.length; i += chunkSize) {
+      if (i > 0) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final end = (i + chunkSize < normalizedSongPaths.length)
+          ? i + chunkSize
+          : normalizedSongPaths.length;
+      final chunk = normalizedSongPaths.sublist(i, end);
+      await batch((b) {
+        b.insertAll(
+          songRoots,
+          chunk.map(
+            (p) => SongRootsCompanion.insert(songPath: p, rootPath: normRoot),
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+      });
+    }
   }
 
   Future<void> unbindRootPaths(Iterable<String> rootPaths) async {

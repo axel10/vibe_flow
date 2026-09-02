@@ -99,6 +99,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   final Map<String, int> _rootSongDurations = {};
   final Map<String, SongMetadata?> _rootRepresentativeSongs = {};
   final Set<String> _loadedRootPaths = {};
+  Set<String>? _cachedActiveScanRootLookupKeys;
 
   static const String _keyGlobalSortCriteria = 'folder_sort_global_criteria';
   static const String _keyGlobalSortOrder = 'folder_sort_global_order';
@@ -489,6 +490,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     _roots = ScannerServiceRoots(
       isDisposed: () => _isDisposed,
       onPathChanged: _enqueueWatchedPath,
+      onRootsMutated: _invalidateScanRootsCache,
     );
     _metadataStore = ScannerMetadataStore(
       rootFolders: () => _scannedRootFolders,
@@ -2733,9 +2735,22 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  void _invalidateScanRootsCache() {
+    _cachedActiveScanRootLookupKeys = null;
+  }
+
+  Set<String> _getActiveScanRootLookupKeys() {
+    final cached = _cachedActiveScanRootLookupKeys;
+    if (cached != null) return cached;
+    final roots = _computeScanRoots(_roots.rootPaths);
+    final keys = roots.map(_pathLookupKey).toSet();
+    _cachedActiveScanRootLookupKeys = keys;
+    return keys;
+  }
+
   bool _isScanRootStillActive(String rootPath, {bool checkDisk = false}) {
-    final currentScanRoots = _computeScanRoots(_roots.rootPaths);
-    if (!currentScanRoots.any((current) => _pathsEqual(current, rootPath))) {
+    final rootKey = _pathLookupKey(rootPath);
+    if (!_getActiveScanRootLookupKeys().contains(rootKey)) {
       return false;
     }
     if (!checkDisk) {
@@ -2807,12 +2822,17 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     return discoveredFiles;
   }
 
-  void _rebuildScannedRootFolderFromMetadata(
+  Future<void> _rebuildScannedRootFolderFromMetadata(
     String rootPath,
     Iterable<String> discoveredPaths,
-  ) {
+  ) async {
     final metadataByLookupKey = <String, SongMetadata>{};
+    var count = 0;
     for (final path in discoveredPaths) {
+      count++;
+      if (count % 5000 == 0) {
+        await Future<void>.delayed(Duration.zero);
+      }
       final normalizedPath = _normalizePath(path);
       if (normalizedPath.isEmpty) {
         continue;
@@ -2833,6 +2853,8 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
 
+    await Future<void>.delayed(Duration.zero);
+
     final rootFolder = _timeScanStepSync(
       'stage 4.2 build metadata tree for $rootPath',
       () => _treeBuilder.buildFolderTreeFromMetadata(
@@ -2840,8 +2862,12 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         _compareNaturally,
         rootPath: rootPath,
         rootName: _displayNameForPath(rootPath),
+        skipSort: true,
       ),
     );
+
+    await Future<void>.delayed(Duration.zero);
+
     _folderSorter.sortFolderRecursiveForTree(
       rootFolder,
       resolveSettings: _resolveSortSettingsForFolder,
@@ -3036,8 +3062,8 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       await Future<void>.delayed(Duration.zero);
-      _timeScanStepSync('stage 3.2 rebuild visible root tree', () {
-        _rebuildScannedRootFolderFromMetadata(rootPath, visiblePaths);
+      await _timeScanStep('stage 3.2 rebuild visible root tree', () async {
+        await _rebuildScannedRootFolderFromMetadata(rootPath, visiblePaths);
         _rebuildDisplayedRootFolders();
         _syncNavigationStateToLatestTree(affectedRootPath: rootPath);
       });
@@ -3346,6 +3372,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
         comparePaths: _compareNaturally,
       );
       final scanRoots = _timeScanStepSync('stage 1 root discovery', () {
+        _invalidateScanRootsCache();
         final requestedRoots = _computeScanRoots(rootsProvider());
         final roots = requestedRoots.toList(growable: false);
         roots.sort(_compareNaturally);
@@ -3432,6 +3459,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
             continue;
           }
 
+          if (job.artworkPendingPaths.isEmpty) {
+            continue;
+          }
+
           _scanCoordinator.setActiveRootPath(job.rootPath);
           await _timeScanStep(
             'stage 4 preprocess artwork/theme batch for ${job.rootPath}',
@@ -3449,14 +3480,12 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
             continue;
           }
 
-          _timeScanStepSync(
+          await _timeScanStep(
             'stage 4.2 rebuild root tree from metadata for ${job.rootPath}',
-            () {
-              _rebuildScannedRootFolderFromMetadata(
-                job.rootPath,
-                job.visiblePaths,
-              );
-            },
+            () => _rebuildScannedRootFolderFromMetadata(
+              job.rootPath,
+              job.visiblePaths,
+            ),
           );
         }
       }

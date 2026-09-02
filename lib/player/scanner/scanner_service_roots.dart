@@ -11,11 +11,14 @@ class ScannerServiceRoots {
   ScannerServiceRoots({
     required bool Function() isDisposed,
     required void Function(String path) onPathChanged,
+    void Function()? onRootsMutated,
   }) : _isDisposed = isDisposed,
-       _onPathChanged = onPathChanged;
+       _onPathChanged = onPathChanged,
+       _onRootsMutated = onRootsMutated;
 
   final bool Function() _isDisposed;
   final void Function(String path) _onPathChanged;
+  final void Function()? _onRootsMutated;
 
   final List<String> _rootPaths = [];
   final Map<String, StreamSubscription<WatchEvent>> _rootWatchSubscriptions =
@@ -62,6 +65,7 @@ class ScannerServiceRoots {
     _rootPaths
       ..clear()
       ..addAll(retainedPaths);
+    _onRootsMutated?.call();
     if (removedPaths.isNotEmpty) {
       await saveRootPaths();
     }
@@ -79,6 +83,7 @@ class ScannerServiceRoots {
     _rootPaths
       ..clear()
       ..addAll(normalizedRoots);
+    _onRootsMutated?.call();
     await saveRootPaths();
     await refreshRootWatchers();
   }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import 'package:audio_core/audio_core.dart';
@@ -53,6 +55,7 @@ class ScannerTreeBuilder {
     int Function(String a, String b) compareNaturally, {
     required String rootPath,
     required String rootName,
+    bool skipSort = false,
   }) {
     final items = _folderItemsFromMetadata(songs, rootPath: rootPath);
     return _buildFolderTree(
@@ -60,6 +63,7 @@ class ScannerTreeBuilder {
       compareNaturally,
       rootPath: rootPath,
       rootName: rootName,
+      skipSort: skipSort,
     );
   }
 
@@ -276,6 +280,20 @@ class ScannerTreeBuilder {
       return '';
     }
 
+    if (dir.length > rootPath.length) {
+      final sep = dir.codeUnitAt(rootPath.length);
+      if (sep == 47 /* / */ || sep == 92 /* \ */) {
+        final prefix = dir.substring(0, rootPath.length);
+        final isMatch = Platform.isWindows
+            ? prefix.toLowerCase() == rootPath.toLowerCase()
+            : prefix == rootPath;
+        if (isMatch) {
+          final rel = dir.substring(rootPath.length + 1).replaceAll('\\', '/');
+          return (rel == '.' || rel.isEmpty) ? '' : rel;
+        }
+      }
+    }
+
     try {
       final relative = p.relative(dir, from: rootPath);
       return (relative == '.' || relative.isEmpty)
@@ -330,6 +348,7 @@ class ScannerTreeBuilder {
     int Function(String a, String b) compareNaturally, {
     required String rootPath,
     required String rootName,
+    bool skipSort = false,
   }) {
     final root = MusicFolder(path: rootPath, name: rootName);
     final nodes = <String, MusicFolder>{'': root};
@@ -348,7 +367,9 @@ class ScannerTreeBuilder {
         currentRelativePath = currentRelativePath.isEmpty
             ? segment
             : '$currentRelativePath/$segment';
+        var created = false;
         final nextFolder = nodes.putIfAbsent(currentRelativePath, () {
+          created = true;
           final fullPath = isSystem
               ? 'system/$currentRelativePath'
               : p.join(
@@ -357,7 +378,7 @@ class ScannerTreeBuilder {
                 );
           return MusicFolder(path: fullPath, name: segment);
         });
-        if (!currentFolder.subFolders.contains(nextFolder)) {
+        if (created) {
           currentFolder.subFolders.add(nextFolder);
         }
         currentFolder = nextFolder;
@@ -366,7 +387,9 @@ class ScannerTreeBuilder {
       currentFolder.files.add(item.file);
     }
 
-    _sortFolderRecursive(root, compareNaturally);
+    if (!skipSort) {
+      _sortFolderRecursive(root, compareNaturally);
+    }
     return root;
   }
 

@@ -144,13 +144,15 @@ class ScannerScanPipeline {
 
     var count = 0;
     for (final path in filePaths) {
-      if (shouldCancel?.call() ?? false) {
-        break;
+      if (count % 1000 == 0) {
+        if (shouldCancel?.call() ?? false) {
+          break;
+        }
+        if (count > 0) {
+          await Future<void>.delayed(Duration.zero);
+        }
       }
       count++;
-      if (count % 5000 == 0) {
-        await Future<void>.delayed(Duration.zero);
-      }
       final lookupKey = _pathLookupKey(path);
       if (!seen.add(lookupKey)) {
         continue;
