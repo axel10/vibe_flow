@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
@@ -14,8 +13,8 @@ import 'package:vynody/utils/remote_context_menu_utils.dart';
 import 'package:vynody/widgets/folder_grid_card.dart';
 import 'package:vynody/widgets/folder_layout_utils.dart';
 import 'package:vynody/widgets/folder_list_tile.dart';
-import 'package:vynody/widgets/playing_equalizer_icon.dart';
-import 'package:vynody/widgets/song_thumbnail.dart';
+import 'package:vynody/widgets/song_grid_card.dart';
+import 'package:vynody/widgets/song_tile.dart';
 
 /// Renders WebDAV subfolders in grid or list view using unified FolderGridCard and FolderListTile.
 class WebDavSubfoldersSliver extends ConsumerWidget {
@@ -275,21 +274,38 @@ class WebDavSongsSliver extends ConsumerWidget {
                 (context, index) {
                   final file = files[index];
                   final uri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
-                  final meta = metadataMap[uri] ??
-                      ref.watch(scannerServiceProvider.select((s) => s.metadataMap[uri]));
                   final isSelected = selectedSongPaths.contains(uri);
-                  final isHighlighted = highlightedSongPath == uri;
+
+                  if (file.isAudio) {
+                    final meta = metadataMap[uri] ??
+                        ref.watch(scannerServiceProvider.select((s) => s.metadataMap[uri]));
+                    final musicFile = RemoteMediaResolver.buildMusicFileFromWebDav(
+                      file,
+                      server,
+                      metadata: meta,
+                    );
+                    final isCurrent = currentMusicPath == uri;
+                    final isHighlighted = highlightedSongPath == uri;
+
+                    return HoverableCard(
+                      child: SongGridCard(
+                        song: musicFile,
+                        isCurrent: isCurrent,
+                        isPlaying: isAudioPlaying,
+                        isSelected: isSelected,
+                        isSelectionMode: isSelectionMode,
+                        isHighlighted: isHighlighted,
+                        onTap: () => onSongTap(file, index),
+                        onLongPress: () => onSongLongPress?.call(file),
+                        onSecondaryTapDown: (details) =>
+                            onSongSecondaryTapDown?.call(file, details),
+                      ),
+                    );
+                  }
 
                   return HoverableCard(
-                    child: WebDavSongGridCard(
+                    child: WebDavGenericFileGridCard(
                       file: file,
-                      server: server,
-                      password: password,
-                      metadata: meta,
-                      currentMusicPath: currentMusicPath,
-                      isHighlighted: isHighlighted,
-                      isAudioPlaying: isAudioPlaying,
-                      allAudioFiles: allAudioFiles,
                       isSelected: isSelected,
                       isSelectionMode: isSelectionMode,
                       onTap: () => onSongTap(file, index),
@@ -319,24 +335,44 @@ class WebDavSongsSliver extends ConsumerWidget {
             (context, index) {
               final file = files[index];
               final uri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
-              final meta = metadataMap[uri] ??
-                  ref.watch(scannerServiceProvider.select((s) => s.metadataMap[uri]));
               final isSelected = selectedSongPaths.contains(uri);
-              final isHighlighted = highlightedSongPath == uri;
+
+              if (file.isAudio) {
+                final meta = metadataMap[uri] ??
+                    ref.watch(scannerServiceProvider.select((s) => s.metadataMap[uri]));
+                final musicFile = RemoteMediaResolver.buildMusicFileFromWebDav(
+                  file,
+                  server,
+                  metadata: meta,
+                );
+                final isCurrent = currentMusicPath == uri;
+                final isHighlighted = highlightedSongPath == uri;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                  ),
+                  child: SongTile(
+                    song: musicFile,
+                    isCurrent: isCurrent,
+                    isSelected: isSelected,
+                    isSelectionMode: isSelectionMode,
+                    isHighlighted: isHighlighted,
+                    onTap: () => onSongTap(file, index),
+                    onLongPress: () => onSongLongPress?.call(file),
+                    onSecondaryTapDown: (details) =>
+                        onSongSecondaryTapDown?.call(file, details),
+                    onMorePressed: (ctx) => onSongMorePressed?.call(file, ctx),
+                  ),
+                );
+              }
 
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: 4,
                 ),
-                child: WebDavSongListTile(
+                child: WebDavGenericFileListTile(
                   file: file,
-                  server: server,
-                  password: password,
-                  metadata: meta,
-                  currentMusicPath: currentMusicPath,
-                  isHighlighted: isHighlighted,
-                  isAudioPlaying: isAudioPlaying,
-                  allAudioFiles: allAudioFiles,
                   isSelected: isSelected,
                   isSelectionMode: isSelectionMode,
                   onTap: () => onSongTap(file, index),
@@ -355,32 +391,18 @@ class WebDavSongsSliver extends ConsumerWidget {
   }
 }
 
-/// Rich Grid Card widget for a WebDAV Song / Audio File, aligned with SongGridCard design.
-class WebDavSongGridCard extends ConsumerWidget {
+/// Generic File Grid Card for non-audio files in WebDAV directory.
+class WebDavGenericFileGridCard extends StatelessWidget {
   final WebDavFile file;
-  final RemoteServer server;
-  final String password;
-  final SongMetadata? metadata;
-  final String? currentMusicPath;
-  final bool isHighlighted;
-  final bool isAudioPlaying;
-  final List<MusicFile> allAudioFiles;
   final bool isSelected;
   final bool isSelectionMode;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final void Function(TapDownDetails)? onSecondaryTapDown;
 
-  const WebDavSongGridCard({
+  const WebDavGenericFileGridCard({
     super.key,
     required this.file,
-    required this.server,
-    required this.password,
-    required this.metadata,
-    required this.currentMusicPath,
-    this.isHighlighted = false,
-    required this.isAudioPlaying,
-    required this.allAudioFiles,
     this.isSelected = false,
     this.isSelectionMode = false,
     this.onTap,
@@ -389,50 +411,9 @@ class WebDavSongGridCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-    final isDark = theme.brightness == Brightness.dark;
-    final isAudio = file.isAudio;
-    final remoteUri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
-    final isCurrent = currentMusicPath == remoteUri;
-
-    final titleText = (metadata != null && metadata!.title.isNotEmpty)
-        ? metadata!.title
-        : file.name;
-
-    final hasArtist = metadata != null &&
-        metadata!.artist.isNotEmpty &&
-        metadata!.artist != 'Unknown';
-    final hasAlbum = metadata != null &&
-        metadata!.album.isNotEmpty &&
-        metadata!.album != 'Unknown';
-    String artistAlbumStr = 'WebDAV File';
-    if (hasArtist && hasAlbum) {
-      artistAlbumStr = '${metadata!.artist} - ${metadata!.album}';
-    } else if (hasArtist) {
-      artistAlbumStr = metadata!.artist;
-    } else if (hasAlbum) {
-      artistAlbumStr = metadata!.album;
-    }
-
-    final durationStr = metadata?.duration != null
-        ? formatDurationMs(metadata!.duration!)
-        : null;
-    final ext = p.extension(file.name).replaceAll('.', '').toUpperCase();
-
-    final capsuleBgColor = isDark
-        ? Colors.black.withValues(alpha: 0.6)
-        : Colors.white.withValues(alpha: 0.75);
-    final capsuleTextColor = isDark
-        ? Colors.white.withValues(alpha: 0.9)
-        : Colors.black.withValues(alpha: 0.9);
-
-    final titleColor = (isCurrent || isHighlighted)
-        ? theme.colorScheme.primary
-        : (isAudio
-            ? theme.colorScheme.onSurface
-            : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7));
 
     return GestureDetector(
       onSecondaryTapDown: onSecondaryTapDown,
@@ -444,16 +425,10 @@ class WebDavSongGridCard extends ConsumerWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: isHighlighted
-                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-                : theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
+            color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
             border: Border.all(
-              color: isHighlighted
-                  ? theme.colorScheme.primary
-                  : (isCurrent
-                      ? theme.colorScheme.primary.withValues(alpha: 0.8)
-                      : theme.colorScheme.outlineVariant.withValues(alpha: 0.25)),
-              width: (isHighlighted || isCurrent) ? 1.5 : 1.0,
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
+              width: 1.0,
             ),
           ),
           child: ClipRRect(
@@ -469,65 +444,18 @@ class WebDavSongGridCard extends ConsumerWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        if (isAudio)
-                          SongThumbnail(
-                            path: remoteUri,
-                            thumbnailPath: metadata?.thumbnailPath,
-                            size: 200,
-                            width: double.infinity,
-                            height: double.infinity,
-                            borderRadius: BorderRadius.zero,
-                          )
-                        else
-                          Container(
-                            color: theme.colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.4),
-                            child: Center(
-                              child: Icon(
-                                Icons.insert_drive_file_outlined,
-                                size: 48,
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.6),
-                              ),
+                        Container(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.4),
+                          child: Center(
+                            child: Icon(
+                              Icons.insert_drive_file_outlined,
+                              size: 48,
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.6),
                             ),
                           ),
-                        if (isAudio && (durationStr != null || ext.isNotEmpty))
-                          Positioned(
-                            left: 8,
-                            bottom: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: capsuleBgColor,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: (isDark ? Colors.white : Colors.black)
-                                      .withValues(alpha: 0.1),
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: Text(
-                                '${ext.isNotEmpty ? ext : "AUDIO"}${durationStr != null ? " • $durationStr" : ""}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: capsuleTextColor,
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (isCurrent)
-                          Container(
-                            color: Colors.black45,
-                            child: Center(
-                              child: PlayingEqualizerIcon(
-                                color: Colors.white,
-                                size: 22,
-                                isPlaying: isAudioPlaying,
-                              ),
-                            ),
-                          ),
+                        ),
                         if (isSelectionMode)
                           Container(
                             color: isSelected
@@ -561,39 +489,21 @@ class WebDavSongGridCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            if (isCurrent) ...[
-                              PlayingEqualizerIcon(
-                                color: theme.colorScheme.primary,
-                                size: 14,
-                                isPlaying: isAudioPlaying,
-                              ),
-                              const SizedBox(width: 4),
-                            ],
-                            Expanded(
-                              child: Text(
-                                titleText,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: (isPortrait
-                                        ? theme.textTheme.titleSmall
-                                        : theme.textTheme.titleMedium)
-                                    ?.copyWith(
-                                  fontWeight: isCurrent
-                                      ? FontWeight.bold
-                                      : FontWeight.w600,
-                                  color: titleColor,
-                                ),
-                              ),
-                            ),
-                          ],
+                        Text(
+                          file.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: (isPortrait
+                                  ? theme.textTheme.titleSmall
+                                  : theme.textTheme.titleMedium)
+                              ?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isAudio
-                              ? artistAlbumStr
-                              : formatFileSize(file.contentLength),
+                          formatFileSize(file.contentLength),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: (isPortrait
@@ -617,16 +527,9 @@ class WebDavSongGridCard extends ConsumerWidget {
   }
 }
 
-/// Rich List Tile widget for a WebDAV Song / Audio File, aligned with SongTile & FolderListTile design.
-class WebDavSongListTile extends ConsumerWidget {
+/// Generic File List Tile for non-audio files in WebDAV directory.
+class WebDavGenericFileListTile extends StatelessWidget {
   final WebDavFile file;
-  final RemoteServer server;
-  final String password;
-  final SongMetadata? metadata;
-  final String? currentMusicPath;
-  final bool isHighlighted;
-  final bool isAudioPlaying;
-  final List<MusicFile> allAudioFiles;
   final bool isSelected;
   final bool isSelectionMode;
   final VoidCallback? onTap;
@@ -634,16 +537,9 @@ class WebDavSongListTile extends ConsumerWidget {
   final void Function(TapDownDetails)? onSecondaryTapDown;
   final void Function(BuildContext)? onMorePressed;
 
-  const WebDavSongListTile({
+  const WebDavGenericFileListTile({
     super.key,
     required this.file,
-    required this.server,
-    required this.password,
-    required this.metadata,
-    required this.currentMusicPath,
-    this.isHighlighted = false,
-    required this.isAudioPlaying,
-    required this.allAudioFiles,
     this.isSelected = false,
     this.isSelectionMode = false,
     this.onTap,
@@ -653,64 +549,9 @@ class WebDavSongListTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-    final isAudio = file.isAudio;
-    final remoteUri = RemoteMediaResolver.buildWebDavUri(server.id, file.path);
-    final isCurrent = currentMusicPath == remoteUri;
-
-    final titleText = (metadata != null && metadata!.title.isNotEmpty)
-        ? metadata!.title
-        : file.name;
-
-    final hasArtist = metadata != null &&
-        metadata!.artist.isNotEmpty &&
-        metadata!.artist != 'Unknown';
-    final hasAlbum = metadata != null &&
-        metadata!.album.isNotEmpty &&
-        metadata!.album != 'Unknown';
-    String? artistAlbumStr;
-    if (hasArtist && hasAlbum) {
-      artistAlbumStr = '${metadata!.artist} - ${metadata!.album}';
-    } else if (hasArtist) {
-      artistAlbumStr = metadata!.artist;
-    } else if (hasAlbum) {
-      artistAlbumStr = metadata!.album;
-    }
-
-    final durationStr = metadata?.duration != null
-        ? formatDurationMs(metadata!.duration!)
-        : null;
-    final ext = p.extension(file.name).replaceAll('.', '').toUpperCase();
     final sizeStr = formatFileSize(file.contentLength);
-
-    final List<String> techParts = [];
-    if (durationStr != null) techParts.add(durationStr);
-    if (ext.isNotEmpty) techParts.add(ext);
-    if (sizeStr.isNotEmpty) techParts.add(sizeStr);
-    final techInfoStr = techParts.join(' | ');
-
-    Widget leadingContent;
-    if (isAudio) {
-      leadingContent = SongThumbnail(
-        path: remoteUri,
-        thumbnailPath: metadata?.thumbnailPath,
-        size: 56.0,
-        borderRadius: BorderRadius.zero,
-      );
-    } else {
-      leadingContent = Container(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        child: Center(
-          child: Icon(
-            Icons.insert_drive_file_outlined,
-            size: 26,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-        ),
-      );
-    }
 
     final leadingWidget = SizedBox(
       width: 56,
@@ -720,25 +561,17 @@ class WebDavSongListTile extends ConsumerWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Opacity(
-              opacity: isSelectionMode ? (isSelected ? 0.5 : 0.7) : 1.0,
-              child: leadingContent,
-            ),
-          ),
-          if (isCurrent)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                color: Colors.black45,
-                child: Center(
-                  child: PlayingEqualizerIcon(
-                    color: Colors.white,
-                    size: 18,
-                    isPlaying: isAudioPlaying,
-                  ),
+            child: Container(
+              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+              child: Center(
+                child: Icon(
+                  Icons.insert_drive_file_outlined,
+                  size: 26,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
             ),
+          ),
           if (isSelectionMode)
             Positioned.fill(
               child: Align(
@@ -765,10 +598,9 @@ class WebDavSongListTile extends ConsumerWidget {
     final trailingWidget = Builder(
       builder: (btnContext) {
         return IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.more_vert_rounded,
             size: 20,
-            color: isCurrent ? theme.colorScheme.primary : null,
           ),
           tooltip: 'More',
           onPressed: () {
@@ -787,23 +619,21 @@ class WebDavSongListTile extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isSelectionMode && isSelected
               ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-              : (isHighlighted
-                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.6)
-                  : Colors.transparent),
-          borderRadius: BorderRadius.circular(8),
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: InkWell(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             enableFeedback: false,
             onTap: onTap,
             onLongPress: onLongPress,
             hoverColor: theme.colorScheme.onSurface.withValues(alpha: 0.06),
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isPortrait ? 12 : 16,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
                 vertical: 8,
               ),
               child: Row(
@@ -816,77 +646,24 @@ class WebDavSongListTile extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          children: [
-                            if (isCurrent) ...[
-                              PlayingEqualizerIcon(
-                                color: theme.colorScheme.primary,
-                                size: 14,
-                               isPlaying: isAudioPlaying,
-                              ),
-                              const SizedBox(width: 4),
-                            ],
-                            Expanded(
-                              child: Text(
-                                titleText,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: (isCurrent || isHighlighted)
-                                      ? theme.colorScheme.primary
-                                      : (isAudio
-                                          ? theme.colorScheme.onSurface
-                                          : theme.colorScheme.onSurfaceVariant
-                                              .withValues(alpha: 0.6)),
-                                  fontWeight: (isCurrent || isHighlighted)
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          file.name,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        if (isAudio) ...[
-                          if (artistAlbumStr != null) ...[
-                            Text(
-                              artistAlbumStr,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                fontSize: 12,
-                                color: isCurrent
-                                    ? theme.colorScheme.primary
-                                        .withValues(alpha: 0.85)
-                                    : theme.colorScheme.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 1),
-                          ],
-                          Text(
-                            techInfoStr,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 11,
-                              color: isCurrent
-                                  ? theme.colorScheme.primary
-                                      .withValues(alpha: 0.7)
-                                  : theme.colorScheme.onSurfaceVariant
-                                      .withValues(alpha: 0.75),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        const SizedBox(height: 2),
+                        Text(
+                          sizeStr,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           ),
-                        ] else ...[
-                          Text(
-                            sizeStr,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 12,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
