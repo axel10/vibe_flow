@@ -109,6 +109,56 @@ void main() {
         expect(client.lastPath, 'https://lrclib.net/api/search');
       },
     );
+
+    test(
+      'selects candidate matching artist and duration among multiple results with same title',
+      () async {
+        final searchResponse = Response<dynamic>(
+          requestOptions: RequestOptions(path: 'https://lrclib.net/api/search'),
+          data: [
+            {
+              'id': 1,
+              'trackName': 'Black Board',
+              'artistName': 'Nano',
+              'albumName': 'N',
+              'duration': 222,
+              'plainLyrics': 'The tears I cried for you',
+              'syncedLyrics': '[00:15.00] The tears I cried for you',
+            },
+            {
+              'id': 2,
+              'trackName': 'Black Board',
+              'artistName': '蝶々P',
+              'albumName': 'EXIT TUNES',
+              'duration': 222,
+              'plainLyrics': '君への涙はあの日と同じ',
+              'syncedLyrics': '[00:15.00] 君への涙はあの日と同じ',
+            },
+          ],
+        );
+        final client = _RoutingNetworkClient(
+          searchResponse: searchResponse,
+        );
+        final service = LyricsService(
+          client: client,
+          cacheRepository: _NoopLyricsCacheRepository(),
+        );
+
+        final result = await service.fetchBestLyrics(
+          query: const LyricsQuery(
+            filePath: '/music/Black Board.mp3',
+            fileName: '06.蝶々P feat.初音ミク - Black Board.mp3',
+            title: 'Black Board',
+            artist: '蝶々P',
+            duration: Duration(seconds: 222),
+          ),
+        );
+
+        expect(result, isNotNull);
+        expect(result!.track.artistName, '蝶々P');
+        expect(result.lyricsText, contains('君への涙はあの日と同じ'));
+      },
+    );
   });
 }
 
