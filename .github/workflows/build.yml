@@ -113,6 +113,15 @@ jobs:
           mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/vynody-android-${VERSION}-armeabi-v7a.apk
           mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/vynody-android-${VERSION}-arm64-v8a.apk
 
+      - name: Verify Android APK integrity
+        run: |
+          for apk in build/app/outputs/flutter-apk/vynody-android-*.apk; do
+            echo "Checking $apk..."
+            test -f "$apk"
+            unzip -t "$apk" > /dev/null
+            echo "Valid zip/apk package structure: $apk"
+          done
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -238,6 +247,50 @@ jobs:
           }
           $installerFiles | ForEach-Object { Write-Host "Found installer: $($_.FullName)" }
 
+      - name: Smoke test Windows installer and launch
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem "build/windows/installer" -Filter "*.exe" -Recurse | Select-Object -First 1
+          if (-not $installer) {
+            Write-Error "No Inno Setup installer found for smoke test."
+            exit 1
+          }
+          Write-Host "Installing $($installer.FullName) silently..."
+          $testInstallDir = "C:\VynodySmokeTest"
+          if (Test-Path $testInstallDir) { Remove-Item $testInstallDir -Recurse -Force }
+          
+          $installProcess = Start-Process -FilePath $installer.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/DIR=`"$testInstallDir`"" -Wait -PassThru
+          if ($installProcess.ExitCode -ne 0) {
+            Write-Error "Installer exited with non-zero exit code: $($installProcess.ExitCode)"
+            exit 1
+          }
+          
+          $installedExe = Join-Path $testInstallDir "Vynody.exe"
+          if (-not (Test-Path $installedExe)) {
+            Write-Error "Installed executable not found at $installedExe"
+            exit 1
+          }
+          
+          Write-Host "Launching installed Vynody.exe for smoke test..."
+          $appProcess = Start-Process -FilePath $installedExe -PassThru
+          Start-Sleep -Seconds 7
+          
+          if ($appProcess.HasExited) {
+            Write-Error "Vynody.exe exited prematurely or crashed on launch with exit code $($appProcess.ExitCode)"
+            exit 1
+          }
+          
+          Write-Host "Vynody.exe launched and running successfully (PID: $($appProcess.Id)). Terminating test process..."
+          Stop-Process -Id $appProcess.Id -Force
+          
+          # Clean up test installation
+          $uninstaller = Join-Path $testInstallDir "unins000.exe"
+          if (Test-Path $uninstaller) {
+            Start-Process -FilePath $uninstaller -ArgumentList "/VERYSILENT", "/NORESTART" -Wait
+          }
+          Remove-Item -Path $testInstallDir -Recurse -Force -ErrorAction SilentlyContinue
+          Write-Host "Windows installer smoke test passed successfully."
+
       - name: Package and rename Windows artifacts
         shell: pwsh
         run: |
@@ -358,6 +411,46 @@ jobs:
               test -x /usr/bin/vynody
               rpm -q vynody
             '
+
+      - name: Smoke test Linux deb and AppImage launch
+        run: |
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          
+          # 1. Test .deb installation and launch on host
+          echo "==> Testing .deb installation and launch..."
+          DEB_FILE=$(ls build/linux/packages/vynody-linux-*.deb | head -n 1)
+          sudo dpkg -i "$DEB_FILE" || sudo apt-get install -f -y
+          
+          echo "Launching /opt/vynody/vynody with xvfb-run..."
+          xvfb-run -a /opt/vynody/vynody &
+          APP_PID=$!
+          sleep 7
+          if kill -0 $APP_PID 2>/dev/null; then
+            echo "Linux .deb launch smoke test passed (PID: $APP_PID)."
+            kill -9 $APP_PID || true
+          else
+            wait $APP_PID || true
+            echo "Linux .deb app exited prematurely or crashed on launch."
+            exit 1
+          fi
+          
+          # 2. Test AppImage launch
+          echo "==> Testing AppImage launch..."
+          APPIMAGE_FILE=$(ls build/linux/packages/vynody-linux-*.AppImage | head -n 1)
+          chmod +x "$APPIMAGE_FILE"
+          xvfb-run -a "$APPIMAGE_FILE" --appimage-extract-and-run &
+          APPIMAGE_PID=$!
+          sleep 7
+          if kill -0 $APPIMAGE_PID 2>/dev/null; then
+            echo "Linux AppImage launch smoke test passed (PID: $APPIMAGE_PID)."
+            kill -9 $APPIMAGE_PID || true
+          else
+            wait $APPIMAGE_PID || true
+            echo "Linux AppImage exited prematurely or crashed on launch."
+            exit 1
+          fi
 
       - name: Upload Linux package
         uses: actions/upload-artifact@v4
@@ -534,6 +627,56 @@ jobs:
             echo "Expected a universal binary with arm64 and x86_64 slices."
             exit 1
           fi
+
+      - name: Smoke test macOS DMG and launch
+        run: |
+          set -e
+          DMG_FILE=$(ls vynody-macos-*.dmg | head -n 1)
+          if [ -z "$DMG_FILE" ] || [ ! -f "$DMG_FILE" ]; then
+            echo "DMG file not found for smoke test."
+            exit 1
+          fi
+          
+          echo "==> Mounting $DMG_FILE..."
+          MOUNT_DIR="/tmp/vynody_mount_test"
+          mkdir -p "$MOUNT_DIR"
+          hdiutil attach "$DMG_FILE" -mountpoint "$MOUNT_DIR" -nobrowse
+          
+          echo "==> Verifying Vynody.app inside DMG..."
+          if [ ! -d "$MOUNT_DIR/Vynody.app" ]; then
+            echo "Vynody.app not found in mounted DMG."
+            hdiutil detach "$MOUNT_DIR" || true
+            exit 1
+          fi
+          
+          TEST_APP_DIR="/tmp/VynodySmokeTest"
+          rm -rf "$TEST_APP_DIR"
+          mkdir -p "$TEST_APP_DIR"
+          echo "==> Copying Vynody.app from DMG to test location..."
+          cp -R "$MOUNT_DIR/Vynody.app" "$TEST_APP_DIR/"
+          
+          echo "==> Detaching DMG..."
+          hdiutil detach "$MOUNT_DIR"
+          
+          echo "==> Checking code signature of copied app..."
+          codesign -vvv --deep --strict "$TEST_APP_DIR/Vynody.app"
+          
+          echo "==> Launching Vynody executable for smoke test..."
+          "$TEST_APP_DIR/Vynody.app/Contents/MacOS/Vynody" &
+          APP_PID=$!
+          sleep 7
+          
+          if kill -0 $APP_PID 2>/dev/null; then
+            echo "macOS app launched and running successfully (PID: $APP_PID)."
+            kill -9 $APP_PID || true
+          else
+            wait $APP_PID || true
+            echo "macOS app exited prematurely or crashed on launch."
+            exit 1
+          fi
+          
+          rm -rf "$TEST_APP_DIR"
+          echo "macOS DMG smoke test passed successfully."
 
       - name: Clean up Keychain
         if: always()
