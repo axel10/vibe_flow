@@ -665,12 +665,36 @@ class _WasapiExclusiveBadgeState extends State<_WasapiExclusiveBadge> {
   @override
   Widget build(BuildContext context) {
     final isDark = widget.brightness == Brightness.dark;
-    final theme = Theme.of(context);
-    final primaryColor = theme.colorScheme.primary;
     final l10n = AppLocalizations.of(context);
     final badgeText = l10n?.exclusiveModeTitle ?? '独占模式';
     final tooltipText = l10n?.exclusiveModeTooltip ??
         'WASAPI 独占模式已启用（已独占音频输出设备）';
+
+    // Hi-Fi Amber/Gold specialized palette for maximum recognition
+    final Color badgeBg;
+    final Color badgeBorder;
+    final Color badgeFg;
+    final Color shadowColor;
+
+    if (isDark) {
+      badgeBg = _isHovered
+          ? const Color(0xFF3D2D10)
+          : const Color(0xFF261C0A);
+      badgeBorder = _isHovered
+          ? const Color(0xFFFBBF24)
+          : const Color(0xFFD97706).withValues(alpha: 0.75);
+      badgeFg = _isHovered ? const Color(0xFFFDE68A) : const Color(0xFFFCD34D);
+      shadowColor = const Color(0xFFF59E0B).withValues(alpha: _isHovered ? 0.25 : 0.12);
+    } else {
+      badgeBg = _isHovered
+          ? const Color(0xFFFDE68A)
+          : const Color(0xFFFEF3C7);
+      badgeBorder = _isHovered
+          ? const Color(0xFFD97706)
+          : const Color(0xFFF59E0B).withValues(alpha: 0.85);
+      badgeFg = _isHovered ? const Color(0xFF78350F) : const Color(0xFF92400E);
+      shadowColor = const Color(0xFFD97706).withValues(alpha: _isHovered ? 0.18 : 0.08);
+    }
 
     return Center(
       child: MouseRegion(
@@ -700,18 +724,19 @@ class _WasapiExclusiveBadgeState extends State<_WasapiExclusiveBadge> {
               height: 22,
               padding: const EdgeInsets.symmetric(horizontal: 7),
               decoration: BoxDecoration(
-                color: _isHovered
-                    ? primaryColor.withValues(alpha: isDark ? 0.28 : 0.20)
-                    : primaryColor.withValues(alpha: isDark ? 0.16 : 0.10),
+                color: badgeBg,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: primaryColor.withValues(
-                    alpha: _isHovered
-                        ? (isDark ? 0.6 : 0.5)
-                        : (isDark ? 0.35 : 0.25),
-                  ),
-                  width: 0.8,
+                  color: badgeBorder,
+                  width: 0.9,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: shadowColor,
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -720,7 +745,7 @@ class _WasapiExclusiveBadgeState extends State<_WasapiExclusiveBadge> {
                   Icon(
                     Icons.graphic_eq_rounded,
                     size: 13,
-                    color: primaryColor,
+                    color: badgeFg,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -728,7 +753,7 @@ class _WasapiExclusiveBadgeState extends State<_WasapiExclusiveBadge> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: primaryColor,
+                      color: badgeFg,
                       height: 1.1,
                       letterSpacing: 0.3,
                     ),
