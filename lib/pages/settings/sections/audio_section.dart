@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:audio_core/audio_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vynody/dialogs/shortcut_settings_dialog.dart';
 import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
 import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/player/settings/shortcut_bindings.dart';
 import 'package:vynody/widgets/pro/pro_badge.dart';
 import '../widgets/settings_dropdown_tile.dart';
 import '../widgets/settings_group_card.dart';
@@ -76,6 +78,25 @@ class AudioSection extends ConsumerWidget {
               unawaited(audioService.updateWindowsAudioOutput(mode: newMode));
             }
           },
+        ),
+        ListTile(
+          leading: const Icon(Icons.keyboard_rounded),
+          title: Text(l10n.wasapiExclusiveShortcutTitle),
+          subtitle: Text(l10n.wasapiExclusiveShortcutDescription),
+          trailing: OutlinedButton.icon(
+            onPressed: () {
+              showSingleShortcutEditDialog(
+                context,
+                action: AppShortcutAction.toggleWasapiExclusive,
+              );
+            },
+            icon: const Icon(Icons.edit_rounded, size: 16),
+            label: Text(
+              settings
+                  .shortcutBinding(AppShortcutAction.toggleWasapiExclusive)
+                  .displayLabel,
+            ),
+          ),
         ),
         if (isExclusive) ...[
           FutureBuilder<List<AudioDeviceDesc>>(

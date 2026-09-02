@@ -2076,5 +2076,12 @@
   "activeHardwareFormatDescription": "DAC active sample rate and bit depth",
   "activeHardwareBitPerfectBadge": "Bit-Perfect Direct",
   "exclusiveModeTitle": "Exclusive Mode",
-  "exclusiveModeTooltip": "WASAPI Exclusive Mode is active (audio device is exclusively held)"
+  "exclusiveModeTooltip": "WASAPI Exclusive Mode is active (audio device is exclusively held)",
+  "toggleWasapiExclusive": "Toggle WASAPI Exclusive Mode",
+  "toggleWasapiExclusiveDescription": "Quickly toggle between WASAPI Exclusive and Shared audio output (Windows)",
+  "wasapiExclusiveShortcutTitle": "Quick Toggle Shortcut",
+  "wasapiExclusiveShortcutDescription": "Use shortcut to quickly toggle between Exclusive and Shared mode",
+  "wasapiExclusiveEnabledNotice": "WASAPI Exclusive Mode enabled",
+  "audioSharedModeEnabledNotice": "Switched to Shared Audio Mode",
+  "editShortcutTitle": "Edit Shortcut"
 }

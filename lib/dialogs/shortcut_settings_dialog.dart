@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,16 @@ Future<void> showShortcutSettingsDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
     builder: (context) => const ShortcutSettingsDialog(),
+  );
+}
+
+Future<void> showSingleShortcutEditDialog(
+  BuildContext context, {
+  required AppShortcutAction action,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (context) => SingleShortcutEditDialog(action: action),
   );
 }
 
@@ -24,6 +35,15 @@ class _ShortcutSettingsDialogState
     extends ConsumerState<ShortcutSettingsDialog> {
   late Map<AppShortcutAction, ShortcutBinding> _draftBindings;
   late final ScrollController _scrollController;
+
+  List<AppShortcutAction> get _availableActions {
+    return AppShortcutAction.values.where((action) {
+      if (action == AppShortcutAction.toggleWasapiExclusive) {
+        return Platform.isWindows;
+      }
+      return true;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -65,6 +85,7 @@ class _ShortcutSettingsDialogState
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final maxHeight = MediaQuery.of(context).size.height * 0.72;
+    final actionsList = _availableActions;
 
     return AlertDialog(
       title: Text(l10n.customShortcuts),
@@ -77,10 +98,10 @@ class _ShortcutSettingsDialogState
             child: ListView.separated(
               controller: _scrollController,
               shrinkWrap: true,
-              itemCount: AppShortcutAction.values.length,
+              itemCount: actionsList.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final action = AppShortcutAction.values[index];
+                final action = actionsList[index];
                 final binding = _draftBindings[action] ?? action.defaultBinding;
                 return _ShortcutBindingRow(
                   action: action,
@@ -107,6 +128,88 @@ class _ShortcutSettingsDialogState
           child: Text(l10n.restoreDefault),
         ),
         FilledButton(onPressed: _save, child: Text(l10n.confirm)),
+      ],
+    );
+  }
+}
+
+class SingleShortcutEditDialog extends ConsumerStatefulWidget {
+  final AppShortcutAction action;
+
+  const SingleShortcutEditDialog({super.key, required this.action});
+
+  @override
+  ConsumerState<SingleShortcutEditDialog> createState() =>
+      _SingleShortcutEditDialogState();
+}
+
+class _SingleShortcutEditDialogState
+    extends ConsumerState<SingleShortcutEditDialog> {
+  late ShortcutBinding _currentBinding;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = ref.read(settingsServiceProvider);
+    _currentBinding = settings.shortcutBinding(widget.action);
+  }
+
+  void _restoreDefault() {
+    setState(() {
+      _currentBinding = widget.action.defaultBinding;
+    });
+  }
+
+  void _save() {
+    final settings = ref.read(settingsServiceProvider);
+    settings.setShortcutBinding(widget.action, _currentBinding);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Text(widget.action.label),
+      content: SizedBox(
+        width: 440,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.action.description,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ShortcutRecorderField(
+              value: _currentBinding,
+              onChanged: (newBinding) {
+                setState(() {
+                  _currentBinding = newBinding;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        OutlinedButton(
+          onPressed: _restoreDefault,
+          child: Text(l10n.restoreDefault),
+        ),
+        FilledButton(
+          onPressed: _save,
+          child: Text(l10n.confirm),
+        ),
       ],
     );
   }

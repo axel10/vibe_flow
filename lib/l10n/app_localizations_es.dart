@@ -4659,4 +4659,26 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exclusiveModeTooltip => 'WASAPI 独占模式已启用（已独占音频输出设备）';
+
+  @override
+  String get toggleWasapiExclusive => '切换 WASAPI 独占模式';
+
+  @override
+  String get toggleWasapiExclusiveDescription =>
+      '快速在 WASAPI 独占输出与系统共享输出之间切换 (Windows)';
+
+  @override
+  String get wasapiExclusiveShortcutTitle => '快捷键快速切换';
+
+  @override
+  String get wasapiExclusiveShortcutDescription => '使用快捷键快速在独占模式与系统共享输出间切换';
+
+  @override
+  String get wasapiExclusiveEnabledNotice => '已启用 WASAPI 独占模式';
+
+  @override
+  String get audioSharedModeEnabledNotice => '已切换至系统共享音频模式';
+
+  @override
+  String get editShortcutTitle => '编辑快捷键';
 }

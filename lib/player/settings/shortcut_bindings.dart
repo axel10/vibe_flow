@@ -13,6 +13,7 @@ enum AppShortcutAction {
   seekForward,
   seekBackward,
   toggleFullScreen,
+  toggleWasapiExclusive,
 }
 
 extension AppShortcutActionX on AppShortcutAction {
@@ -28,6 +29,7 @@ extension AppShortcutActionX on AppShortcutAction {
     AppShortcutAction.seekForward => 'seek_forward',
     AppShortcutAction.seekBackward => 'seek_backward',
     AppShortcutAction.toggleFullScreen => 'toggle_full_screen',
+    AppShortcutAction.toggleWasapiExclusive => 'toggle_wasapi_exclusive',
   };
 
   String get label => switch (this) {
@@ -40,6 +42,7 @@ extension AppShortcutActionX on AppShortcutAction {
     AppShortcutAction.seekForward => _l10n.seekForward5s,
     AppShortcutAction.seekBackward => _l10n.seekBackward5s,
     AppShortcutAction.toggleFullScreen => _l10n.toggleFullScreen,
+    AppShortcutAction.toggleWasapiExclusive => _l10n.toggleWasapiExclusive,
   };
 
   String get description => switch (this) {
@@ -52,6 +55,7 @@ extension AppShortcutActionX on AppShortcutAction {
     AppShortcutAction.seekForward => _l10n.seekForward5sDescription,
     AppShortcutAction.seekBackward => _l10n.seekBackward5sDescription,
     AppShortcutAction.toggleFullScreen => _l10n.toggleFullScreenDescription,
+    AppShortcutAction.toggleWasapiExclusive => _l10n.toggleWasapiExclusiveDescription,
   };
 
   ShortcutBinding get defaultBinding {
@@ -94,6 +98,12 @@ extension AppShortcutActionX on AppShortcutAction {
       AppShortcutAction.toggleFullScreen => ShortcutBinding(
           keyId: isMac ? LogicalKeyboardKey.keyF.keyId : LogicalKeyboardKey.f11.keyId,
           control: isMac,
+          meta: isMac,
+        ),
+      AppShortcutAction.toggleWasapiExclusive => ShortcutBinding(
+          keyId: LogicalKeyboardKey.keyW.keyId,
+          control: !isMac,
+          shift: true,
           meta: isMac,
         ),
     };

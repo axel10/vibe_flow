@@ -2817,5 +2817,12 @@
   "activeHardwareFormatDescription": "DAC 实际工作采样率与位深",
   "activeHardwareBitPerfectBadge": "Bit-Perfect 点对点直通",
   "exclusiveModeTitle": "独占模式",
-  "exclusiveModeTooltip": "WASAPI 独占模式已启用（已独占音频输出设备）"
+  "exclusiveModeTooltip": "WASAPI 独占模式已启用（已独占音频输出设备）",
+  "toggleWasapiExclusive": "切换 WASAPI 独占模式",
+  "toggleWasapiExclusiveDescription": "快速在 WASAPI 独占输出与系统共享输出之间切换 (Windows)",
+  "wasapiExclusiveShortcutTitle": "快捷键快速切换",
+  "wasapiExclusiveShortcutDescription": "使用快捷键快速在独占模式与系统共享输出间切换",
+  "wasapiExclusiveEnabledNotice": "已启用 WASAPI 独占模式",
+  "audioSharedModeEnabledNotice": "已切换至系统共享音频模式",
+  "editShortcutTitle": "编辑快捷键"
 }

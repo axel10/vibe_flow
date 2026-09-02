@@ -350,6 +350,7 @@ class SettingsService extends ChangeNotifier {
   static const String _keyWindowsAudioDeviceId = 'windows_audio_device_id';
   static const String _keyWasapiReleaseOnPause = 'wasapi_release_on_pause';
   static const String _keyWasapiBitPerfect = 'wasapi_bit_perfect';
+  static const String _keyHasUsedWasapiExclusive = 'has_used_wasapi_exclusive';
   static const List<String> defaultTopButtonsOrder = [
     'more',
     'favorite',
@@ -877,6 +878,12 @@ class SettingsService extends ChangeNotifier {
     defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
+  );
+
+  late final _hasUsedWasapiExclusiveProperty = SettingProperty<bool>(
+    key: _keyHasUsedWasapiExclusive,
+    defaultValue: false,
+    prefs: _prefs,
   );
 
   late final _closeToTrayProperty = SettingProperty<bool>(
@@ -2469,8 +2476,18 @@ class SettingsService extends ChangeNotifier {
       _folderViewModeProperty.value = value;
 
   String get windowsAudioOutputMode => _windowsAudioOutputModeProperty.value;
-  set windowsAudioOutputMode(String value) =>
-      _windowsAudioOutputModeProperty.value = value;
+  set windowsAudioOutputMode(String value) {
+    if (value == 'wasapi_exclusive') {
+      _hasUsedWasapiExclusiveProperty.value = true;
+    }
+    _windowsAudioOutputModeProperty.value = value;
+  }
+
+  bool get hasUsedWasapiExclusive =>
+      _hasUsedWasapiExclusiveProperty.value ||
+      _windowsAudioOutputModeProperty.value == 'wasapi_exclusive';
+  set hasUsedWasapiExclusive(bool value) =>
+      _hasUsedWasapiExclusiveProperty.value = value;
 
   String get windowsAudioDeviceId => _windowsAudioDeviceIdProperty.value;
   set windowsAudioDeviceId(String value) =>

@@ -8154,6 +8154,48 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'WASAPI 独占模式已启用（已独占音频输出设备）'**
   String get exclusiveModeTooltip;
+
+  /// No description provided for @toggleWasapiExclusive.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换 WASAPI 独占模式'**
+  String get toggleWasapiExclusive;
+
+  /// No description provided for @toggleWasapiExclusiveDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'快速在 WASAPI 独占输出与系统共享输出之间切换 (Windows)'**
+  String get toggleWasapiExclusiveDescription;
+
+  /// No description provided for @wasapiExclusiveShortcutTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'快捷键快速切换'**
+  String get wasapiExclusiveShortcutTitle;
+
+  /// No description provided for @wasapiExclusiveShortcutDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用快捷键快速在独占模式与系统共享输出间切换'**
+  String get wasapiExclusiveShortcutDescription;
+
+  /// No description provided for @wasapiExclusiveEnabledNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'已启用 WASAPI 独占模式'**
+  String get wasapiExclusiveEnabledNotice;
+
+  /// No description provided for @audioSharedModeEnabledNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'已切换至系统共享音频模式'**
+  String get audioSharedModeEnabledNotice;
+
+  /// No description provided for @editShortcutTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑快捷键'**
+  String get editShortcutTitle;
 }
 
 class _AppLocalizationsDelegate

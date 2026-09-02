@@ -25,6 +25,7 @@ import 'package:vynody/dialogs/transfer_dialogs.dart';
 import 'package:vynody/dialogs/remote_pair_dialogs.dart';
 import 'package:vynody/player/library/music_file_utils.dart';
 import 'package:vynody/player/pro/pro_license_service.dart';
+import 'package:vynody/player/pro/pro_models.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/player/settings/shortcut_bindings.dart';
 import 'package:vynody/models/music_file.dart';
@@ -146,6 +147,10 @@ class SeekBackwardIntent extends Intent {
 
 class ToggleFullScreenIntent extends Intent {
   const ToggleFullScreenIntent();
+}
+
+class ToggleWasapiExclusiveIntent extends Intent {
+  const ToggleWasapiExclusiveIntent();
 }
 
 class ExitFullScreenIntent extends Intent {
@@ -661,6 +666,8 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       AppShortcutAction.seekForward: const SeekForwardIntent(),
       AppShortcutAction.seekBackward: const SeekBackwardIntent(),
       AppShortcutAction.toggleFullScreen: const ToggleFullScreenIntent(),
+      AppShortcutAction.toggleWasapiExclusive:
+          const ToggleWasapiExclusiveIntent(),
     };
 
     final shortcuts = <ShortcutActivator, Intent>{};
@@ -1272,6 +1279,67 @@ class _MainLayoutState extends ConsumerState<MainLayout>
             },
           ),
           ExitFullScreenIntent: ExitFullScreenAction(this),
+          ToggleWasapiExclusiveIntent:
+              CallbackAction<ToggleWasapiExclusiveIntent>(
+            onInvoke: (_) async {
+              if (!Platform.isWindows) return null;
+              final settings = ref.read(settingsServiceProvider);
+              // 防误触保护：如果从未在设置中手动开启过 WASAPI 独占模式，则快捷键不响应
+              if (!settings.hasUsedWasapiExclusive) {
+                return null;
+              }
+
+              final isProUnlocked = ref.read(isProUnlockedProvider);
+              final isCurrentlyExclusive =
+                  settings.windowsAudioOutputMode == 'wasapi_exclusive' &&
+                      isProUnlocked;
+
+              if (!isCurrentlyExclusive) {
+                if (!isProUnlocked) {
+                  if (mounted) {
+                    final allowed = await checkProGate(
+                      context,
+                      ref,
+                      feature: ProFeature.wasapiExclusive,
+                    );
+                    if (!allowed) return null;
+                  } else {
+                    return null;
+                  }
+                }
+                await _audioService.updateWindowsAudioOutput(
+                  mode: 'wasapi_exclusive',
+                );
+                if (mounted) {
+                  AppSnackBar.show(
+                    context,
+                    ref,
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context)!
+                            .wasapiExclusiveEnabledNotice,
+                      ),
+                    ),
+                  );
+                }
+              } else {
+                await _audioService.updateWindowsAudioOutput(mode: 'shared');
+                if (mounted) {
+                  AppSnackBar.show(
+                    context,
+                    ref,
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context)!
+                            .audioSharedModeEnabledNotice,
+                      ),
+                    ),
+                  );
+                }
+              }
+              return null;
+            },
+          ),
         },
         child: Focus(
           autofocus: true,

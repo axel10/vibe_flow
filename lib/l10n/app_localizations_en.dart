@@ -4596,4 +4596,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get exclusiveModeTooltip =>
       'WASAPI Exclusive Mode is active (audio device is exclusively held)';
+
+  @override
+  String get toggleWasapiExclusive => 'Toggle WASAPI Exclusive Mode';
+
+  @override
+  String get toggleWasapiExclusiveDescription =>
+      'Quickly toggle between WASAPI Exclusive and Shared audio output (Windows)';
+
+  @override
+  String get wasapiExclusiveShortcutTitle => 'Quick Toggle Shortcut';
+
+  @override
+  String get wasapiExclusiveShortcutDescription =>
+      'Use shortcut to quickly toggle between Exclusive and Shared mode';
+
+  @override
+  String get wasapiExclusiveEnabledNotice => 'WASAPI Exclusive Mode enabled';
+
+  @override
+  String get audioSharedModeEnabledNotice => 'Switched to Shared Audio Mode';
+
+  @override
+  String get editShortcutTitle => 'Edit Shortcut';
 }
