@@ -252,87 +252,88 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                     );
                   },
                   child: _is3DView
-                      ? (isMobileLandscape3D
-                          ? Stack(
-                              key: const ValueKey('album_3d_cover_flow_view_immersive'),
-                              fit: StackFit.expand,
-                              children: [
-                                Positioned.fill(
-                                  child: visibleAlbums.isEmpty
-                                      ? Center(
-                                          child: Text(
-                                            l10n.noAlbums,
-                                            style: Theme.of(context).textTheme.titleMedium,
-                                          ),
-                                        )
-                                      : _Album3DCoverFlowView(
-                                          key: _coverFlowKey,
-                                          albums: visibleAlbums,
-                                          initialIndex: widget.initial3DIndex,
-                                          isSelectionMode: isSelectionMode,
-                                          selectedAlbumIds: selectedKeys,
-                                          bottomOffset: bottomOffset,
-                                          isHeroEnabled: _is3DView,
-                                          onToggleSelection: toggleSelection,
-                                          onEnterSelectionMode: enterSelectionMode,
-                                        ),
+                      ? KeyedSubtree(
+                          key: const ValueKey('album_3d_cover_flow_view'),
+                          child: isMobileLandscape3D
+                              ? Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    Positioned.fill(
+                                      child: visibleAlbums.isEmpty
+                                          ? Center(
+                                              child: Text(
+                                                l10n.noAlbums,
+                                                style: Theme.of(context).textTheme.titleMedium,
+                                              ),
+                                            )
+                                          : _Album3DCoverFlowView(
+                                              key: _coverFlowKey,
+                                              albums: visibleAlbums,
+                                              initialIndex: widget.initial3DIndex,
+                                              isSelectionMode: isSelectionMode,
+                                              selectedAlbumIds: selectedKeys,
+                                              bottomOffset: bottomOffset,
+                                              isHeroEnabled: _is3DView,
+                                              onToggleSelection: toggleSelection,
+                                              onEnterSelectionMode: enterSelectionMode,
+                                            ),
+                                    ),
+                                    Positioned(
+                                      top: MediaQuery.of(context).padding.top + 8,
+                                      left: 16,
+                                      right: 16,
+                                      child: _FloatingCoverFlowToolbar(
+                                        albumCount: visibleAlbums.length,
+                                        sortField: _sortField,
+                                        sortAscending: _sortAscending,
+                                        onViewModeToggled: () {
+                                          setState(() {
+                                            _is3DView = !_is3DView;
+                                          });
+                                          ref.read(isAlbum3DViewActiveProvider.notifier).set(_is3DView);
+                                        },
+                                        onShufflePressed: () => _onShufflePressed(albums),
+                                        onSortChanged: (field, sortAscending) {
+                                          setState(() {
+                                            _sortField = field;
+                                            _sortAscending = sortAscending;
+                                            _isShuffledMode = false;
+                                            _shuffledAlbums = null;
+                                          });
+                                          final settings = ref.read(settingsServiceProvider);
+                                          settings.albumSortField = field;
+                                          settings.albumSortAscending = sortAscending;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    toolbar,
+                                    Expanded(
+                                      child: visibleAlbums.isEmpty
+                                          ? Center(
+                                              child: Text(
+                                                l10n.noAlbums,
+                                                style: Theme.of(context).textTheme.titleMedium,
+                                              ),
+                                            )
+                                          : _Album3DCoverFlowView(
+                                              key: _coverFlowKey,
+                                              albums: visibleAlbums,
+                                              initialIndex: widget.initial3DIndex,
+                                              isSelectionMode: isSelectionMode,
+                                              selectedAlbumIds: selectedKeys,
+                                              bottomOffset: bottomOffset,
+                                              isHeroEnabled: _is3DView,
+                                              onToggleSelection: toggleSelection,
+                                              onEnterSelectionMode: enterSelectionMode,
+                                            ),
+                                    ),
+                                  ],
                                 ),
-                                Positioned(
-                                  top: MediaQuery.of(context).padding.top + 8,
-                                  left: 16,
-                                  right: 16,
-                                  child: _FloatingCoverFlowToolbar(
-                                    albumCount: visibleAlbums.length,
-                                    sortField: _sortField,
-                                    sortAscending: _sortAscending,
-                                    onViewModeToggled: () {
-                                      setState(() {
-                                        _is3DView = !_is3DView;
-                                      });
-                                      ref.read(isAlbum3DViewActiveProvider.notifier).set(_is3DView);
-                                    },
-                                    onShufflePressed: () => _onShufflePressed(albums),
-                                    onSortChanged: (field, sortAscending) {
-                                      setState(() {
-                                        _sortField = field;
-                                        _sortAscending = sortAscending;
-                                        _isShuffledMode = false;
-                                        _shuffledAlbums = null;
-                                      });
-                                      final settings = ref.read(settingsServiceProvider);
-                                      settings.albumSortField = field;
-                                      settings.albumSortAscending = sortAscending;
-                                    },
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Column(
-                              key: const ValueKey('album_3d_cover_flow_view'),
-                              children: [
-                                toolbar,
-                                Expanded(
-                                  child: visibleAlbums.isEmpty
-                                      ? Center(
-                                          child: Text(
-                                            l10n.noAlbums,
-                                            style: Theme.of(context).textTheme.titleMedium,
-                                          ),
-                                        )
-                                      : _Album3DCoverFlowView(
-                                          key: _coverFlowKey,
-                                          albums: visibleAlbums,
-                                          initialIndex: widget.initial3DIndex,
-                                          isSelectionMode: isSelectionMode,
-                                          selectedAlbumIds: selectedKeys,
-                                          bottomOffset: bottomOffset,
-                                          isHeroEnabled: _is3DView,
-                                          onToggleSelection: toggleSelection,
-                                          onEnterSelectionMode: enterSelectionMode,
-                                        ),
-                                ),
-                              ],
-                            ))
+                        )
                       : ScrollToTopWrapper(
                           key: const ValueKey('album_grid_view'),
                           scrollController: _scrollController,
