@@ -25,6 +25,9 @@ import 'folder_detail_view.dart';
 import 'package:linux_directory_access/linux_directory_access.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
+import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/remote/clients/subsonic_client.dart';
+import 'package:vynody/player/remote/navidrome_navigation.dart';
 import 'remote/navidrome_library_page.dart';
 import 'remote/navidrome_album_detail_page.dart';
 import 'remote/navidrome_artist_detail_page.dart';
@@ -315,10 +318,98 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
   Future<void> _locateCurrentSong() async {
     final currentMusic = ref.read(audioCurrentMusicProvider);
     if (currentMusic == null) return;
+    final l10n = AppLocalizations.of(context)!;
+    final songPath = currentMusic.path;
+
+    final remoteInfo = RemoteMediaResolver.parseUri(songPath);
+    if (remoteInfo != null) {
+      final servers = ref.read(remoteServersProvider).asData?.value ?? [];
+      final server = servers.firstWhereOrNull((s) => s.id == remoteInfo.serverId);
+      if (server == null) {
+        showToast(l10n.songNotInScannedFolders);
+        return;
+      }
+      final password = await ref.read(remoteServersProvider.notifier).getPassword(server.id) ?? '';
+
+      if (remoteInfo.type == RemoteServerType.webdav) {
+        final targetDir = p.posix.dirname(remoteInfo.trackIdOrPath);
+        final rootPath = server.customPath?.trim().isNotEmpty == true
+            ? server.customPath!
+            : '/';
+        final stack =
+            ActiveRemoteSession.buildWebDavPathStack(rootPath, targetDir);
+        final activeSession = ref.read(activeRemoteSessionProvider);
+        if (activeSession == null || activeSession.server.id != server.id) {
+          ref.read(activeRemoteSessionProvider.notifier).setSession(
+                ActiveRemoteSession(
+                  server: server,
+                  password: password,
+                  rootPath: rootPath,
+                  initialPath: targetDir,
+                  webDavPathStack: stack,
+                  webDavHighlightedSongPath: songPath,
+                ),
+              );
+        } else {
+          ref.read(activeRemoteSessionProvider.notifier).setWebDavLocation(
+                pathStack: stack,
+                highlightedSongPath: songPath,
+              );
+        }
+        return;
+      } else if (remoteInfo.type == RemoteServerType.subsonic) {
+        try {
+          final client = SubsonicClient(server: server, password: password);
+          final songData = await client.getSong(remoteInfo.trackIdOrPath);
+          if (songData != null && mounted) {
+            final albumId =
+                songData['albumId'] as String? ?? songData['parent'] as String?;
+            final albumName = songData['album'] as String? ?? 'Album';
+            final artistName = songData['artist'] as String?;
+            final coverArtId = songData['coverArt'] as String?;
+            if (albumId != null) {
+              final activeSession = ref.read(activeRemoteSessionProvider);
+              if (activeSession == null ||
+                  activeSession.server.id != server.id) {
+                ref.read(activeRemoteSessionProvider.notifier).setSession(
+                      ActiveRemoteSession(
+                        server: server,
+                        password: password,
+                        navidromeDetailStack: [
+                          NavidromeAlbumRoute(
+                            albumId: albumId,
+                            albumName: albumName,
+                            artistName: artistName,
+                            coverArtId: coverArtId,
+                            highlightedSongPath: songPath,
+                          ),
+                        ],
+                      ),
+                    );
+              } else {
+                NavidromeNavUtils.openAlbum(
+                  context,
+                  ref,
+                  server: server,
+                  password: password,
+                  albumId: albumId,
+                  albumName: albumName,
+                  artistName: artistName,
+                  coverArtId: coverArtId,
+                  highlightedSongPath: songPath,
+                );
+              }
+              return;
+            }
+          }
+        } catch (_) {}
+        showToast(l10n.songNotInScannedFolders);
+        return;
+      }
+    }
 
     final scanner = ref.read(scannerServiceProvider);
     List<MusicFolder>? foundHistory;
-    final songPath = currentMusic.path;
 
     for (final root in scanner.rootFolders) {
       foundHistory = _findFolderHistory(root, songPath);
@@ -959,6 +1050,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                   albumName: route.albumName,
                   artistName: route.artistName,
                   coverArtId: route.coverArtId,
+                  highlightedSongPath: route.highlightedSongPath,
                 ),
               ),
             );
@@ -990,6 +1082,7 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                   songCount: route.songCount,
                   duration: route.duration,
                   isStarred: route.isStarred,
+                  highlightedSongPath: route.highlightedSongPath,
                 ),
               ),
             );
@@ -1009,12 +1102,16 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
               password: activeRemoteSession.password,
               initialPath: rootPath,
               rootPath: rootPath,
+              highlightedSongPath: webDavPathStack.isEmpty
+                  ? activeRemoteSession.webDavHighlightedSongPath
+                  : null,
             ),
           ),
         );
 
         for (int i = 0; i < webDavPathStack.length; i++) {
           final currentPath = webDavPathStack[i];
+          final isTopPage = i == webDavPathStack.length - 1;
           pages.add(
             _buildPage(
               key: ValueKey(
@@ -1024,6 +1121,9 @@ class FoldersPageState extends ConsumerState<FoldersPage> {
                 password: activeRemoteSession.password,
                 initialPath: currentPath,
                 rootPath: rootPath,
+                highlightedSongPath: isTopPage
+                    ? activeRemoteSession.webDavHighlightedSongPath
+                    : null,
               ),
             ),
           );

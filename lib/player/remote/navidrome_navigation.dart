@@ -16,6 +16,7 @@ class NavidromeNavUtils {
     required String albumName,
     String? artistName,
     String? coverArtId,
+    String? highlightedSongPath,
   }) {
     final session = ref.read(activeRemoteSessionProvider);
     if (session != null && session.server.id == server.id) {
@@ -25,6 +26,7 @@ class NavidromeNavUtils {
               albumName: albumName,
               artistName: artistName,
               coverArtId: coverArtId,
+              highlightedSongPath: highlightedSongPath,
             ),
           );
     } else {
@@ -37,6 +39,7 @@ class NavidromeNavUtils {
             albumName: albumName,
             artistName: artistName,
             coverArtId: coverArtId,
+            highlightedSongPath: highlightedSongPath,
           ),
         ),
       );
@@ -90,6 +93,7 @@ class NavidromeNavUtils {
     int? songCount,
     int? duration,
     bool isStarred = false,
+    String? highlightedSongPath,
     VoidCallback? onPlaylistModified,
   }) {
     final session = ref.read(activeRemoteSessionProvider);
@@ -102,6 +106,7 @@ class NavidromeNavUtils {
               songCount: songCount,
               duration: duration,
               isStarred: isStarred,
+              highlightedSongPath: highlightedSongPath,
             ),
           );
     } else {
@@ -116,6 +121,7 @@ class NavidromeNavUtils {
             songCount: songCount,
             duration: duration,
             isStarred: isStarred,
+            highlightedSongPath: highlightedSongPath,
             onPlaylistModified: onPlaylistModified,
           ),
         ),

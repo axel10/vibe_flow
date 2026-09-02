@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
   final int? songCount;
   final int? duration;
   final bool isStarred;
+  final String? highlightedSongPath;
   final VoidCallback? onPlaylistModified;
 
   const NavidromePlaylistDetailPage({
@@ -46,6 +48,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
     this.songCount,
     this.duration,
     this.isStarred = false,
+    this.highlightedSongPath,
     this.onPlaylistModified,
   });
 
@@ -89,6 +92,7 @@ class NavidromePlaylistDetailPage extends ConsumerWidget {
         songCount: songCount,
         duration: duration,
         isStarred: isStarred,
+        highlightedSongPath: highlightedSongPath,
         onPlaylistModified: onPlaylistModified,
         onDeleted: () {
           Navigator.of(context).pop();
@@ -125,6 +129,7 @@ class NavidromePlaylistDetailContent extends ConsumerStatefulWidget {
   final int? songCount;
   final int? duration;
   final bool isStarred;
+  final String? highlightedSongPath;
   final VoidCallback? onPlaylistModified;
   final VoidCallback? onDeleted;
 
@@ -138,6 +143,7 @@ class NavidromePlaylistDetailContent extends ConsumerStatefulWidget {
     this.songCount,
     this.duration,
     this.isStarred = false,
+    this.highlightedSongPath,
     this.onPlaylistModified,
     this.onDeleted,
   });
@@ -157,6 +163,8 @@ class _NavidromePlaylistDetailContentState
   late String _currentName;
   final ScrollController _scrollController = ScrollController();
   final Set<String> _starredSongIds = {};
+  String? _highlightedSongPath;
+  Timer? _highlightTimer;
 
   Future<void> _deleteSelectedSongs() async {
     final selectedIndices = <int>[];
@@ -213,6 +221,9 @@ class _NavidromePlaylistDetailContentState
   void initState() {
     super.initState();
     _currentName = widget.playlistName;
+    if (widget.highlightedSongPath != null) {
+      _highlightedSongPath = widget.highlightedSongPath;
+    }
     _loadPlaylistDetails();
   }
 
@@ -225,12 +236,61 @@ class _NavidromePlaylistDetailContentState
       _currentName = widget.playlistName;
       _loadPlaylistDetails();
     }
+    if (widget.highlightedSongPath != null &&
+        widget.highlightedSongPath != oldWidget.highlightedSongPath) {
+      _scrollToTrack(widget.highlightedSongPath!);
+    }
   }
 
   @override
   void dispose() {
+    _highlightTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToTrack(String songPath) {
+    if (!mounted || _tracks.isEmpty) return;
+    final index = _tracks.indexWhere((t) => t.path == songPath);
+    if (index == -1) return;
+
+    setState(() {
+      _highlightedSongPath = songPath;
+    });
+    _highlightTimer?.cancel();
+    _highlightTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _highlightedSongPath = null;
+        });
+      }
+    });
+
+    if (_scrollController.hasClients) {
+      const double headerHeight = 280.0;
+      const double trackHeight = 60.0;
+      final double itemOffset = headerHeight + index * trackHeight;
+      final double viewportHeight = _scrollController.position.viewportDimension;
+      double targetOffset = itemOffset - (viewportHeight / 2) + (trackHeight / 2);
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      targetOffset = targetOffset.clamp(0.0, maxScroll);
+      _scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _locateCurrentSong() {
+    final currentMusic = ref.read(audioCurrentMusicProvider);
+    if (currentMusic == null) return;
+    final inCurrentPlaylist = _tracks.any((t) => t.path == currentMusic.path);
+    if (inCurrentPlaylist) {
+      _scrollToTrack(currentMusic.path);
+    } else {
+      showToast(AppLocalizations.of(context)!.songNotInScannedFolders);
+    }
   }
 
   Future<void> _loadPlaylistDetails({bool forceRefresh = false}) async {
@@ -252,6 +312,13 @@ class _NavidromePlaylistDetailContentState
           _isLoading = false;
           _error = null;
         });
+
+        if (_highlightedSongPath != null) {
+          final targetPath = _highlightedSongPath!;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToTrack(targetPath);
+          });
+        }
         return;
       }
     }
@@ -361,6 +428,13 @@ class _NavidromePlaylistDetailContentState
           ..addAll(starred);
         _isLoading = false;
       });
+
+      if (_highlightedSongPath != null) {
+        final targetPath = _highlightedSongPath!;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToTrack(targetPath);
+        });
+      }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -871,6 +945,12 @@ class _NavidromePlaylistDetailContentState
                             onPressed: _tracks.isNotEmpty ? _downloadAll : null,
                             icon: const Icon(Icons.download_rounded, size: 18),
                           ),
+                          const SizedBox(width: 8),
+                          IconButton.filledTonal(
+                            tooltip: l10n.locateCurrentSong,
+                            onPressed: _locateCurrentSong,
+                            icon: const Icon(Icons.my_location_rounded, size: 18),
+                          ),
                           const Spacer(),
                           PopupMenuButton<String>(
                             tooltip: l10n.managePlaylists,
@@ -978,6 +1058,7 @@ class _NavidromePlaylistDetailContentState
                       (context, index) {
                         final song = _tracks[index];
                         final isCurrent = currentMusic?.path == song.path;
+                        final isHighlighted = _highlightedSongPath == song.path;
                         final isSelected = isSongSelected(song.path);
                         final trackDuration = song.durationMillis != null
                             ? _formatTrackDuration(song.durationMillis! ~/ 1000)
@@ -1034,118 +1115,132 @@ class _NavidromePlaylistDetailContentState
                                 toggleSongSelection(song.path);
                               }
                             },
-                            child: Material(
-                              color: isSelectionMode && isSelected
-                                  ? theme.colorScheme.primaryContainer
-                                      .withValues(alpha: 0.35)
-                                  : (isCurrent
-                                      ? theme.colorScheme.primaryContainer
-                                          .withValues(alpha: 0.35)
-                                      : Colors.transparent),
-                              borderRadius: BorderRadius.circular(10),
-                              child: InkWell(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              decoration: BoxDecoration(
+                                color: isSelectionMode && isSelected
+                                    ? theme.colorScheme.primaryContainer
+                                        .withValues(alpha: 0.35)
+                                    : (isHighlighted
+                                        ? theme.colorScheme.primaryContainer
+                                            .withValues(alpha: 0.6)
+                                        : (isCurrent
+                                            ? theme.colorScheme.primaryContainer
+                                                .withValues(alpha: 0.35)
+                                            : Colors.transparent)),
                                 borderRadius: BorderRadius.circular(10),
-                                onTap: () {
-                                  handleSongTap(
-                                    index: index,
-                                    songPath: song.path,
-                                    allSongs: _tracks,
-                                    onNormalTap: () async {
-                                      final audio = ref.read(audioServiceProvider);
-                                      await audio.playPlaylist(
-                                        _tracks,
-                                        initialIndex: index,
-                                        source: PlaybackSource(
-                                          type: PlaybackSourceType.playlist,
-                                          id: 'remote-${widget.server.id}-${widget.playlistId}',
-                                          name: _currentName,
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(10),
+                                  onTap: () {
+                                    handleSongTap(
+                                      index: index,
+                                      songPath: song.path,
+                                      allSongs: _tracks,
+                                      onNormalTap: () async {
+                                        final audio = ref.read(audioServiceProvider);
+                                        await audio.playPlaylist(
+                                          _tracks,
+                                          initialIndex: index,
+                                          source: PlaybackSource(
+                                            type: PlaybackSourceType.playlist,
+                                            id: 'remote-${widget.server.id}-${widget.playlistId}',
+                                            name: _currentName,
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Align(
+                                    alignment: Alignment.center,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 1080),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 6,
                                         ),
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 1080),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 6,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          // Track index / Playing equalizer / Selection icon
-                                          SizedBox(
-                                            width: 36,
-                                            child: Center(
-                                              child: isSelectionMode
-                                                  ? Checkbox(
-                                                      value: isSelected,
-                                                      onChanged: (_) =>
-                                                          toggleSongSelection(
-                                                        song.path,
-                                                      ),
-                                                    )
-                                                  : (isCurrent
-                                                      ? PlayingEqualizerIcon(
-                                                          color: theme.colorScheme.primary,
-                                                          size: 16,
-                                                          isPlaying: isAudioPlaying,
-                                                        )
-                                                      : Text(
-                                                          '${index + 1}',
-                                                          style: theme.textTheme.bodyMedium
-                                                              ?.copyWith(
-                                                            color: theme
-                                                                .colorScheme.onSurfaceVariant
-                                                                .withValues(alpha: 0.7),
-                                                            fontWeight: FontWeight.w500,
-                                                          ),
-                                                        )),
+                                        child: Row(
+                                          children: [
+                                            // Track index / Playing equalizer / Selection icon
+                                            SizedBox(
+                                              width: 36,
+                                              child: Center(
+                                                child: isSelectionMode
+                                                    ? Checkbox(
+                                                        value: isSelected,
+                                                        onChanged: (_) =>
+                                                            toggleSongSelection(
+                                                          song.path,
+                                                        ),
+                                                      )
+                                                    : (isCurrent
+                                                        ? PlayingEqualizerIcon(
+                                                            color: theme.colorScheme.primary,
+                                                            size: 16,
+                                                            isPlaying: isAudioPlaying,
+                                                          )
+                                                        : Text(
+                                                            '${index + 1}',
+                                                            style: theme.textTheme.bodyMedium
+                                                                ?.copyWith(
+                                                              color: isHighlighted
+                                                                  ? theme.colorScheme.primary
+                                                                  : theme
+                                                                      .colorScheme.onSurfaceVariant
+                                                                      .withValues(alpha: 0.7),
+                                                              fontWeight: isHighlighted
+                                                                  ? FontWeight.bold
+                                                                  : FontWeight.w500,
+                                                            ),
+                                                          )),
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 6),
+                                            const SizedBox(width: 6),
 
-                                          // Track artwork
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(6),
-                                            child: Container(
-                                              width: 40,
-                                              height: 40,
-                                              color: theme.colorScheme.surfaceContainerHighest,
-                                              child: trackCoverId != null &&
-                                                      trackCoverId.isNotEmpty
-                                                  ? RemoteArtworkWidget(
-                                                      server: widget.server,
-                                                      password: widget.password,
-                                                      coverArtId: trackCoverId,
-                                                      size: 40,
-                                                      borderRadius: BorderRadius.circular(6),
-                                                    )
-                                                  : const Icon(Icons.music_note_rounded, size: 20),
+                                            // Track artwork
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(6),
+                                              child: Container(
+                                                width: 40,
+                                                height: 40,
+                                                color: theme.colorScheme.surfaceContainerHighest,
+                                                child: trackCoverId != null &&
+                                                        trackCoverId.isNotEmpty
+                                                    ? RemoteArtworkWidget(
+                                                        server: widget.server,
+                                                        password: widget.password,
+                                                        coverArtId: trackCoverId,
+                                                        size: 40,
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      )
+                                                    : const Icon(Icons.music_note_rounded, size: 20),
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
+                                            const SizedBox(width: 12),
 
-                                          // Title & Artist/Album
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  song.displayName,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                                    fontWeight: isCurrent
-                                                        ? FontWeight.bold
-                                                        : FontWeight.w600,
-                                                    color: isCurrent
-                                                        ? theme.colorScheme.primary
-                                                        : null,
+                                            // Title & Artist/Album
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    song.displayName,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                                      fontWeight: (isCurrent || isHighlighted)
+                                                          ? FontWeight.bold
+                                                          : FontWeight.w600,
+                                                      color: (isCurrent || isHighlighted)
+                                                          ? theme.colorScheme.primary
+                                                          : null,
+                                                    ),
                                                   ),
-                                                ),
                                                 const SizedBox(height: 2),
                                                 Text(
                                                   '${song.artist ?? l10n.unknownArtist} • ${song.album ?? l10n.unknownAlbum}',
@@ -1256,8 +1351,9 @@ class _NavidromePlaylistDetailContentState
                               ),
                             ),
                           ),
-                        );
-                      },
+                        ),
+                      );
+                    },
                       childCount: _tracks.length,
                     ),
                   ),

@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:collection/collection.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oktoast/oktoast.dart';
@@ -8,6 +11,7 @@ import '../../models/music_file.dart';
 import '../../player/audio/audio_riverpod.dart';
 import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
+import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../widgets/remote_artwork_widget.dart';
@@ -31,6 +35,7 @@ class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
   final String albumName;
   final String? artistName;
   final String? coverArtId;
+  final String? highlightedSongPath;
 
   const NavidromeAlbumDetailPage({
     super.key,
@@ -40,6 +45,7 @@ class NavidromeAlbumDetailPage extends ConsumerStatefulWidget {
     required this.albumName,
     this.artistName,
     this.coverArtId,
+    this.highlightedSongPath,
   });
 
   @override
@@ -57,12 +63,26 @@ class _NavidromeAlbumDetailPageState
   bool _isStarred = false;
   final ScrollController _scrollController = ScrollController();
   bool _isCoverVisible = true;
+  String? _highlightedSongPath;
+  Timer? _highlightTimer;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    if (widget.highlightedSongPath != null) {
+      _highlightedSongPath = widget.highlightedSongPath;
+    }
     _loadAlbumDetails();
+  }
+
+  @override
+  void didUpdateWidget(NavidromeAlbumDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.highlightedSongPath != null &&
+        widget.highlightedSongPath != oldWidget.highlightedSongPath) {
+      _scrollToTrack(widget.highlightedSongPath!);
+    }
   }
 
   void _onScroll() {
@@ -76,8 +96,155 @@ class _NavidromeAlbumDetailPageState
 
   @override
   void dispose() {
+    _highlightTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToTrack(String songPath) {
+    if (!mounted || _tracks.isEmpty) return;
+    final index = _tracks.indexWhere((t) => t.path == songPath);
+    if (index == -1) return;
+
+    setState(() {
+      _highlightedSongPath = songPath;
+    });
+    _highlightTimer?.cancel();
+    _highlightTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _highlightedSongPath = null;
+        });
+      }
+    });
+
+    if (_scrollController.hasClients) {
+      final double headerEstimatedHeight = 280.0;
+      final double trackHeight = 52.0;
+      final double itemOffset = headerEstimatedHeight + index * trackHeight;
+      final double viewportHeight = _scrollController.position.viewportDimension;
+      double targetOffset = itemOffset - (viewportHeight / 2) + (trackHeight / 2);
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      targetOffset = targetOffset.clamp(0.0, maxScroll);
+      _scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  Future<void> _locateCurrentSong() async {
+    final currentMusic = ref.read(audioCurrentMusicProvider);
+    if (currentMusic == null) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    final inCurrentAlbum = _tracks.any((t) => t.path == currentMusic.path);
+    if (inCurrentAlbum) {
+      _scrollToTrack(currentMusic.path);
+      return;
+    }
+
+    final info = RemoteMediaResolver.parseUri(currentMusic.path);
+    if (info != null &&
+        info.type == RemoteServerType.subsonic &&
+        info.serverId == widget.server.id) {
+      try {
+        final client = SubsonicClient(
+          server: widget.server,
+          password: widget.password,
+        );
+        final songData = await client.getSong(info.trackIdOrPath);
+        if (songData != null) {
+          final albumId =
+              songData['albumId'] as String? ?? songData['parent'] as String?;
+          final albumName = songData['album'] as String? ?? 'Album';
+          final artistName = songData['artist'] as String?;
+          final coverArtId = songData['coverArt'] as String?;
+          if (albumId != null && mounted) {
+            if (albumId == widget.albumId) {
+              _scrollToTrack(currentMusic.path);
+            } else {
+              NavidromeNavUtils.openAlbum(
+                context,
+                ref,
+                server: widget.server,
+                password: widget.password,
+                albumId: albumId,
+                albumName: albumName,
+                artistName: artistName,
+                coverArtId: coverArtId,
+                highlightedSongPath: currentMusic.path,
+              );
+            }
+            return;
+          }
+        }
+      } catch (_) {}
+    } else if (info != null) {
+      final servers = ref.read(remoteServersProvider).asData?.value ?? [];
+      final server = servers.firstWhereOrNull((s) => s.id == info.serverId);
+      if (server != null) {
+        final password = await ref
+                .read(remoteServersProvider.notifier)
+                .getPassword(server.id) ??
+            '';
+        if (info.type == RemoteServerType.webdav) {
+          final targetDir = p.posix.dirname(info.trackIdOrPath);
+          final rootPath = server.customPath?.trim().isNotEmpty == true
+              ? server.customPath!
+              : '/';
+          final stack =
+              ActiveRemoteSession.buildWebDavPathStack(rootPath, targetDir);
+          ref.read(activeRemoteSessionProvider.notifier).setSession(
+                ActiveRemoteSession(
+                  server: server,
+                  password: password,
+                  rootPath: rootPath,
+                  initialPath: targetDir,
+                  webDavPathStack: stack,
+                  webDavHighlightedSongPath: currentMusic.path,
+                ),
+              );
+          return;
+        } else if (info.type == RemoteServerType.subsonic) {
+          try {
+            final client = SubsonicClient(server: server, password: password);
+            final songData = await client.getSong(info.trackIdOrPath);
+            if (songData != null && mounted) {
+              final albumId = songData['albumId'] as String? ??
+                  songData['parent'] as String?;
+              final albumName = songData['album'] as String? ?? 'Album';
+              final artistName = songData['artist'] as String?;
+              final coverArtId = songData['coverArt'] as String?;
+              if (albumId != null) {
+                ref.read(activeRemoteSessionProvider.notifier).setSession(
+                      ActiveRemoteSession(
+                        server: server,
+                        password: password,
+                        navidromeDetailStack: [
+                          NavidromeAlbumRoute(
+                            albumId: albumId,
+                            albumName: albumName,
+                            artistName: artistName,
+                            coverArtId: coverArtId,
+                            highlightedSongPath: currentMusic.path,
+                          ),
+                        ],
+                      ),
+                    );
+                return;
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    } else {
+      ref.read(activeRemoteSessionProvider.notifier).clear();
+      return;
+    }
+
+    showToast(l10n.songNotInScannedFolders);
   }
 
   Future<void> _loadAlbumDetails() async {
@@ -125,6 +292,13 @@ class _NavidromeAlbumDetailPageState
         _isStarred = isStarred;
         _isLoading = false;
       });
+
+      if (_highlightedSongPath != null) {
+        final targetPath = _highlightedSongPath!;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToTrack(targetPath);
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -201,6 +375,11 @@ class _NavidromeAlbumDetailPageState
                 ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.my_location_rounded),
+            tooltip: l10n.locateCurrentSong,
+            onPressed: _locateCurrentSong,
+          ),
           Consumer(
             builder: (context, ref, child) {
               final activeCount = ref.watch(activeDownloadsCountProvider);
@@ -333,6 +512,7 @@ class _NavidromeAlbumDetailPageState
                             itemBuilder: (context, index) {
                               final song = _tracks[index];
                               final isPlaying = currentMusic?.path == song.path;
+                              final isHighlighted = _highlightedSongPath == song.path;
                               final isAudioPlaying = ref.watch(audioIsPlayingProvider);
                               final isSelected = isSongSelected(song.path);
                               final trackNum = song.trackNumber ?? (index + 1);
@@ -377,103 +557,117 @@ class _NavidromeAlbumDetailPageState
                                     toggleSongSelection(song.path);
                                   }
                                 },
-                                child: Material(
-                                  color: isSelectionMode && isSelected
-                                      ? theme.colorScheme.primaryContainer
-                                          .withValues(alpha: 0.35)
-                                      : (isPlaying
-                                          ? theme.colorScheme.primaryContainer
-                                              .withValues(alpha: 0.35)
-                                          : Colors.transparent),
-                                  child: InkWell(
-                                    onTap: () {
-                                      handleSongTap(
-                                        index: index,
-                                        songPath: song.path,
-                                        allSongs: _tracks,
-                                        onNormalTap: () async {
-                                          final audioService =
-                                              ref.read(audioServiceProvider);
-                                          await audioService.playPlaylist(
-                                            _tracks,
-                                            initialIndex: index,
-                                            source: PlaybackSource(
-                                              type: PlaybackSourceType.album,
-                                              id: 'remote-${widget.server.id}-${widget.albumId}',
-                                              name: widget.albumName,
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                    child: Align(
-                                      alignment: Alignment.center,
-                                      child: ConstrainedBox(
-                                        constraints:
-                                            const BoxConstraints(maxWidth: 1080),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 6,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              SizedBox(
-                                                width: _tracks.length >= 100 ? 40 : 32,
-                                                child: Center(
-                                                  child: isSelectionMode
-                                                      ? Checkbox(
-                                                          value: isSelected,
-                                                          onChanged: (_) =>
-                                                              toggleSongSelection(
-                                                            song.path,
-                                                          ),
-                                                        )
-                                                      : (isPlaying
-                                                          ? PlayingEqualizerIcon(
-                                                              color:
-                                                                  theme.colorScheme.primary,
-                                                              size: 16,
-                                                              isPlaying: isAudioPlaying,
-                                                            )
-                                                          : FittedBox(
-                                                              fit: BoxFit.scaleDown,
-                                                              child: Text(
-                                                                trackLabel,
-                                                                textAlign: TextAlign.center,
-                                                                style: theme
-                                                                    .textTheme.bodyMedium
-                                                                    ?.copyWith(
-                                                                  color: theme.colorScheme
-                                                                      .onSurfaceVariant,
-                                                                  fontWeight:
-                                                                      FontWeight.w600,
-                                                                ),
-                                                              ),
-                                                            )),
-                                                ),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                  decoration: BoxDecoration(
+                                    color: isSelectionMode && isSelected
+                                        ? theme.colorScheme.primaryContainer
+                                            .withValues(alpha: 0.35)
+                                        : (isHighlighted
+                                            ? theme.colorScheme.primaryContainer
+                                                .withValues(alpha: 0.6)
+                                            : (isPlaying
+                                                ? theme.colorScheme.primaryContainer
+                                                    .withValues(alpha: 0.35)
+                                                : Colors.transparent)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () {
+                                        handleSongTap(
+                                          index: index,
+                                          songPath: song.path,
+                                          allSongs: _tracks,
+                                          onNormalTap: () async {
+                                            final audioService =
+                                                ref.read(audioServiceProvider);
+                                            await audioService.playPlaylist(
+                                              _tracks,
+                                              initialIndex: index,
+                                              source: PlaybackSource(
+                                                type: PlaybackSourceType.album,
+                                                id: 'remote-${widget.server.id}-${widget.albumId}',
+                                                name: widget.albumName,
                                               ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: Text(
-                                                  song.displayName,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: theme.textTheme.bodyLarge
-                                                      ?.copyWith(
-                                                    color: isPlaying
-                                                        ? theme.colorScheme.primary
-                                                        : null,
-                                                    fontWeight: isPlaying
-                                                        ? FontWeight.w700
-                                                        : null,
+                                            );
+                                          },
+                                        );
+                                      },
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: ConstrainedBox(
+                                          constraints:
+                                              const BoxConstraints(maxWidth: 1080),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 6,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                SizedBox(
+                                                  width: _tracks.length >= 100 ? 40 : 32,
+                                                  child: Center(
+                                                    child: isSelectionMode
+                                                        ? Checkbox(
+                                                            value: isSelected,
+                                                            onChanged: (_) =>
+                                                                toggleSongSelection(
+                                                              song.path,
+                                                            ),
+                                                          )
+                                                        : (isPlaying
+                                                            ? PlayingEqualizerIcon(
+                                                                color:
+                                                                    theme.colorScheme.primary,
+                                                                size: 16,
+                                                                isPlaying: isAudioPlaying,
+                                                              )
+                                                            : FittedBox(
+                                                                fit: BoxFit.scaleDown,
+                                                                child: Text(
+                                                                  trackLabel,
+                                                                  textAlign: TextAlign.center,
+                                                                  style: theme
+                                                                      .textTheme.bodyMedium
+                                                                      ?.copyWith(
+                                                                    color: isHighlighted
+                                                                        ? theme.colorScheme.primary
+                                                                        : theme.colorScheme
+                                                                            .onSurfaceVariant,
+                                                                    fontWeight:
+                                                                        FontWeight.w600,
+                                                                  ),
+                                                                ),
+                                                              )),
                                                   ),
                                                 ),
-                                              ),
-                                              if (durationLabel != null) ...[
-                                                const SizedBox(width: 12),
-                                                Text(
-                                                  durationLabel,
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Text(
+                                                    song.displayName,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: theme.textTheme.bodyLarge
+                                                        ?.copyWith(
+                                                      color: (isPlaying || isHighlighted)
+                                                          ? theme.colorScheme.primary
+                                                          : null,
+                                                      fontWeight: (isPlaying || isHighlighted)
+                                                          ? FontWeight.w700
+                                                          : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (durationLabel != null) ...[
+                                                  const SizedBox(width: 12),
+                                                  Text(
+                                                    durationLabel,
                                                   style: theme.textTheme.bodyMedium
                                                       ?.copyWith(
                                                     color: theme
@@ -534,8 +728,9 @@ class _NavidromeAlbumDetailPageState
                                     ),
                                   ),
                                 ),
-                              );
-                            },
+                              ),
+                            );
+                          },
                           ),
                           SliverToBoxAdapter(child: SizedBox(height: bottomOffset)),
                         ],

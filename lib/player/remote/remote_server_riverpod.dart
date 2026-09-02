@@ -86,12 +86,14 @@ class NavidromeAlbumRoute extends NavidromeDetailRoute {
   final String albumName;
   final String? coverArtId;
   final String? artistName;
+  final String? highlightedSongPath;
 
   const NavidromeAlbumRoute({
     required this.albumId,
     required this.albumName,
     this.coverArtId,
     this.artistName,
+    this.highlightedSongPath,
   });
 
   @override
@@ -137,6 +139,7 @@ class NavidromePlaylistRoute extends NavidromeDetailRoute {
   final int? songCount;
   final int? duration;
   final bool isStarred;
+  final String? highlightedSongPath;
 
   const NavidromePlaylistRoute({
     required this.playlistId,
@@ -145,6 +148,7 @@ class NavidromePlaylistRoute extends NavidromeDetailRoute {
     this.songCount,
     this.duration,
     this.isStarred = false,
+    this.highlightedSongPath,
   });
 
   @override
@@ -195,6 +199,7 @@ class ActiveRemoteSession {
   final List<Map<String, dynamic>>? navidromeSearchedAlbums;
   final List<Map<String, dynamic>>? navidromeSearchedArtists;
   final List<NavidromeDetailRoute> navidromeDetailStack;
+  final String? webDavHighlightedSongPath;
 
   const ActiveRemoteSession({
     required this.server,
@@ -219,7 +224,49 @@ class ActiveRemoteSession {
     this.navidromeSearchedAlbums,
     this.navidromeSearchedArtists,
     this.navidromeDetailStack = const [],
+    this.webDavHighlightedSongPath,
   });
+
+  static List<String> buildWebDavPathStack(
+    String rootPath,
+    String targetDir,
+  ) {
+    final cleanRoot = rootPath.endsWith('/') && rootPath.length > 1
+        ? rootPath.substring(0, rootPath.length - 1)
+        : rootPath;
+    final cleanTarget = targetDir.endsWith('/') && targetDir.length > 1
+        ? targetDir.substring(0, targetDir.length - 1)
+        : targetDir;
+
+    if (cleanTarget.isEmpty ||
+        cleanTarget == cleanRoot ||
+        cleanTarget == '/') {
+      return const [];
+    }
+
+    var relative = cleanTarget;
+    if (cleanRoot != '/' && relative.startsWith(cleanRoot)) {
+      relative = relative.substring(cleanRoot.length);
+    }
+
+    final segments = relative
+        .split('/')
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
+
+    if (segments.isEmpty) return const [];
+
+    final stack = <String>[];
+    for (int i = 0; i < segments.length; i++) {
+      final sub = segments.sublist(0, i + 1).join('/');
+      if (cleanRoot == '/' || cleanRoot.isEmpty) {
+        stack.add('/$sub');
+      } else {
+        stack.add('$cleanRoot/$sub');
+      }
+    }
+    return stack;
+  }
 
   ActiveRemoteSession copyWith({
     RemoteServer? server,
@@ -244,6 +291,7 @@ class ActiveRemoteSession {
     List<Map<String, dynamic>>? navidromeSearchedAlbums,
     List<Map<String, dynamic>>? navidromeSearchedArtists,
     List<NavidromeDetailRoute>? navidromeDetailStack,
+    String? webDavHighlightedSongPath,
   }) {
     return ActiveRemoteSession(
       server: server ?? this.server,
@@ -277,6 +325,8 @@ class ActiveRemoteSession {
       navidromeSearchedArtists:
           navidromeSearchedArtists ?? this.navidromeSearchedArtists,
       navidromeDetailStack: navidromeDetailStack ?? this.navidromeDetailStack,
+      webDavHighlightedSongPath:
+          webDavHighlightedSongPath ?? this.webDavHighlightedSongPath,
     );
   }
 }
@@ -454,6 +504,24 @@ class ActiveRemoteSessionNotifier extends Notifier<ActiveRemoteSession?> {
   void setWebDavPathStack(List<String> stack) {
     if (state != null) {
       state = state!.copyWith(webDavPathStack: stack);
+    }
+  }
+
+  void setWebDavLocation({
+    required List<String> pathStack,
+    String? highlightedSongPath,
+  }) {
+    if (state != null) {
+      state = state!.copyWith(
+        webDavPathStack: pathStack,
+        webDavHighlightedSongPath: highlightedSongPath,
+      );
+    }
+  }
+
+  void clearWebDavHighlightedSongPath() {
+    if (state != null && state!.webDavHighlightedSongPath != null) {
+      state = state!.copyWith(webDavHighlightedSongPath: null);
     }
   }
 

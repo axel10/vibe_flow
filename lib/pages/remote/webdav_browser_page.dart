@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import '../../player/audio/playback_source.dart';
 import '../../player/remote/remote_server_models.dart';
 import '../../player/remote/remote_server_riverpod.dart';
 import '../../player/remote/clients/webdav_client.dart';
+import '../../player/remote/clients/subsonic_client.dart';
 import '../../player/remote/proxy/remote_media_resolver.dart';
 import '../../l10n/app_localizations.dart';
 import '../../player/remote/services/remote_download_service.dart';
@@ -41,6 +43,7 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
   final String? initialPath;
   final String? rootPath;
   final bool wrapWithMiniPlayer;
+  final String? highlightedSongPath;
 
   const WebDavBrowserPage({
     super.key,
@@ -49,6 +52,7 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
     this.initialPath,
     this.rootPath,
     this.wrapWithMiniPlayer = false,
+    this.highlightedSongPath,
   });
 
   @override
@@ -81,6 +85,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   bool _isCoverVisible = true;
   bool _isSearching = false;
   String _searchQuery = '';
+  String? _highlightedSongPath;
+  Timer? _highlightTimer;
 
   @override
   void initState() {
@@ -92,6 +98,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       server: widget.server,
       password: widget.password,
     );
+
+    if (widget.highlightedSongPath != null) {
+      _highlightedSongPath = widget.highlightedSongPath;
+    }
 
     final session = ref.read(activeRemoteSessionProvider);
     final isSameServer =
@@ -119,8 +129,26 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       _sortItems(_items);
       _isLoading = false;
       _startMetadataExtraction(_items, _loadEpoch);
+      if (_highlightedSongPath != null) {
+        final target = _highlightedSongPath!;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToSong(target);
+        });
+      }
     } else {
       _loadDirectory(_currentPath);
+    }
+  }
+
+  @override
+  void didUpdateWidget(WebDavBrowserPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.highlightedSongPath != null &&
+        widget.highlightedSongPath != oldWidget.highlightedSongPath) {
+      _highlightedSongPath = widget.highlightedSongPath;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToSong(widget.highlightedSongPath!);
+      });
     }
   }
 
@@ -141,6 +169,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
   @override
   void dispose() {
+    _highlightTimer?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
@@ -249,6 +278,12 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
           _isLoading = false;
         });
         _startMetadataExtraction(list, currentEpoch);
+        if (_highlightedSongPath != null) {
+          final target = _highlightedSongPath!;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToSong(target);
+          });
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           ref.read(activeRemoteSessionProvider.notifier).updateWebDavState(
@@ -1023,9 +1058,112 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     );
   }
 
-  void _locateCurrentSong() {
+  Future<void> _locateCurrentSong() async {
     final currentMusic = ref.read(audioCurrentMusicProvider);
     if (currentMusic == null) return;
+    final l10n = AppLocalizations.of(context)!;
+
+    final info = RemoteMediaResolver.parseUri(currentMusic.path);
+    if (info != null &&
+        info.type == RemoteServerType.webdav &&
+        info.serverId == widget.server.id) {
+      final songFullPath = info.trackIdOrPath;
+      final parentDir = p.posix.dirname(songFullPath);
+
+      final cleanCurrent = _currentPath.endsWith('/') && _currentPath.length > 1
+          ? _currentPath.substring(0, _currentPath.length - 1)
+          : _currentPath;
+      final cleanParent = parentDir.endsWith('/') && parentDir.length > 1
+          ? parentDir.substring(0, parentDir.length - 1)
+          : parentDir;
+
+      if (cleanCurrent != cleanParent) {
+        final stack =
+            ActiveRemoteSession.buildWebDavPathStack(_rootPath, parentDir);
+        ref.read(activeRemoteSessionProvider.notifier).setWebDavLocation(
+              pathStack: stack,
+              highlightedSongPath: currentMusic.path,
+            );
+        return;
+      }
+
+      final scrolled = _scrollToSong(currentMusic.path);
+      if (!scrolled) {
+        showToast(l10n.songNotInScannedFolders);
+      }
+      return;
+    }
+
+    if (info != null) {
+      final servers = ref.read(remoteServersProvider).asData?.value ?? [];
+      final server = servers.firstWhereOrNull((s) => s.id == info.serverId);
+      if (server != null) {
+        final password = await ref
+                .read(remoteServersProvider.notifier)
+                .getPassword(server.id) ??
+            '';
+        if (info.type == RemoteServerType.webdav) {
+          final targetDir = p.posix.dirname(info.trackIdOrPath);
+          final rootPath = server.customPath?.trim().isNotEmpty == true
+              ? server.customPath!
+              : '/';
+          final stack =
+              ActiveRemoteSession.buildWebDavPathStack(rootPath, targetDir);
+          ref.read(activeRemoteSessionProvider.notifier).setSession(
+                ActiveRemoteSession(
+                  server: server,
+                  password: password,
+                  rootPath: rootPath,
+                  initialPath: targetDir,
+                  webDavPathStack: stack,
+                  webDavHighlightedSongPath: currentMusic.path,
+                ),
+              );
+          return;
+        } else if (info.type == RemoteServerType.subsonic) {
+          try {
+            final client = SubsonicClient(server: server, password: password);
+            final songData = await client.getSong(info.trackIdOrPath);
+            if (songData != null && mounted) {
+              final albumId = songData['albumId'] as String? ??
+                  songData['parent'] as String?;
+              final albumName = songData['album'] as String? ?? 'Album';
+              final artistName = songData['artist'] as String?;
+              final coverArtId = songData['coverArt'] as String?;
+              if (albumId != null) {
+                ref.read(activeRemoteSessionProvider.notifier).setSession(
+                      ActiveRemoteSession(
+                        server: server,
+                        password: password,
+                        navidromeDetailStack: [
+                          NavidromeAlbumRoute(
+                            albumId: albumId,
+                            albumName: albumName,
+                            artistName: artistName,
+                            coverArtId: coverArtId,
+                            highlightedSongPath: currentMusic.path,
+                          ),
+                        ],
+                      ),
+                    );
+                return;
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    } else {
+      ref.read(activeRemoteSessionProvider.notifier).clear();
+      return;
+    }
+
+    showToast(l10n.songNotInScannedFolders);
+  }
+
+  bool _scrollToSong(String songPath) {
+    if (!mounted || _items.isEmpty) return false;
+    final info = RemoteMediaResolver.parseUri(songPath);
+    final songFullPath = info?.trackIdOrPath ?? songPath;
 
     final lowercaseQuery = _searchQuery.toLowerCase();
     final List<WebDavFile> displayedItems;
@@ -1052,48 +1190,59 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
 
     final fileIndex = matchedFiles.indexWhere((f) {
       final uri = RemoteMediaResolver.buildWebDavUri(widget.server.id, f.path);
-      return uri == currentMusic.path;
+      return uri == songPath || f.path == songFullPath;
     });
 
     if (fileIndex == -1) {
-      showToast(AppLocalizations.of(context)!.songNotInScannedFolders);
-      return;
+      return false;
     }
 
-    final settings = ref.read(settingsServiceProvider);
-    final viewMode = settings.folderViewMode;
-    final isFolderGrid =
-        viewMode == FolderViewMode.hybrid || viewMode == FolderViewMode.grid;
-    final isSongGrid = viewMode == FolderViewMode.grid;
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final double crossAxisExtent = screenWidth - 32;
-    final int crossAxisCount = getFolderGridCrossAxisCount(crossAxisExtent);
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
-    final textScale = MediaQuery.textScalerOf(context).scale(10) / 10;
-    final clampedScale = textScale.clamp(1.0, 1.3);
-    final double textHeight = (isPortrait ? 72.0 : 84.0) * clampedScale;
-    final double cardWidth =
-        (crossAxisExtent - (crossAxisCount - 1) * 16) / crossAxisCount;
-    final double cardHeight = cardWidth + textHeight;
-
-    double fileOffset = 48.0 + 190.0;
-    if (isFolderGrid) {
-      final rows = (matchedFolders.length / crossAxisCount).ceil();
-      fileOffset += rows * (cardHeight + 16);
-    } else {
-      fileOffset += matchedFolders.length * 80.0;
-    }
-
-    if (isSongGrid) {
-      final songRows = (fileIndex / crossAxisCount).floor();
-      fileOffset += songRows * (cardHeight + 16);
-    } else {
-      fileOffset += fileIndex * 80.0;
-    }
+    setState(() {
+      _highlightedSongPath = songPath;
+    });
+    _highlightTimer?.cancel();
+    _highlightTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _highlightedSongPath = null;
+        });
+      }
+    });
 
     if (_scrollController.hasClients) {
+      final settings = ref.read(settingsServiceProvider);
+      final viewMode = settings.folderViewMode;
+      final isFolderGrid =
+          viewMode == FolderViewMode.hybrid || viewMode == FolderViewMode.grid;
+      final isSongGrid = viewMode == FolderViewMode.grid;
+
+      final screenWidth = MediaQuery.of(context).size.width;
+      final double crossAxisExtent = screenWidth - 32;
+      final int crossAxisCount = getFolderGridCrossAxisCount(crossAxisExtent);
+      final isPortrait =
+          MediaQuery.of(context).orientation == Orientation.portrait;
+      final textScale = MediaQuery.textScalerOf(context).scale(10) / 10;
+      final clampedScale = textScale.clamp(1.0, 1.3);
+      final double textHeight = (isPortrait ? 72.0 : 84.0) * clampedScale;
+      final double cardWidth =
+          (crossAxisExtent - (crossAxisCount - 1) * 16) / crossAxisCount;
+      final double cardHeight = cardWidth + textHeight;
+
+      double fileOffset = 48.0 + 190.0;
+      if (isFolderGrid) {
+        final rows = (matchedFolders.length / crossAxisCount).ceil();
+        fileOffset += rows * (cardHeight + 16);
+      } else {
+        fileOffset += matchedFolders.length * 80.0;
+      }
+
+      if (isSongGrid) {
+        final songRows = (fileIndex / crossAxisCount).floor();
+        fileOffset += songRows * (cardHeight + 16);
+      } else {
+        fileOffset += fileIndex * 80.0;
+      }
+
       final double viewportHeight =
           _scrollController.position.viewportDimension;
       double targetOffset = fileOffset -
@@ -1103,10 +1252,11 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
       targetOffset = targetOffset.clamp(0.0, maxScroll);
       _scrollController.animateTo(
         targetOffset,
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
       );
     }
+    return true;
   }
 
   @override
@@ -1450,6 +1600,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   password: widget.password,
                   metadataMap: _metadataMap,
                   currentMusicPath: currentMusic?.path,
+                  highlightedSongPath: _highlightedSongPath,
                   isAudioPlaying: isAudioPlaying,
                   allAudioFiles: _getAudioFiles(sourceList: displayedItems),
                   isSelectionMode: _isSelectionMode,
@@ -1830,30 +1981,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         MediaQuery.of(context).orientation == Orientation.portrait;
     final activeDownloadsCount = ref.watch(activeDownloadsCountProvider);
 
-    final lowercaseQuery = _searchQuery.toLowerCase();
-    final List<WebDavFile> displayedItems;
-    if (_searchQuery.isEmpty) {
-      displayedItems = _items;
-    } else {
-      displayedItems = _items.where((item) {
-        if (item.name.toLowerCase().contains(lowercaseQuery)) return true;
-        final virtualUri =
-            RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path);
-        final meta = _metadataMap[virtualUri] ??
-            ref.read(scannerServiceProvider).metadataMap[virtualUri];
-        if (meta != null) {
-          if (meta.title.toLowerCase().contains(lowercaseQuery)) return true;
-          if (meta.artist.toLowerCase().contains(lowercaseQuery)) return true;
-          if (meta.album.toLowerCase().contains(lowercaseQuery)) return true;
-        }
-        return false;
-      }).toList();
-    }
-    final isCurrentMusicInFolder = currentMusic != null &&
-        displayedItems.any((item) =>
-            RemoteMediaResolver.buildWebDavUri(widget.server.id, item.path) ==
-            currentMusic.path);
-
     return ValueListenableBuilder<double>(
       valueListenable: _scrollProgress,
       builder: (context, progressValue, child) {
@@ -2131,7 +2258,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                     }
                   },
                   itemBuilder: (context) => [
-                    if (isCurrentMusicInFolder)
+                    if (currentMusic != null)
                       PopupMenuItem(
                         value: 'locate',
                         child: Row(
@@ -2203,7 +2330,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   ],
                 )
               else ...[
-                if (isCurrentMusicInFolder) ...[
+                if (currentMusic != null) ...[
                   IconButton(
                     tooltip: l10n.locateCurrentSong,
                     icon: Icon(

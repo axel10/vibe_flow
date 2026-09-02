@@ -211,6 +211,7 @@ class WebDavSongsSliver extends ConsumerWidget {
   final String password;
   final Map<String, SongMetadata> metadataMap;
   final String? currentMusicPath;
+  final String? highlightedSongPath;
   final bool isAudioPlaying;
   final List<MusicFile> allAudioFiles;
   final bool isSelectionMode;
@@ -229,6 +230,7 @@ class WebDavSongsSliver extends ConsumerWidget {
     required this.password,
     required this.metadataMap,
     required this.currentMusicPath,
+    this.highlightedSongPath,
     required this.isAudioPlaying,
     required this.allAudioFiles,
     this.isSelectionMode = false,
@@ -276,6 +278,7 @@ class WebDavSongsSliver extends ConsumerWidget {
                   final meta = metadataMap[uri] ??
                       ref.watch(scannerServiceProvider.select((s) => s.metadataMap[uri]));
                   final isSelected = selectedSongPaths.contains(uri);
+                  final isHighlighted = highlightedSongPath == uri;
 
                   return HoverableCard(
                     child: WebDavSongGridCard(
@@ -284,6 +287,7 @@ class WebDavSongsSliver extends ConsumerWidget {
                       password: password,
                       metadata: meta,
                       currentMusicPath: currentMusicPath,
+                      isHighlighted: isHighlighted,
                       isAudioPlaying: isAudioPlaying,
                       allAudioFiles: allAudioFiles,
                       isSelected: isSelected,
@@ -318,6 +322,7 @@ class WebDavSongsSliver extends ConsumerWidget {
               final meta = metadataMap[uri] ??
                   ref.watch(scannerServiceProvider.select((s) => s.metadataMap[uri]));
               final isSelected = selectedSongPaths.contains(uri);
+              final isHighlighted = highlightedSongPath == uri;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(
@@ -329,6 +334,7 @@ class WebDavSongsSliver extends ConsumerWidget {
                   password: password,
                   metadata: meta,
                   currentMusicPath: currentMusicPath,
+                  isHighlighted: isHighlighted,
                   isAudioPlaying: isAudioPlaying,
                   allAudioFiles: allAudioFiles,
                   isSelected: isSelected,
@@ -356,6 +362,7 @@ class WebDavSongGridCard extends ConsumerWidget {
   final String password;
   final SongMetadata? metadata;
   final String? currentMusicPath;
+  final bool isHighlighted;
   final bool isAudioPlaying;
   final List<MusicFile> allAudioFiles;
   final bool isSelected;
@@ -371,6 +378,7 @@ class WebDavSongGridCard extends ConsumerWidget {
     required this.password,
     required this.metadata,
     required this.currentMusicPath,
+    this.isHighlighted = false,
     required this.isAudioPlaying,
     required this.allAudioFiles,
     this.isSelected = false,
@@ -420,7 +428,7 @@ class WebDavSongGridCard extends ConsumerWidget {
         ? Colors.white.withValues(alpha: 0.9)
         : Colors.black.withValues(alpha: 0.9);
 
-    final titleColor = isCurrent
+    final titleColor = (isCurrent || isHighlighted)
         ? theme.colorScheme.primary
         : (isAudio
             ? theme.colorScheme.onSurface
@@ -436,12 +444,16 @@ class WebDavSongGridCard extends ConsumerWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
+            color: isHighlighted
+                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
+                : theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
             border: Border.all(
-              color: isCurrent
-                  ? theme.colorScheme.primary.withValues(alpha: 0.8)
-                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
-              width: isCurrent ? 1.5 : 1.0,
+              color: isHighlighted
+                  ? theme.colorScheme.primary
+                  : (isCurrent
+                      ? theme.colorScheme.primary.withValues(alpha: 0.8)
+                      : theme.colorScheme.outlineVariant.withValues(alpha: 0.25)),
+              width: (isHighlighted || isCurrent) ? 1.5 : 1.0,
             ),
           ),
           child: ClipRRect(
@@ -612,6 +624,7 @@ class WebDavSongListTile extends ConsumerWidget {
   final String password;
   final SongMetadata? metadata;
   final String? currentMusicPath;
+  final bool isHighlighted;
   final bool isAudioPlaying;
   final List<MusicFile> allAudioFiles;
   final bool isSelected;
@@ -628,6 +641,7 @@ class WebDavSongListTile extends ConsumerWidget {
     required this.password,
     required this.metadata,
     required this.currentMusicPath,
+    this.isHighlighted = false,
     required this.isAudioPlaying,
     required this.allAudioFiles,
     this.isSelected = false,
@@ -773,7 +787,9 @@ class WebDavSongListTile extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isSelectionMode && isSelected
               ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-              : Colors.transparent,
+              : (isHighlighted
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.6)
+                  : Colors.transparent),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Material(
@@ -806,7 +822,7 @@ class WebDavSongListTile extends ConsumerWidget {
                               PlayingEqualizerIcon(
                                 color: theme.colorScheme.primary,
                                 size: 14,
-                                isPlaying: isAudioPlaying,
+                               isPlaying: isAudioPlaying,
                               ),
                               const SizedBox(width: 4),
                             ],
@@ -814,13 +830,13 @@ class WebDavSongListTile extends ConsumerWidget {
                               child: Text(
                                 titleText,
                                 style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: isCurrent
+                                  color: (isCurrent || isHighlighted)
                                       ? theme.colorScheme.primary
                                       : (isAudio
                                           ? theme.colorScheme.onSurface
                                           : theme.colorScheme.onSurfaceVariant
                                               .withValues(alpha: 0.6)),
-                                  fontWeight: isCurrent
+                                  fontWeight: (isCurrent || isHighlighted)
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                 ),

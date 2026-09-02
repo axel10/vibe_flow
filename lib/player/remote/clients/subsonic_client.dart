@@ -301,6 +301,19 @@ class SubsonicClient {
     return null;
   }
 
+  /// Fetches details for a single song by ID.
+  Future<Map<String, dynamic>?> getSong(String songId) async {
+    try {
+      final url = buildUrl('getSong.view', {'id': songId});
+      final response = await _dio.get<Map<String, dynamic>>(url);
+      final song = response.data?['subsonic-response']?['song'];
+      if (song is Map<String, dynamic>) {
+        return song;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// Fetches all playlists.
   Future<List<Map<String, dynamic>>> getPlaylists() async {
     final url = buildUrl('getPlaylists.view');
