@@ -268,8 +268,9 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                               : 0.0,
                           bottom: widget.bottomSpacerHeight + widget.bottomTabBarHeight + extraBottomPadding,
                         ),
-                    child: Column(
-                      children: List.generate(widget.displayLines.length, (index) {
+                        child: ExcludeSemantics(
+                          child: Column(
+                            children: List.generate(widget.displayLines.length, (index) {
                         final bool isFar = widget.isTransitioning &&
                             (widget.hasTimedLyrics
                                 ? (index - widget.activeIndex).abs() > 8
@@ -531,8 +532,9 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                         );
                       }),
                     ),
-                      ),
-                    );
+                          ),
+                        ),
+                      );
                   },
                 ),
               ),
@@ -580,8 +582,9 @@ class _LyricsFadeShaderMask extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: ShaderMask(
-        blendMode: BlendMode.dstIn,
+      child: ExcludeSemantics(
+        child: ShaderMask(
+          blendMode: BlendMode.dstIn,
         shaderCallback: (bounds) {
           final height = bounds.height > 0 ? bounds.height : 1.0;
           if (height <= 1.0) {
@@ -643,6 +646,7 @@ class _LyricsFadeShaderMask extends StatelessWidget {
           ).createShader(bounds);
         },
         child: child,
+      ),
       ),
     );
   }
@@ -797,27 +801,29 @@ class _StaggeredAppleLyricsScrollWrapperState
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      child: widget.child,
-      builder: (context, child) {
-        if (widget.isTransitioning) {
-          return child!;
-        }
+    return ExcludeSemantics(
+      child: AnimatedBuilder(
+        animation: _animation,
+        child: widget.child,
+        builder: (context, child) {
+          if (widget.isTransitioning) {
+            return child!;
+          }
 
-        if (_controller.isAnimating) {
-          _currentOffset = _startOffset * (1.0 - _animation.value);
-        } else if (_delayTimer?.isActive ?? false) {
-          _currentOffset = _startOffset;
-        } else {
-          _currentOffset = 0.0;
-        }
+          if (_controller.isAnimating) {
+            _currentOffset = _startOffset * (1.0 - _animation.value);
+          } else if (_delayTimer?.isActive ?? false) {
+            _currentOffset = _startOffset;
+          } else {
+            _currentOffset = 0.0;
+          }
 
-        return Transform.translate(
-          offset: Offset(0.0, _currentOffset),
-          child: child,
-        );
-      },
+          return Transform.translate(
+            offset: Offset(0.0, _currentOffset),
+            child: child,
+          );
+        },
+      ),
     );
   }
 }
@@ -896,29 +902,31 @@ class _WordWordLyricsWidgetState extends ConsumerState<WordWordLyricsWidget> wit
       currentPosition = _lastObservedPosition;
     }
 
-    return Wrap(
-      alignment: widget.isLeftAligned ? WrapAlignment.start : WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: widget.words.map((word) {
-        final startMs = word.timestamp.inMilliseconds;
-        final durationMs = word.durationMs;
-        final currentMs = currentPosition.inMilliseconds;
+    return ExcludeSemantics(
+      child: Wrap(
+        alignment: widget.isLeftAligned ? WrapAlignment.start : WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: widget.words.map((word) {
+          final startMs = word.timestamp.inMilliseconds;
+          final durationMs = word.durationMs;
+          final currentMs = currentPosition.inMilliseconds;
 
-        double progress = 0.0;
-        if (currentMs >= startMs + durationMs) {
-          progress = 1.0;
-        } else if (currentMs >= startMs && durationMs > 0) {
-          progress = (currentMs - startMs) / durationMs;
-        }
+          double progress = 0.0;
+          if (currentMs >= startMs + durationMs) {
+            progress = 1.0;
+          } else if (currentMs >= startMs && durationMs > 0) {
+            progress = (currentMs - startMs) / durationMs;
+          }
 
-        return WordHighlightText(
-          text: word.text,
-          progress: progress,
-          style: widget.lineStyle,
-          activeColor: widget.activeColor,
-          inactiveColor: widget.inactiveColor,
-        );
-      }).toList(),
+          return WordHighlightText(
+            text: word.text,
+            progress: progress,
+            style: widget.lineStyle,
+            activeColor: widget.activeColor,
+            inactiveColor: widget.inactiveColor,
+          );
+        }).toList(),
+      ),
     );
   }
 }
