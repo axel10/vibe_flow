@@ -4610,72 +4610,78 @@ class AppLocalizationsFr extends AppLocalizations {
   String get playlistRequestRejected => 'La demande de listes a été refusée';
 
   @override
-  String get windowsAudioOutputTitle => '音频输出模式 (Windows)';
+  String get windowsAudioOutputTitle => 'Mode de sortie audio (Windows)';
 
   @override
   String get windowsAudioOutputDescription =>
-      '选择共享输出或 WASAPI 独占输出模式（独占模式可绕过 Windows 系统混音器，实现高保真 Bit-Perfect 点对点播放）。';
+      'Sélectionnez le mode partagé ou le mode exclusif WASAPI (le mode exclusif contourne le mixeur audio Windows pour une sortie haute fidélité bit-perfect).';
 
   @override
-  String get audioOutputModeShared => '标准共享模式 (Shared)';
+  String get audioOutputModeShared => 'Mode partagé standard';
 
   @override
-  String get audioOutputModeExclusive =>
-      'WASAPI 独占模式 (Exclusive / Bit-Perfect)';
+  String get audioOutputModeExclusive => 'Mode exclusif WASAPI (Bit-Perfect)';
 
   @override
-  String get audioOutputDeviceTitle => '音频输出设备';
+  String get audioOutputDeviceTitle => 'Périphérique de sortie audio';
 
   @override
-  String get audioOutputDeviceDefault => '系统默认音频设备';
+  String get audioOutputDeviceDefault =>
+      'Périphérique audio par défaut du système';
 
   @override
-  String get wasapiBitPerfectTitle => '自动切换采样率 (Bit-Perfect)';
+  String get wasapiBitPerfectTitle =>
+      'Ajustement automatique du taux d\'échantillonnage (Bit-Perfect)';
 
   @override
   String get wasapiBitPerfectDescription =>
-      '跟随音源文件的原生采样率和声道动态配置 DAC 硬件输出，避免重采样失真。';
+      'Configure automatiquement le taux d\'échantillonnage matériel du DAC pour correspondre aux pistes sans rééchantillonnage.';
 
   @override
-  String get wasapiReleaseOnPauseTitle => '暂停时释放独占占用';
+  String get wasapiReleaseOnPauseTitle =>
+      'Libérer le périphérique lors de la pause';
 
   @override
-  String get wasapiReleaseOnPauseDescription => '播放暂停时临时释放音频设备，允许其他应用程序发声。';
+  String get wasapiReleaseOnPauseDescription =>
+      'Libère temporairement le point de sortie audio lors de la pause pour permettre à d\'autres applications de diffuser du son.';
 
   @override
-  String get activeHardwareFormatTitle => '当前硬件输出规格';
+  String get activeHardwareFormatTitle => 'Format matériel actif';
 
   @override
-  String get activeHardwareFormatDescription => 'DAC 实际工作采样率与位深';
+  String get activeHardwareFormatDescription =>
+      'Taux d\'échantillonnage et profondeur de bits actifs du DAC';
 
   @override
-  String get activeHardwareBitPerfectBadge => 'Bit-Perfect 点对点直通';
+  String get activeHardwareBitPerfectBadge => 'Bit-Perfect Direct';
 
   @override
-  String get exclusiveModeTitle => '独占模式';
+  String get exclusiveModeTitle => 'Mode exclusif';
 
   @override
-  String get exclusiveModeTooltip => 'WASAPI 独占模式已启用（已独占音频输出设备）';
+  String get exclusiveModeTooltip =>
+      'Le mode exclusif WASAPI est actif (périphérique audio réservé exclusivement)';
 
   @override
-  String get toggleWasapiExclusive => '切换 WASAPI 独占模式';
+  String get toggleWasapiExclusive => 'Basculer le mode exclusif WASAPI';
 
   @override
   String get toggleWasapiExclusiveDescription =>
-      '快速在 WASAPI 独占输出与系统共享输出之间切换 (Windows)';
+      'Basculer rapidement entre la sortie audio exclusive WASAPI et la sortie partagée (Windows)';
 
   @override
-  String get wasapiExclusiveShortcutTitle => '快捷键快速切换';
+  String get wasapiExclusiveShortcutTitle => 'Raccourci de basculement rapide';
 
   @override
-  String get wasapiExclusiveShortcutDescription => '使用快捷键快速在独占模式与系统共享输出间切换';
+  String get wasapiExclusiveShortcutDescription =>
+      'Utilisez un raccourci pour basculer rapidement entre le mode exclusif et le mode partagé';
 
   @override
-  String get wasapiExclusiveEnabledNotice => '已启用 WASAPI 独占模式';
+  String get wasapiExclusiveEnabledNotice => 'Mode exclusif WASAPI activé';
 
   @override
-  String get audioSharedModeEnabledNotice => '已切换至系统共享音频模式';
+  String get audioSharedModeEnabledNotice => 'Basculé en mode audio partagé';
 
   @override
-  String get editShortcutTitle => '编辑快捷键';
+  String get editShortcutTitle => 'Modifier le raccourci';
 }

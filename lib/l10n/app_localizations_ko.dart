@@ -4399,72 +4399,74 @@ class AppLocalizationsKo extends AppLocalizations {
   String get playlistRequestRejected => '상대방이 재생목록 공유 요청을 거절했습니다';
 
   @override
-  String get windowsAudioOutputTitle => '音频输出模式 (Windows)';
+  String get windowsAudioOutputTitle => '오디오 출력 모드 (Windows)';
 
   @override
   String get windowsAudioOutputDescription =>
-      '选择共享输出或 WASAPI 独占输出模式（独占模式可绕过 Windows 系统混音器，实现高保真 Bit-Perfect 点对点播放）。';
+      '공유 모드 또는 WASAPI 독점 모드를 선택합니다 (독점 모드는 Windows 오디오 엔진을 우회하여 비트 퍼펙트 고음질 출력을 지원합니다).';
 
   @override
-  String get audioOutputModeShared => '标准共享模式 (Shared)';
+  String get audioOutputModeShared => '표준 공유 모드 (Shared)';
 
   @override
-  String get audioOutputModeExclusive =>
-      'WASAPI 独占模式 (Exclusive / Bit-Perfect)';
+  String get audioOutputModeExclusive => 'WASAPI 독점 모드 (Bit-Perfect)';
 
   @override
-  String get audioOutputDeviceTitle => '音频输出设备';
+  String get audioOutputDeviceTitle => '오디오 출력 장치';
 
   @override
-  String get audioOutputDeviceDefault => '系统默认音频设备';
+  String get audioOutputDeviceDefault => '시스템 기본 오디오 장치';
 
   @override
-  String get wasapiBitPerfectTitle => '自动切换采样率 (Bit-Perfect)';
+  String get wasapiBitPerfectTitle => '샘플 레이트 자동 일치 (Bit-Perfect)';
 
   @override
   String get wasapiBitPerfectDescription =>
-      '跟随音源文件的原生采样率和声道动态配置 DAC 硬件输出，避免重采样失真。';
+      '리샘플링 없이 음원 파일의 원본 샘플 레이트 및 채널에 맞춰 DAC 하드웨어 출력을 자동으로 구성합니다.';
 
   @override
-  String get wasapiReleaseOnPauseTitle => '暂停时释放独占占用';
+  String get wasapiReleaseOnPauseTitle => '일시정지 시 장치 독점 해제';
 
   @override
-  String get wasapiReleaseOnPauseDescription => '播放暂停时临时释放音频设备，允许其他应用程序发声。';
+  String get wasapiReleaseOnPauseDescription =>
+      '재생 일시정지 시 오디오 장치를 일시적으로 해제하여 다른 애플리케이션에서 소리를 재생할 수 있도록 합니다.';
 
   @override
-  String get activeHardwareFormatTitle => '当前硬件输出规格';
+  String get activeHardwareFormatTitle => '현재 하드웨어 출력 형식';
 
   @override
-  String get activeHardwareFormatDescription => 'DAC 实际工作采样率与位深';
+  String get activeHardwareFormatDescription => 'DAC 활성 샘플 레이트 및 비트 심도';
 
   @override
-  String get activeHardwareBitPerfectBadge => 'Bit-Perfect 点对点直通';
+  String get activeHardwareBitPerfectBadge => 'Bit-Perfect 다이렉트';
 
   @override
-  String get exclusiveModeTitle => '独占模式';
+  String get exclusiveModeTitle => '독점 모드';
 
   @override
-  String get exclusiveModeTooltip => 'WASAPI 独占模式已启用（已独占音频输出设备）';
+  String get exclusiveModeTooltip =>
+      'WASAPI 독점 모드가 활성화되어 있습니다 (오디오 장치 독점 점유 중)';
 
   @override
-  String get toggleWasapiExclusive => '切换 WASAPI 独占模式';
+  String get toggleWasapiExclusive => 'WASAPI 독점 모드 전환';
 
   @override
   String get toggleWasapiExclusiveDescription =>
-      '快速在 WASAPI 独占输出与系统共享输出之间切换 (Windows)';
+      'WASAPI 독점 출력과 시스템 공유 출력 간을 빠르게 전환합니다 (Windows)';
 
   @override
-  String get wasapiExclusiveShortcutTitle => '快捷键快速切换';
+  String get wasapiExclusiveShortcutTitle => '단축키 빠른 전환';
 
   @override
-  String get wasapiExclusiveShortcutDescription => '使用快捷键快速在独占模式与系统共享输出间切换';
+  String get wasapiExclusiveShortcutDescription =>
+      '단축키를 사용하여 독점 모드와 시스템 공유 출력 간을 빠르게 전환합니다';
 
   @override
-  String get wasapiExclusiveEnabledNotice => '已启用 WASAPI 独占模式';
+  String get wasapiExclusiveEnabledNotice => 'WASAPI 독점 모드가 활성화되었습니다';
 
   @override
-  String get audioSharedModeEnabledNotice => '已切换至系统共享音频模式';
+  String get audioSharedModeEnabledNotice => '시스템 공유 오디오 모드로 전환되었습니다';
 
   @override
-  String get editShortcutTitle => '编辑快捷键';
+  String get editShortcutTitle => '단축키 수정';
 }

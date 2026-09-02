@@ -8726,4 +8726,74 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get playlistRequestRejected => '播放清單共享請求已被對方拒絕';
+
+  @override
+  String get windowsAudioOutputTitle => '音訊輸出模式 (Windows)';
+
+  @override
+  String get windowsAudioOutputDescription =>
+      '選擇共享輸出或 WASAPI 獨佔輸出模式（獨佔模式可繞過 Windows 系統混音器，實現高保真 Bit-Perfect 點對點播放）。';
+
+  @override
+  String get audioOutputModeShared => '標準共享模式 (Shared)';
+
+  @override
+  String get audioOutputModeExclusive =>
+      'WASAPI 獨佔模式 (Exclusive / Bit-Perfect)';
+
+  @override
+  String get audioOutputDeviceTitle => '音訊輸出裝置';
+
+  @override
+  String get audioOutputDeviceDefault => '系統預設音訊裝置';
+
+  @override
+  String get wasapiBitPerfectTitle => '自動切換取樣率 (Bit-Perfect)';
+
+  @override
+  String get wasapiBitPerfectDescription =>
+      '跟隨音源檔案的原生取樣率和聲道動態配置 DAC 硬體輸出，避免重取樣失真。';
+
+  @override
+  String get wasapiReleaseOnPauseTitle => '暫停時釋放獨佔佔用';
+
+  @override
+  String get wasapiReleaseOnPauseDescription => '播放暫停時臨時釋放音訊裝置，允許其他應用程式發聲。';
+
+  @override
+  String get activeHardwareFormatTitle => '目前硬體輸出規格';
+
+  @override
+  String get activeHardwareFormatDescription => 'DAC 實際工作取樣率與位元深度';
+
+  @override
+  String get activeHardwareBitPerfectBadge => 'Bit-Perfect 點對點直通';
+
+  @override
+  String get exclusiveModeTitle => '獨佔模式';
+
+  @override
+  String get exclusiveModeTooltip => 'WASAPI 獨佔模式已啟用（已獨佔音訊輸出裝置）';
+
+  @override
+  String get toggleWasapiExclusive => '切換 WASAPI 獨佔模式';
+
+  @override
+  String get toggleWasapiExclusiveDescription =>
+      '快速在 WASAPI 獨佔輸出與系統共享輸出之間切換 (Windows)';
+
+  @override
+  String get wasapiExclusiveShortcutTitle => '快速鍵快速切換';
+
+  @override
+  String get wasapiExclusiveShortcutDescription => '使用快速鍵快速在獨佔模式與系統共享輸出間切換';
+
+  @override
+  String get wasapiExclusiveEnabledNotice => '已啟用 WASAPI 獨佔模式';
+
+  @override
+  String get audioSharedModeEnabledNotice => '已切換至系統共享音訊模式';
+
+  @override
+  String get editShortcutTitle => '編輯快速鍵';
 }
