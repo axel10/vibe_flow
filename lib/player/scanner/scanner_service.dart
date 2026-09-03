@@ -3585,10 +3585,10 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     }
     _failedThumbnailPaths.remove(normalizedPath);
 
-    final file = File(normalizedPath);
-    if (!await file.exists()) {
+    final canAccess = await MetadataHelper.canAccessAudioFile(normalizedPath);
+    if (!canAccess) {
       debugPrint(
-        '[ScannerService] refreshMetadataForPath skipped missing file '
+        '[ScannerService] refreshMetadataForPath skipped, cannot access file '
         'path=$normalizedPath',
       );
       return;

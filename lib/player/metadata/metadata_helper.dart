@@ -106,6 +106,77 @@ class MetadataHelper {
     }
   }
 
+  /// 统一检查当前环境是否有权访问指定的音频文件。
+  ///
+  /// - 非 Android 平台直接返回 true；
+  /// - 远程 URL（如 subsonic://, webdav://, http://, https://）或 content:// 协议直接返回 true；
+  /// - Android 平台下，应用私有目录（如 /data/...）直接返回 true；
+  /// - Android 外部存储下，若拥有媒体库权限则返回 true；
+  /// - 若无媒体库权限，则检查该路径是否处于已授权的 SAF 目录树中；
+  /// - 若两者皆无，则返回 false，避免未授权直接访问文件系统导致崩溃或多余报错。
+  static Future<bool> canAccessAudioFile(
+    String filePath, {
+    bool? hasPermission,
+  }) async {
+    if (!Platform.isAndroid) return true;
+    final trimmed = filePath.trim();
+    if (trimmed.isEmpty) return false;
+    if (trimmed.startsWith('subsonic://') ||
+        trimmed.startsWith('webdav://') ||
+        trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://') ||
+        trimmed.startsWith('content://')) {
+      return true;
+    }
+
+    try {
+      final isExternal =
+          trimmed.startsWith('/storage/') || trimmed.startsWith('/sdcard/');
+      if (!isExternal) {
+        return true;
+      }
+
+      final permitted = hasPermission ?? await hasAndroidAudioPermission();
+      if (permitted) return true;
+
+      final mapping = await AndroidSafStorageHelper.findBestMapping(trimmed);
+      return mapping != null;
+    } catch (e) {
+      debugPrint('[MetadataHelper] canAccessAudioFile check failed for $filePath: $e');
+      return false;
+    }
+  }
+
+  /// 将音频路径转换为底层最适合读取的路径。
+  /// 若处于 Android 平台且无媒体库权限，自动通过已持久化的 SAF 映射转换为 content:// URI，
+  /// 避免底层 C++ 盲目使用 fopen 尝试打开物理路径而触发 fileRef is null 报错及回退。
+  static Future<String> resolveReadTargetPath(String filePath) async {
+    if (!Platform.isAndroid ||
+        filePath.startsWith('content://') ||
+        filePath.startsWith('http://') ||
+        filePath.startsWith('https://') ||
+        filePath.startsWith('subsonic://') ||
+        filePath.startsWith('webdav://')) {
+      return filePath;
+    }
+    final isExternal =
+        filePath.startsWith('/storage/') || filePath.startsWith('/sdcard/');
+    if (!isExternal) {
+      return filePath;
+    }
+    try {
+      final permitted = await hasAndroidAudioPermission();
+      if (permitted) return filePath;
+
+      final mappings = await AndroidSafStorageHelper.getMappings();
+      final safUri =
+          AndroidSafStorageHelper.resolvePhysicalPathToSafUri(filePath, mappings);
+      return safUri ?? filePath;
+    } catch (_) {
+      return filePath;
+    }
+  }
+
   /// 安全查询系统媒体库封面，内部统一校验权限并捕获异常，未授权时静默返回 null
   static Future<Uint8List?> safeQueryArtwork(
     int songId, {
@@ -525,8 +596,8 @@ class MetadataHelper {
           }
         }
       }
-    } catch (e) {
-      debugPrint('findDirectoryCover error for $dirPath: $e');
+    } catch (_) {
+      // 在 Android 分区存储下，无媒体库权限时直接访问外部目录可能会失败，静默忽略
     }
 
     _globalDirCoverCache[dirPath] = result;
@@ -550,13 +621,33 @@ class MetadataHelper {
     if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
       return null;
     }
-    final db = MetadataDatabase();
-    final file = File(filePath);
-    if (!await file.exists()) {
-      debugPrint('processMetadata skipped, file missing: $filePath');
+    if (!await canAccessAudioFile(filePath)) {
+      debugPrint('processMetadata skipped, cannot access file: $filePath');
       return null;
     }
-    final lastModified = (await file.lastModified()).millisecondsSinceEpoch;
+
+    final file = File(filePath);
+    final isExternalAndroid = Platform.isAndroid &&
+        (filePath.startsWith('/storage/') || filePath.startsWith('/sdcard/'));
+    final hasPerm = isExternalAndroid ? await hasAndroidAudioPermission() : true;
+
+    // 仅在拥有直接文件系统访问权限时执行 File.exists 检查，
+    // 避免在 Android 仅有 SAF 权限时被原生 stat() 误判为文件不存在
+    if (!isExternalAndroid || hasPerm) {
+      try {
+        if (!await file.exists()) {
+          debugPrint('processMetadata skipped, file missing: $filePath');
+          return null;
+        }
+      } catch (_) {}
+    }
+
+    int lastModified = 0;
+    try {
+      lastModified = (await file.lastModified()).millisecondsSinceEpoch;
+    } catch (_) {}
+
+    final db = MetadataDatabase();
 
     // 1. 如果数据库已有记录且已被修改尚未保存，或者修改时间相同，直接返回
     final existing = await db.getSongMetadata(filePath);
@@ -592,13 +683,14 @@ class MetadataHelper {
       int? trackNumber;
 
       try {
+        final targetPath = await resolveReadTargetPath(filePath);
         // 2. 在 Isolate 中读取文件标签；只有需要缩略图时才取封面字节
         final metadata = await compute(
           generateThumbnail
               ? _readMetadataWithImageIsolateEntryPoint
               : _readMetadataIsolateEntryPoint,
           <String, dynamic>{
-            'path': filePath,
+            'path': targetPath,
             'token': RootIsolateToken.instance,
           },
         );
@@ -818,9 +910,13 @@ class MetadataHelper {
     if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
       return null;
     }
+    if (!await canAccessAudioFile(filePath)) {
+      return null;
+    }
     try {
+      final targetPath = await resolveReadTargetPath(filePath);
       final metadata = await compute(_readMetadataIsolateEntryPoint, <String, dynamic>{
-        'path': filePath,
+        'path': targetPath,
         'token': RootIsolateToken.instance,
       });
       return SongMetadata(
@@ -982,9 +1078,13 @@ class MetadataHelper {
     if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
       return null;
     }
+    if (!await canAccessAudioFile(filePath)) {
+      return null;
+    }
     try {
+      final targetPath = await resolveReadTargetPath(filePath);
       final metadata = await compute(_readMetadataWithImageIsolateEntryPoint, <String, dynamic>{
-        'path': filePath,
+        'path': targetPath,
         'token': RootIsolateToken.instance,
       });
       if (metadata.pictures.isEmpty) return null;
@@ -1001,9 +1101,13 @@ class MetadataHelper {
     if (filePath.startsWith('subsonic://') || filePath.startsWith('webdav://')) {
       return false;
     }
+    if (!await canAccessAudioFile(filePath)) {
+      return false;
+    }
     try {
+      final targetPath = await resolveReadTargetPath(filePath);
       final metadata = await compute(_readMetadataIsolateEntryPoint, <String, dynamic>{
-        'path': filePath,
+        'path': targetPath,
         'token': RootIsolateToken.instance,
       });
       return metadata.hasArtwork;
@@ -1441,6 +1545,11 @@ class MetadataHelper {
     lastWriteError = null;
     if (!isMetadataWritable(filePath)) {
       lastWriteError = 'File format is not supported for writing metadata';
+      debugPrint('[MetadataHelper] $lastWriteError');
+      return false;
+    }
+    if (!await canAccessAudioFile(filePath)) {
+      lastWriteError = 'Cannot access file: no media permission or SAF authorization for $filePath';
       debugPrint('[MetadataHelper] $lastWriteError');
       return false;
     }

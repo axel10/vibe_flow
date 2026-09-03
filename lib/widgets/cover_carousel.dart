@@ -670,8 +670,9 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
       }
     }
 
-    // Try extracting embedded artwork as last resort (if permission is available)
-    final canAccessFile = !Platform.isAndroid || (await MetadataHelper.hasAndroidAudioPermission());
+    // Try extracting embedded artwork as last resort (if file can be accessed)
+    final canAccessFile =
+        await MetadataHelper.canAccessAudioFile(widget.musicFile.path);
     if (canAccessFile) {
       final embeddedBytes = await MetadataHelper.decodeEmbeddedArtwork(
         widget.musicFile.path,
