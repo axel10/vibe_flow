@@ -1985,7 +1985,51 @@ class AppLocalizationsTr extends AppLocalizations {
   String get manuallyAdjustedLyrics => 'Manuel olarak düzenlenen sözler';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLib çevrimiçi sözleri';
+  String get lrclibOnlineLyrics => 'Çevrimiçi sözler';
+
+  @override
+  String get onlineLyricsApiUrl => 'Çevrimiçi Şarkı Sözü API\'si';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      'Çevrimiçi şarkı sözlerini aramak için sunucu adresi (yalnızca yerel ve gömülü sözleri kullanmak için boş bırakın)';
+
+  @override
+  String get onlineLyricsApiNotConfigured => 'Yapılandırılmadı';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return 'Varsayılan ($url)';
+  }
+
+  @override
+  String get customLyricsApi => 'Özel API';
+
+  @override
+  String get enterOnlineLyricsApiUrl =>
+      'Çevrimiçi Şarkı Sözü API\'sini Yapılandır';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => 'Bağlantı başarılı';
+
+  @override
+  String testConnectionFailed(String error) {
+    return 'Bağlantı başarısız: $error';
+  }
+
+  @override
+  String get resetToDefault => 'Varsayılana dön';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle =>
+      'Çevrimiçi Şarkı Sözü Kaynağı Yapılandırılmadı';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      'Çevrimiçi şarkı sözü servis adresi yapılandırılmamış. Çevrimiçi şarkı sözü aramak için lütfen Ayarlar > Şarkı Sözleri bölümünden özel sunucu adresi belirleyin.';
 
   @override
   String get aiGeneratedLyrics => 'AI ile oluşturulan sözler';

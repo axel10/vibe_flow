@@ -2010,7 +2010,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get manuallyAdjustedLyrics => 'Letras ajustadas manualmente';
 
   @override
-  String get lrclibOnlineLyrics => 'Letras en línea de LrcLib';
+  String get lrclibOnlineLyrics => 'Letras en línea';
+
+  @override
+  String get onlineLyricsApiUrl => 'API de letras en línea';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      'Dirección del servidor para buscar letras en línea (dejar en blanco para usar solo letras locales e incrustadas)';
+
+  @override
+  String get onlineLyricsApiNotConfigured => 'No configurado';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return 'Predeterminado ($url)';
+  }
+
+  @override
+  String get customLyricsApi => 'API personalizada';
+
+  @override
+  String get enterOnlineLyricsApiUrl => 'Configurar API de letras en línea';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => 'Conexión exitosa';
+
+  @override
+  String testConnectionFailed(String error) {
+    return 'Error de conexión: $error';
+  }
+
+  @override
+  String get resetToDefault => 'Restaurar predeterminado';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle =>
+      'Fuente de letras en línea no configurada';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      'No se ha configurado la URL del servicio de letras en línea. Para buscar letras en línea, configure una dirección de servidor en Configuración > Letras.';
 
   @override
   String get aiGeneratedLyrics => 'Letras generadas por IA';

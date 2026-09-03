@@ -1980,7 +1980,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manuallyAdjustedLyrics => 'Manually adjusted lyrics';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLib online lyrics';
+  String get lrclibOnlineLyrics => 'Online lyrics';
+
+  @override
+  String get onlineLyricsApiUrl => 'Online Lyrics API';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      'Server address used to search online lyrics (leave empty to use local and embedded lyrics only)';
+
+  @override
+  String get onlineLyricsApiNotConfigured => 'Not configured';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return 'Default ($url)';
+  }
+
+  @override
+  String get customLyricsApi => 'Custom API';
+
+  @override
+  String get enterOnlineLyricsApiUrl => 'Configure Online Lyrics API';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => 'Connection successful';
+
+  @override
+  String testConnectionFailed(String error) {
+    return 'Connection failed: $error';
+  }
+
+  @override
+  String get resetToDefault => 'Reset to default';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle =>
+      'Online Lyrics Not Configured';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      'Online lyrics service URL is not configured. To search lyrics online, please add a server URL in Settings > Lyrics.';
 
   @override
   String get aiGeneratedLyrics => 'AI generated lyrics';

@@ -7,6 +7,8 @@ import '../utils/app_log.dart';
 import 'package:vynody/player/lyrics/lyrics_cache_models.dart';
 import 'package:vynody/player/lyrics/lyrics_cache_repository.dart';
 import 'package:vynody/player/lyrics/lyrics_import_export_service.dart';
+import 'package:vynody/player/lyrics/lyrics_riverpod.dart';
+import 'package:vynody/player/lyrics/lyrics_service.dart';
 
 import 'package:audio_core/audio_core.dart' hide AppLog;
 import 'package:dio/dio.dart';
@@ -1614,6 +1616,75 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  Widget _buildOnlineLyricsApiSection(
+    BuildContext context,
+    SettingsService settings,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final url = settings.lyricsApiBaseUrl.trim();
+    final hasConfigured = url.isNotEmpty;
+
+    final String subtitleText;
+    if (hasConfigured) {
+      subtitleText = url == SettingsService.defaultOnlineLyricsApiUrl
+          ? l10n.onlineLyricsApiDefault(url)
+          : url;
+    } else {
+      subtitleText = l10n.onlineLyricsApiNotConfigured;
+    }
+
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+      child: ListTile(
+        leading: Icon(
+          hasConfigured ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+          color: hasConfigured
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outline,
+        ),
+        title: Text(l10n.onlineLyricsApiUrl),
+        subtitle: Text(
+          subtitleText,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: FilledButton.tonal(
+          onPressed: () => _showOnlineLyricsApiDialog(context, settings),
+          child: Text(hasConfigured ? l10n.modify : l10n.fill),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showOnlineLyricsApiDialog(
+    BuildContext context,
+    SettingsService settings,
+  ) async {
+    final lyricsService = ref.read(lyricsServiceProvider);
+    final newUrl = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => _OnlineLyricsApiDialog(
+        initialUrl: settings.lyricsApiBaseUrl,
+        lyricsService: lyricsService,
+      ),
+    );
+    if (newUrl == null) return;
+    settings.lyricsApiBaseUrl = newUrl;
+    if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          newUrl.trim().isEmpty
+              ? l10n.onlineLyricsApiNotConfigured
+              : l10n.presetSaved,
+        ),
+      ),
+    );
+  }
+
   Widget _buildLyricsImportExportSection(
     BuildContext context,
     SettingsService settings,
@@ -2472,6 +2543,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         _buildLyricsSaveMethodSection(context, settings),
         const SizedBox(height: 16),
         _buildLyricsStyleSection(context, settings),
+        const SizedBox(height: 16),
+        _buildOnlineLyricsApiSection(context, settings),
         const SizedBox(height: 16),
         _buildSectionHeader(l10n.lyricsImportExportHeader),
         _buildLyricsImportExportSection(context, settings),
@@ -3496,6 +3569,164 @@ class _CustomProviderConfigDialogState
                 name: _nameController.text.trim(),
               ),
             );
+          },
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
+class _OnlineLyricsApiDialog extends StatefulWidget {
+  const _OnlineLyricsApiDialog({
+    required this.initialUrl,
+    required this.lyricsService,
+  });
+
+  final String initialUrl;
+  final LyricsService lyricsService;
+
+  @override
+  State<_OnlineLyricsApiDialog> createState() => _OnlineLyricsApiDialogState();
+}
+
+class _OnlineLyricsApiDialogState extends State<_OnlineLyricsApiDialog> {
+  late final TextEditingController _urlController;
+  bool _isTesting = false;
+  String _statusText = '';
+  bool _statusSuccess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlController = TextEditingController(text: widget.initialUrl);
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _testConnection() async {
+    final url = _urlController.text.trim();
+    final l10n = AppLocalizations.of(context)!;
+    if (url.isEmpty) {
+      setState(() {
+        _statusText = l10n.onlineLyricsApiUrlHint;
+        _statusSuccess = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isTesting = true;
+      _statusText = l10n.testingConnectionProgress;
+      _statusSuccess = false;
+    });
+
+    final result = await widget.lyricsService.testApiConnection(url);
+    if (!mounted) return;
+
+    setState(() {
+      _isTesting = false;
+      _statusSuccess = result.success;
+      _statusText = result.success
+          ? l10n.testConnectionSuccess
+          : l10n.testConnectionFailed(result.message);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isIos = theme.platform == TargetPlatform.iOS;
+
+    return AlertDialog(
+      title: Text(l10n.enterOnlineLyricsApiUrl),
+      content: SizedBox(
+        width: 480,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.onlineLyricsApiUrlDescription,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _urlController,
+              decoration: InputDecoration(
+                labelText: l10n.onlineLyricsApiUrl,
+                hintText: 'https://example.com',
+                border: const OutlineInputBorder(),
+                suffixIcon: _urlController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _urlController.clear();
+                            _statusText = '';
+                          });
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (_) {
+                if (_statusText.isNotEmpty) {
+                  setState(() {
+                    _statusText = '';
+                  });
+                }
+              },
+            ),
+            if (_statusText.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                _statusText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: _statusSuccess
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.error,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        if (!isIos)
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _urlController.text = SettingsService.defaultOnlineLyricsApiUrl;
+                _statusText = '';
+              });
+            },
+            child: Text(l10n.resetToDefault),
+          ),
+        TextButton(
+          onPressed: _isTesting ? null : _testConnection,
+          child: _isTesting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(l10n.testConnection),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.of(context).pop(_urlController.text.trim());
           },
           child: Text(l10n.save),
         ),

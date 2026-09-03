@@ -2004,7 +2004,50 @@ class AppLocalizationsDe extends AppLocalizations {
   String get manuallyAdjustedLyrics => 'Manuell angepasster Songtext';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLib-Online-Songtext';
+  String get lrclibOnlineLyrics => 'Online-Songtext';
+
+  @override
+  String get onlineLyricsApiUrl => 'Online-Songtext-API';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      'Serveradresse für die Online-Songtextsuche (leer lassen, um nur lokale und eingebettete Songtexte zu verwenden)';
+
+  @override
+  String get onlineLyricsApiNotConfigured => 'Nicht konfiguriert';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return 'Standard ($url)';
+  }
+
+  @override
+  String get customLyricsApi => 'Benutzerdefinierte API';
+
+  @override
+  String get enterOnlineLyricsApiUrl => 'Online-Songtext-API konfigurieren';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => 'Verbindung erfolgreich';
+
+  @override
+  String testConnectionFailed(String error) {
+    return 'Verbindung fehlgeschlagen: $error';
+  }
+
+  @override
+  String get resetToDefault => 'Standard wiederherstellen';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle =>
+      'Keine Online-Songtext-Quelle konfiguriert';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      'Die Serveradresse für Online-Songtexte ist nicht konfiguriert. Um online nach Songtexten zu suchen, fügen Sie bitte unter „Einstellungen > Songtext“ eine Serveradresse hinzu.';
 
   @override
   String get aiGeneratedLyrics => 'KI-generierter Songtext';

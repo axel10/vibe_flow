@@ -1933,7 +1933,49 @@ class AppLocalizationsJa extends AppLocalizations {
   String get manuallyAdjustedLyrics => '手動調整済み歌詞';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLibオンライン歌詞';
+  String get lrclibOnlineLyrics => 'オンライン歌詞';
+
+  @override
+  String get onlineLyricsApiUrl => 'オンライン歌詞サービス API';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      'オンライン歌詞の検索に使用するサーバーアドレス（空欄の場合はローカル歌詞と埋め込み歌詞のみ使用）';
+
+  @override
+  String get onlineLyricsApiNotConfigured => '未設定';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return 'デフォルトサービス ($url)';
+  }
+
+  @override
+  String get customLyricsApi => 'カスタムサービス';
+
+  @override
+  String get enterOnlineLyricsApiUrl => 'オンライン歌詞サービス API の設定';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => '接続成功';
+
+  @override
+  String testConnectionFailed(String error) {
+    return '接続失敗: $error';
+  }
+
+  @override
+  String get resetToDefault => 'デフォルトに戻す';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle => 'オンライン歌詞ソースが未設定です';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      'オンライン歌詞サービスのアドレスが設定されていません。オンライン歌詞を検索するには、「設定 - 歌詞」でカスタムサービスアドレスを設定してください。';
 
   @override
   String get aiGeneratedLyrics => 'AI生成歌詞';

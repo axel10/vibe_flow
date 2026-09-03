@@ -1915,7 +1915,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get manuallyAdjustedLyrics => '手动修改的歌词';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLib在线歌词';
+  String get lrclibOnlineLyrics => '在线歌词';
+
+  @override
+  String get onlineLyricsApiUrl => '在线歌词服务 API';
+
+  @override
+  String get onlineLyricsApiUrlDescription => '用于搜索在线歌词的服务器地址（留空则仅使用本地与内嵌歌词）';
+
+  @override
+  String get onlineLyricsApiNotConfigured => '未配置';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return '默认服务 ($url)';
+  }
+
+  @override
+  String get customLyricsApi => '自定义服务';
+
+  @override
+  String get enterOnlineLyricsApiUrl => '配置在线歌词服务 API';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => '连接成功';
+
+  @override
+  String testConnectionFailed(String error) {
+    return '连接失败: $error';
+  }
+
+  @override
+  String get resetToDefault => '恢复默认';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle => '未配置在线歌词源';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      '当前未配置在线歌词服务地址。如需搜索在线歌词，请前往「设置 - 歌词」中配置自定义服务地址。';
 
   @override
   String get aiGeneratedLyrics => 'AI生成的歌词';
@@ -5590,7 +5631,48 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get manuallyAdjustedLyrics => '手動修改的歌詞';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLib 線上歌詞';
+  String get lrclibOnlineLyrics => '線上歌詞';
+
+  @override
+  String get onlineLyricsApiUrl => '線上歌詞服務 API';
+
+  @override
+  String get onlineLyricsApiUrlDescription => '用於搜尋線上歌詞的伺服器位址（留空則僅使用本機與內嵌歌詞）';
+
+  @override
+  String get onlineLyricsApiNotConfigured => '未設定';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return '預設服務 ($url)';
+  }
+
+  @override
+  String get customLyricsApi => '自訂服務';
+
+  @override
+  String get enterOnlineLyricsApiUrl => '設定線上歌詞服務 API';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => '連線成功';
+
+  @override
+  String testConnectionFailed(String error) {
+    return '連線失敗: $error';
+  }
+
+  @override
+  String get resetToDefault => '恢復預設';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle => '未設定線上歌詞來源';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      '目前未設定線上歌詞服務位址。如需搜尋線上歌詞，請前往「設定 - 歌詞」中設定自訂服務位址。';
 
   @override
   String get aiGeneratedLyrics => 'AI 生成的歌詞';

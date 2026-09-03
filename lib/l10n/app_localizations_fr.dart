@@ -2009,7 +2009,50 @@ class AppLocalizationsFr extends AppLocalizations {
   String get manuallyAdjustedLyrics => 'Paroles ajustées manuellement';
 
   @override
-  String get lrclibOnlineLyrics => 'Paroles en ligne LrcLib';
+  String get lrclibOnlineLyrics => 'Paroles en ligne';
+
+  @override
+  String get onlineLyricsApiUrl => 'API de paroles en ligne';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      'Adresse du serveur pour rechercher des paroles en ligne (laisser vide pour utiliser uniquement les paroles locales et intégrées)';
+
+  @override
+  String get onlineLyricsApiNotConfigured => 'Non configuré';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return 'Par défaut ($url)';
+  }
+
+  @override
+  String get customLyricsApi => 'API personnalisée';
+
+  @override
+  String get enterOnlineLyricsApiUrl => 'Configurer l\'API de paroles en ligne';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => 'Connexion réussie';
+
+  @override
+  String testConnectionFailed(String error) {
+    return 'Échec de la connexion : $error';
+  }
+
+  @override
+  String get resetToDefault => 'Restaurer les valeurs par défaut';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle =>
+      'Source de paroles en ligne non configurée';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      'L\'adresse du service de paroles en ligne n\'est pas configurée. Pour rechercher des paroles en ligne, veuillez définir une adresse dans Paramètres > Paroles.';
 
   @override
   String get aiGeneratedLyrics => 'Paroles générées par IA';

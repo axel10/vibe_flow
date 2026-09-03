@@ -1936,7 +1936,49 @@ class AppLocalizationsKo extends AppLocalizations {
   String get manuallyAdjustedLyrics => '수동 조정된 가사';
 
   @override
-  String get lrclibOnlineLyrics => 'LrcLib 온라인 가사';
+  String get lrclibOnlineLyrics => '온라인 가사';
+
+  @override
+  String get onlineLyricsApiUrl => '온라인 가사 서비스 API';
+
+  @override
+  String get onlineLyricsApiUrlDescription =>
+      '온라인 가사를 검색하는 데 사용되는 서버 주소 (비워 두면 로컬 및 내장 가사만 사용)';
+
+  @override
+  String get onlineLyricsApiNotConfigured => '설정되지 않음';
+
+  @override
+  String onlineLyricsApiDefault(String url) {
+    return '기본 서비스 ($url)';
+  }
+
+  @override
+  String get customLyricsApi => '사용자 지정 서비스';
+
+  @override
+  String get enterOnlineLyricsApiUrl => '온라인 가사 서비스 API 설정';
+
+  @override
+  String get onlineLyricsApiUrlHint => 'https://example.com';
+
+  @override
+  String get testConnectionSuccess => '연결 성공';
+
+  @override
+  String testConnectionFailed(String error) {
+    return '연결 실패: $error';
+  }
+
+  @override
+  String get resetToDefault => '기본값 복원';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogTitle => '온라인 가사 소스 미설정';
+
+  @override
+  String get onlineLyricsNotConfiguredDialogContent =>
+      '온라인 가사 서비스 주소가 설정되어 있지 않습니다. 온라인 가사를 검색하려면 \'설정 - 가사\'에서 사용자 지정 서버 주소를 설정하세요.';
 
   @override
   String get aiGeneratedLyrics => 'AI 생성 가사';

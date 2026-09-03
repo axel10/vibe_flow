@@ -1280,7 +1280,33 @@
   "externalLrcFile": "同名外置LRC文件",
   "embeddedLyrics": "音频内嵌歌词",
   "manuallyAdjustedLyrics": "手动修改的歌词",
-  "lrclibOnlineLyrics": "LrcLib在线歌词",
+  "lrclibOnlineLyrics": "在线歌词",
+  "onlineLyricsApiUrl": "在线歌词服务 API",
+  "onlineLyricsApiUrlDescription": "用于搜索在线歌词的服务器地址（留空则仅使用本地与内嵌歌词）",
+  "onlineLyricsApiNotConfigured": "未配置",
+  "onlineLyricsApiDefault": "默认服务 ({url})",
+  "@onlineLyricsApiDefault": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "customLyricsApi": "自定义服务",
+  "enterOnlineLyricsApiUrl": "配置在线歌词服务 API",
+  "onlineLyricsApiUrlHint": "https://example.com",
+  "testConnectionSuccess": "连接成功",
+  "testConnectionFailed": "连接失败: {error}",
+  "@testConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "resetToDefault": "恢复默认",
+  "onlineLyricsNotConfiguredDialogTitle": "未配置在线歌词源",
+  "onlineLyricsNotConfiguredDialogContent": "当前未配置在线歌词服务地址。如需搜索在线歌词，请前往「设置 - 歌词」中配置自定义服务地址。",
   "aiGeneratedLyrics": "AI生成的歌词",
   "matchScore": "匹配度",
   "untitledRelease": "未命名发行版",

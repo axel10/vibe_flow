@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -138,6 +137,15 @@ class _OnlineLyricsSearchDialogState extends State<_OnlineLyricsSearchDialog> {
     _cancelToken?.cancel('New query initiated');
     final currentCancelToken = CancelToken();
     _cancelToken = currentCancelToken;
+
+    if (!widget.lyricsService.hasConfiguredApi) {
+      setState(() {
+        _isLoading = false;
+        _tracks = const [];
+        _lastErrorMessage = null;
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -297,14 +305,38 @@ class _OnlineLyricsSearchDialogState extends State<_OnlineLyricsSearchDialog> {
                     )
                   : _tracks.isEmpty
                       ? Center(
-                          child: Text(
-                            _lastErrorMessage?.trim().isNotEmpty == true
-                                ? _lastErrorMessage!
-                                : l10n.noMatchingResults,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                          child: !widget.lyricsService.hasConfiguredApi
+                              ? Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.cloud_off_rounded,
+                                        size: 40,
+                                        color: theme.colorScheme.outline,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        l10n.onlineLyricsNotConfiguredDialogContent,
+                                        textAlign: TextAlign.center,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : Text(
+                                  _lastErrorMessage?.trim().isNotEmpty == true
+                                      ? _lastErrorMessage!
+                                      : l10n.noMatchingResults,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
                         )
                       : ListView.separated(
                           itemCount: _tracks.length,

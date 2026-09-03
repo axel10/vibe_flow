@@ -353,4 +353,21 @@ void main() {
       expect(restoredSettings.equalizerBassBoost, 5.0);
     });
   });
+
+  group('SettingsService - Lyrics API Base URL', () {
+    test('defaults to platformDefaultLyricsApiUrl and can be updated/reset', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      expect(settings.lyricsApiBaseUrl, SettingsService.platformDefaultLyricsApiUrl);
+
+      settings.lyricsApiBaseUrl = 'https://custom-lrc.example.com';
+      expect(settings.lyricsApiBaseUrl, 'https://custom-lrc.example.com');
+      expect(settings.hasLyricsApiConfigured, isTrue);
+
+      settings.resetLyricsApiBaseUrl();
+      expect(settings.lyricsApiBaseUrl, SettingsService.platformDefaultLyricsApiUrl);
+    });
+  });
 }

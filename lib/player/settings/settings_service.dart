@@ -361,6 +361,11 @@ class SettingsService extends ChangeNotifier {
   static String _lastKnownCustomProviderName = '';
   static const String _keyLyricsTranslationTargetLanguage =
       'lyrics_translation_target_language';
+  static const String defaultOnlineLyricsApiUrl = 'https://lrclib.net';
+  static bool get isIosPlatform => defaultTargetPlatform == TargetPlatform.iOS;
+  static String get platformDefaultLyricsApiUrl =>
+      isIosPlatform ? '' : defaultOnlineLyricsApiUrl;
+  static const String _keyLyricsApiBaseUrl = 'lyrics_api_base_url';
   static const String _keyLyricsSaveMethod = 'lyrics_save_method';
   static const String _keyLyricsStyle = 'lyrics_style';
   static const String _keyLyricsFontScale = 'lyrics_font_scale';
@@ -775,6 +780,13 @@ class SettingsService extends ChangeNotifier {
   late final _lyricsSaveMethodProperty = SettingProperty<String>(
     key: _keyLyricsSaveMethod,
     defaultValue: LyricsSaveMethod.original.name,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _lyricsApiBaseUrlProperty = SettingProperty<String>(
+    key: _keyLyricsApiBaseUrl,
+    defaultValue: platformDefaultLyricsApiUrl,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1671,6 +1683,18 @@ class SettingsService extends ChangeNotifier {
 
   set lyricsSaveMethod(LyricsSaveMethod value) {
     _lyricsSaveMethodProperty.value = value.name;
+  }
+
+  String get lyricsApiBaseUrl => _lyricsApiBaseUrlProperty.value;
+
+  set lyricsApiBaseUrl(String value) {
+    _lyricsApiBaseUrlProperty.value = value.trim();
+  }
+
+  bool get hasLyricsApiConfigured => lyricsApiBaseUrl.trim().isNotEmpty;
+
+  void resetLyricsApiBaseUrl() {
+    lyricsApiBaseUrl = platformDefaultLyricsApiUrl;
   }
 
   LyricsStyle get lyricsStyle {

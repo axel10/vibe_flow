@@ -66,11 +66,12 @@ class LyricsController extends Notifier<LyricsControllerState> {
     _isLyricsActive = dependencies.isLyricsActive;
     _cacheSongDuration = dependencies.cacheSongDuration;
     _lyricsCacheRepository = LyricsCacheRepository(db: _db);
+    _settingsService = ref.read(settingsServiceProvider);
     _lyricsService = LyricsService(
       db: _db,
       cacheRepository: _lyricsCacheRepository,
+      getApiBaseUrl: () => _settingsService.lyricsApiBaseUrl,
     );
-    _settingsService = ref.read(settingsServiceProvider);
     final effectiveLanguageCode = ref.read(
       lyricsTranslationLanguageCodeProvider,
     );

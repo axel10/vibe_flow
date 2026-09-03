@@ -149,14 +149,70 @@ class LyricsService {
     NetworkClient? client,
     MetadataDatabase? db,
     LyricsCacheRepository? cacheRepository,
+    String Function()? getApiBaseUrl,
   }) : _client = client ?? NetworkClient.instance,
-       _cacheRepository = cacheRepository ?? LyricsCacheRepository(db: db);
+       _cacheRepository = cacheRepository ?? LyricsCacheRepository(db: db),
+       _getApiBaseUrl = getApiBaseUrl;
 
   final NetworkClient _client;
   final LyricsCacheRepository _cacheRepository;
+  final String Function()? _getApiBaseUrl;
   final Map<String, Future<LyricSelectionResult?>> _inFlight = {};
 
   static const double _acceptThreshold = 65.0;
+
+  bool get hasConfiguredApi => _resolveSearchEndpoint() != null;
+
+  String? _resolveSearchEndpoint() {
+    final rawBase = _getApiBaseUrl?.call() ??
+        (defaultTargetPlatform == TargetPlatform.iOS ? '' : 'https://lrclib.net');
+    final trimmed = rawBase.trim();
+    if (trimmed.isEmpty) return null;
+
+    var normalized = trimmed;
+    while (normalized.endsWith('/')) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    if (normalized.endsWith('/api/search')) {
+      return normalized;
+    }
+    if (normalized.endsWith('/api')) {
+      return '$normalized/search';
+    }
+    return '$normalized/api/search';
+  }
+
+  Future<({bool success, String message})> testApiConnection(String rawUrl) async {
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) {
+      return (success: false, message: 'URL is empty');
+    }
+    try {
+      var normalized = trimmed;
+      while (normalized.endsWith('/')) {
+        normalized = normalized.substring(0, normalized.length - 1);
+      }
+      final endpoint = normalized.endsWith('/api/search')
+          ? normalized
+          : normalized.endsWith('/api')
+              ? '$normalized/search'
+              : '$normalized/api/search';
+
+      final response = await _client.get(
+        endpoint,
+        queryParameters: {'q': 'test'},
+      );
+      if (response.statusCode == 200 && response.data is List) {
+        return (success: true, message: 'OK');
+      }
+      return (
+        success: false,
+        message: 'HTTP ${response.statusCode ?? "error"}',
+      );
+    } catch (e) {
+      return (success: false, message: e.toString());
+    }
+  }
 
   /// 仅基于歌曲标题发起 lrclib 在线搜索。
   Future<List<LyricTrack>> searchTracksByTitle({
@@ -812,8 +868,14 @@ class LyricsService {
                 value == null || (value is String && value.trim().isEmpty),
           );
 
+      final endpoint = _resolveSearchEndpoint();
+      if (endpoint == null) {
+        _logDebug('http search skipped -> no online lyrics API configured');
+        return const [];
+      }
+
       final response = await _client.get(
-        'https://lrclib.net/api/search',
+        endpoint,
         queryParameters: params,
         cancelToken: cancelToken,
       );
@@ -871,8 +933,14 @@ class LyricsService {
         };
       }
 
+      final endpoint = _resolveSearchEndpoint();
+      if (endpoint == null) {
+        _logDebug('http searchByQuery skipped -> no online lyrics API configured');
+        return const [];
+      }
+
       final response = await _client.get(
-        'https://lrclib.net/api/search',
+        endpoint,
         queryParameters: params,
         cancelToken: cancelToken,
       );

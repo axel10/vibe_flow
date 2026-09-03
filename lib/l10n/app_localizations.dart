@@ -3738,8 +3738,80 @@ abstract class AppLocalizations {
   /// No description provided for @lrclibOnlineLyrics.
   ///
   /// In zh, this message translates to:
-  /// **'LrcLib在线歌词'**
+  /// **'在线歌词'**
   String get lrclibOnlineLyrics;
+
+  /// No description provided for @onlineLyricsApiUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'在线歌词服务 API'**
+  String get onlineLyricsApiUrl;
+
+  /// No description provided for @onlineLyricsApiUrlDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'用于搜索在线歌词的服务器地址（留空则仅使用本地与内嵌歌词）'**
+  String get onlineLyricsApiUrlDescription;
+
+  /// No description provided for @onlineLyricsApiNotConfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置'**
+  String get onlineLyricsApiNotConfigured;
+
+  /// No description provided for @onlineLyricsApiDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认服务 ({url})'**
+  String onlineLyricsApiDefault(String url);
+
+  /// No description provided for @customLyricsApi.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义服务'**
+  String get customLyricsApi;
+
+  /// No description provided for @enterOnlineLyricsApiUrl.
+  ///
+  /// In zh, this message translates to:
+  /// **'配置在线歌词服务 API'**
+  String get enterOnlineLyricsApiUrl;
+
+  /// No description provided for @onlineLyricsApiUrlHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'https://example.com'**
+  String get onlineLyricsApiUrlHint;
+
+  /// No description provided for @testConnectionSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接成功'**
+  String get testConnectionSuccess;
+
+  /// No description provided for @testConnectionFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接失败: {error}'**
+  String testConnectionFailed(String error);
+
+  /// No description provided for @resetToDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'恢复默认'**
+  String get resetToDefault;
+
+  /// No description provided for @onlineLyricsNotConfiguredDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'未配置在线歌词源'**
+  String get onlineLyricsNotConfiguredDialogTitle;
+
+  /// No description provided for @onlineLyricsNotConfiguredDialogContent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前未配置在线歌词服务地址。如需搜索在线歌词，请前往「设置 - 歌词」中配置自定义服务地址。'**
+  String get onlineLyricsNotConfiguredDialogContent;
 
   /// No description provided for @aiGeneratedLyrics.
   ///

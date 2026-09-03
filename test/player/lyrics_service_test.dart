@@ -58,6 +58,63 @@ void main() {
         expect(client.callCount, 0);
       },
     );
+
+    test(
+      'returns empty list and makes no request when API base URL is empty (iOS default)',
+      () async {
+        final client = _RecordingNetworkClient(
+          Response<dynamic>(
+            requestOptions: RequestOptions(
+              path: 'https://lrclib.net/api/search',
+            ),
+            data: const [],
+          ),
+        );
+        final service = LyricsService(
+          client: client,
+          getApiBaseUrl: () => '',
+        );
+
+        final tracks = await service.searchTracksByTitle(title: 'Song Title');
+
+        expect(tracks, isEmpty);
+        expect(client.callCount, 0);
+        expect(service.hasConfiguredApi, isFalse);
+      },
+    );
+
+    test(
+      'uses custom API base URL when configured',
+      () async {
+        final response = Response<dynamic>(
+          requestOptions: RequestOptions(
+            path: 'https://my-lyrics.example.com/api/search',
+          ),
+          data: [
+            {
+              'trackName': 'Song Title',
+              'artistName': 'Artist',
+              'albumName': 'Album',
+              'duration': 185,
+              'plainLyrics': 'Line 1\nLine 2',
+              'syncedLyrics': null,
+            },
+          ],
+        );
+        final client = _RecordingNetworkClient(response);
+        final service = LyricsService(
+          client: client,
+          getApiBaseUrl: () => 'https://my-lyrics.example.com',
+        );
+
+        expect(service.hasConfiguredApi, isTrue);
+        final tracks = await service.searchTracksByTitle(title: 'Song Title');
+
+        expect(client.callCount, 1);
+        expect(client.lastPath, 'https://my-lyrics.example.com/api/search');
+        expect(tracks, hasLength(1));
+      },
+    );
   });
 
   group('LyricsService.fetchBestLyrics', () {

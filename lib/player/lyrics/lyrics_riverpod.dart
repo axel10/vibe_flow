@@ -40,7 +40,9 @@ final lyricsAiServiceProvider = Provider<LyricsAiService>((ref) {
 });
 
 final lyricsServiceProvider = Provider<LyricsService>((ref) {
-  return LyricsService();
+  return LyricsService(
+    getApiBaseUrl: () => ref.read(settingsServiceProvider).lyricsApiBaseUrl,
+  );
 });
 
 final lyricsTranslationLanguageCodeProvider = Provider<String>((ref) {
