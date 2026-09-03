@@ -780,16 +780,22 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
   }
 
   Widget _buildBreadcrumbs(MusicFolder current, ScannerService scanner, {bool isOverlay = false}) {
-    return FolderHeaderNavBar(
-      isOverlay: isOverlay,
-      scrollProgress: _scrollProgress,
-      currentFolder: current,
-      navigationHistory: scanner.navigationHistory,
-      onGoBack: widget.onGoBack,
-      onLocateCurrentSong: widget.onLocateCurrentSong,
-      onSortPressed: () => _showSortDialog(context, scanner),
-      onClearAllSelection: widget.onClearAllSelection,
-      scrollController: _breadcrumbsScrollController,
+    return Hero(
+      tag: 'folder-header-nav-bar',
+      child: Material(
+        type: MaterialType.transparency,
+        child: FolderHeaderNavBar(
+          isOverlay: isOverlay,
+          scrollProgress: _scrollProgress,
+          currentFolder: current,
+          navigationHistory: scanner.navigationHistory,
+          onGoBack: widget.onGoBack,
+          onLocateCurrentSong: widget.onLocateCurrentSong,
+          onSortPressed: () => _showSortDialog(context, scanner),
+          onClearAllSelection: widget.onClearAllSelection,
+          scrollController: _breadcrumbsScrollController,
+        ),
+      ),
     );
   }
 

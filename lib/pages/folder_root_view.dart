@@ -648,12 +648,18 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
   }
 
   Widget _buildRootTopHeader(BuildContext context, {bool isOverlay = true}) {
-    return FolderHeaderNavBar(
-      isOverlay: isOverlay,
-      scrollProgress: _scrollProgress,
-      onLocateCurrentSong: widget.onLocateCurrentSong,
-      onSortPressed: widget.onToggleSortMode,
-      isSortActive: widget.isSortMode,
+    return Hero(
+      tag: 'folder-header-nav-bar',
+      child: Material(
+        type: MaterialType.transparency,
+        child: FolderHeaderNavBar(
+          isOverlay: isOverlay,
+          scrollProgress: _scrollProgress,
+          onLocateCurrentSong: widget.onLocateCurrentSong,
+          onSortPressed: widget.onToggleSortMode,
+          isSortActive: widget.isSortMode,
+        ),
+      ),
     );
   }
 }
