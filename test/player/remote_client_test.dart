@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/player/remote/remote_server_models.dart';
 import 'package:vynody/player/remote/clients/subsonic_client.dart';
@@ -104,6 +105,49 @@ void main() {
       expect(coverUri.path, '/subsonic/rest/getCoverArt');
       expect(coverUri.queryParameters['id'], 'al-456');
       expect(coverUri.queryParameters['size'], '500');
+    });
+
+    test('getAlbumList throws SubsonicException when server returns failed status', () async {
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {
+                  'subsonic-response': {
+                    'status': 'failed',
+                    'version': '1.16.1',
+                    'error': {
+                      'code': 40,
+                      'message': 'Wrong username or password',
+                    },
+                  },
+                },
+              ),
+            );
+          },
+        ),
+      );
+
+      final client = SubsonicClient(
+        server: server,
+        password: 'wrongpassword',
+        customDio: dio,
+      );
+
+      expect(
+        () => client.getAlbumList(),
+        throwsA(
+          isA<SubsonicException>().having(
+            (e) => e.message,
+            'message',
+            'Wrong username or password',
+          ),
+        ),
+      );
     });
   });
 

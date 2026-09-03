@@ -89,6 +89,10 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   List<Map<String, dynamic>> _searchedAlbums = [];
   List<Map<String, dynamic>> _searchedArtists = [];
 
+  // Connection state
+  String? _connectionError;
+  bool _isRetrying = false;
+
   // Multi-selection state
   final Set<String> _selectedAlbumIds = {};
   final Set<String> _selectedArtistIds = {};
@@ -485,6 +489,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         _albums = session.navidromeAlbums!;
         _isLoadingAlbums = false;
         _albumsError = null;
+        _connectionError = null;
       });
       return;
     }
@@ -499,6 +504,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _albums = list;
         _isLoadingAlbums = false;
+        _connectionError = null;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -512,6 +518,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _albumsError = e.toString();
         _isLoadingAlbums = false;
+        if (_albums.isEmpty) {
+          _connectionError = e.toString();
+        }
       });
     }
   }
@@ -531,6 +540,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             (_artists.isNotEmpty ? _artists.first['id'] as String? : null);
         _isLoadingArtists = false;
         _artistsError = null;
+        _connectionError = null;
       });
       return;
     }
@@ -545,6 +555,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _artists = list;
         _isLoadingArtists = false;
+        _connectionError = null;
         if (_selectedArtistId == null && list.isNotEmpty) {
           _selectedArtistId = list.first['id'] as String?;
         }
@@ -562,6 +573,9 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _artistsError = e.toString();
         _isLoadingArtists = false;
+        if (_albums.isEmpty && _artists.isEmpty) {
+          _connectionError ??= e.toString();
+        }
       });
     }
   }
@@ -598,6 +612,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
             session.navidromeSelectedPlaylistId ?? _starredPlaylistId;
         _isLoadingPlaylists = false;
         _playlistsError = null;
+        _connectionError = null;
       });
       return;
     }
@@ -612,6 +627,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _playlists = list;
         _isLoadingPlaylists = false;
+        _connectionError = null;
         _selectedPlaylistId ??= _starredPlaylistId;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -628,7 +644,36 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       setState(() {
         _playlistsError = e.toString();
         _isLoadingPlaylists = false;
+        if (_albums.isEmpty && _playlists.isEmpty) {
+          _connectionError ??= e.toString();
+        }
       });
+    }
+  }
+
+  Future<void> _retryConnection() async {
+    setState(() {
+      _isRetrying = true;
+      _albumsError = null;
+      _artistsError = null;
+      _playlistsError = null;
+    });
+    await Future.wait([
+      _loadAlbums(forceRefresh: true),
+      _loadArtists(forceRefresh: true),
+      _loadPlaylists(forceRefresh: true),
+    ]);
+    if (mounted) {
+      setState(() {
+        _isRetrying = false;
+      });
+    }
+  }
+
+  void _handleBack() {
+    ref.read(activeRemoteSessionProvider.notifier).clear();
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).maybePop();
     }
   }
 
@@ -784,38 +829,143 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           _selectedSongPaths.length == songs.length && songs.isNotEmpty;
     }
 
-    Widget content = PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(activeRemoteSessionProvider.notifier).clear();
-          });
-        }
-      },
-      child: Scaffold(
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: NestedScrollView(
-                floatHeaderSlivers: true,
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    SliverAppBar(
-                      floating: true,
-                      snap: false,
-                      pinned: false,
-                      elevation: 0,
-                      scrolledUnderElevation: 0,
-                      surfaceTintColor: Colors.transparent,
-                      backgroundColor: theme.colorScheme.surface,
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        tooltip: l10n.close,
-                        onPressed: () {
-                          ref.read(activeRemoteSessionProvider.notifier).clear();
-                        },
+    final bool hasConnectionError = _connectionError != null &&
+        _albums.isEmpty &&
+        _artists.isEmpty &&
+        _playlists.isEmpty;
+
+    Widget content;
+    if (hasConnectionError) {
+      content = PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(activeRemoteSessionProvider.notifier).clear();
+            });
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            backgroundColor: theme.colorScheme.surface,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded),
+              tooltip: l10n.close,
+              onPressed: _handleBack,
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.server.name),
+                Text(
+                  'Navidrome / Subsonic',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          body: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.cloud_off_rounded,
+                      size: 56,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.connectionFailed,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.errorContainer
+                            .withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.error
+                              .withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: SelectableText(
+                        _connectionError!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: _isRetrying ? null : _retryConnection,
+                      icon: _isRetrying
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.refresh_rounded),
+                      label: Text(l10n.retry),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      content = PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(activeRemoteSessionProvider.notifier).clear();
+            });
+          }
+        },
+        child: Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: NestedScrollView(
+                  floatHeaderSlivers: true,
+                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                    return [
+                      SliverAppBar(
+                        floating: true,
+                        snap: false,
+                        pinned: false,
+                        elevation: 0,
+                        scrolledUnderElevation: 0,
+                        surfaceTintColor: Colors.transparent,
+                        backgroundColor: theme.colorScheme.surface,
+                        leading: IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded),
+                          tooltip: l10n.close,
+                          onPressed: _handleBack,
+                        ),
                       title: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1068,6 +1218,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
         ),
       ),
     );
+    }
 
     if (showCustomTitleBar || isMacOS) {
       content = Material(

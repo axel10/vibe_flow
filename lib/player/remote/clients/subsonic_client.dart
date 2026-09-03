@@ -6,6 +6,15 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import '../remote_server_models.dart';
 
+class SubsonicException implements Exception {
+  final String message;
+  final int? code;
+  const SubsonicException(this.message, {this.code});
+
+  @override
+  String toString() => message;
+}
+
 class SubsonicClient {
   static const String clientName = 'Vynody';
   static const String apiVersion = '1.16.1';
@@ -168,54 +177,113 @@ class SubsonicClient {
     return false;
   }
 
+  Future<Map<String, dynamic>> _getSubsonicData(
+    String endpoint, [
+    Map<String, dynamic>? params,
+  ]) async {
+    try {
+      final url = buildUrl(endpoint, params);
+      final response = await _dio.get<dynamic>(url);
+      final data = response.data;
+      if (data == null) {
+        throw const SubsonicException('Empty response from server');
+      }
+      Map<String, dynamic>? subsonic;
+      if (data is Map<String, dynamic>) {
+        final sub = data['subsonic-response'];
+        if (sub is Map<String, dynamic>) {
+          subsonic = sub;
+        }
+      } else if (data is String) {
+        try {
+          final decoded = jsonDecode(data);
+          if (decoded is Map<String, dynamic>) {
+            final sub = decoded['subsonic-response'];
+            if (sub is Map<String, dynamic>) {
+              subsonic = sub;
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (subsonic == null) {
+        throw const SubsonicException('Invalid Subsonic API response');
+      }
+
+      final status = subsonic['status'] as String?;
+      if (status != 'ok') {
+        final error = subsonic['error'] as Map<String, dynamic>?;
+        final errorMsg =
+            error?['message'] as String? ?? 'Subsonic request failed';
+        final code = error?['code'] as int?;
+        throw SubsonicException(errorMsg, code: code);
+      }
+      return subsonic;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        final respData = e.response!.data;
+        if (respData is Map<String, dynamic>) {
+          final subError = respData['subsonic-response']?['error'];
+          if (subError is Map<String, dynamic>) {
+            final msg = subError['message'] as String?;
+            final code = subError['code'] as int?;
+            if (msg != null && msg.isNotEmpty) {
+              throw SubsonicException(msg, code: code);
+            }
+          }
+        }
+        if (e.response!.statusCode == 401) {
+          throw const SubsonicException(
+            '401 Unauthorized: Invalid username or password',
+          );
+        }
+        final status = e.response!.statusCode;
+        final statusText = e.response!.statusMessage ?? '';
+        throw SubsonicException('HTTP $status $statusText'.trim());
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw const SubsonicException('Connection timed out');
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        final msg = e.error?.toString() ?? e.message;
+        throw SubsonicException(
+          msg != null && msg.isNotEmpty ? msg : 'Connection error',
+        );
+      }
+      throw SubsonicException(e.message ?? e.toString());
+    }
+  }
+
   /// Tests the connection to the Subsonic/Navidrome server.
   Future<ConnectionTestResult> testConnection() async {
     try {
-      final url = buildUrl('ping.view');
-      final response = await _dio.get<Map<String, dynamic>>(url);
-      final data = response.data;
-      if (data == null) {
-        return const ConnectionTestResult.failure('Empty response from server');
-      }
+      final subsonic = await _getSubsonicData('ping.view');
+      final version = subsonic['version'] as String? ?? 'Unknown';
+      final serverVersion = subsonic['serverVersion'] as String?;
+      final displayVer = serverVersion != null
+          ? '$serverVersion (API v$version)'
+          : 'API v$version';
 
-      final subsonic = data['subsonic-response'];
-      if (subsonic == null || subsonic is! Map<String, dynamic>) {
-        return const ConnectionTestResult.failure('Invalid Subsonic API response');
-      }
+      int? songCount;
+      int? albumCount;
+      try {
+        final scanRes = await _getSubsonicData('getScanStatus.view');
+        final scanData = scanRes['scanStatus'];
+        if (scanData is Map<String, dynamic>) {
+          songCount = scanData['count'] as int?;
+        }
+      } catch (_) {}
 
-      if (subsonic['status'] == 'ok') {
-        final version = subsonic['version'] as String? ?? 'Unknown';
-        final serverVersion = subsonic['serverVersion'] as String?;
-        final displayVer = serverVersion != null ? '$serverVersion (API v$version)' : 'API v$version';
-
-        // Optionally fetch song count
-        int? songCount;
-        int? albumCount;
-        try {
-          final scanStatusUrl = buildUrl('getScanStatus.view');
-          final scanRes = await _dio.get<Map<String, dynamic>>(scanStatusUrl);
-          final scanData = scanRes.data?['subsonic-response']?['scanStatus'];
-          if (scanData is Map<String, dynamic>) {
-            songCount = scanData['count'] as int?;
-          }
-        } catch (_) {}
-
-        return ConnectionTestResult.success(
-          message: 'Connected successfully',
-          serverVersion: displayVer,
-          songCount: songCount,
-          albumCount: albumCount,
-        );
-      } else {
-        final error = subsonic['error'] as Map<String, dynamic>?;
-        final errorMsg = error?['message'] as String? ?? 'Authentication failed';
-        return ConnectionTestResult.failure(errorMsg);
-      }
-    } on DioException catch (e) {
-      if (e.response != null && e.response?.statusCode == 401) {
-        return const ConnectionTestResult.failure('401 Unauthorized: Invalid username or password');
-      }
-      return ConnectionTestResult.failure('Connection failed: ${e.message ?? e.toString()}');
+      return ConnectionTestResult.success(
+        message: 'Connected successfully',
+        serverVersion: displayVer,
+        songCount: songCount,
+        albumCount: albumCount,
+      );
+    } on SubsonicException catch (e) {
+      return ConnectionTestResult.failure(e.message);
     } catch (e) {
       return ConnectionTestResult.failure('Error: $e');
     }
@@ -223,9 +291,8 @@ class SubsonicClient {
 
   /// Fetches the list of artists.
   Future<List<Map<String, dynamic>>> getArtists() async {
-    final url = buildUrl('getArtists.view');
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final artistsRoot = response.data?['subsonic-response']?['artists'];
+    final subsonic = await _getSubsonicData('getArtists.view');
+    final artistsRoot = subsonic['artists'];
     if (artistsRoot is Map<String, dynamic>) {
       final indexList = artistsRoot['index'] as List?;
       if (indexList != null) {
@@ -244,9 +311,8 @@ class SubsonicClient {
 
   /// Fetches an artist's details including their albums and songs.
   Future<Map<String, dynamic>?> getArtist(String artistId) async {
-    final url = buildUrl('getArtist.view', {'id': artistId});
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final artist = response.data?['subsonic-response']?['artist'];
+    final subsonic = await _getSubsonicData('getArtist.view', {'id': artistId});
+    final artist = subsonic['artist'];
     if (artist is Map<String, dynamic>) {
       return artist;
     }
@@ -256,14 +322,22 @@ class SubsonicClient {
   /// Fetches extended artist information (biography, etc.) if supported.
   Future<Map<String, dynamic>?> getArtistInfo(String artistId) async {
     try {
-      final url = buildUrl('getArtistInfo2.view', {'id': artistId});
-      final response = await _dio.get<Map<String, dynamic>>(url);
-      final info = response.data?['subsonic-response']?['artistInfo2'] ??
-          response.data?['subsonic-response']?['artistInfo'];
+      final subsonic =
+          await _getSubsonicData('getArtistInfo2.view', {'id': artistId});
+      final info = subsonic['artistInfo2'] ?? subsonic['artistInfo'];
       if (info is Map<String, dynamic>) {
         return info;
       }
-    } catch (_) {}
+    } catch (_) {
+      try {
+        final subsonic =
+            await _getSubsonicData('getArtistInfo.view', {'id': artistId});
+        final info = subsonic['artistInfo'] ?? subsonic['artistInfo2'];
+        if (info is Map<String, dynamic>) {
+          return info;
+        }
+      } catch (_) {}
+    }
     return null;
   }
 
@@ -273,14 +347,12 @@ class SubsonicClient {
     int size = 500,
     int offset = 0,
   }) async {
-    final url = buildUrl('getAlbumList2.view', {
+    final subsonic = await _getSubsonicData('getAlbumList2.view', {
       'type': type,
       'size': size,
       'offset': offset,
     });
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final subsonic = response.data?['subsonic-response'];
-    final albumRoot = subsonic?['albumList2'] ?? subsonic?['albumList'];
+    final albumRoot = subsonic['albumList2'] ?? subsonic['albumList'];
     final albumData = albumRoot?['album'];
     if (albumData is List) {
       return albumData.whereType<Map<String, dynamic>>().toList();
@@ -292,9 +364,8 @@ class SubsonicClient {
 
   /// Fetches details for an album including its songs.
   Future<Map<String, dynamic>?> getAlbum(String albumId) async {
-    final url = buildUrl('getAlbum.view', {'id': albumId});
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final album = response.data?['subsonic-response']?['album'];
+    final subsonic = await _getSubsonicData('getAlbum.view', {'id': albumId});
+    final album = subsonic['album'];
     if (album is Map<String, dynamic>) {
       return album;
     }
@@ -304,9 +375,8 @@ class SubsonicClient {
   /// Fetches details for a single song by ID.
   Future<Map<String, dynamic>?> getSong(String songId) async {
     try {
-      final url = buildUrl('getSong.view', {'id': songId});
-      final response = await _dio.get<Map<String, dynamic>>(url);
-      final song = response.data?['subsonic-response']?['song'];
+      final subsonic = await _getSubsonicData('getSong.view', {'id': songId});
+      final song = subsonic['song'];
       if (song is Map<String, dynamic>) {
         return song;
       }
@@ -316,9 +386,8 @@ class SubsonicClient {
 
   /// Fetches all playlists.
   Future<List<Map<String, dynamic>>> getPlaylists() async {
-    final url = buildUrl('getPlaylists.view');
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final playlists = response.data?['subsonic-response']?['playlists']?['playlist'] as List?;
+    final subsonic = await _getSubsonicData('getPlaylists.view');
+    final playlists = subsonic['playlists']?['playlist'] as List?;
     if (playlists != null) {
       return playlists.whereType<Map<String, dynamic>>().toList();
     }
@@ -327,9 +396,9 @@ class SubsonicClient {
 
   /// Fetches details for a playlist including its songs.
   Future<Map<String, dynamic>?> getPlaylist(String playlistId) async {
-    final url = buildUrl('getPlaylist.view', {'id': playlistId});
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final playlist = response.data?['subsonic-response']?['playlist'];
+    final subsonic =
+        await _getSubsonicData('getPlaylist.view', {'id': playlistId});
+    final playlist = subsonic['playlist'];
     if (playlist is Map<String, dynamic>) {
       return playlist;
     }
@@ -341,19 +410,15 @@ class SubsonicClient {
     final params = <String, dynamic>{};
     if (musicFolderId != null) params['musicFolderId'] = musicFolderId;
     try {
-      final url = buildUrl('getStarred2.view', params);
-      final response = await _dio.get<Map<String, dynamic>>(url);
-      final subsonic = response.data?['subsonic-response'];
-      final root = subsonic?['starred2'] ?? subsonic?['starred'];
+      final subsonic = await _getSubsonicData('getStarred2.view', params);
+      final root = subsonic['starred2'] ?? subsonic['starred'];
       if (root is Map<String, dynamic>) {
         return root;
       }
     } catch (_) {
       try {
-        final fallbackUrl = buildUrl('getStarred.view', params);
-        final response = await _dio.get<Map<String, dynamic>>(fallbackUrl);
-        final subsonic = response.data?['subsonic-response'];
-        final root = subsonic?['starred'] ?? subsonic?['starred2'];
+        final subsonic = await _getSubsonicData('getStarred.view', params);
+        final root = subsonic['starred'] ?? subsonic['starred2'];
         if (root is Map<String, dynamic>) {
           return root;
         }
@@ -387,15 +452,15 @@ class SubsonicClient {
   }
 
   /// Searches across songs, albums, and artists.
-  Future<Map<String, dynamic>> search(String query, {int artistCount = 20, int albumCount = 20, int songCount = 50}) async {
-    final url = buildUrl('search3.view', {
+  Future<Map<String, dynamic>> search(String query,
+      {int artistCount = 20, int albumCount = 20, int songCount = 50}) async {
+    final subsonic = await _getSubsonicData('search3.view', {
       'query': query,
       'artistCount': artistCount,
       'albumCount': albumCount,
       'songCount': songCount,
     });
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final searchResult = response.data?['subsonic-response']?['searchResult3'];
+    final searchResult = subsonic['searchResult3'];
     if (searchResult is Map<String, dynamic>) {
       return searchResult;
     }
@@ -408,9 +473,10 @@ class SubsonicClient {
       // 1. Try OpenSubsonic getLyricsBySongId if ID is provided
       if (id != null && id.isNotEmpty) {
         try {
-          final url = buildUrl('getLyricsBySongId.view', {'id': id});
-          final response = await _dio.get<Map<String, dynamic>>(url);
-          final lyricsList = response.data?['subsonic-response']?['lyricsList']?['structuredLyrics'] as List?;
+          final subsonic =
+              await _getSubsonicData('getLyricsBySongId.view', {'id': id});
+          final lyricsList =
+              subsonic['lyricsList']?['structuredLyrics'] as List?;
           if (lyricsList != null && lyricsList.isNotEmpty) {
             final first = lyricsList.first;
             if (first is Map<String, dynamic>) {
@@ -423,9 +489,12 @@ class SubsonicClient {
                   if (line is Map<String, dynamic>) {
                     final start = line['start'] as int? ?? 0;
                     final text = line['value'] as String? ?? '';
-                    final minutes = (start ~/ 60000).toString().padLeft(2, '0');
-                    final seconds = ((start % 60000) ~/ 1000).toString().padLeft(2, '0');
-                    final millis = ((start % 1000) ~/ 10).toString().padLeft(2, '0');
+                    final minutes =
+                        (start ~/ 60000).toString().padLeft(2, '0');
+                    final seconds =
+                        ((start % 60000) ~/ 1000).toString().padLeft(2, '0');
+                    final millis =
+                        ((start % 1000) ~/ 10).toString().padLeft(2, '0');
                     buffer.writeln('[$minutes:$seconds.$millis]$text');
                   }
                 }
@@ -441,9 +510,8 @@ class SubsonicClient {
         final params = <String, dynamic>{};
         if (artist != null) params['artist'] = artist;
         if (title != null) params['title'] = title;
-        final url = buildUrl('getLyrics.view', params);
-        final response = await _dio.get<Map<String, dynamic>>(url);
-        final lyrics = response.data?['subsonic-response']?['lyrics'];
+        final subsonic = await _getSubsonicData('getLyrics.view', params);
+        final lyrics = subsonic['lyrics'];
         if (lyrics is Map<String, dynamic>) {
           final content = lyrics['content'] as String?;
           if (content != null && content.trim().isNotEmpty) {
@@ -464,9 +532,8 @@ class SubsonicClient {
     if (songIds != null && songIds.isNotEmpty) {
       params['songId'] = songIds;
     }
-    final url = buildUrl('createPlaylist.view', params);
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final playlist = response.data?['subsonic-response']?['playlist'];
+    final subsonic = await _getSubsonicData('createPlaylist.view', params);
+    final playlist = subsonic['playlist'];
     if (playlist is Map<String, dynamic>) {
       return playlist;
     }
@@ -492,17 +559,16 @@ class SubsonicClient {
     if (songIndexesToRemove != null && songIndexesToRemove.isNotEmpty) {
       params['songIndexToRemove'] = songIndexesToRemove;
     }
-    final url = buildUrl('updatePlaylist.view', params);
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final status = response.data?['subsonic-response']?['status'];
+    final subsonic = await _getSubsonicData('updatePlaylist.view', params);
+    final status = subsonic['status'];
     return status == 'ok';
   }
 
   /// Deletes a playlist on the Subsonic server.
   Future<bool> deletePlaylist(String playlistId) async {
-    final url = buildUrl('deletePlaylist.view', {'id': playlistId});
-    final response = await _dio.get<Map<String, dynamic>>(url);
-    final status = response.data?['subsonic-response']?['status'];
+    final subsonic =
+        await _getSubsonicData('deletePlaylist.view', {'id': playlistId});
+    final status = subsonic['status'];
     return status == 'ok';
   }
 
@@ -519,9 +585,8 @@ class SubsonicClient {
     if (params.isEmpty) return false;
 
     try {
-      final url = buildUrl('star.view', params);
-      final response = await _dio.get<Map<String, dynamic>>(url);
-      final status = response.data?['subsonic-response']?['status'];
+      final subsonic = await _getSubsonicData('star.view', params);
+      final status = subsonic['status'];
       return status == 'ok';
     } catch (_) {
       return false;
@@ -541,9 +606,8 @@ class SubsonicClient {
     if (params.isEmpty) return false;
 
     try {
-      final url = buildUrl('unstar.view', params);
-      final response = await _dio.get<Map<String, dynamic>>(url);
-      final status = response.data?['subsonic-response']?['status'];
+      final subsonic = await _getSubsonicData('unstar.view', params);
+      final status = subsonic['status'];
       return status == 'ok';
     } catch (_) {
       return false;
