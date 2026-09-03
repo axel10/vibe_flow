@@ -222,12 +222,14 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final viewportHeight = constraints.maxHeight;
+                    final double topPadding = widget.lyricsStyle == LyricsStyle.apple
+                        ? PlaybackPageUiTuning.appleLyricsTopPadding(
+                            widget.lyricsFontScale,
+                            isSmallWin: widget.isSmallWin,
+                          )
+                        : 0.0;
                     final double extraBottomPadding;
                     if (widget.lyricsStyle == LyricsStyle.apple && widget.lineHeights.isNotEmpty) {
-                      final topPadding = PlaybackPageUiTuning.appleLyricsTopPadding(
-                        widget.lyricsFontScale,
-                        isSmallWin: widget.isSmallWin,
-                      );
                       final offset = PlaybackPageUiTuning.appleLyricsScrollOffset(
                         widget.lyricsFontScale,
                         isSmallWin: widget.isSmallWin,
@@ -247,6 +249,20 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                           ? math.max(500.0, viewportHeight - (isPortrait ? 25.0 : 100.0))
                           : 500.0;
                     }
+
+                    // 预计算所有歌词行的 Y 轴位置，用于视口可见性判定，避免为屏幕外的行生成昂贵的离屏高斯模糊层
+                    final int lineCount = widget.displayLines.length;
+                    final List<double> lineHeights = widget.lineHeights;
+                    final List<double> lineTops = List<double>.filled(lineCount, 0.0);
+                    double currentY = topPadding;
+                    for (var i = 0; i < lineCount; i++) {
+                      lineTops[i] = currentY;
+                      currentY += (i < lineHeights.length) ? lineHeights[i] : 40.0;
+                    }
+                    final bool hasClients = widget.scrollController.hasClients;
+                    final double scrollOffset = hasClients ? widget.scrollController.offset : 0.0;
+                    final double viewTop = scrollOffset - 50.0;
+                    final double viewBottom = scrollOffset + viewportHeight + 50.0;
                     return ScrollConfiguration(
                       behavior: widget.scrollBehavior,
                       child: SingleChildScrollView(
@@ -417,34 +433,37 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                           ),
                         );
 
+                        final double lineTop = lineTops[index];
+                        final double lineHeight = (index < lineHeights.length) ? lineHeights[index] : 40.0;
+                        final double lineBottom = lineTop + lineHeight;
+                        final bool isVisibleInViewport = hasClients
+                            ? (lineBottom >= viewTop && lineTop <= viewBottom)
+                            : ((index - widget.activeIndex) >= -3 && (index - widget.activeIndex) <= 7);
+
+                        // 核心性能优化：仅对真正处于屏幕视口内的未聚焦歌词行套用 ImageFiltered 高斯模糊，
+                        // 滚出屏幕外的行直接跳过，杜绝数十个多余离屏 RenderTarget 纹理对显存和 GPU 的巨大占用。
                         final bool shouldBlur = widget.hasTimedLyrics &&
                             widget.lyricsStyle == LyricsStyle.apple &&
                             widget.isFocusMode &&
                             !isActive &&
                             !isHovered &&
-                            distance <= 10 &&
+                            isVisibleInViewport &&
                             !widget.isTransitioning;
                         final Widget blurredChild;
-                        if (widget.hasTimedLyrics &&
-                            widget.lyricsStyle == LyricsStyle.apple &&
-                            widget.isFocusMode &&
-                            distance <= 12 &&
-                            !widget.isTransitioning) {
+                        if (shouldBlur) {
                           final int diff = index - widget.activeIndex;
-                          final double targetBlur = shouldBlur
-                              ? (PlaybackPageUiTuning.appleLyricsBaseBlurSigma +
-                                      diff * PlaybackPageUiTuning.appleLyricsBlurGradientFactor)
-                                  .clamp(
-                                  PlaybackPageUiTuning.appleLyricsMinBlurSigma,
-                                  PlaybackPageUiTuning.appleLyricsMaxBlurSigma,
-                                )
-                              : 0.0;
+                          final double targetBlur = (PlaybackPageUiTuning.appleLyricsBaseBlurSigma +
+                                  diff * PlaybackPageUiTuning.appleLyricsBlurGradientFactor)
+                              .clamp(
+                              PlaybackPageUiTuning.appleLyricsMinBlurSigma,
+                              PlaybackPageUiTuning.appleLyricsMaxBlurSigma,
+                            );
                           blurredChild = TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: targetBlur, end: targetBlur),
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
                             builder: (context, blurSigma, child) {
-                              if (blurSigma == 0.0) {
+                              if (blurSigma <= 0.0) {
                                 return child!;
                               }
                               return ImageFiltered(
