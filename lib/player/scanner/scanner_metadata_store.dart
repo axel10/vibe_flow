@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/metadata/metadata_helper.dart';
+import 'package:vynody/player/audio/playback_session_manager.dart';
 
 class ScannerMetadataStore {
   ScannerMetadataStore({
@@ -177,7 +178,7 @@ class ScannerMetadataStore {
     }
 
     final stopwatch = Stopwatch()..start();
-    if (!await File(path).exists()) {
+    if (!await PlaybackSessionManager.songExists(path)) {
       await purgeMissingSongPath(path);
       stopwatch.stop();
       _logTiming('loadThumbnailForPath missing($path)', stopwatch);

@@ -6,7 +6,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import 'package:audio_core/audio_core.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
@@ -597,10 +596,10 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
 
         if (hasPermission && isSystemMedia) {
           try {
-            final bytes = await OnAudioQuery().queryArtwork(
+            final bytes = await MetadataHelper.safeQueryArtwork(
               widget.musicFile.id!,
-              ArtworkType.AUDIO,
               size: 800,
+              hasPermission: hasPermission,
             );
             if (bytes != null && bytes.isNotEmpty) {
               if (!mounted) return;
@@ -670,17 +669,20 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
       }
     }
 
-    // Try extracting embedded artwork as last resort
-    final embeddedBytes = await MetadataHelper.decodeEmbeddedArtwork(
-      widget.musicFile.path,
-    );
-    if (embeddedBytes != null) {
-      if (!mounted) return;
-      setState(() {
-        _artworkBytes = embeddedBytes;
-      });
-      widget.onArtworkLoaded?.call(embeddedBytes, null);
-      return;
+    // Try extracting embedded artwork as last resort (if permission is available)
+    final canAccessFile = !Platform.isAndroid || (await MetadataHelper.hasAndroidAudioPermission());
+    if (canAccessFile) {
+      final embeddedBytes = await MetadataHelper.decodeEmbeddedArtwork(
+        widget.musicFile.path,
+      );
+      if (embeddedBytes != null) {
+        if (!mounted) return;
+        setState(() {
+          _artworkBytes = embeddedBytes;
+        });
+        widget.onArtworkLoaded?.call(embeddedBytes, null);
+        return;
+      }
     }
 
     // Fallback: If high-res artwork failed or is missing, try thumbnailPath if present

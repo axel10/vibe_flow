@@ -2109,9 +2109,8 @@ class AudioService extends Notifier<AudioSnapshot> {
 
       if (highResBytes == null && Platform.isAndroid && song.id != null) {
         try {
-          final queryBytes = await OnAudioQuery().queryArtwork(
+          final queryBytes = await MetadataHelper.safeQueryArtwork(
             song.id!,
-            ArtworkType.AUDIO,
             size: 800,
           );
           if (queryBytes != null && queryBytes.isNotEmpty) {

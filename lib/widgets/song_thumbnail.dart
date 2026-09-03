@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:audio_core/audio_core.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +10,7 @@ import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/utils/memory_trace.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 import 'package:vynody/player/remote/remote_service_providers.dart';
+import 'package:vynody/player/metadata/metadata_helper.dart';
 
 class SongThumbnail extends ConsumerStatefulWidget {
   final String path;
@@ -147,7 +147,6 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
         setState(() {
           _artworkQueried = true;
         });
-        _triggerLoad();
       }
       return;
     }
@@ -169,10 +168,10 @@ class _SongThumbnailState extends ConsumerState<SongThumbnail> {
     try {
       final double dpr = WidgetsBinding.instance.platformDispatcher.implicitView?.devicePixelRatio ?? 2.0;
       final int targetSize = (_bucketedSize * dpr).round();
-      final bytes = await OnAudioQuery().queryArtwork(
+      final bytes = await MetadataHelper.safeQueryArtwork(
         id,
-        ArtworkType.AUDIO,
         size: targetSize > 200 ? targetSize : 200,
+        hasPermission: scanner.hasPermission,
       );
       String? savedPath;
       if (bytes != null && bytes.isNotEmpty) {

@@ -10,6 +10,7 @@ import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/app_playback_mode.dart';
 import 'package:vynody/player/audio/playback_source.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
+import 'package:vynody/player/metadata/metadata_helper.dart';
 
 class RandomPlaybackData {
   const RandomPlaybackData({
@@ -108,10 +109,27 @@ class PlaybackSessionManager {
     stopAutoSaveTimer();
   }
 
-  static Future<bool> songExists(String path) async {
+  static Future<bool> songExists(String path, {bool? hasPermission}) async {
     if (path.trim().isEmpty) return false;
     if (RemoteMediaResolver.isRemoteUri(path)) return true;
     if (path.startsWith('content://')) return true;
+
+    if (Platform.isAndroid) {
+      final isExternal = path.startsWith('/storage/') || path.startsWith('/sdcard/');
+      if (isExternal) {
+        final permitted = hasPermission ?? await MetadataHelper.hasAndroidAudioPermission();
+        if (!permitted) {
+          final mapping = await AndroidSafStorageHelper.findBestMapping(path);
+          if (mapping == null) {
+            // Android 外部存储路径在既无系统媒体权限、又无 SAF 授权时，
+            // File(path).exists() 会因权限限制直接返回 false。
+            // 为防止将无权限误判为文件物理丢失而误清空队列或删除歌曲，此处保守返回 true。
+            return true;
+          }
+        }
+      }
+    }
+
     return File(path).exists();
   }
 

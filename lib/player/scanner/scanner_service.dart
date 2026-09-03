@@ -861,6 +861,9 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
           _syncActiveScopedRootAccess,
         );
       }
+      await _timeInitStep('check and request permissions', () {
+        return checkPermissionStatus();
+      });
       await _timeInitStep(
         'sync root availability',
         () => _refreshRootAvailability(shouldNotifyListeners: false),
@@ -882,9 +885,6 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
       });
       _timeInitStepSync('notify listeners after init', () {
         notifyListeners();
-      });
-      await _timeInitStep('check and request permissions', () {
-        return checkPermissionStatus();
       });
       // Auto scan on startup
       await _timeInitStep('startup scan', scan);
@@ -1345,6 +1345,12 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
     if (Platform.isLinux &&
         (normalizedPath.startsWith('/run/media/') ||
             normalizedPath.startsWith('/media/'))) {
+      return true;
+    }
+
+    if (Platform.isAndroid && !_hasPermission) {
+      // On Android without audio permission, Directory.existsSync() on external
+      // storage returns false. Preserve configured roots so they don't collapse.
       return true;
     }
 

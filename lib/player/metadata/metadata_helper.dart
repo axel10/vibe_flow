@@ -6,6 +6,8 @@ import 'package:audio_core/audio_core.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/player/scanner/scanner_path_utils.dart';
 import 'package:vynody/player/metadata/artwork_constants.dart';
@@ -86,6 +88,44 @@ class SaveMetadataResult {
 class MetadataHelper {
   /// Stores the last error message during metadata saving.
   static String? lastWriteError;
+
+  /// 统一检查 Android 音频媒体权限
+  static Future<bool> hasAndroidAudioPermission() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        return await Permission.audio.isGranted;
+      } else {
+        return await Permission.storage.isGranted;
+      }
+    } catch (e) {
+      debugPrint('[MetadataHelper] hasAndroidAudioPermission check failed: $e');
+      return false;
+    }
+  }
+
+  /// 安全查询系统媒体库封面，内部统一校验权限并捕获异常，未授权时静默返回 null
+  static Future<Uint8List?> safeQueryArtwork(
+    int songId, {
+    int size = 800,
+    bool? hasPermission,
+  }) async {
+    if (!Platform.isAndroid) return null;
+    try {
+      final permitted = hasPermission ?? await hasAndroidAudioPermission();
+      if (!permitted) return null;
+      return await OnAudioQuery().queryArtwork(
+        songId,
+        ArtworkType.AUDIO,
+        size: size,
+      );
+    } catch (e) {
+      debugPrint('[MetadataHelper] safeQueryArtwork failed for $songId: $e');
+      return null;
+    }
+  }
 
   static String _resolveText(String? value, String fallback) {
     if (value == null) return fallback;
@@ -618,9 +658,8 @@ class MetadataHelper {
           }
         } else if (Platform.isAndroid && songId != null) {
           try {
-            final queryBytes = await OnAudioQuery().queryArtwork(
+            final queryBytes = await safeQueryArtwork(
               songId,
-              ArtworkType.AUDIO,
               size: 800,
             );
             if (queryBytes != null && queryBytes.isNotEmpty) {
@@ -637,7 +676,7 @@ class MetadataHelper {
               themeColorsBlob = artworkInfo?['themeColorsBlob'] as Uint8List?;
             }
           } catch (e) {
-            debugPrint('Failed to fetch system artwork via OnAudioQuery for $songId: $e');
+            debugPrint('Failed to fetch system artwork via safeQueryArtwork for $songId: $e');
           }
         }
       } else if (!generateThumbnail && existing != null) {

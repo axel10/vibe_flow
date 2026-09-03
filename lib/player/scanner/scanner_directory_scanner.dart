@@ -54,39 +54,43 @@ class ScannerDirectoryScanner {
   }) async {
     debugPrint('[ScannerDirectoryScanner] discoverMusicFiles start path=$path');
     if (Platform.isAndroid) {
+      // 1. SAF mapping has absolute priority for custom folders on Android
+      final mapping = await AndroidSafStorageHelper.findBestMapping(path);
+      if (mapping != null) {
+        final treeUri = mapping.value;
+        final displayPath = mapping.key;
+        final relativeSubPath = p.relative(path, from: displayPath);
+        debugPrint(
+          '[ScannerDirectoryScanner] SAF mapping found: displayPath=$displayPath, '
+          'treeUri=$treeUri, relativeSubPath=$relativeSubPath',
+        );
+        
+        final relativePaths = await AndroidSafStorageHelper.listMusicFilesRecursively(
+          treeUri,
+          relativeSubPath: relativeSubPath == '.' ? '' : relativeSubPath,
+        );
+        
+        final absolutePaths = relativePaths.map((rel) => p.join(displayPath, relativeSubPath == '.' ? '' : relativeSubPath, rel)).toList();
+        debugPrint(
+          '[ScannerDirectoryScanner] SAF discovery completed. Found ${absolutePaths.length} music files',
+        );
+        
+        scanState.discoveredCount += absolutePaths.length;
+        final discoveredFiles = <ScanDiscoveredFile>[];
+        for (final file in absolutePaths) {
+          _emitScanProgress(scanState, file);
+          discoveredFiles.add(ScanDiscoveredFile(path: file));
+        }
+        return discoveredFiles;
+      }
+
+      // 2. If no SAF mapping, ensure Android permissions before touching the filesystem
       final hasPermission = await _hasAndroidPermissions();
       if (!hasPermission) {
-        debugPrint('[ScannerDirectoryScanner] Android system permission not granted. Checking SAF mapping for path=$path');
-        final mapping = await AndroidSafStorageHelper.findBestMapping(path);
-        if (mapping != null) {
-          final treeUri = mapping.value;
-          final displayPath = mapping.key;
-          final relativeSubPath = p.relative(path, from: displayPath);
-          debugPrint(
-            '[ScannerDirectoryScanner] SAF mapping found: displayPath=$displayPath, '
-            'treeUri=$treeUri, relativeSubPath=$relativeSubPath',
-          );
-          
-          final relativePaths = await AndroidSafStorageHelper.listMusicFilesRecursively(
-            treeUri,
-            relativeSubPath: relativeSubPath == '.' ? '' : relativeSubPath,
-          );
-          
-          final absolutePaths = relativePaths.map((rel) => p.join(displayPath, relativeSubPath == '.' ? '' : relativeSubPath, rel)).toList();
-          debugPrint(
-            '[ScannerDirectoryScanner] SAF discovery completed. Found ${absolutePaths.length} music files',
-          );
-          
-          scanState.discoveredCount += absolutePaths.length;
-          final discoveredFiles = <ScanDiscoveredFile>[];
-          for (final file in absolutePaths) {
-            _emitScanProgress(scanState, file);
-            discoveredFiles.add(ScanDiscoveredFile(path: file));
-          }
-          return discoveredFiles;
-        } else {
-          debugPrint('[ScannerDirectoryScanner] No SAF mapping found for path=$path');
-        }
+        debugPrint(
+          '[ScannerDirectoryScanner] No SAF mapping and no Android audio permission for path=$path. Skipping directory traversal.',
+        );
+        return const <ScanDiscoveredFile>[];
       }
     }
 
@@ -140,6 +144,19 @@ class ScannerDirectoryScanner {
       '[ScannerDirectoryScanner] discoverMusicFilesInDirectory start '
       'path=$path',
     );
+    if (Platform.isAndroid) {
+      final hasPermission = await _hasAndroidPermissions();
+      if (!hasPermission) {
+        final mapping = await AndroidSafStorageHelper.findBestMapping(path);
+        if (mapping == null) {
+          debugPrint(
+            '[ScannerDirectoryScanner] non-recursive discovery skipped (no Android permission) path=$path',
+          );
+          return const <ScanDiscoveredFile>[];
+        }
+      }
+    }
+
     final directory = Directory(path);
     if (!await directory.exists()) {
       debugPrint(
