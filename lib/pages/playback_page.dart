@@ -1543,23 +1543,31 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                       ref.read(audioServiceProvider).getCachedArtwork(songPath))
                   : null;
 
-              final isPc = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-              final int bgCacheSize = isSmallWinValue ? (isPc ? 1200 : 500) : 300;
+              // 与 CoverCarousel 保持完全一致的缓存尺寸与 ImageProvider 优先级，
+              // 确保 100% 命中 Flutter ImageCache，直接复用已解码显存纹理，杜绝二次解码与重复内存占用。
+              const int bgCacheWidth = 800;
 
               Widget? imageWidget;
 
-              // 统一背景使用低清/缩略图逻辑：
-              // 优先使用已缓存的缩略图文件，若未准备完成则回退至大图路径/字节，但强制使用小尺寸 cacheWidth/Height 解码，
-              // 避免毛玻璃背景加载全高清大图占用过高内存和 GPU 开销。
-              if (thumbnailPath != null &&
+              if (cachedBytes != null && cachedBytes.isNotEmpty) {
+                imageWidget = Image.memory(
+                  cachedBytes,
+                  width: double.infinity,
+                  height: double.infinity,
+                  cacheWidth: bgCacheWidth,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.low,
+                  gaplessPlayback: true,
+                  excludeFromSemantics: true,
+                );
+              } else if (thumbnailPath != null &&
                   thumbnailPath.isNotEmpty &&
                   File(thumbnailPath).existsSync()) {
                 imageWidget = Image.file(
                   File(thumbnailPath),
                   width: double.infinity,
                   height: double.infinity,
-                  cacheWidth: bgCacheSize,
-                  cacheHeight: bgCacheSize,
+                  cacheWidth: bgCacheWidth,
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.low,
                   gaplessPlayback: true,
@@ -1572,20 +1580,7 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
                   File(artworkPath),
                   width: double.infinity,
                   height: double.infinity,
-                  cacheWidth: bgCacheSize,
-                  cacheHeight: bgCacheSize,
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.low,
-                  gaplessPlayback: true,
-                  excludeFromSemantics: true,
-                );
-              } else if (cachedBytes != null && cachedBytes.isNotEmpty) {
-                imageWidget = Image.memory(
-                  cachedBytes,
-                  width: double.infinity,
-                  height: double.infinity,
-                  cacheWidth: bgCacheSize,
-                  cacheHeight: bgCacheSize,
+                  cacheWidth: bgCacheWidth,
                   fit: BoxFit.cover,
                   filterQuality: FilterQuality.low,
                   gaplessPlayback: true,

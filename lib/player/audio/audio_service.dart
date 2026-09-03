@@ -1071,8 +1071,7 @@ class AudioService extends Notifier<AudioSnapshot> {
       if (artworkBytes != null && artworkBytes.isNotEmpty) {
         // Keep the hero destination image sharp without allowing a full-size
         // decode to block the transition.
-        final isPc = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-        final int limit = isPc ? 1200 : 800;
+        const int limit = 800;
         final provider = ResizeImage(
           MemoryImage(artworkBytes),
           width: limit,

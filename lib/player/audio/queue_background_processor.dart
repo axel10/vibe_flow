@@ -246,9 +246,7 @@ class QueueBackgroundProcessor {
               onChanged();
             }
 
-            final isPc =
-                Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-            final int limit = isPc ? 1200 : 800;
+            const int limit = 800;
 
             final provider = ResizeImage(
               FileImage(File(artworkPath)),

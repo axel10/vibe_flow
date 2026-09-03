@@ -5,7 +5,6 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:oktoast/oktoast.dart';
-import 'package:worker_manager/worker_manager.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
@@ -303,8 +302,10 @@ void main(List<String> args) async {
         mirrorToConsole: true,
       );
       await cleanupLyricsAiTempArtifacts();
-      AppLog.log('initializing worker manager', mirrorToConsole: true);
-      unawaited(workerManager.init(isolatesCount: 8));
+      // 优化内存占用：将默认 100MB / 1000 张的图片缓存限制调整为更合理的 40MB / 100 张
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 40 * 1024 * 1024;
+      PaintingBinding.instance.imageCache.maximumSize = 100;
+
 
       AppLog.log('calling runApp', mirrorToConsole: true);
       MemoryTrace.snapshot('main:runApp');

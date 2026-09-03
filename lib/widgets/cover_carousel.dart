@@ -804,8 +804,8 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
 
     final int? finalCacheWidth;
     if (isPc) {
-      // For PC/desktop, use a fixed cache size of 1200 to completely avoid re-decoding when resizing the window.
-      finalCacheWidth = 1200;
+      // For PC/desktop, use a fixed cache size of 800 to balance clarity and RAM usage.
+      finalCacheWidth = 800;
     } else {
       if (isAnimating) {
         // 在动画或过度进行期间固定使用 800px 缓存宽度，避免 ResizeImage 在每一帧解算不同的 cacheWidth 导致反复重新解码
