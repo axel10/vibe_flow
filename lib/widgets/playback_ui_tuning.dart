@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class PlaybackPageUiTuning {
@@ -259,5 +261,77 @@ class MiniPlayerUiTuning {
     }
 
     return offset;
+  }
+}
+
+/// 播放页封面图片尺寸与解码缓存统一配置与调节入口
+class PlaybackArtworkTuning {
+  PlaybackArtworkTuning._();
+
+  /// 基础备用分辨率
+  static const int defaultCacheWidth = 800;
+
+  /// 移动端普通机型最小/最大解码缓存宽度 (px)
+  static const int minCacheWidthMobile = 400;
+  static const int maxCacheWidthMobile = 1200;
+
+  /// 移动端低配机型最大缓存宽度（严格控制显存占用，杜绝 OOM）
+  static const int maxCacheWidthLowEnd = 800;
+
+  /// 桌面端最小/最大解码缓存宽度（完美覆盖 4K/2K/Retina 高分屏与宽屏大窗口）
+  static const int minCacheWidthDesktop = 800;
+  static const int maxCacheWidthDesktop = 2048;
+
+  /// 尺寸分桶步长（px），避免窗口微小缩放时导致 Flutter ImageCache 频繁 Miss 反复解码
+  static const double bucketStep = 400.0;
+
+  /// 系统媒体库（如 Android on_audio_query）封面查询基准分辨率
+  static const int systemArtworkQuerySize = 800;
+
+  /// 估算封面在当前屏幕尺寸下的标准逻辑展示尺寸 (dp)
+  static double estimateCoverLogicalSize(Size screenSize, {bool? isLandscape}) {
+    final bool landscape =
+        isLandscape ?? (screenSize.width > screenSize.height);
+    if (landscape) {
+      return (math.min(screenSize.width * 0.45, screenSize.height * 0.72))
+          .clamp(240.0, 1000.0);
+    } else {
+      return (screenSize.width - 48.0).clamp(240.0, 600.0);
+    }
+  }
+
+  /// 统一计算播放页封面（CoverCarousel）及背景模糊图（PlaybackPage）的解码缓存宽度 (cacheWidth)
+  ///
+  /// 该函数保证在相同屏幕/窗口环境下，CoverCarousel 与 PlaybackPage 背景模糊图计算出的
+  /// cacheWidth 绝对完全一致，从而 100% 命中 Flutter ImageCache，实现解码显存纹理单次复用。
+  /// 同时在 4K、2K 和 Retina 屏上根据设备像素比 (dpr) 自适应提升分辨率至最高 2048px，彻底解决 4K 屏模糊问题。
+  static int calculateCoverCacheWidth(
+    BuildContext context, {
+    double? logicalSize,
+    bool isLowMidEnd = false,
+    bool? isDesktop,
+  }) {
+    final mq = MediaQuery.of(context);
+    final double dpr = mq.devicePixelRatio;
+    final bool desktop = isDesktop ??
+        (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+
+    if (desktop) {
+      // 桌面端高分屏适配（4K / 2K / Retina）
+      final double targetLogical =
+          logicalSize ?? estimateCoverLogicalSize(mq.size);
+      final double rawSize = targetLogical * dpr;
+      final int bucket = (rawSize / bucketStep).ceil() * bucketStep.toInt();
+      return bucket.clamp(minCacheWidthDesktop, maxCacheWidthDesktop);
+    } else {
+      if (isLowMidEnd) {
+        return maxCacheWidthLowEnd;
+      }
+      final double targetLogical =
+          logicalSize ?? estimateCoverLogicalSize(mq.size);
+      final double rawSize = targetLogical * dpr;
+      final int bucket = (rawSize / bucketStep).ceil() * bucketStep.toInt();
+      return bucket.clamp(minCacheWidthMobile, maxCacheWidthMobile);
+    }
   }
 }

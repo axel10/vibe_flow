@@ -1545,7 +1545,11 @@ class _PlaybackPageState extends ConsumerState<PlaybackPage> {
 
               // 与 CoverCarousel 保持完全一致的缓存尺寸与 ImageProvider 优先级，
               // 确保 100% 命中 Flutter ImageCache，直接复用已解码显存纹理，杜绝二次解码与重复内存占用。
-              const int bgCacheWidth = 800;
+              final bool isLowMidEnd = ref.read(isLowMidEndDeviceProvider);
+              final int bgCacheWidth = PlaybackArtworkTuning.calculateCoverCacheWidth(
+                context,
+                isLowMidEnd: isLowMidEnd,
+              );
 
               Widget? imageWidget;
 

@@ -17,6 +17,7 @@ import 'package:vynody/player/settings/track_artwork_theme_service.dart';
 import 'package:vynody/utils/memory_trace.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:vynody/widgets/playback_ui_tuning.dart';
 
 class CoverCarousel extends StatefulWidget {
   const CoverCarousel({
@@ -802,24 +803,12 @@ class _CoverItemState extends ConsumerState<_CoverItem> {
   }
 
   Widget _buildCoverImage(bool isCentered, bool isAnimating) {
-    final isPc = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-
-    final int? finalCacheWidth;
-    if (isPc) {
-      // For PC/desktop, use a fixed cache size of 800 to balance clarity and RAM usage.
-      finalCacheWidth = 800;
-    } else {
-      if (isAnimating) {
-        // 在动画或过度进行期间固定使用 800px 缓存宽度，避免 ResizeImage 在每一帧解算不同的 cacheWidth 导致反复重新解码
-        finalCacheWidth = 800;
-      } else {
-        final double devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-        final double rawSize = ((widget.cacheWidthSize ?? widget.displaySize) ?? 400) * devicePixelRatio;
-        // 使用 400px 大步长分桶，彻底防止微小尺寸变动导致的 ImageCache 频繁 Miss
-        final int cacheBucket = (rawSize / 400.0).ceil() * 400;
-        finalCacheWidth = math.min(math.max(cacheBucket, 400), 800);
-      }
-    }
+    final bool isLowMidEnd = ref.read(isLowMidEndDeviceProvider);
+    final int finalCacheWidth = PlaybackArtworkTuning.calculateCoverCacheWidth(
+      context,
+      logicalSize: widget.cacheWidthSize,
+      isLowMidEnd: isLowMidEnd,
+    );
 
     final cachedBytes = widget.audioService.getCachedArtwork(
       widget.musicFile.path,
