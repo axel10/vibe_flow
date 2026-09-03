@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:audio_core/audio_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vynody/utils/secure_storage.dart';
 
 import 'package:vynody/player/audio/equalizer_presets.dart';
 import 'package:vynody/player/settings/shortcut_bindings.dart';
@@ -2788,7 +2788,7 @@ class SettingsService extends ChangeNotifier {
 
   static Future<SettingsService> init() async {
     final prefs = await SharedPreferences.getInstance();
-    const secureStorage = FlutterSecureStorage();
+    const secureStorage = appSecureStorage;
     final secureApiKeys = <String, String>{};
     for (final key in _apiKeyStorageKeys) {
       try {

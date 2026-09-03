@@ -1,7 +1,6 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:vynody/utils/network_client.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/utils/secure_storage.dart';
 
 import 'package:vynody/utils/localized_text.dart';
 
@@ -10,7 +9,7 @@ AppLocalizations _l10n() => currentAppL10n;
 class AIApiKeyService {
   AIApiKeyService({NetworkClient? client, FlutterSecureStorage? storage})
     : _client = client ?? NetworkClient.instance,
-      _storage = storage ?? const FlutterSecureStorage();
+      _storage = storage ?? appSecureStorage;
 
   final NetworkClient _client;
   final FlutterSecureStorage _storage;

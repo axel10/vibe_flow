@@ -1,5 +1,5 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../utils/secure_storage.dart';
 import '../metadata/metadata_database.dart';
 import 'remote_server_models.dart';
 
@@ -15,15 +15,7 @@ class RemoteServerStorage {
     required SharedPreferences prefs,
     FlutterSecureStorage? secureStorage,
   })  : _prefs = prefs,
-        _secureStorage = secureStorage ??
-            const FlutterSecureStorage(
-              iOptions: IOSOptions(
-                accessibility: KeychainAccessibility.first_unlock,
-              ),
-              mOptions: MacOsOptions(
-                accessibility: KeychainAccessibility.first_unlock,
-              ),
-            );
+        _secureStorage = secureStorage ?? appSecureStorage;
 
   /// Loads all saved remote servers.
   List<RemoteServer> loadServers() {

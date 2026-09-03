@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/dialogs/upgrade_to_pro_dialog.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/pro/app_channel.dart';
 import 'package:vynody/player/pro/pro_models.dart';
+import 'package:vynody/utils/secure_storage.dart';
 
 const String _kFirstLaunchTimeKey = 'vynody_license_first_launch_epoch_ms';
 const String _kProPurchasedKey = 'vynody_license_pro_purchased';
@@ -21,10 +21,7 @@ class ProLicenseService extends ChangeNotifier {
   }
 
   final SharedPreferences? _prefs;
-  static const _secureStorage = FlutterSecureStorage(
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    mOptions: MacOsOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
+  static const _secureStorage = appSecureStorage;
 
   LicenseState _state = const LicenseState(
     type: LicenseType.unlimitedCommunity,
