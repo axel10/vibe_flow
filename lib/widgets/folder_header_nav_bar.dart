@@ -6,6 +6,7 @@ import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/settings/settings_service.dart';
+import 'package:vynody/utils/folder_helpers.dart';
 import 'package:vynody/utils/song_locator_helper.dart';
 
 class FolderHeaderNavBar extends ConsumerStatefulWidget {
@@ -259,12 +260,7 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
     final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 44.0 : 8.0);
 
     return Container(
-      padding: EdgeInsets.only(
-        top: topPadding,
-        bottom: 8,
-        left: isPortrait ? 8 : 16,
-        right: isPortrait ? 16 : 24,
-      ),
+      width: double.infinity,
       decoration: BoxDecoration(
         color: navBackgroundColor,
         border: Border(
@@ -285,7 +281,17 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
               ]
             : null,
       ),
-      child: Row(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: topPadding,
+              bottom: 8,
+              left: isPortrait ? 8 : 16,
+              right: isPortrait ? 16 : 24,
+            ),
+            child: Row(
         children: [
           if (widget.onGoBack != null) ...[
             backButton,
@@ -449,6 +455,9 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
             ),
           ],
         ],
+      ),
+          ),
+        ),
       ),
     );
       },

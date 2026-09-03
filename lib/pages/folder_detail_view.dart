@@ -707,12 +707,7 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
-                    child: _buildBreadcrumbs(folder, scanner, isOverlay: true),
-                  ),
-                ),
+                child: _buildBreadcrumbs(folder, scanner, isOverlay: true),
               ),
               Positioned(
                 left: 0,
@@ -952,38 +947,5 @@ class _FolderDetailViewState extends ConsumerState<FolderDetailView> {
       },
     );
   }
-
 }
 
-class _BreadcrumbsHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
-  final double height;
-
-  _BreadcrumbsHeaderDelegate({
-    required this.child,
-    required this.height,
-  });
-
-  @override
-  double get minExtent => height;
-
-  @override
-  double get maxExtent => height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return SizedBox(
-      height: height,
-      child: child,
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _BreadcrumbsHeaderDelegate oldDelegate) {
-    return oldDelegate.child != child || oldDelegate.height != height;
-  }
-}

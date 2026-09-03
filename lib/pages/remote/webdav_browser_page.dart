@@ -1619,13 +1619,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: folderPageMaxWidth),
-                  child: _buildHeaderNavBar(context, isOverlay: true),
-                ),
-              ),
+              child: _buildHeaderNavBar(context, isOverlay: true),
             ),
             Positioned(
               left: 0,
@@ -2102,12 +2096,7 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
             : (isDesktop ? 44.0 : 8.0);
 
         return Container(
-          padding: EdgeInsets.only(
-            top: topPadding,
-            bottom: 8,
-            left: isPortrait ? 8 : 16,
-            right: isPortrait ? 16 : 24,
-          ),
+          width: double.infinity,
           decoration: BoxDecoration(
             color: navBackgroundColor,
             border: Border(
@@ -2128,7 +2117,17 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                   ]
                 : null,
           ),
-          child: Row(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: topPadding,
+                  bottom: 8,
+                  left: isPortrait ? 8 : 16,
+                  right: isPortrait ? 16 : 24,
+                ),
+                child: Row(
             children: [
               backButton,
               backChevron,
@@ -2335,6 +2334,9 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
                 ),
               ],
             ],
+          ),
+              ),
+            ),
           ),
         );
       },

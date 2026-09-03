@@ -542,12 +542,7 @@ class _FolderRootViewState extends ConsumerState<FolderRootView> {
               top: 0,
               left: 0,
               right: 0,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
-                  child: _buildRootTopHeader(context, isOverlay: true),
-                ),
-              ),
+              child: _buildRootTopHeader(context, isOverlay: true),
             ),
             Positioned(
               left: 0,
