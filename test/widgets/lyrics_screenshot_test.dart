@@ -166,7 +166,7 @@ void main() {
       tagText: '双语同步与逐字光效',
       tagColor: Color(0xFFFDA4AF),
       title: '动感歌词',
-      subtitle: 'Apple Music 级丝滑滚动 · 本地 AI 实时翻译与精细对齐',
+      subtitle: '逐行平滑滚动 · 本地 AI 实时翻译与精细对齐',
       backgroundGradient: [
         Color(0xFF220F18),
         Color(0xFF130911),

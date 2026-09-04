@@ -304,7 +304,7 @@ void main() {
       tagText: 'SYNCED LYRICS & GLOW EFFECTS',
       tagColor: Color(0xFFFDA4AF),
       title: 'Dynamic Lyrics',
-      subtitle: 'Fluid Apple Music Style · Real-Time AI Sync & Line Highlights',
+      subtitle: 'Fluid Line-by-Line Flow · Real-Time AI Sync & Line Highlights',
       backgroundGradient: [
         Color(0xFF220F18),
         Color(0xFF130911),
@@ -587,10 +587,10 @@ void main() {
     );
 
     final posterConfig = MobilePosterConfig(
-      tagText: 'PRO 10-BAND / 31-BAND EQ',
+      tagText: 'STUDIO ACOUSTIC ENGINE',
       tagColor: Color(0xFF38BDF8),
       title: 'Studio Equalizer',
-      subtitle: 'Ultra-Low Latency Engine · Dynamic Gain & Studio Presets',
+      subtitle: '5~20 Band Precision EQ · Rich Acoustic Presets & Bass Boost',
       backgroundGradient: [
         Color(0xFF0C192E),
         Color(0xFF08101E),

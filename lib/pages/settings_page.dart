@@ -1627,7 +1627,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     final String subtitleText;
     if (hasConfigured) {
-      subtitleText = url == SettingsService.defaultOnlineLyricsApiUrl
+      subtitleText = (!SettingsService.isIosPlatform &&
+              url == SettingsService.defaultOnlineLyricsApiUrl)
           ? l10n.onlineLyricsApiDefault(url)
           : url;
     } else {

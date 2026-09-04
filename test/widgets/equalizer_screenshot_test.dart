@@ -147,10 +147,10 @@ void main() {
     );
 
     final posterConfig = MobilePosterConfig(
-      tagText: 'Hi-Fi 级 10段 / 31段 EQ',
+      tagText: '专业声学引擎',
       tagColor: Color(0xFF38BDF8),
-      title: '专业均衡器',
-      subtitle: '低延迟原生音频引擎 · 动态增益补偿与预设',
+      title: '专业调音',
+      subtitle: '5~20 段高精度 EQ · 定制专属声学曲线',
       backgroundGradient: [
         Color(0xFF0C192E),
         Color(0xFF08101E),

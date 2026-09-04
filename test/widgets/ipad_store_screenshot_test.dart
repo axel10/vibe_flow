@@ -287,7 +287,7 @@ void main() {
       tagText: '双语同步与逐字光效',
       tagColor: const Color(0xFFFDA4AF),
       title: '动感歌词',
-      subtitle: 'Apple Music 级丝滑滚动 · 本地 AI 实时翻译与精细对齐',
+      subtitle: '逐行平滑滚动 · 本地 AI 实时翻译与精细对齐',
       backgroundGradient: const [
         Color(0xFF220F18),
         Color(0xFF130911),
@@ -570,10 +570,10 @@ void main() {
     );
 
     final posterConfig = IpadPosterConfig(
-      tagText: '录音室级调音台',
+      tagText: '专业声学引擎',
       tagColor: const Color(0xFF38BDF8),
-      title: '专业均衡器',
-      subtitle: '31段图示均衡与空间声学 · 超低延迟独立音频引擎',
+      title: '专业调音',
+      subtitle: '5~20 段高精度 EQ · 定制专属声学曲线',
       backgroundGradient: const [
         Color(0xFF0C192E),
         Color(0xFF08101E),
