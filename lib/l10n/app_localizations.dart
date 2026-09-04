@@ -6657,6 +6657,30 @@ abstract class AppLocalizations {
   /// **'允许局域网内的其他设备在配对后控制本机音乐播放'**
   String get allowRemoteControlSubtitle;
 
+  /// No description provided for @onlyAllowTrustedRemoteControlTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅允许受信任的设备控制'**
+  String get onlyAllowTrustedRemoteControlTitle;
+
+  /// No description provided for @onlyAllowTrustedRemoteControlSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅允许已信任设备直接连接，静默拒绝所有新设备配对请求'**
+  String get onlyAllowTrustedRemoteControlSubtitle;
+
+  /// No description provided for @onlyTrustedDevicesNoDevicesHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前暂无受信任设备，请先配对设备'**
+  String get onlyTrustedDevicesNoDevicesHint;
+
+  /// No description provided for @onlyTrustedRemoteDevicesAllowed.
+  ///
+  /// In zh, this message translates to:
+  /// **'该主机仅允许受信任的设备控制'**
+  String get onlyTrustedRemoteDevicesAllowed;
+
   /// No description provided for @remoteControlDisabledOnHost.
   ///
   /// In zh, this message translates to:

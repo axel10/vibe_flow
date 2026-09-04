@@ -3584,6 +3584,19 @@ class AppLocalizationsKo extends AppLocalizations {
       '페어링 후 LAN 내 다른 기기가 이 기기의 음악 재생을 제어하도록 허용';
 
   @override
+  String get onlyAllowTrustedRemoteControlTitle => '仅允许受信任的设备控制';
+
+  @override
+  String get onlyAllowTrustedRemoteControlSubtitle =>
+      '仅允许已信任设备直接连接，静默拒绝所有新设备配对请求';
+
+  @override
+  String get onlyTrustedDevicesNoDevicesHint => '当前暂无受信任设备，请先配对设备';
+
+  @override
+  String get onlyTrustedRemoteDevicesAllowed => '该主机仅允许受信任的设备控制';
+
+  @override
   String get remoteControlDisabledOnHost => '상대 기기에서 원격 제어가 비활성화되어 있습니다';
 
   @override

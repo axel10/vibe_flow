@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vynody/player/audio/app_playback_mode.dart';
+import 'package:vynody/player/settings/settings_service.dart';
 import 'package:vynody/player/sharing/remote_control/remote_playback_model.dart';
 
 void main() {
@@ -122,6 +124,27 @@ void main() {
 
       final restored = TrustedRemoteDevice.fromJson(json);
       expect(restored.certFingerprint, 'abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234');
+    });
+  });
+
+  group('Remote control settings tests', () {
+    test('default values are secure (disabled)', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final settings = SettingsService(prefs);
+
+      // allowRemoteControl defaults to false
+      expect(settings.allowRemoteControl, isFalse);
+      // onlyAllowTrustedRemoteControl defaults to false
+      expect(settings.onlyAllowTrustedRemoteControl, isFalse);
+
+      // Mutate and verify
+      settings.allowRemoteControl = true;
+      expect(settings.allowRemoteControl, isTrue);
+
+      settings.onlyAllowTrustedRemoteControl = true;
+      expect(settings.onlyAllowTrustedRemoteControl, isTrue);
     });
   });
 }

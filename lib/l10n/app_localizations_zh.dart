@@ -3526,6 +3526,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get allowRemoteControlSubtitle => '允许局域网内的其他设备在配对后控制本机音乐播放';
 
   @override
+  String get onlyAllowTrustedRemoteControlTitle => '仅允许受信任的设备控制';
+
+  @override
+  String get onlyAllowTrustedRemoteControlSubtitle =>
+      '仅允许已信任设备直接连接，静默拒绝所有新设备配对请求';
+
+  @override
+  String get onlyTrustedDevicesNoDevicesHint => '当前暂无受信任设备，请先配对设备';
+
+  @override
+  String get onlyTrustedRemoteDevicesAllowed => '该主机仅允许受信任的设备控制';
+
+  @override
   String get remoteControlDisabledOnHost => '对方设备未开启允许远程控制';
 
   @override
@@ -7921,6 +7934,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get allowRemoteControlSubtitle => '允許區域網路內的其他裝置在配對後控制本機音樂播放';
+
+  @override
+  String get onlyAllowTrustedRemoteControlTitle => '僅允許受信任的裝置控制';
+
+  @override
+  String get onlyAllowTrustedRemoteControlSubtitle =>
+      '僅允許已信任裝置直接連線，靜默拒絕所有新裝置配對請求';
+
+  @override
+  String get onlyTrustedDevicesNoDevicesHint => '目前暫無受信任裝置，請先配對裝置';
+
+  @override
+  String get onlyTrustedRemoteDevicesAllowed => '該主機僅允許受信任的裝置控制';
 
   @override
   String get remoteControlDisabledOnHost => '對方裝置未開啟允許遠端控制';

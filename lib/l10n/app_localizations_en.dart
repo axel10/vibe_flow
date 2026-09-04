@@ -3702,6 +3702,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allow other devices on the local network to control music playback after pairing';
 
   @override
+  String get onlyAllowTrustedRemoteControlTitle => 'Only Allow Trusted Devices';
+
+  @override
+  String get onlyAllowTrustedRemoteControlSubtitle =>
+      'Only allow trusted devices to connect, silently rejecting new device pairing requests';
+
+  @override
+  String get onlyTrustedDevicesNoDevicesHint =>
+      'No trusted devices yet. Please pair a device first.';
+
+  @override
+  String get onlyTrustedRemoteDevicesAllowed =>
+      'The host only allows trusted devices to connect';
+
+  @override
   String get remoteControlDisabledOnHost =>
       'Remote control is disabled on the target device';
 

@@ -520,6 +520,8 @@ class _SharingPageState extends ConsumerState<SharingPage>
         if (errorStr.contains('remote_control_disabled') ||
             errorStr.contains('Remote control is disabled')) {
           showToast(l10n.remoteControlDisabledOnHost);
+        } else if (errorStr.contains('only_trusted_allowed')) {
+          showToast(l10n.onlyTrustedRemoteDevicesAllowed);
         } else {
           showToast('${l10n.remoteConnectFailed}: $e');
         }
@@ -1209,6 +1211,74 @@ class _SharingPageState extends ConsumerState<SharingPage>
                           ),
                         ],
                       ),
+                    ),
+                    Builder(
+                      builder: (context) {
+                        final trustedDevices = ref.watch(trustedDevicesProvider);
+                        final canEnableOnlyTrusted =
+                            settings.allowRemoteControl && trustedDevices.isNotEmpty;
+                        final isOnlyTrusted =
+                            canEnableOnlyTrusted && settings.onlyAllowTrustedRemoteControl;
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(
+                                color: theme.colorScheme.outlineVariant
+                                    .withValues(alpha: 0.2),
+                              ),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 14.0,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.onlyAllowTrustedRemoteControlTitle,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: canEnableOnlyTrusted
+                                            ? null
+                                            : theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.38),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      trustedDevices.isEmpty
+                                          ? l10n.onlyTrustedDevicesNoDevicesHint
+                                          : l10n.onlyAllowTrustedRemoteControlSubtitle,
+                                      style: TextStyle(
+                                        color: canEnableOnlyTrusted
+                                            ? theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.6)
+                                            : theme.colorScheme.onSurface
+                                                .withValues(alpha: 0.38),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Switch(
+                                value: isOnlyTrusted,
+                                onChanged: canEnableOnlyTrusted
+                                    ? (value) {
+                                        settings.onlyAllowTrustedRemoteControl = value;
+                                      }
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                     Builder(
                       builder: (context) {

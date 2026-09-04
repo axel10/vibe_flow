@@ -189,6 +189,9 @@ class RemoteControlService {
           }
         } catch (_) {}
       }
+      if (_trustedDevices.isEmpty) {
+        _ref.read(settingsServiceProvider).onlyAllowTrustedRemoteControl = false;
+      }
       _ref.read(trustedDevicesProvider.notifier).setDevices(List.from(_trustedDevices));
     } catch (e) {
       debugPrint('[RemoteControlService] Error loading trusted devices: $e');
@@ -208,11 +211,15 @@ class RemoteControlService {
 
   Future<void> removeTrustedDevice(String id) async {
     _trustedDevices.removeWhere((d) => d.id == id);
+    if (_trustedDevices.isEmpty) {
+      _ref.read(settingsServiceProvider).onlyAllowTrustedRemoteControl = false;
+    }
     await _saveTrustedDevices();
   }
 
   Future<void> clearAllTrustedDevices() async {
     _trustedDevices.clear();
+    _ref.read(settingsServiceProvider).onlyAllowTrustedRemoteControl = false;
     await _saveTrustedDevices();
   }
 
@@ -327,6 +334,17 @@ class RemoteControlService {
           await request.response.close();
           return;
         }
+      }
+
+      // If only trusted devices are allowed, silently reject untrusted devices without popping any dialog
+      if (settings.onlyAllowTrustedRemoteControl) {
+        request.response.statusCode = HttpStatus.forbidden;
+        request.response.write(jsonEncode({
+          'success': false,
+          'reason': 'only_trusted_allowed',
+        }));
+        await request.response.close();
+        return;
       }
 
       // Generate 4-digit PIN Code
@@ -616,6 +634,11 @@ class RemoteControlService {
 
     final isTrusted = _trustedDevices.any((d) => d.token == token);
     final isTemporary = _temporaryAuthTokens.containsKey(token);
+    if (settings.onlyAllowTrustedRemoteControl && !isTrusted) {
+      request.response.statusCode = HttpStatus.forbidden;
+      await request.response.close();
+      return;
+    }
     if (!isTrusted && !isTemporary) {
       request.response.statusCode = HttpStatus.unauthorized;
       await request.response.close();

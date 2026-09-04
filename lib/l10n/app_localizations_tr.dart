@@ -3715,6 +3715,19 @@ class AppLocalizationsTr extends AppLocalizations {
       'Eşleştirmeden sonra yerel ağdaki diğer cihazların müzik çalmayı kontrol etmesine izin verin';
 
   @override
+  String get onlyAllowTrustedRemoteControlTitle => '仅允许受信任的设备控制';
+
+  @override
+  String get onlyAllowTrustedRemoteControlSubtitle =>
+      '仅允许已信任设备直接连接，静默拒绝所有新设备配对请求';
+
+  @override
+  String get onlyTrustedDevicesNoDevicesHint => '当前暂无受信任设备，请先配对设备';
+
+  @override
+  String get onlyTrustedRemoteDevicesAllowed => '该主机仅允许受信任的设备控制';
+
+  @override
   String get remoteControlDisabledOnHost =>
       'Hedef cihazda uzaktan kontrol devre dışı bırakılmış';
 

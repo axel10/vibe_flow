@@ -527,6 +527,8 @@ class SettingsService extends ChangeNotifier {
   static const String _keyLanSharingEnabled = 'lan_sharing_enabled';
   static const String _keyLanSharingFolderPath = 'lan_sharing_folder_path';
   static const String _keyAllowRemoteControl = 'allow_remote_control';
+  static const String _keyOnlyAllowTrustedRemoteControl =
+      'only_allow_trusted_remote_control';
   static const String _keyFolderViewMode = 'folder_view_mode';
   static const String _keyRemoteCacheMaxSizeBytes = 'remote_cache_max_size_bytes';
   static const int defaultRemoteCacheMaxSizeBytes = 2 * 1024 * 1024 * 1024; // 2 GB (0 = unlimited)
@@ -613,7 +615,14 @@ class SettingsService extends ChangeNotifier {
 
   late final _allowRemoteControlProperty = SettingProperty<bool>(
     key: _keyAllowRemoteControl,
-    defaultValue: true,
+    defaultValue: false,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _onlyAllowTrustedRemoteControlProperty = SettingProperty<bool>(
+    key: _keyOnlyAllowTrustedRemoteControl,
+    defaultValue: false,
     prefs: _prefs,
     onChanged: notifyListeners,
   );
@@ -1713,6 +1722,11 @@ class SettingsService extends ChangeNotifier {
   bool get allowRemoteControl => _allowRemoteControlProperty.value;
   set allowRemoteControl(bool value) =>
       _allowRemoteControlProperty.value = value;
+
+  bool get onlyAllowTrustedRemoteControl =>
+      _onlyAllowTrustedRemoteControlProperty.value;
+  set onlyAllowTrustedRemoteControl(bool value) =>
+      _onlyAllowTrustedRemoteControlProperty.value = value;
 
   int get remoteCacheMaxSizeBytes => _remoteCacheMaxSizeBytesProperty.value;
   set remoteCacheMaxSizeBytes(int value) =>
