@@ -810,12 +810,14 @@ class _SharingPageState extends ConsumerState<SharingPage>
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 10),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 0),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
 
               // 0. Host Remote Control Active Banner (if any)
               Builder(
@@ -1361,318 +1363,363 @@ class _SharingPageState extends ConsumerState<SharingPage>
                 ),
               ),
               const SizedBox(height: 10),
-              Expanded(
-                child: devicesAsync.when(
-                  data: (devices) {
-                    // Filter out local device if any
-                    final remoteDevices = devices;
-                    if (remoteDevices.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(bottom: bottomOffset * 0.5),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+            ],
+          ),
+        ),
+      ),
+      ...devicesAsync.when(
+        data: (devices) {
+          final remoteDevices = devices;
+          if (remoteDevices.isEmpty) {
+            return [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 20.0,
+                    right: 20.0,
+                    bottom: bottomOffset,
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.wifi,
+                          size: 48,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          serverState.isRunning
+                              ? l10n.searchingDevices
+                              : l10n.startSharingToFindDevices,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.4,
+                            ),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ];
+          }
+
+          return [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              sliver: SliverList.builder(
+                itemCount: remoteDevices.length,
+                itemBuilder: (context, index) {
+                  final device = remoteDevices[index];
+                  return _buildDeviceCard(context, theme, l10n, device);
+                },
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: bottomOffset),
+            ),
+          ];
+        },
+        loading: () => [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomOffset),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+        error: (e, _) => [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                bottom: bottomOffset,
+              ),
+              child: Center(
+                child: Text(
+                  l10n.loadDevicesError(e.toString()),
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+              ),
+            ),
+          ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceCard(
+  BuildContext context,
+  ThemeData theme,
+  AppLocalizations l10n,
+  LanDevice device,
+) {
+  return Card(
+    margin: const EdgeInsets.only(bottom: 10),
+    elevation: 0,
+    color: theme.colorScheme.surfaceContainerLow,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+      side: BorderSide(
+        color: device.isOnline
+            ? theme.colorScheme.primary.withValues(
+                alpha: 0.3,
+              )
+            : theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.2,
+              ),
+      ),
+    ),
+    child: ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest
+              .withValues(alpha: 0.4),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          _getPlatformIcon(device.deviceType),
+          color: device.isOnline
+              ? theme.colorScheme.onSurface
+              : theme.colorScheme.onSurface.withValues(
+                  alpha: 0.4,
+                ),
+        ),
+      ),
+      title: Text(
+        device.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: device.isOnline
+              ? theme.colorScheme.onSurface
+              : theme.colorScheme.onSurface.withValues(
+                  alpha: 0.4,
+                ),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      subtitle: Row(
+        children: [
+          Flexible(
+            child: Text(
+              device.ip,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface
+                    .withValues(alpha: 0.4),
+                fontSize: 11,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: device.isOnline
+                  ? Colors.green
+                  : theme.colorScheme.onSurface
+                        .withValues(alpha: 0.4),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            device.isOnline
+                ? l10n.deviceOnline
+                : l10n.deviceOffline,
+            style: TextStyle(
+              color: device.isOnline
+                  ? Colors.green
+                  : theme.colorScheme.onSurface
+                        .withValues(alpha: 0.4),
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+      trailing: device.isOnline
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.settings_remote_rounded,
+                    size: 20,
+                  ),
+                  tooltip: l10n.remoteControlAction,
+                  color: theme.colorScheme.primary,
+                  onPressed: () =>
+                      _handleRemoteControl(device),
+                ),
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: theme.colorScheme.primary,
+                  ),
+                  onSelected: (value) {
+                    if (value == 'remote_control') {
+                      _handleRemoteControl(device);
+                    } else if (value == 'file') {
+                      _handleSendFiles(device);
+                    } else if (value == 'folder') {
+                      _handleSendFolder(device);
+                    } else if (value == 'send_playlist') {
+                      _handleSendPlaylistsToDevice(device);
+                    } else if (value == 'pull_playlist') {
+                      _handlePullPlaylistsFromDevice(device);
+                    } else if (value == 'sync_to') {
+                      _handleSyncLyricsToDevice(device);
+                    } else if (value == 'sync_from') {
+                      _handleSyncLyricsFromDevice(device);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                        PopupMenuItem<String>(
+                          value: 'remote_control',
+                          child: Row(
                             children: [
                               Icon(
-                                Icons.wifi,
-                                size: 48,
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.2,
-                                ),
+                                Icons.settings_remote_rounded,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(width: 8),
+                              Text(l10n.remoteControlAction),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem<String>(
+                          value: 'file',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.insert_drive_file,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(l10n.sendMusicFiles),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'folder',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.folder,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(l10n.sendFolder),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem<String>(
+                          value: 'send_playlist',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.playlist_add_check_rounded,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
                               Text(
-                                serverState.isRunning
-                                    ? l10n.searchingDevices
-                                    : l10n.startSharingToFindDevices,
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  fontSize: 13,
-                                ),
+                                l10n.sendPlaylistsToDeviceAction,
                               ),
                             ],
                           ),
                         ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      padding: EdgeInsets.only(bottom: bottomOffset),
-                      itemCount: remoteDevices.length,
-                      itemBuilder: (context, index) {
-                        final device = remoteDevices[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          elevation: 0,
-                          color: theme.colorScheme.surfaceContainerLow,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            side: BorderSide(
-                              color: device.isOnline
-                                  ? theme.colorScheme.primary.withValues(
-                                      alpha: 0.3,
-                                    )
-                                  : theme.colorScheme.outlineVariant.withValues(
-                                      alpha: 0.2,
-                                    ),
-                            ),
+                        PopupMenuItem<String>(
+                          value: 'pull_playlist',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.playlist_play_rounded,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.pullPlaylistsFromDeviceAction,
+                              ),
+                            ],
                           ),
-                          child: ListTile(
-                            leading: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest
-                                    .withValues(alpha: 0.4),
-                                shape: BoxShape.circle,
+                        ),
+                        const PopupMenuDivider(),
+                        PopupMenuItem<String>(
+                          value: 'sync_to',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.cloud_upload_rounded,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
                               ),
-                              child: Icon(
-                                _getPlatformIcon(device.deviceType),
-                                color: device.isOnline
-                                    ? theme.colorScheme.onSurface
-                                    : theme.colorScheme.onSurface.withValues(
-                                        alpha: 0.4,
-                                      ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.syncLyricsToDeviceAction,
                               ),
-                            ),
-                            title: Text(
-                              device.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: device.isOnline
-                                    ? theme.colorScheme.onSurface
-                                    : theme.colorScheme.onSurface.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    device.ip,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.4),
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: device.isOnline
-                                        ? Colors.green
-                                        : theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.4),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  device.isOnline
-                                      ? l10n.deviceOnline
-                                      : l10n.deviceOffline,
-                                  style: TextStyle(
-                                    color: device.isOnline
-                                        ? Colors.green
-                                        : theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.4),
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            trailing: device.isOnline
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.settings_remote_rounded,
-                                          size: 20,
-                                        ),
-                                        tooltip: l10n.remoteControlAction,
-                                        color: theme.colorScheme.primary,
-                                        onPressed: () =>
-                                            _handleRemoteControl(device),
-                                      ),
-                                      PopupMenuButton<String>(
-                                        icon: Icon(
-                                          Icons.more_vert,
-                                          color: theme.colorScheme.primary,
-                                        ),
-                                        onSelected: (value) {
-                                          if (value == 'remote_control') {
-                                            _handleRemoteControl(device);
-                                          } else if (value == 'file') {
-                                            _handleSendFiles(device);
-                                          } else if (value == 'folder') {
-                                            _handleSendFolder(device);
-                                          } else if (value == 'send_playlist') {
-                                            _handleSendPlaylistsToDevice(device);
-                                          } else if (value == 'pull_playlist') {
-                                            _handlePullPlaylistsFromDevice(device);
-                                          } else if (value == 'sync_to') {
-                                            _handleSyncLyricsToDevice(device);
-                                          } else if (value == 'sync_from') {
-                                            _handleSyncLyricsFromDevice(device);
-                                          }
-                                        },
-                                        itemBuilder: (BuildContext context) =>
-                                            <PopupMenuEntry<String>>[
-                                              PopupMenuItem<String>(
-                                                value: 'remote_control',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.settings_remote_rounded,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(l10n.remoteControlAction),
-                                                  ],
-                                                ),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              PopupMenuItem<String>(
-                                                value: 'file',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.insert_drive_file,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(l10n.sendMusicFiles),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem<String>(
-                                                value: 'folder',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.folder,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(l10n.sendFolder),
-                                                  ],
-                                                ),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              PopupMenuItem<String>(
-                                                value: 'send_playlist',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.playlist_add_check_rounded,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      l10n.sendPlaylistsToDeviceAction,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem<String>(
-                                                value: 'pull_playlist',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.playlist_play_rounded,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      l10n.pullPlaylistsFromDeviceAction,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const PopupMenuDivider(),
-                                              PopupMenuItem<String>(
-                                                value: 'sync_to',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.cloud_upload_rounded,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      l10n.syncLyricsToDeviceAction,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              PopupMenuItem<String>(
-                                                value: 'sync_from',
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.cloud_download_rounded,
-                                                      size: 18,
-                                                      color:
-                                                          theme.colorScheme.primary,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      l10n.syncLyricsFromDeviceAction,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                      ),
-                                    ],
-                                  )
-                                : null,
+                            ],
                           ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () => Center(
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  error: (e, _) => Center(
-                    child: Text(
-                      l10n.loadDevicesError(e.toString()),
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                  ),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'sync_from',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.cloud_download_rounded,
+                                size: 18,
+                                color:
+                                    theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.syncLyricsFromDeviceAction,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                 ),
-              ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-  }
+              ],
+            )
+          : null,
+    ),
+  );
+}
 
   Widget _buildCloudServersView(
     BuildContext context,
