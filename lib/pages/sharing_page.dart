@@ -741,10 +741,12 @@ class _SharingPageState extends ConsumerState<SharingPage>
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           title: TabBar(
             controller: _tabController,
-            isScrollable: isLandscape ? false : true,
-            tabAlignment: isLandscape ? TabAlignment.fill : TabAlignment.center,
+            isScrollable: true,
+            tabAlignment: TabAlignment.center,
             tabs: [
               Tab(
                 child: Row(
