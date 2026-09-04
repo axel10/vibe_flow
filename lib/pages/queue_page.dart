@@ -11,6 +11,7 @@ import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/widgets/queue_file_drop_target.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 // 队列页面
 class QueuePage extends ConsumerStatefulWidget {
@@ -237,7 +238,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
           title: Align(
             alignment: Alignment.center,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1080),
+              constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: headerHorizontalPadding,
@@ -275,7 +276,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
           showPreview: showPreview,
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1080),
+              constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -307,7 +308,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
         title: Align(
           alignment: Alignment.center,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1080),
+            constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: headerHorizontalPadding,
@@ -456,7 +457,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
                               key: _songTileKeyFor(song),
                               alignment: Alignment.center,
                               child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 1080),
+                                constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(
                                     horizontal:

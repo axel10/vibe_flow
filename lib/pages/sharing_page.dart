@@ -28,6 +28,7 @@ import 'package:vynody/dialogs/add_edit_remote_server_dialog.dart';
 import 'package:vynody/pages/main_layout.dart';
 import 'remote/remote_download_manager_page.dart';
 import 'package:vynody/player/remote/services/remote_download_service.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 class SharingPage extends ConsumerStatefulWidget {
   const SharingPage({super.key});
@@ -804,7 +805,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1000),
+        constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
@@ -1681,7 +1682,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
         return Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
+            constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
             child: ListView(
               padding: EdgeInsets.fromLTRB(20, 16, 20, bottomOffset + 20),
               children: [

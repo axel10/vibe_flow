@@ -13,6 +13,7 @@ import 'song_thumbnail.dart';
 import 'playing_equalizer_icon.dart';
 import 'library_selection_panel.dart';
 import 'library_selection_scope.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 class LibraryRankedSongList extends ConsumerStatefulWidget {
   const LibraryRankedSongList({
@@ -157,7 +158,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
               child: Align(
                 alignment: Alignment.center,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1080),
+                  constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final isWide = constraints.maxWidth >= 600;
@@ -339,7 +340,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
               hasScrollBody: false,
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1080),
+                  constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
@@ -358,7 +359,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
               hasScrollBody: false,
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1080),
+                  constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Column(
@@ -407,7 +408,7 @@ class _LibraryRankedSongListState extends ConsumerState<LibraryRankedSongList>
                     key: ValueKey(entry.song.path),
                     alignment: Alignment.center,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1080),
+                      constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _SongListItem(

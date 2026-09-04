@@ -2,8 +2,9 @@ import 'package:collection/collection.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/scanner/scanner_service.dart';
+import 'layout_constants.dart';
 
-const double folderPageMaxWidth = 1700.0;
+const double folderPageMaxWidth = kFolderPageMaxWidth;
 
 MusicFile? findRepresentativeSong(MusicFolder folder) {
   if (folder.representativeSongCache != null) return folder.representativeSongCache;

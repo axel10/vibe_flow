@@ -20,6 +20,7 @@ import '../models/music_file.dart';
 import '../dialogs/sort_options_dialog.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'main_layout_riverpod.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 class AlbumsTab extends ConsumerStatefulWidget {
   const AlbumsTab({
@@ -165,7 +166,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
 
         return Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1600),
+            constraints: const BoxConstraints(maxWidth: kMultiColumnGridMaxWidth),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 780;

@@ -23,6 +23,7 @@ import '../../utils/remote_context_menu_utils.dart';
 import '../../widgets/library_selection_panel.dart';
 import '../../widgets/library_selection_scope.dart';
 import 'navidrome_artist_detail_page.dart';
+import '../../utils/layout_constants.dart';
 import 'remote_download_manager_page.dart';
 import '../../utils/song_locator_helper.dart';
 
@@ -755,7 +756,7 @@ class _NavidromePlaylistDetailContentState
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1080),
+                      constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                         child: LayoutBuilder(
@@ -913,7 +914,7 @@ class _NavidromePlaylistDetailContentState
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1080),
+                    constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Row(
@@ -1159,7 +1160,7 @@ class _NavidromePlaylistDetailContentState
                                   child: Align(
                                     alignment: Alignment.center,
                                     child: ConstrainedBox(
-                                      constraints: const BoxConstraints(maxWidth: 1080),
+                                      constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,

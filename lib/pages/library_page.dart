@@ -82,9 +82,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
               notificationPredicate: (_) => false,
               title: TabBar(
                 controller: _tabController,
-                isScrollable: isPortrait,
-                tabAlignment:
-                    isPortrait ? TabAlignment.center : TabAlignment.fill,
+                isScrollable: true,
+                tabAlignment: TabAlignment.center,
                 tabs: [
                   Tab(text: l10n.playlist),
                   Tab(text: l10n.recentlyPlayed),

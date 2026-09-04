@@ -18,6 +18,7 @@ import 'package:vynody/utils/playlist_name.dart';
 import 'package:vynody/utils/selection_utils.dart';
 import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 class PlaylistTab extends ConsumerStatefulWidget {
   const PlaylistTab({super.key});
@@ -458,7 +459,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
       child: Align(
         alignment: Alignment.center,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1080),
+          constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
           child: Padding(
             padding: EdgeInsets.fromLTRB(
               horizontalPadding,
@@ -584,7 +585,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
     final l10n = AppLocalizations.of(context)!;
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1080),
+        constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -712,7 +713,7 @@ class _PlaylistTabState extends ConsumerState<PlaylistTab>
                       key: ObjectKey(song),
                       alignment: Alignment.center,
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1080),
+                        constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 2,

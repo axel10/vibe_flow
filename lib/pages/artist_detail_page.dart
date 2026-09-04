@@ -152,63 +152,63 @@ class _ArtistDetailContentState extends ConsumerState<ArtistDetailContent>
               for (int i = 0; i < albumSections.length; i++) ...[
                 if (i > 0) const SliverToBoxAdapter(child: SizedBox(height: 12)),
                 _AlbumSectionSliver(
-                  section: albumSections[i],
-                  currentMusic: currentMusic,
-                  theme: theme,
-                  onPlayAlbum: () => audio.playPlaylist(
-                    albumSections[i].songs,
-                    source: PlaybackSource(
-                      type: PlaybackSourceType.album,
-                      id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.albumArtist ?? albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
-                      name: albumSections[i].title,
+                    section: albumSections[i],
+                    currentMusic: currentMusic,
+                    theme: theme,
+                    onPlayAlbum: () => audio.playPlaylist(
+                      albumSections[i].songs,
+                      source: PlaybackSource(
+                        type: PlaybackSourceType.album,
+                        id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.albumArtist ?? albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
+                        name: albumSections[i].title,
+                      ),
                     ),
-                  ),
-                  onShufflePlayAlbum: () => audio.playPlaylist(
-                    List.of(albumSections[i].songs)..shuffle(),
-                    source: PlaybackSource(
-                      type: PlaybackSourceType.album,
-                      id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.albumArtist ?? albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
-                      name: albumSections[i].title,
+                    onShufflePlayAlbum: () => audio.playPlaylist(
+                      List.of(albumSections[i].songs)..shuffle(),
+                      source: PlaybackSource(
+                        type: PlaybackSourceType.album,
+                        id: '${albumSections[i].title.toLowerCase()}::${(albumSections[i].songs.firstOrNull?.albumArtist ?? albumSections[i].songs.firstOrNull?.artist ?? "").toLowerCase()}',
+                        name: albumSections[i].title,
+                      ),
                     ),
-                  ),
-                  onSongTap: (songIndex) {
-                    final song = albumSections[i].songs[songIndex];
-                    final globalIndex = albumSections[i].startIndex + songIndex;
+                    onSongTap: (songIndex) {
+                      final song = albumSections[i].songs[songIndex];
+                      final globalIndex = albumSections[i].startIndex + songIndex;
 
-                    handleSongTap(
-                      index: globalIndex,
-                      songPath: song.path,
-                      allSongs: displaySongs,
-                      onNormalTap: () {
-                        audio.playPlaylist(
-                          displaySongs,
-                          initialIndex: globalIndex,
-                          source: PlaybackSource(
-                            type: PlaybackSourceType.artist,
-                            id: widget.artist.queryKey,
-                            name: widget.artist.name,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  onSongSecondaryTapDown: (details, song) {
-                    if (!isSelectionMode) {
-                      showSongBottomSheet(context, ref, song);
-                    }
-                  },
-                  onSongLongPress: (song) {
-                    final songIndex = albumSections[i].songs.indexOf(song);
-                    if (songIndex != -1) {
-                      lastAnchorIndex = albumSections[i].startIndex + songIndex;
-                    }
-                    if (!isSelectionMode) {
-                      enterSongSelectionMode(song.path);
-                    }
-                  },
-                  isSelectionMode: isSelectionMode,
-                  selectedSongPaths: selectedSongPaths,
-                ),
+                      handleSongTap(
+                        index: globalIndex,
+                        songPath: song.path,
+                        allSongs: displaySongs,
+                        onNormalTap: () {
+                          audio.playPlaylist(
+                            displaySongs,
+                            initialIndex: globalIndex,
+                            source: PlaybackSource(
+                              type: PlaybackSourceType.artist,
+                              id: widget.artist.queryKey,
+                              name: widget.artist.name,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    onSongSecondaryTapDown: (details, song) {
+                      if (!isSelectionMode) {
+                        showSongBottomSheet(context, ref, song);
+                      }
+                    },
+                    onSongLongPress: (song) {
+                      final songIndex = albumSections[i].songs.indexOf(song);
+                      if (songIndex != -1) {
+                        lastAnchorIndex = albumSections[i].startIndex + songIndex;
+                      }
+                      if (!isSelectionMode) {
+                        enterSongSelectionMode(song.path);
+                      }
+                    },
+                    isSelectionMode: isSelectionMode,
+                    selectedSongPaths: selectedSongPaths,
+                  ),
               ],
             ],
             SliverToBoxAdapter(

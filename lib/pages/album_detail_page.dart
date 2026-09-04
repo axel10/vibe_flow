@@ -16,6 +16,7 @@ import '../widgets/song_thumbnail.dart';
 import '../widgets/mini_player_wrapper.dart';
 import '../widgets/library_selection_panel.dart';
 import '../widgets/library_selection_scope.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 class AlbumDetailPage extends ConsumerStatefulWidget {
   const AlbumDetailPage({super.key, required this.album});
@@ -105,7 +106,7 @@ class _AlbumDetailPageState extends ConsumerState<AlbumDetailPage>
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1080),
+                      constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                         child: LayoutBuilder(
@@ -425,7 +426,7 @@ class _AlbumSongItem extends StatelessWidget {
           child: Align(
             alignment: Alignment.center,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1080),
+              constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Row(

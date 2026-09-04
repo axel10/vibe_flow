@@ -9,6 +9,7 @@ import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/library/music_file_utils.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 class QueueFileDropTarget extends ConsumerStatefulWidget {
   const QueueFileDropTarget({
@@ -284,7 +285,7 @@ class _QueueFileDropTargetState extends ConsumerState<QueueFileDropTarget> {
                   child: Align(
                     alignment: Alignment.center,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1080),
+                      constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Container(

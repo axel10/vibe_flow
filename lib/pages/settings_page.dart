@@ -21,6 +21,7 @@ import 'settings/sections/transcode_section.dart';
 import 'settings/sections/windows_section.dart';
 import 'settings/settings_search_registry.dart';
 import 'settings/settings_section.dart';
+import 'package:vynody/utils/layout_constants.dart';
 
 export 'settings/settings_section.dart';
 export 'settings/dialogs/custom_provider_config_dialog.dart';
@@ -501,7 +502,7 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
         child: Align(
           alignment: Alignment.topLeft,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1000),
+            constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
             child: currentBody,
           ),
         ),
