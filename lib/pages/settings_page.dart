@@ -19,6 +19,7 @@ import 'settings/sections/storage_section.dart';
 import 'settings/sections/tags_section.dart';
 import 'settings/sections/transcode_section.dart';
 import 'settings/sections/windows_section.dart';
+import 'settings/settings_search_registry.dart';
 import 'settings/settings_section.dart';
 
 export 'settings/settings_section.dart';
@@ -39,6 +40,18 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class SettingsPageState extends ConsumerState<SettingsPage> {
   late SettingsSection _currentSection = widget.initialSection;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _portraitSearchFocusNode = FocusNode();
+  final FocusNode _landscapeSearchFocusNode = FocusNode();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _portraitSearchFocusNode.dispose();
+    _landscapeSearchFocusNode.dispose();
+    super.dispose();
+  }
 
   void openSection(SettingsSection section) {
     _openSection(section);
@@ -54,6 +67,194 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
     setState(() {
       _currentSection = SettingsSection.home;
     });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _searchQuery = '';
+    });
+  }
+
+  Widget _buildSearchField(
+    BuildContext context, {
+    Key? key,
+    FocusNode? focusNode,
+    EdgeInsetsGeometry? margin,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      key: key,
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        focusNode: focusNode,
+        textAlignVertical: TextAlignVertical.center,
+        onChanged: (val) {
+          setState(() {
+            _searchQuery = val;
+          });
+        },
+        style: const TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: l10n.search,
+          hintStyle: TextStyle(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            size: 20,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 40,
+          ),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded, size: 18),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                  onPressed: _clearSearch,
+                )
+              : null,
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 36,
+            minHeight: 40,
+          ),
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchResultsView(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final results = settingsSearchRegistry.where((item) {
+      return item.matches(_searchQuery, l10n, context);
+    }).toList(growable: false);
+
+    if (results.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off_rounded,
+                size: 56,
+                color: colorScheme.outline.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.noMatchingResults,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      itemCount: results.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final item = results[index];
+        final title = item.title(l10n);
+        final desc = item.description?.call(l10n);
+        final sectionTitle = item.section.title(context);
+
+        return Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          color: colorScheme.surfaceContainerLow,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+            ),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Icon(
+              item.icon ?? item.section.icon,
+              color: colorScheme.primary,
+            ),
+            title: Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: desc != null
+                ? Text(
+                    desc,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : null,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    sectionTitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: colorScheme.primary,
+                  ),
+                ],
+              ),
+            ),
+            onTap: () {
+              final targetSection = item.section;
+              _clearSearch();
+              _openSection(targetSection);
+            },
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildHomeSectionTile(
@@ -75,76 +276,94 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
 
   Widget _buildHomeBody(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isSearching = _searchQuery.trim().isNotEmpty;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+    return Column(
       children: [
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.tune_rounded,
-          title: l10n.generalSectionTitle,
-          onTap: () => _openSection(SettingsSection.general),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.graphic_eq_rounded,
-          title: l10n.audioSettings,
-          onTap: () => _openSection(SettingsSection.audio),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.search_rounded,
-          title: l10n.scanSectionTitle,
-          onTap: () => _openSection(SettingsSection.scanning),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.label_outline_rounded,
-          title: l10n.tags,
-          onTap: () => _openSection(SettingsSection.tags),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.swap_horiz_rounded,
-          title: l10n.transcodeSectionTitle,
-          onTap: () => _openSection(SettingsSection.transcode),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.auto_awesome_rounded,
-          title: l10n.lyricsSectionTitle,
-          onTap: () => _openSection(SettingsSection.lyrics),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.radar_rounded,
-          title: l10n.acoustidSectionTitle,
-          onTap: () => _openSection(SettingsSection.acoustid),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.storage_rounded,
-          title: l10n.storageAndCache,
-          onTap: () => _openSection(SettingsSection.storage),
-        ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.keyboard_rounded,
-          title: l10n.shortcutSettingsTitle,
-          onTap: () => _openSection(SettingsSection.shortcuts),
-        ),
-        if (Platform.isWindows)
-          _buildHomeSectionTile(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: _buildSearchField(
             context,
-            icon: Icons.open_in_new_rounded,
-            title: l10n.windowsSettingsTitle,
-            onTap: () => _openSection(SettingsSection.windows),
+            key: const ValueKey('portrait_settings_search_field'),
+            focusNode: _portraitSearchFocusNode,
+            margin: EdgeInsets.zero,
           ),
-        _buildHomeSectionTile(
-          context,
-          icon: Icons.info_outline_rounded,
-          title: l10n.about,
-          onTap: () => _openSection(SettingsSection.about),
+        ),
+        Expanded(
+          child: isSearching
+              ? _buildSearchResultsView(context)
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  children: [
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.tune_rounded,
+                      title: l10n.generalSectionTitle,
+                      onTap: () => _openSection(SettingsSection.general),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.graphic_eq_rounded,
+                      title: l10n.audioSettings,
+                      onTap: () => _openSection(SettingsSection.audio),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.search_rounded,
+                      title: l10n.scanSectionTitle,
+                      onTap: () => _openSection(SettingsSection.scanning),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.label_outline_rounded,
+                      title: l10n.tags,
+                      onTap: () => _openSection(SettingsSection.tags),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.swap_horiz_rounded,
+                      title: l10n.transcodeSectionTitle,
+                      onTap: () => _openSection(SettingsSection.transcode),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.auto_awesome_rounded,
+                      title: l10n.lyricsSectionTitle,
+                      onTap: () => _openSection(SettingsSection.lyrics),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.radar_rounded,
+                      title: l10n.acoustidSectionTitle,
+                      onTap: () => _openSection(SettingsSection.acoustid),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.storage_rounded,
+                      title: l10n.storageAndCache,
+                      onTap: () => _openSection(SettingsSection.storage),
+                    ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.keyboard_rounded,
+                      title: l10n.shortcutSettingsTitle,
+                      onTap: () => _openSection(SettingsSection.shortcuts),
+                    ),
+                    if (Platform.isWindows)
+                      _buildHomeSectionTile(
+                        context,
+                        icon: Icons.open_in_new_rounded,
+                        title: l10n.windowsSettingsTitle,
+                        onTap: () => _openSection(SettingsSection.windows),
+                      ),
+                    _buildHomeSectionTile(
+                      context,
+                      icon: Icons.info_outline_rounded,
+                      title: l10n.about,
+                      onTap: () => _openSection(SettingsSection.about),
+                    ),
+                  ],
+                ),
         ),
       ],
     );
@@ -185,7 +404,7 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 24, 16),
+          padding: const EdgeInsets.fromLTRB(16, 20, 24, 12),
           child: Row(
             children: [
               IconButton(
@@ -207,13 +426,19 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
             ],
           ),
         ),
+        _buildSearchField(
+          context,
+          key: const ValueKey('landscape_settings_search_field'),
+          focusNode: _landscapeSearchFocusNode,
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        ),
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemCount: sidebarSections.length,
             itemBuilder: (context, index) {
               final section = sidebarSections[index];
-              final isSelected = section == activeSection;
+              final isSelected = section == activeSection && _searchQuery.trim().isEmpty;
               final icon = section.icon;
               final title = section.title(context);
 
@@ -240,7 +465,10 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
-                  onTap: () => _openSection(section),
+                  onTap: () {
+                    _clearSearch();
+                    _openSection(section);
+                  },
                 ),
               );
             },
@@ -255,12 +483,21 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
     SettingsService settings,
     SettingsSection activeSection,
   ) {
-    final currentBody = _buildSectionContent(context, settings, activeSection);
+    final Widget currentBody;
+    final Key switcherKey;
+
+    if (_searchQuery.trim().isNotEmpty) {
+      currentBody = _buildSearchResultsView(context);
+      switcherKey = const ValueKey('settings-search-results');
+    } else {
+      currentBody = _buildSectionContent(context, settings, activeSection);
+      switcherKey = ValueKey(activeSection);
+    }
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 180),
       child: KeyedSubtree(
-        key: ValueKey(activeSection),
+        key: switcherKey,
         child: Align(
           alignment: Alignment.topLeft,
           child: ConstrainedBox(
@@ -392,12 +629,17 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
 
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final canPop = isLandscape || _currentSection == SettingsSection.home;
+    final canPop = isLandscape ||
+        (_currentSection == SettingsSection.home && _searchQuery.isEmpty);
 
     return PopScope(
       canPop: canPop,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        if (_searchQuery.isNotEmpty) {
+          _clearSearch();
+          return;
+        }
         _goHome();
       },
       child: content,
