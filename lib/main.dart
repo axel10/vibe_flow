@@ -18,6 +18,7 @@ import 'package:vynody/player/library/music_file_utils.dart';
 import 'package:vynody/player/settings/settings_service.dart';
 import 'package:smtc_windows/smtc_windows.dart';
 import 'utils/app_log.dart';
+import 'utils/app_orientation_manager.dart';
 import 'utils/memory_trace.dart';
 import 'package:vynody/player/sharing/security/tls_certificate_service.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
@@ -163,6 +164,7 @@ void main(List<String> args) async {
       if (Platform.isAndroid) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       }
+      AppOrientationManager.init();
       AppLog.log('main start args=$args', mirrorToConsole: true);
       final traceMemory =
           args.any(
@@ -625,7 +627,9 @@ class _MyAppState extends ConsumerState<MyApp>
             ),
             child: ColoredBox(
               color: theme.colorScheme.surface,
-              child: content,
+              child: AppOrientationWatcher(
+                child: content,
+              ),
             ),
           );
         },

@@ -297,6 +297,12 @@ class _MainLayoutState extends ConsumerState<MainLayout>
       return;
     }
 
+    // 如果在曲库页且当前处于 3D 唱片封面流视图，则返回普通网格视图并恢复竖屏
+    if (_currentIndex == 2 && ref.read(isAlbum3DViewActiveProvider)) {
+      ref.read(isAlbum3DViewActiveProvider.notifier).set(false);
+      return;
+    }
+
     // 如果在目录页，且当前处于非根目录，则返回上一级目录
     if (_currentIndex == 0) {
       if (_foldersPageKey.currentState?.handleBackPressed() ?? false) {

@@ -60,17 +60,19 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
   List<AlbumSummary>? _cachedFilteredAlbums;
   List<AlbumSummary>? _cachedKnownAlbums;
   List<AlbumSummary>? _cachedUnknownAlbums;
+  late final IsAlbum3DViewActiveNotifier _isAlbum3DNotifier;
 
   @override
   void initState() {
     super.initState();
+    _isAlbum3DNotifier = ref.read(isAlbum3DViewActiveProvider.notifier);
     _is3DView = widget.initial3DView;
     final settings = ref.read(settingsServiceProvider);
     _sortField = settings.albumSortField;
     _sortAscending = settings.albumSortAscending;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(isAlbum3DViewActiveProvider.notifier).set(_is3DView);
+      _isAlbum3DNotifier.set(_is3DView);
     });
   }
 
@@ -78,11 +80,20 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _isAlbum3DNotifier.set(false);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(isAlbum3DViewActiveProvider, (prev, next) {
+      if (_is3DView != next) {
+        setState(() {
+          _is3DView = next;
+        });
+      }
+    });
+
     final albumsAsync = ref.watch(albumLibraryProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final l10n = AppLocalizations.of(context)!;
