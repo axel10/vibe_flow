@@ -405,6 +405,7 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                                           key: ValueKey('apple_trans_${index}_$effectiveLang'),
                                           animate: widget.isTranslating,
                                           index: index,
+                                          activeIndex: widget.activeIndex,
                                           isLeftAligned: isLeftAligned,
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
@@ -596,10 +597,19 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                           child: itemWidget,
                         );
 
+                        Widget contentWidget = wrappedItemWidget;
+                        if (widget.lyricsStyle == LyricsStyle.apple && widget.isGenerating) {
+                          contentWidget = AppleLyricLineFadeIn(
+                            index: index,
+                            animate: true,
+                            isStaggered: false,
+                            child: contentWidget,
+                          );
+                        }
+
                         final Widget resultWidget;
                         final bool isInStaggerRange = widget.lyricsStyle == LyricsStyle.apple &&
                             widget.isFocusMode &&
-                            !widget.isGenerating &&
                             index >= widget.firstVisibleIndex - 10 &&
                             index <= widget.firstVisibleIndex + 30;
 
@@ -612,16 +622,10 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                             isEnteringFocusMode: widget.isEnteringFocusMode,
                             firstVisibleIndex: widget.firstVisibleIndex,
                             isTransitioning: widget.isTransitioning,
-                            child: wrappedItemWidget,
-                          );
-                        } else if (widget.lyricsStyle == LyricsStyle.apple && widget.isGenerating) {
-                          resultWidget = AppleLyricLineFadeIn(
-                            index: index,
-                            animate: true,
-                            child: wrappedItemWidget,
+                            child: contentWidget,
                           );
                         } else {
-                          resultWidget = wrappedItemWidget;
+                          resultWidget = contentWidget;
                         }
 
                         return KeyedSubtree(
@@ -1187,6 +1191,7 @@ class AppleLyricTranslationFadeIn extends StatefulWidget {
   final Widget child;
   final bool animate;
   final int index;
+  final int activeIndex;
   final bool isLeftAligned;
 
   const AppleLyricTranslationFadeIn({
@@ -1194,6 +1199,7 @@ class AppleLyricTranslationFadeIn extends StatefulWidget {
     required this.child,
     this.animate = true,
     required this.index,
+    this.activeIndex = -1,
     this.isLeftAligned = true,
   });
 
@@ -1210,6 +1216,9 @@ class _AppleLyricTranslationFadeInState
   late Animation<double> _opacityAnimation;
   late Animation<Offset> _slideAnimation;
   Timer? _delayTimer;
+
+  bool get _shouldAnimateSize =>
+      widget.activeIndex < 0 || widget.index >= widget.activeIndex;
 
   @override
   void initState() {
@@ -1232,15 +1241,20 @@ class _AppleLyricTranslationFadeInState
     ).animate(_opacityAnimation);
 
     if (widget.animate) {
-      final delayMs = math.min(250, widget.index * 12);
-      if (delayMs > 0) {
-        _delayTimer = Timer(Duration(milliseconds: delayMs), () {
-          if (mounted) {
-            _controller.forward();
-          }
-        });
+      if (!_shouldAnimateSize) {
+        _controller.value = 1.0;
       } else {
-        _controller.forward();
+        final baseIndex = widget.activeIndex >= 0 ? widget.activeIndex : 0;
+        final delayMs = math.min(250, math.max(0, widget.index - baseIndex) * 12);
+        if (delayMs > 0) {
+          _delayTimer = Timer(Duration(milliseconds: delayMs), () {
+            if (mounted) {
+              _controller.forward();
+            }
+          });
+        } else {
+          _controller.forward();
+        }
       }
     } else {
       _controller.value = 1.0;
@@ -1269,6 +1283,21 @@ class _AppleLyricTranslationFadeInState
   Widget build(BuildContext context) {
     if (!widget.animate || _controller.isCompleted) {
       return widget.child;
+    }
+    if (!_shouldAnimateSize) {
+      return AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _opacityAnimation.value,
+            child: Transform.translate(
+              offset: _slideAnimation.value,
+              child: child,
+            ),
+          );
+        },
+        child: widget.child,
+      );
     }
     return SizeTransition(
       sizeFactor: _sizeAnimation,

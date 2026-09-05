@@ -523,6 +523,8 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     if (oldWidget.lyrics != widget.lyrics) {
       final oldLyrics = oldWidget.lyrics;
       final newLyrics = widget.lyrics;
+      final currentSong = ref.read(audioCurrentMusicProvider);
+      final isGenerating = _taskStateForSongPath(currentSong?.path).isGenerationBusy;
       final bool lyricsContentChanged = oldLyrics?.id != newLyrics?.id ||
           oldLyrics?.plainText != newLyrics?.plainText ||
           !listEquals(oldLyrics?.syncedLines, newLyrics?.syncedLines);
@@ -530,9 +532,11 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         _overrideActiveIndex = null;
         _seekTargetTimestamp = null;
         _isFocusMode = true;
-        _lastActiveIndex = -1;
-        _lastScrollDelta = 0.0;
-        _scrollTriggerTime = 0;
+        if (!isGenerating) {
+          _lastActiveIndex = -1;
+          _lastScrollDelta = 0.0;
+          _scrollTriggerTime = 0;
+        }
       }
     }
     final oldOffset = _timelineOffsetToSeconds(
@@ -1300,6 +1304,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     required bool hasTimedLyrics,
     required List<LyricLine> displayLines,
     required List<double> itemCenters,
+    bool isGenerating = false,
   }) {
     if (layoutRevision == _lastLayoutRevision) {
       return;
@@ -1308,12 +1313,21 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     _lastLayoutRevision = layoutRevision;
     if (!hasTimedLyrics) return;
 
-    _scheduleScrollIfNeeded(
-      force: true,
-      animate: false,
-      displayLines: displayLines,
-      itemCenters: itemCenters,
-    );
+    if (isGenerating) {
+      _scheduleScrollIfNeeded(
+        force: false,
+        animate: true,
+        displayLines: displayLines,
+        itemCenters: itemCenters,
+      );
+    } else {
+      _scheduleScrollIfNeeded(
+        force: true,
+        animate: false,
+        displayLines: displayLines,
+        itemCenters: itemCenters,
+      );
+    }
   }
 
   Future<void> _endLyricsDrag(List<LyricLine> displayLines) async {
@@ -1423,9 +1437,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     }
 
     if (animate) {
-      final currentSong = ref.read(audioCurrentMusicProvider);
-      final isGenerating = _taskStateForSongPath(currentSong?.path).isGenerationBusy;
-      if (lyricsStyle == LyricsStyle.apple && _isFocusMode && !isGenerating) {
+      if (lyricsStyle == LyricsStyle.apple && _isFocusMode) {
         final delta = target - currentOffset;
         final isEntering = _enteringFocusModeTriggered;
         final maxDelta = isEntering
@@ -1801,14 +1813,35 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         _currentLineHeights = lineHeights;
         _currentItemCenters = itemCenters;
 
+        final activeIndex = hasTimedLyrics
+            ? _activeLineIndex(displayLines)
+            : -1;
+        final focusedIndex = _isDraggingLyrics && _dragCurrentLine != null
+            ? _dragCurrentLine!
+            : activeIndex;
+
         // --- SCROLL JITTER MITIGATION ---
         if (_scrollController.hasClients &&
             _oldItemCenters != null &&
             _oldLineHeights != null &&
-            _oldItemCenters!.length == itemCenters.length) {
+            _oldItemCenters!.isNotEmpty &&
+            itemCenters.isNotEmpty) {
           final currentOffset = _scrollController.offset;
-          final k = _findClosestLineIndex(currentOffset, _oldItemCenters!);
-          if (k >= 0 && k < itemCenters.length) {
+          final int k;
+          if (effectiveLyricsStyle == LyricsStyle.apple &&
+              _isFocusMode &&
+              activeIndex >= 0 &&
+              activeIndex < itemCenters.length &&
+              activeIndex < _oldItemCenters!.length) {
+            k = activeIndex;
+          } else {
+            k = _findClosestLineIndex(currentOffset, _oldItemCenters!);
+          }
+          if (k >= 0 &&
+              k < _oldItemCenters!.length &&
+              k < itemCenters.length &&
+              k < _oldLineHeights!.length &&
+              k < lineHeights.length) {
             final oldTop = _oldItemCenters![k] - _oldLineHeights![k] / 2;
             final newTop = itemCenters[k] - lineHeights[k] / 2;
             final delta = newTop - oldTop;
@@ -1834,12 +1867,6 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
         _attachScrollActivityListener();
 
         final layoutRevisionChanged = layoutRevision != _lastLayoutRevision;
-        final activeIndex = hasTimedLyrics
-            ? _activeLineIndex(displayLines)
-            : -1;
-        final focusedIndex = _isDraggingLyrics && _dragCurrentLine != null
-            ? _dragCurrentLine!
-            : activeIndex;
         _logLyricsDebug(
           displayLines: displayLines,
           activeIndex: focusedIndex,
@@ -1863,6 +1890,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
               hasTimedLyrics: hasTimedLyrics,
               displayLines: displayLines,
               itemCenters: itemCenters,
+              isGenerating: isGenerating,
             );
           } else {
             final bool transitionEnded =
@@ -1888,7 +1916,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
 
             _scheduleScrollIfNeeded(
               force: forceScroll,
-              animate: !transitionEnded && !songChanged && !displayLinesChanged,
+              animate: !transitionEnded && !songChanged && (!displayLinesChanged || isGenerating),
               displayLines: displayLines,
               itemCenters: itemCenters,
             );

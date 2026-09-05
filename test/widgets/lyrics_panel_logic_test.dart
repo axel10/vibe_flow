@@ -77,5 +77,70 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('Translated line'), findsOneWidget);
     });
+
+    testWidgets('AppleLyricTranslationFadeIn skips SizeTransition when index < activeIndex', (tester) async {
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: AppleLyricTranslationFadeIn(
+            index: 2,
+            activeIndex: 5,
+            animate: true,
+            child: Text('Above active line'),
+          ),
+        ),
+      );
+
+      expect(find.text('Above active line'), findsOneWidget);
+      expect(find.byType(SizeTransition), findsNothing);
+    });
+
+    testWidgets('AppleLyricTranslationFadeIn uses SizeTransition when index >= activeIndex', (tester) async {
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: AppleLyricTranslationFadeIn(
+            index: 5,
+            activeIndex: 5,
+            animate: true,
+            child: Text('Current active line'),
+          ),
+        ),
+      );
+
+      expect(find.text('Current active line'), findsOneWidget);
+      expect(find.byType(SizeTransition), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Current active line'), findsOneWidget);
+    });
+
+    testWidgets('StaggeredAppleLyricsScrollWrapper composes properly with AppleLyricLineFadeIn', (tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: StaggeredAppleLyricsScrollWrapper(
+            index: 1,
+            activeIndex: 1,
+            scrollDelta: 50.0,
+            scrollTriggerTime: DateTime.now().millisecondsSinceEpoch,
+            isEnteringFocusMode: false,
+            firstVisibleIndex: 0,
+            isTransitioning: false,
+            child: const AppleLyricLineFadeIn(
+              index: 1,
+              animate: true,
+              isStaggered: false,
+              child: Text('Generating lyric line'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Generating lyric line'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text('Generating lyric line'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('Generating lyric line'), findsOneWidget);
+    });
   });
 }
