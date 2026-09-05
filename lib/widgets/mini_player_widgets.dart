@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,18 @@ class MiniArtwork extends ConsumerWidget {
 
     return Hero(
       tag: 'playback_artwork_hero',
+      flightShuttleBuilder: (
+        flightContext,
+        animation,
+        flightDirection,
+        fromHeroContext,
+        toHeroContext,
+      ) {
+        return PlaybackArtworkHeroShuttle(
+          animation: animation,
+          flightDirection: flightDirection,
+        );
+      },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(6),
         child: Material(
@@ -70,13 +83,15 @@ class MiniArtwork extends ConsumerWidget {
               image: hasImage
                   ? DecorationImage(
                       image: imageProvider,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.low,
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.medium,
                     )
                   : null,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[900]
-                  : Colors.grey[200],
+              color: hasImage
+                  ? Colors.transparent
+                  : (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[900]
+                      : Colors.grey[200]),
             ),
             child: !hasImage
                 ? Icon(
@@ -90,6 +105,94 @@ class MiniArtwork extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 播放封面 Hero 动画专用的飞行穿梭组件
+/// 在进入或离开播放页时，平滑插值圆角与阴影，保持高清图展示，防止出现白边或低清拉伸跳变
+class PlaybackArtworkHeroShuttle extends ConsumerWidget {
+  const PlaybackArtworkHeroShuttle({
+    super.key,
+    required this.animation,
+    required this.flightDirection,
+  });
+
+  final Animation<double> animation;
+  final HeroFlightDirection flightDirection;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final audioService = ref.watch(audioServiceProvider);
+
+    final memoryBytes = currentMusic?.artworkBytes ??
+        (currentMusic != null
+            ? audioService.getCachedArtwork(currentMusic.path)
+            : null);
+    final thumbPath = currentMusic?.thumbnailPath;
+    final artPath = currentMusic?.artworkPath;
+    final hasValidThumbnail =
+        thumbPath != null && File(thumbPath).existsSync();
+    final hasValidArtworkPath = artPath != null && File(artPath).existsSync();
+    final hasMemoryBytes = memoryBytes != null && memoryBytes.isNotEmpty;
+
+    ImageProvider? imageProvider;
+    if (hasMemoryBytes) {
+      imageProvider = MemoryImage(memoryBytes);
+    } else if (hasValidArtworkPath) {
+      imageProvider = FileImage(File(artPath));
+    } else if (hasValidThumbnail) {
+      imageProvider = FileImage(File(thumbPath));
+    }
+
+    final hasImage = imageProvider != null;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double size = constraints.maxWidth;
+        final double t = ((size - 36.0) / (240.0 - 36.0)).clamp(0.0, 1.0);
+        final double radius = ui.lerpDouble(6.0, 24.0, t) ?? 6.0;
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: hasImage ? Colors.black26 : Colors.black87,
+                boxShadow: size > 60
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: (0.28 * t).clamp(0.0, 0.28),
+                          ),
+                          blurRadius: 20 * t,
+                          offset: Offset(0, 8 * t),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: hasImage
+                  ? Image(
+                      image: imageProvider!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      gaplessPlayback: true,
+                      filterQuality: FilterQuality.medium,
+                    )
+                  : Icon(
+                      Icons.music_note,
+                      color: Colors.white54,
+                      size: math.min(80.0, math.max(20.0, size * 0.3)),
+                    ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

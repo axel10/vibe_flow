@@ -10,6 +10,7 @@ import 'package:vynody/utils/app_snack_bar.dart';
 import 'package:vynody/utils/song_context_menu_utils.dart';
 import 'package:vynody/widgets/cover_carousel.dart';
 import 'package:vynody/widgets/app_context_menu.dart';
+import '../mini_player_widgets.dart';
 import '../../l10n/app_localizations.dart';
 
 class PlaybackAlbumArt extends ConsumerWidget {
@@ -137,6 +138,18 @@ class PlaybackAlbumArt extends ConsumerWidget {
 
     final cover = Hero(
       tag: 'playback_artwork_hero',
+      flightShuttleBuilder: (
+        flightContext,
+        animation,
+        flightDirection,
+        fromHeroContext,
+        toHeroContext,
+      ) {
+        return PlaybackArtworkHeroShuttle(
+          animation: animation,
+          flightDirection: flightDirection,
+        );
+      },
       child: Material(
         type: MaterialType.transparency,
         child: ExcludeSemantics(
