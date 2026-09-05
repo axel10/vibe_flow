@@ -124,7 +124,7 @@ class MiniPlayerCard extends ConsumerWidget {
             iconSize: secondaryIconSize,
           ),
           if (currentMusic != null) ...[
-            SizedBox(width: isLandscape ? 4 : 2),
+            SizedBox(width: controlsSpacing),
             MiniControlButton(
               icon: isFavorite
                   ? Icons.favorite_rounded
@@ -183,14 +183,14 @@ class MiniPlayerCard extends ConsumerWidget {
                   children: showVolume
                       ? [
                           playControls,
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 12),
                           trackInfo,
                           const SizedBox(width: 12),
                           rightControls,
                         ]
                       : [
                           trackInfo,
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 12),
                           playControls,
                         ],
                 ),
