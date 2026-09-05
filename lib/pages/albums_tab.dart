@@ -2110,218 +2110,276 @@ class _AlbumCoverFlowQuickDetailDialog extends ConsumerWidget {
                       isNarrow ? 14 : 20,
                       isNarrow ? 12 : 20,
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Album Artwork Thumbnail
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: SongThumbnail(
-                              path: album.representativeSong.path,
-                              id: album.representativeSong.id,
-                              bytes: album.representativeSong.artworkBytes,
-                              size: isNarrow ? 76 : 88,
-                              width: isNarrow ? 76 : 88,
-                              height: isNarrow ? 76 : 88,
+                    child: Builder(
+                      builder: (context) {
+                        final double headerHeight = isNarrow ? 84.0 : 100.0;
+                        final double buttonHeight = isNarrow ? 34.0 : 40.0;
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Album Artwork Thumbnail
+                            ClipRRect(
                               borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                width: headerHeight,
+                                height: headerHeight,
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.2),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: SongThumbnail(
+                                  path: album.representativeSong.path,
+                                  id: album.representativeSong.id,
+                                  bytes: album.representativeSong.artworkBytes,
+                                  size: headerHeight,
+                                  width: headerHeight,
+                                  height: headerHeight,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        SizedBox(width: isNarrow ? 12 : 16),
-                        // Album Info & Buttons
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                album.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: (isNarrow
-                                        ? theme.textTheme.titleMedium
-                                        : theme.textTheme.titleLarge)
-                                    ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                '${album.artist}  ·  ${l10n.songCount(album.trackCount)}  ·  ${formatDurationMs(album.totalDurationMillis)}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: (isNarrow
-                                        ? theme.textTheme.bodySmall
-                                        : theme.textTheme.bodyMedium)
-                                    ?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              SizedBox(height: isNarrow ? 8 : 12),
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final bool showButtonLabels = constraints.maxWidth >= 380;
-                                  return Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    crossAxisAlignment: WrapCrossAlignment.center,
-                                    children: [
-                                      showButtonLabels
-                                          ? FilledButton.icon(
-                                              style: FilledButton.styleFrom(
-                                                visualDensity: VisualDensity.compact,
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 14,
-                                                  vertical: 8,
+                            SizedBox(width: isNarrow ? 12 : 16),
+                            // Album Info & Buttons
+                            Expanded(
+                              child: SizedBox(
+                                height: headerHeight,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                album.title,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: (isNarrow
+                                                        ? theme.textTheme.titleMedium
+                                                        : theme.textTheme.titleLarge)
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: -0.3,
+                                                  height: 1.15,
                                                 ),
                                               ),
-                                              onPressed: () {
-                                                audio.playPlaylist(
-                                                  album.songs,
-                                                  source: PlaybackSource(
-                                                    type: PlaybackSourceType.album,
-                                                    id: album.id,
-                                                    name: album.title,
-                                                  ),
-                                                );
-                                              },
-                                              icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                                              label: Text(l10n.playAll),
-                                            )
-                                          : IconButton.filled(
-                                              tooltip: l10n.playAll,
-                                              visualDensity: VisualDensity.compact,
-                                              onPressed: () {
-                                                audio.playPlaylist(
-                                                  album.songs,
-                                                  source: PlaybackSource(
-                                                    type: PlaybackSourceType.album,
-                                                    id: album.id,
-                                                    name: album.title,
-                                                  ),
-                                                );
-                                              },
-                                              icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                                            ),
-                                      showButtonLabels
-                                          ? FilledButton.tonalIcon(
-                                              style: FilledButton.styleFrom(
-                                                visualDensity: VisualDensity.compact,
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 14,
-                                                  vertical: 8,
+                                              const SizedBox(height: 3),
+                                              Text(
+                                                '${album.artist}  ·  ${l10n.songCount(album.trackCount)}  ·  ${formatDurationMs(album.totalDurationMillis)}',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: (isNarrow
+                                                        ? theme.textTheme.bodySmall
+                                                        : theme.textTheme.bodyMedium)
+                                                    ?.copyWith(
+                                                  color: theme.colorScheme.onSurfaceVariant,
+                                                  height: 1.2,
                                                 ),
                                               ),
-                                              onPressed: () {
-                                                audio.playPlaylist(
-                                                  List.of(album.songs)..shuffle(),
-                                                  source: PlaybackSource(
-                                                    type: PlaybackSourceType.album,
-                                                    id: album.id,
-                                                    name: album.title,
-                                                  ),
-                                                );
-                                              },
-                                              icon: const Icon(Icons.shuffle_rounded, size: 18),
-                                              label: Text(l10n.shufflePlay),
-                                            )
-                                          : IconButton.filledTonal(
-                                              tooltip: l10n.shufflePlay,
-                                              visualDensity: VisualDensity.compact,
-                                              onPressed: () {
-                                                audio.playPlaylist(
-                                                  List.of(album.songs)..shuffle(),
-                                                  source: PlaybackSource(
-                                                    type: PlaybackSourceType.album,
-                                                    id: album.id,
-                                                    name: album.title,
-                                                  ),
-                                                );
-                                              },
-                                              icon: const Icon(Icons.shuffle_rounded, size: 18),
-                                            ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surfaceContainerHighest.withValues(
-                                            alpha: isDark ? 0.45 : 0.65,
-                                          ),
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(
-                                            color: borderColor.withValues(alpha: 0.5),
-                                            width: 0.8,
+                                            ],
                                           ),
                                         ),
-                                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                        const SizedBox(width: 8),
+                                        // Close button
+                                        IconButton(
+                                          tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                                          iconSize: 20,
+                                          visualDensity: VisualDensity.compact,
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                          alignment: Alignment.topRight,
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          icon: const Icon(Icons.close_rounded),
+                                        ),
+                                      ],
+                                    ),
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final bool showButtonLabels = constraints.maxWidth >= 380;
+                                        return Row(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
                                           children: [
-                                            IconButton(
-                                              tooltip: l10n.previousTrack,
-                                              iconSize: 18,
-                                              visualDensity: VisualDensity.compact,
-                                              onPressed: () => audio.previous(),
-                                              icon: const Icon(Icons.skip_previous_rounded),
-                                            ),
-                                            IconButton(
-                                              tooltip: isPlaying ? l10n.pause : l10n.play,
-                                              iconSize: 20,
-                                              visualDensity: VisualDensity.compact,
-                                              onPressed: () {
-                                                if (currentMusic == null && album.songs.isNotEmpty) {
-                                                  audio.playPlaylist(
-                                                    album.songs,
-                                                    source: PlaybackSource(
-                                                      type: PlaybackSourceType.album,
-                                                      id: album.id,
-                                                      name: album.title,
+                                            showButtonLabels
+                                                ? FilledButton.icon(
+                                                    style: FilledButton.styleFrom(
+                                                      minimumSize: Size(0, buttonHeight),
+                                                      fixedSize: Size.fromHeight(buttonHeight),
+                                                      visualDensity: VisualDensity.compact,
+                                                      padding: EdgeInsets.symmetric(
+                                                        horizontal: isNarrow ? 12 : 16,
+                                                      ),
                                                     ),
-                                                  );
-                                                } else {
-                                                  audio.togglePlay();
-                                                }
-                                              },
-                                              icon: Icon(
-                                                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                                                color: theme.colorScheme.primary,
+                                                    onPressed: () {
+                                                      audio.playPlaylist(
+                                                        album.songs,
+                                                        source: PlaybackSource(
+                                                          type: PlaybackSourceType.album,
+                                                          id: album.id,
+                                                          name: album.title,
+                                                        ),
+                                                      );
+                                                    },
+                                                    icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                                                    label: Text(l10n.playAll),
+                                                  )
+                                                : IconButton.filled(
+                                                    tooltip: l10n.playAll,
+                                                    style: IconButton.styleFrom(
+                                                      minimumSize: Size(buttonHeight, buttonHeight),
+                                                      fixedSize: Size(buttonHeight, buttonHeight),
+                                                      padding: EdgeInsets.zero,
+                                                    ),
+                                                    visualDensity: VisualDensity.compact,
+                                                    onPressed: () {
+                                                      audio.playPlaylist(
+                                                        album.songs,
+                                                        source: PlaybackSource(
+                                                          type: PlaybackSourceType.album,
+                                                          id: album.id,
+                                                          name: album.title,
+                                                        ),
+                                                      );
+                                                    },
+                                                    icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                                                  ),
+                                            const SizedBox(width: 8),
+                                            showButtonLabels
+                                                ? FilledButton.tonalIcon(
+                                                    style: FilledButton.styleFrom(
+                                                      minimumSize: Size(0, buttonHeight),
+                                                      fixedSize: Size.fromHeight(buttonHeight),
+                                                      visualDensity: VisualDensity.compact,
+                                                      padding: EdgeInsets.symmetric(
+                                                        horizontal: isNarrow ? 12 : 16,
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      audio.playPlaylist(
+                                                        List.of(album.songs)..shuffle(),
+                                                        source: PlaybackSource(
+                                                          type: PlaybackSourceType.album,
+                                                          id: album.id,
+                                                          name: album.title,
+                                                        ),
+                                                      );
+                                                    },
+                                                    icon: const Icon(Icons.shuffle_rounded, size: 20),
+                                                    label: Text(l10n.shufflePlay),
+                                                  )
+                                                : IconButton.filledTonal(
+                                                    tooltip: l10n.shufflePlay,
+                                                    style: IconButton.styleFrom(
+                                                      minimumSize: Size(buttonHeight, buttonHeight),
+                                                      fixedSize: Size(buttonHeight, buttonHeight),
+                                                      padding: EdgeInsets.zero,
+                                                    ),
+                                                    visualDensity: VisualDensity.compact,
+                                                    onPressed: () {
+                                                      audio.playPlaylist(
+                                                        List.of(album.songs)..shuffle(),
+                                                        source: PlaybackSource(
+                                                          type: PlaybackSourceType.album,
+                                                          id: album.id,
+                                                          name: album.title,
+                                                        ),
+                                                      );
+                                                    },
+                                                    icon: const Icon(Icons.shuffle_rounded, size: 20),
+                                                  ),
+                                            const Spacer(),
+                                            Container(
+                                              height: buttonHeight,
+                                              decoration: BoxDecoration(
+                                                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                                                  alpha: isDark ? 0.45 : 0.65,
+                                                ),
+                                                borderRadius: BorderRadius.circular(buttonHeight / 2),
+                                                border: Border.all(
+                                                  color: borderColor.withValues(alpha: 0.5),
+                                                  width: 0.8,
+                                                ),
                                               ),
-                                            ),
-                                            IconButton(
-                                              tooltip: l10n.nextTrack,
-                                              iconSize: 18,
-                                              visualDensity: VisualDensity.compact,
-                                              onPressed: () => audio.next(),
-                                              icon: const Icon(Icons.skip_next_rounded),
+                                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  IconButton(
+                                                    tooltip: l10n.previousTrack,
+                                                    iconSize: 20,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints: BoxConstraints(
+                                                      minWidth: isNarrow ? 30 : 34,
+                                                      minHeight: buttonHeight - 2,
+                                                    ),
+                                                    visualDensity: VisualDensity.compact,
+                                                    onPressed: () => audio.previous(),
+                                                    icon: const Icon(Icons.skip_previous_rounded),
+                                                  ),
+                                                  IconButton(
+                                                    tooltip: isPlaying ? l10n.pause : l10n.play,
+                                                    iconSize: 22,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints: BoxConstraints(
+                                                      minWidth: isNarrow ? 34 : 38,
+                                                      minHeight: buttonHeight - 2,
+                                                    ),
+                                                    visualDensity: VisualDensity.compact,
+                                                    onPressed: () {
+                                                      if (currentMusic == null && album.songs.isNotEmpty) {
+                                                        audio.playPlaylist(
+                                                          album.songs,
+                                                          source: PlaybackSource(
+                                                            type: PlaybackSourceType.album,
+                                                            id: album.id,
+                                                            name: album.title,
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        audio.togglePlay();
+                                                      }
+                                                    },
+                                                    icon: Icon(
+                                                      isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                      color: theme.colorScheme.primary,
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    tooltip: l10n.nextTrack,
+                                                    iconSize: 20,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints: BoxConstraints(
+                                                      minWidth: isNarrow ? 30 : 34,
+                                                      minHeight: buttonHeight - 2,
+                                                    ),
+                                                    visualDensity: VisualDensity.compact,
+                                                    onPressed: () => audio.next(),
+                                                    icon: const Icon(Icons.skip_next_rounded),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Close button
-                        IconButton(
-                          tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                          iconSize: 20,
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   Divider(
