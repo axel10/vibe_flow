@@ -3754,17 +3754,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'Permitir que otros dispositivos LAN controlen la reproducción tras el emparejamiento';
 
   @override
-  String get onlyAllowTrustedRemoteControlTitle => '仅允许受信任的设备控制';
+  String get onlyAllowTrustedRemoteControlTitle =>
+      'Solo permitir dispositivos de confianza';
 
   @override
   String get onlyAllowTrustedRemoteControlSubtitle =>
-      '仅允许已信任设备直接连接，静默拒绝所有新设备配对请求';
+      'Solo permitir la conexión directa de dispositivos de confianza, rechazando silenciosamente nuevas solicitudes de vinculación';
 
   @override
-  String get onlyTrustedDevicesNoDevicesHint => '当前暂无受信任设备，请先配对设备';
+  String get onlyTrustedDevicesNoDevicesHint =>
+      'Aún no hay dispositivos de confianza. Vincula un dispositivo primero.';
 
   @override
-  String get onlyTrustedRemoteDevicesAllowed => '该主机仅允许受信任的设备控制';
+  String get onlyTrustedRemoteDevicesAllowed =>
+      'El host solo permite el control desde dispositivos de confianza';
 
   @override
   String get remoteControlDisabledOnHost =>

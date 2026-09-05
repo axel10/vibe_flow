@@ -3759,17 +3759,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Permet aux autres appareils du réseau de contrôler la lecture après l\'appairage';
 
   @override
-  String get onlyAllowTrustedRemoteControlTitle => '仅允许受信任的设备控制';
+  String get onlyAllowTrustedRemoteControlTitle =>
+      'Autoriser uniquement les appareils de confiance';
 
   @override
   String get onlyAllowTrustedRemoteControlSubtitle =>
-      '仅允许已信任设备直接连接，静默拒绝所有新设备配对请求';
+      'Autoriser uniquement la connexion directe des appareils de confiance, en rejetant silencieusement les nouvelles demandes d\'association';
 
   @override
-  String get onlyTrustedDevicesNoDevicesHint => '当前暂无受信任设备，请先配对设备';
+  String get onlyTrustedDevicesNoDevicesHint =>
+      'Aucun appareil de confiance pour le moment. Veuillez d\'abord associer un appareil.';
 
   @override
-  String get onlyTrustedRemoteDevicesAllowed => '该主机仅允许受信任的设备控制';
+  String get onlyTrustedRemoteDevicesAllowed =>
+      'Cet hôte n\'autorise que le contrôle par des appareils de confiance';
 
   @override
   String get remoteControlDisabledOnHost =>

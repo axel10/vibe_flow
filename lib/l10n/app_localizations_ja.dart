@@ -3581,17 +3581,18 @@ class AppLocalizationsJa extends AppLocalizations {
       'ペアリング後、LAN内の他のデバイスによる本機の音楽再生操作を許可します';
 
   @override
-  String get onlyAllowTrustedRemoteControlTitle => '仅允许受信任的设备控制';
+  String get onlyAllowTrustedRemoteControlTitle => '信頼済みデバイスのみ許可';
 
   @override
   String get onlyAllowTrustedRemoteControlSubtitle =>
-      '仅允许已信任设备直接连接，静默拒绝所有新设备配对请求';
+      '信頼済みデバイスの直接接続のみを許可し、新しいペアリング要求は拒否します';
 
   @override
-  String get onlyTrustedDevicesNoDevicesHint => '当前暂无受信任设备，请先配对设备';
+  String get onlyTrustedDevicesNoDevicesHint =>
+      '現在、信頼済みのデバイスはありません。先にデバイスをペアリングしてください。';
 
   @override
-  String get onlyTrustedRemoteDevicesAllowed => '该主机仅允许受信任的设备控制';
+  String get onlyTrustedRemoteDevicesAllowed => 'このホストは信頼済みデバイスからの操作のみを許可しています';
 
   @override
   String get remoteControlDisabledOnHost => '相手のデバイスでリモート操作が無効になっています';
