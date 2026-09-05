@@ -150,46 +150,59 @@ class PlaybackArtworkHeroShuttle extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double size = constraints.maxWidth;
+        final double size =
+            constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                ? constraints.maxWidth
+                : 36.0;
         final double t = ((size - 36.0) / (240.0 - 36.0)).clamp(0.0, 1.0);
         final double radius = ui.lerpDouble(6.0, 24.0, t) ?? 6.0;
 
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(radius),
-          child: Material(
-            type: MaterialType.transparency,
-            child: Container(
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                color: hasImage ? Colors.black26 : Colors.black87,
-                boxShadow: size > 60
-                    ? [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: (0.28 * t).clamp(0.0, 0.28),
-                          ),
-                          blurRadius: 20 * t,
-                          offset: Offset(0, 8 * t),
+        return Material(
+          type: MaterialType.transparency,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(radius),
+              color: hasImage ? Colors.black26 : Colors.black87,
+              boxShadow: t > 0.01
+                  ? [
+                      // Deep soft ambient shadow
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: (0.19 * t).clamp(0.0, 0.19),
                         ),
-                      ]
-                    : null,
-              ),
-              child: hasImage
-                  ? Image(
-                      image: imageProvider!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      gaplessPlayback: true,
-                      filterQuality: FilterQuality.medium,
-                    )
-                  : Icon(
-                      Icons.music_note,
-                      color: Colors.white54,
-                      size: math.min(80.0, math.max(20.0, size * 0.3)),
-                    ),
+                        blurRadius: 4 * t,
+                        spreadRadius: 2 * t,
+                        offset: Offset(0, 2 * t),
+                      ),
+                      // Crisp contact shadow
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: (0.18 * t).clamp(0.0, 0.18),
+                        ),
+                        blurRadius: 16 * t,
+                        spreadRadius: -4 * t,
+                        offset: Offset(0, 8 * t),
+                      ),
+                    ]
+                  : null,
             ),
+            clipBehavior: Clip.antiAlias,
+            child: hasImage
+                ? Image(
+                    image: imageProvider!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    gaplessPlayback: true,
+                    filterQuality: FilterQuality.medium,
+                  )
+                : Icon(
+                    Icons.music_note,
+                    color: Colors.white54,
+                    size: math.min(80.0, math.max(20.0, size * 0.3)),
+                  ),
           ),
         );
       },
