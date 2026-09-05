@@ -43,6 +43,8 @@ import '../widgets/library_selection_scope.dart';
 import 'package:vynody/utils/deleted_song_snack.dart';
 import 'package:vynody/utils/app_snack_bar.dart';
 
+int _currentBaseTabIndex = 0;
+
 Route<void> buildMainLayoutRoute({
   required List<String> args,
   required int initialIndex,
@@ -53,21 +55,26 @@ Route<void> buildMainLayoutRoute({
     pageBuilder: (context, animation, secondaryAnimation) =>
         MainLayout(args: args, initialIndex: initialIndex),
     transitionDuration: const Duration(milliseconds: 350),
-    reverseTransitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 350),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       if (initialIndex == 1) {
-        final curvedAnimation = CurvedAnimation(
+        final slideCurvedAnimation = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
           reverseCurve: Curves.easeInCubic,
+        );
+        final fadeCurvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOut,
+          reverseCurve: Curves.easeInQuad,
         );
         return SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(0.0, 1.0),
             end: Offset.zero,
-          ).animate(curvedAnimation),
+          ).animate(slideCurvedAnimation),
           child: FadeTransition(
-            opacity: Tween<double>(begin: 0.7, end: 1.0).animate(curvedAnimation),
+            opacity: Tween<double>(begin: 0.0, end: 1.0).animate(fadeCurvedAnimation),
             child: child,
           ),
         );
@@ -100,16 +107,54 @@ Future<void> navigateToMainTab(
   await Future<void>.delayed(Duration.zero);
   if (!context.mounted) return;
 
-  await Navigator.of(
-    context,
-    rootNavigator: true,
-  ).pushReplacement(
-    buildMainLayoutRoute(
-      args: args,
-      initialIndex: index,
-      fromIndex: fromIndex,
-    ),
-  );
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final currentRoute = ModalRoute.of(context);
+  final bool isCurrentPlayback =
+      currentRoute?.settings.name == 'main-tab-1' || fromIndex == 1;
+
+  if (index == 1) {
+    if (isCurrentPlayback) return;
+    await navigator.push(
+      buildMainLayoutRoute(
+        args: args,
+        initialIndex: 1,
+        fromIndex: fromIndex,
+      ),
+    );
+  } else if (isCurrentPlayback) {
+    if (navigator.canPop()) {
+      if (index != _currentBaseTabIndex && currentRoute != null) {
+        navigator.replaceRouteBelow<void>(
+          anchorRoute: currentRoute,
+          newRoute: buildMainLayoutRoute(
+            args: args,
+            initialIndex: index,
+            fromIndex: 1,
+          ),
+        );
+      }
+      _currentBaseTabIndex = index;
+      navigator.pop();
+    } else {
+      _currentBaseTabIndex = index;
+      await navigator.pushReplacement(
+        buildMainLayoutRoute(
+          args: args,
+          initialIndex: index,
+          fromIndex: fromIndex,
+        ),
+      );
+    }
+  } else {
+    _currentBaseTabIndex = index;
+    await navigator.pushReplacement(
+      buildMainLayoutRoute(
+        args: args,
+        initialIndex: index,
+        fromIndex: fromIndex,
+      ),
+    );
+  }
 }
 
 
@@ -288,6 +333,9 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(mainTabIndexProvider.notifier).setIndex(_currentIndex);
+      if (_currentIndex != 1) {
+        _currentBaseTabIndex = _currentIndex;
+      }
     });
 
     final isProUnlocked = ref.read(isProUnlockedProvider);
