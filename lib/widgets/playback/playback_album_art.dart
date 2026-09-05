@@ -148,6 +148,8 @@ class PlaybackAlbumArt extends ConsumerWidget {
         return PlaybackArtworkHeroShuttle(
           animation: animation,
           flightDirection: flightDirection,
+          toHeroContext: toHeroContext,
+          fromHeroContext: fromHeroContext,
         );
       },
       child: Material(

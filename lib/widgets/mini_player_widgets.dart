@@ -58,6 +58,20 @@ class MiniArtwork extends ConsumerWidget {
 
     final hasImage = imageProvider != null;
 
+    final String? cacheKey = currentMusic?.path ?? artPath ?? thumbPath;
+    final songWidth = currentMusic?.artworkWidth;
+    final songHeight = currentMusic?.artworkHeight;
+    if (cacheKey != null && _ArtworkAspectRatioCache.get(cacheKey) == null) {
+      if (songWidth != null &&
+          songHeight != null &&
+          songWidth > 0 &&
+          songHeight > 0) {
+        _ArtworkAspectRatioCache.set(cacheKey, songWidth / songHeight);
+      } else if (hasImage) {
+        _resolveArtworkAspectRatio(imageProvider, cacheKey);
+      }
+    }
+
     return Hero(
       tag: 'playback_artwork_hero',
       flightShuttleBuilder: (
@@ -70,6 +84,8 @@ class MiniArtwork extends ConsumerWidget {
         return PlaybackArtworkHeroShuttle(
           animation: animation,
           flightDirection: flightDirection,
+          toHeroContext: toHeroContext,
+          fromHeroContext: fromHeroContext,
         );
       },
       child: ClipRRect(
@@ -109,20 +125,131 @@ class MiniArtwork extends ConsumerWidget {
   }
 }
 
+class _ArtworkAspectRatioCache {
+  static final Map<String, double> _cache = {};
+
+  static double? get(String key) => _cache[key];
+  static void set(String key, double ratio) => _cache[key] = ratio;
+}
+
+void _resolveArtworkAspectRatio(ImageProvider provider, String cacheKey) {
+  final stream = provider.resolve(ImageConfiguration.empty);
+  late ImageStreamListener listener;
+  listener = ImageStreamListener(
+    (ImageInfo info, bool synchronousCall) {
+      final w = info.image.width;
+      final h = info.image.height;
+      if (w > 0 && h > 0) {
+        _ArtworkAspectRatioCache.set(cacheKey, w / h);
+      }
+    },
+    onError: (error, stackTrace) {},
+  );
+  stream.addListener(listener);
+}
+
 /// 播放封面 Hero 动画专用的飞行穿梭组件
-/// 在进入或离开播放页时，平滑插值圆角与阴影，保持高清图展示，防止出现白边或低清拉伸跳变
-class PlaybackArtworkHeroShuttle extends ConsumerWidget {
+/// 1:1 封面进入播放页时直接使用原版 Hero 进入动画；
+/// 非 1:1 封面进入或离开播放页时，平滑插值圆角与阴影，从居中裁切铺满 (BoxFit.cover) 平滑缩放过渡至完整展示 (BoxFit.contain)，
+/// 杜绝 Hero 动画完成瞬间的画面跳变；移出播放页时保持高清与圆角平滑过渡，防止出现白边。
+class PlaybackArtworkHeroShuttle extends ConsumerStatefulWidget {
   const PlaybackArtworkHeroShuttle({
     super.key,
     required this.animation,
     required this.flightDirection,
+    required this.toHeroContext,
+    required this.fromHeroContext,
   });
 
   final Animation<double> animation;
   final HeroFlightDirection flightDirection;
+  final BuildContext toHeroContext;
+  final BuildContext fromHeroContext;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlaybackArtworkHeroShuttle> createState() =>
+      _PlaybackArtworkHeroShuttleState();
+}
+
+class _PlaybackArtworkHeroShuttleState
+    extends ConsumerState<PlaybackArtworkHeroShuttle> {
+  ImageStream? _imageStream;
+  ImageStreamListener? _imageStreamListener;
+  ImageProvider? _currentProvider;
+  double? _resolvedAspectRatio;
+
+  @override
+  void dispose() {
+    _stopListening();
+    super.dispose();
+  }
+
+  void _stopListening() {
+    if (_imageStream != null && _imageStreamListener != null) {
+      _imageStream!.removeListener(_imageStreamListener!);
+      _imageStream = null;
+      _imageStreamListener = null;
+    }
+  }
+
+  void _resolveImageAspectRatio(ImageProvider? provider, String? cacheKey) {
+    if (provider == null || provider == _currentProvider) return;
+    _stopListening();
+    _currentProvider = provider;
+
+    if (cacheKey != null) {
+      final cached = _ArtworkAspectRatioCache.get(cacheKey);
+      if (cached != null) {
+        _resolvedAspectRatio = cached;
+        return;
+      }
+    }
+
+    final stream = provider.resolve(ImageConfiguration.empty);
+    _imageStream = stream;
+    _imageStreamListener = ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        final w = info.image.width;
+        final h = info.image.height;
+        if (w > 0 && h > 0) {
+          final ratio = w / h;
+          if (cacheKey != null) {
+            _ArtworkAspectRatioCache.set(cacheKey, ratio);
+          }
+          if (synchronousCall) {
+            _resolvedAspectRatio = ratio;
+          } else if (mounted && _resolvedAspectRatio != ratio) {
+            setState(() {
+              _resolvedAspectRatio = ratio;
+            });
+          }
+        }
+      },
+      onError: (error, stackTrace) {},
+    );
+    stream.addListener(_imageStreamListener!);
+  }
+
+  double _maxSeenWidth = 240.0;
+
+  double? _findTargetPlaybackSize() {
+    if (widget.toHeroContext.mounted) {
+      final box = widget.toHeroContext.findRenderObject() as RenderBox?;
+      if (box != null && box.hasSize && box.size.width > 50) {
+        return box.size.width;
+      }
+    }
+    if (widget.fromHeroContext.mounted) {
+      final box = widget.fromHeroContext.findRenderObject() as RenderBox?;
+      if (box != null && box.hasSize && box.size.width > 50) {
+        return box.size.width;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final audioService = ref.watch(audioServiceProvider);
 
@@ -147,63 +274,125 @@ class PlaybackArtworkHeroShuttle extends ConsumerWidget {
     }
 
     final hasImage = imageProvider != null;
+    final validProvider = imageProvider;
+    final String? cacheKey = currentMusic?.path ?? artPath ?? thumbPath;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double size =
-            constraints.maxWidth.isFinite && constraints.maxWidth > 0
-                ? constraints.maxWidth
-                : 36.0;
-        final double t = ((size - 36.0) / (240.0 - 36.0)).clamp(0.0, 1.0);
-        final double radius = ui.lerpDouble(6.0, 24.0, t) ?? 6.0;
+    // 解析封面宽高比
+    double? aspectRatio = _resolvedAspectRatio;
+    if (aspectRatio == null && cacheKey != null) {
+      aspectRatio = _ArtworkAspectRatioCache.get(cacheKey);
+    }
+    final songWidth = currentMusic?.artworkWidth;
+    final songHeight = currentMusic?.artworkHeight;
+    if (aspectRatio == null &&
+        songWidth != null &&
+        songHeight != null &&
+        songWidth > 0 &&
+        songHeight > 0) {
+      aspectRatio = songWidth / songHeight;
+      if (cacheKey != null) {
+        _ArtworkAspectRatioCache.set(cacheKey, aspectRatio);
+      }
+    }
+    if (aspectRatio == null && hasImage) {
+      _resolveImageAspectRatio(imageProvider, cacheKey);
+      aspectRatio = _resolvedAspectRatio;
+    }
 
-        return Material(
-          type: MaterialType.transparency,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
-              color: hasImage ? Colors.black26 : Colors.black87,
-              boxShadow: t > 0.01
-                  ? [
-                      // Deep soft ambient shadow
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: (0.19 * t).clamp(0.0, 0.19),
+    final double validRatio = (aspectRatio != null && aspectRatio > 0)
+        ? aspectRatio
+        : 1.0;
+    final bool isSquare = (validRatio - 1.0).abs() < 0.02;
+
+    // 当封面为 1:1 且为进入动画（push）时，直接使用原版 Hero 进入动画（即目标页面的实际组件）
+    if (widget.flightDirection == HeroFlightDirection.push && isSquare) {
+      final Hero toHero = widget.toHeroContext.widget as Hero;
+      return toHero.child;
+    }
+
+    // 当为 BoxFit.contain 时，需放大至完全铺满正方形容器（即 BoxFit.cover 效果）的倍数
+    final double maxCoverScale =
+        math.max(validRatio, 1.0 / validRatio).clamp(1.0, 4.0);
+
+    return AnimatedBuilder(
+      animation: widget.animation,
+      builder: (context, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final double size =
+                constraints.maxWidth.isFinite && constraints.maxWidth > 0
+                    ? constraints.maxWidth
+                    : 36.0;
+            if (size > _maxSeenWidth) {
+              _maxSeenWidth = size;
+            }
+            final double targetSize =
+                math.max(120.0, _findTargetPlaybackSize() ?? _maxSeenWidth);
+            // 基于实时物理尺寸计算插值进度（0.0=迷你端，1.0=播放页端）
+            // 不仅支持正常进出动画，还能在动画中途反向打断（如退出动画尚未完成时再次进入）时完美实时插值，避免动画冻结与跳变
+            final double progress = targetSize > 36.0
+                ? ((size - 36.0) / (targetSize - 36.0)).clamp(0.0, 1.0)
+                : 0.0;
+
+            final double currentScale =
+                ui.lerpDouble(maxCoverScale, 1.0, progress) ?? 1.0;
+            final double targetRadius = math.min(24.0, targetSize * 0.2);
+            final double radius =
+                ui.lerpDouble(6.0, targetRadius, progress) ?? 6.0;
+
+            return Material(
+              type: MaterialType.transparency,
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(radius),
+                  color: hasImage ? Colors.black26 : Colors.black87,
+                  boxShadow: progress > 0.01
+                      ? [
+                          // Deep soft ambient shadow
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: (0.19 * progress).clamp(0.0, 0.19),
+                            ),
+                            blurRadius: 4 * progress,
+                            spreadRadius: 2 * progress,
+                            offset: Offset(0, 2 * progress),
+                          ),
+                          // Crisp contact shadow
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: (0.18 * progress).clamp(0.0, 0.18),
+                            ),
+                            blurRadius: 16 * progress,
+                            spreadRadius: -4 * progress,
+                            offset: Offset(0, 8 * progress),
+                          ),
+                        ]
+                      : null,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: validProvider != null
+                    ? Transform.scale(
+                        scale: currentScale,
+                        alignment: Alignment.center,
+                        child: Image(
+                          image: validProvider,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                          gaplessPlayback: true,
+                          filterQuality: FilterQuality.medium,
                         ),
-                        blurRadius: 4 * t,
-                        spreadRadius: 2 * t,
-                        offset: Offset(0, 2 * t),
+                      )
+                    : Icon(
+                        Icons.music_note,
+                        color: Colors.white54,
+                        size: math.min(80.0, math.max(20.0, size * 0.3)),
                       ),
-                      // Crisp contact shadow
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: (0.18 * t).clamp(0.0, 0.18),
-                        ),
-                        blurRadius: 16 * t,
-                        spreadRadius: -4 * t,
-                        offset: Offset(0, 8 * t),
-                      ),
-                    ]
-                  : null,
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: hasImage
-                ? Image(
-                    image: imageProvider!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    gaplessPlayback: true,
-                    filterQuality: FilterQuality.medium,
-                  )
-                : Icon(
-                    Icons.music_note,
-                    color: Colors.white54,
-                    size: math.min(80.0, math.max(20.0, size * 0.3)),
-                  ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
