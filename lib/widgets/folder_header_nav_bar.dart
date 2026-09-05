@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,10 +5,10 @@ import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/models/music_folder.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/settings/settings_service.dart';
-import 'package:vynody/utils/folder_helpers.dart';
 import 'package:vynody/utils/song_locator_helper.dart';
+import 'folder_nav_bar_scaffold.dart';
 
-class FolderHeaderNavBar extends ConsumerStatefulWidget {
+class FolderHeaderNavBar extends ConsumerWidget {
   const FolderHeaderNavBar({
     super.key,
     required this.isOverlay,
@@ -35,179 +34,24 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   final VoidCallback? onClearAllSelection;
   final ScrollController? scrollController;
 
-  @override
-  ConsumerState<FolderHeaderNavBar> createState() => _FolderHeaderNavBarState();
-}
-
-class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
-    with SingleTickerProviderStateMixin {
-  ScrollController? _internalScrollController;
-  late final AnimationController _animController;
-  late final Animation<double> _animation;
-
-  ScrollController get _activeScrollController =>
-      widget.scrollController ?? (_internalScrollController ??= ScrollController());
-
-  void _handleLocate() {
-    if (widget.onLocateCurrentSong != null) {
-      widget.onLocateCurrentSong!();
+  void _handleLocate(WidgetRef ref, BuildContext context) {
+    if (onLocateCurrentSong != null) {
+      onLocateCurrentSong!();
     } else {
       SongLocatorHelper.locateCurrentPlayingSong(ref, context);
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    final isScrolled = widget.scrollProgress.value > 0.03;
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 260),
-      value: isScrolled ? 1.0 : 0.0,
-    );
-    _animation = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOutCubic,
-    );
-
-    _animController.addListener(() {
-      debugPrint(
-        '🎨 [NavBar Anim] animVal: ${_animation.value.toStringAsFixed(3)} | '
-        'ctrlVal: ${_animController.value.toStringAsFixed(3)} | '
-        'scroll: ${widget.scrollProgress.value.toStringAsFixed(3)}',
-      );
-    });
-
-    _animController.addStatusListener((status) {
-      debugPrint('🎬 [NavBar Status Change] -> $status');
-    });
-
-    widget.scrollProgress.addListener(_onScrollProgressChanged);
-  }
-
-  void _onScrollProgressChanged() {
-    final isScrolled = widget.scrollProgress.value > 0.03;
-    // debugPrint('📜 [ScrollChanged] progress: ${widget.scrollProgress.value.toStringAsFixed(4)} -> isScrolled: $isScrolled');
-
-    if (isScrolled) {
-      if (_animController.status != AnimationStatus.forward && _animController.value < 1.0) {
-        // debugPrint('▶️ 触发 forward()');
-        _animController.forward();
-      }
-    } else {
-      if (_animController.status != AnimationStatus.reverse && _animController.value > 0.0) {
-        // debugPrint('◀️ 触发 reverse()');
-        _animController.reverse();
-      }
-    }
-  }
-
-  @override
-  void didUpdateWidget(FolderHeaderNavBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.scrollProgress != widget.scrollProgress) {
-      oldWidget.scrollProgress.removeListener(_onScrollProgressChanged);
-      widget.scrollProgress.addListener(_onScrollProgressChanged);
-      final isScrolled = widget.scrollProgress.value > 0.03;
-      if (isScrolled) {
-        if (_animController.status != AnimationStatus.forward && _animController.value < 1.0) {
-          _animController.forward();
-        }
-      } else {
-        if (_animController.status != AnimationStatus.reverse && _animController.value > 0.0) {
-          _animController.reverse();
-        }
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.scrollProgress.removeListener(_onScrollProgressChanged);
-    _animController.dispose();
-    _internalScrollController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final currentMusic = ref.watch(audioCurrentMusicProvider);
-    final settings = ref.watch(settingsServiceProvider);
-
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final progress = _animation.value;
-        // debugPrint(
-        //   '🎨 [NavBar Frame] progress: ${progress.toStringAsFixed(3)} | '
-        //   'ctrl: ${_animController.value.toStringAsFixed(3)} | '
-        //   'status: ${_animController.status}',
-        // );
-        final theme = Theme.of(context);
-        final isDark = theme.brightness == Brightness.dark;
-        final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-        final l10n = AppLocalizations.of(context)!;
-
-    final targetSurface = theme.colorScheme.surface;
-    final navBackgroundColor = widget.isOverlay
-        ? Color.lerp(targetSurface.withValues(alpha: 0.0), targetSurface, progress)!
-        : theme.scaffoldBackgroundColor;
-
-    final overlayIconColor = isDark ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.85);
-    final solidIconColor = theme.colorScheme.onSurface.withValues(alpha: 0.85);
-    final iconColor = widget.isOverlay
-        ? (Color.lerp(overlayIconColor, solidIconColor, progress) ?? solidIconColor)
-        : solidIconColor;
-
-    final overlayChevronColor = isDark ? Colors.white.withValues(alpha: 0.6) : theme.colorScheme.onSurface.withValues(alpha: 0.4);
-    final solidChevronColor = theme.colorScheme.onSurface.withValues(alpha: 0.4);
-    final chevronColor = widget.isOverlay
-        ? (Color.lerp(overlayChevronColor, solidChevronColor, progress) ?? solidChevronColor)
-        : solidChevronColor;
-
-    final overlayFolderTextColor = isDark ? Colors.white.withValues(alpha: 0.9) : theme.colorScheme.onSurface.withValues(alpha: 0.85);
-    final solidFolderTextColor = theme.colorScheme.onSurface.withValues(alpha: 0.85);
-    final folderTextColor = widget.isOverlay
-        ? (Color.lerp(overlayFolderTextColor, solidFolderTextColor, progress) ?? solidFolderTextColor)
-        : solidFolderTextColor;
-
-    final shadowAlpha = 1.0 - progress;
-    final shadows = (widget.isOverlay && isDark && shadowAlpha > 0.05)
-        ? [Shadow(offset: const Offset(0, 1), blurRadius: 4, color: Colors.black.withValues(alpha: 0.87 * shadowAlpha))]
-        : null;
-
-    final backButton = Material(
-      color: Colors.transparent,
-      child: InkResponse(
-        radius: 18,
-        highlightShape: BoxShape.circle,
-        onTap: widget.onGoBack,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Icon(
-            Icons.arrow_back_rounded,
-            size: 20,
-            color: iconColor,
-            shadows: shadows,
-          ),
-        ),
-      ),
-    );
-
-    final backChevron = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Icon(
-        Icons.chevron_right_rounded,
-        size: 16,
-        color: chevronColor,
-        shadows: shadows,
-      ),
-    );
-
-    final List<Widget> breadcrumbItems = [];
+  List<Widget> _buildBreadcrumbItems(
+    BuildContext context,
+    WidgetRef ref,
+    FolderNavBarStyle style,
+    AppLocalizations l10n,
+  ) {
+    final List<Widget> items = [];
 
     // Home icon button
-    breadcrumbItems.add(
+    items.add(
       Material(
         color: Colors.transparent,
         child: InkResponse(
@@ -216,35 +60,35 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
           onTap: () {
             final scanner = ref.read(scannerServiceProvider);
             scanner.setNavigationState(null, []);
-            widget.onClearAllSelection?.call();
+            onClearAllSelection?.call();
           },
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Icon(
               Icons.home_rounded,
               size: 20,
-              color: iconColor,
-              shadows: shadows,
+              color: style.iconColor,
+              shadows: style.shadows,
             ),
           ),
         ),
       ),
     );
 
-    if (widget.currentFolder == null) {
+    if (currentFolder == null) {
       // Root View breadcrumb
-      breadcrumbItems.add(
+      items.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Icon(
             Icons.chevron_right_rounded,
             size: 16,
-            color: chevronColor,
-            shadows: shadows,
+            color: style.chevronColor,
+            shadows: style.shadows,
           ),
         ),
       );
-      breadcrumbItems.add(
+      items.add(
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
           child: Text(
@@ -252,28 +96,28 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: folderTextColor,
-              shadows: shadows,
+              color: style.folderTextColor,
+              shadows: style.shadows,
             ),
           ),
         ),
       );
     } else {
       // Subfolder View breadcrumbs
-      for (int i = 0; i < widget.navigationHistory.length; i++) {
-        final folder = widget.navigationHistory[i];
-        breadcrumbItems.add(
+      for (int i = 0; i < navigationHistory.length; i++) {
+        final folder = navigationHistory[i];
+        items.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2),
             child: Icon(
               Icons.chevron_right_rounded,
               size: 16,
-              color: chevronColor,
-              shadows: shadows,
+              color: style.chevronColor,
+              shadows: style.shadows,
             ),
           ),
         );
-        breadcrumbItems.add(
+        items.add(
           Material(
             color: Colors.transparent,
             child: InkWell(
@@ -282,9 +126,9 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
                 final scanner = ref.read(scannerServiceProvider);
                 scanner.setNavigationState(
                   folder,
-                  widget.navigationHistory.take(i).toList(),
+                  navigationHistory.take(i).toList(),
                 );
-                widget.onClearAllSelection?.call();
+                onClearAllSelection?.call();
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
@@ -293,8 +137,8 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: folderTextColor,
-                    shadows: shadows,
+                    color: style.folderTextColor,
+                    shadows: style.shadows,
                   ),
                 ),
               ),
@@ -303,239 +147,203 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
         );
       }
 
-      breadcrumbItems.add(
+      items.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Icon(
             Icons.chevron_right_rounded,
             size: 16,
-            color: chevronColor,
-            shadows: shadows,
+            color: style.chevronColor,
+            shadows: style.shadows,
           ),
         ),
       );
-      breadcrumbItems.add(
+      items.add(
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
           child: Text(
-            widget.currentFolder!.name,
+            currentFolder!.name,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: folderTextColor,
-              shadows: shadows,
+              color: style.folderTextColor,
+              shadows: style.shadows,
             ),
           ),
         ),
       );
     }
 
-    final statusBarHeight = MediaQuery.of(context).padding.top;
-    final isDesktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
-    final topPadding = statusBarHeight > 0 ? statusBarHeight + 8 : (isDesktop ? 44.0 : 8.0);
+    return items;
+  }
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: navBackgroundColor,
-        border: Border(
-          bottom: BorderSide(
-            color: widget.isOverlay
-                ? theme.dividerColor.withValues(alpha: 0.12 * progress)
-                : theme.dividerColor.withValues(alpha: 0.05),
-          ),
+  Widget _buildActions(
+    BuildContext context,
+    WidgetRef ref,
+    FolderNavBarStyle style,
+    AppLocalizations l10n,
+  ) {
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final settings = ref.watch(settingsServiceProvider);
+
+    if (style.isPortrait) {
+      return PopupMenuButton<String>(
+        icon: Icon(
+          Icons.more_vert_rounded,
+          size: 20,
+          color: style.iconColor,
+          shadows: style.shadows,
         ),
-        boxShadow: widget.isOverlay && progress > 0.05
-            ? [
-                BoxShadow(
-                  color: (isDark ? Colors.black : theme.colorScheme.shadow)
-                      .withValues(alpha: 0.1 * progress),
-                  blurRadius: 8 * progress,
-                  offset: Offset(0, 2 * progress),
-                ),
-              ]
-            : null,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: topPadding,
-              bottom: 8,
-              left: isPortrait ? 8 : 16,
-              right: isPortrait ? 16 : 24,
-            ),
-            child: Row(
-        children: [
-          if (widget.onGoBack != null) ...[
-            backButton,
-            backChevron,
-          ],
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  controller: _activeScrollController,
-                  scrollDirection: Axis.horizontal,
-                  reverse: true,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(children: breadcrumbItems),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (isPortrait)
-            PopupMenuButton<String>(
-              icon: Icon(
-                Icons.more_vert_rounded,
-                size: 20,
-                color: iconColor,
-                shadows: shadows,
+        onSelected: (value) {
+          if (value == 'locate') {
+            _handleLocate(ref, context);
+          } else if (value == 'sort') {
+            onSortPressed();
+          } else if (value == 'view_mode') {
+            settings.folderViewMode = switch (settings.folderViewMode) {
+              FolderViewMode.list => FolderViewMode.hybrid,
+              FolderViewMode.hybrid => FolderViewMode.grid,
+              FolderViewMode.grid => FolderViewMode.list,
+            };
+          }
+        },
+        itemBuilder: (context) => [
+          if (currentMusic != null)
+            PopupMenuItem(
+              value: 'locate',
+              child: Row(
+                children: [
+                  const Icon(Icons.my_location_rounded, size: 20),
+                  const SizedBox(width: 12),
+                  Text(l10n.locateCurrentSong),
+                ],
               ),
-              onSelected: (value) {
-                if (value == 'locate') {
-                  _handleLocate();
-                } else if (value == 'sort') {
-                  widget.onSortPressed();
-                } else if (value == 'view_mode') {
-                  settings.folderViewMode = switch (settings.folderViewMode) {
-                    FolderViewMode.list => FolderViewMode.hybrid,
-                    FolderViewMode.hybrid => FolderViewMode.grid,
-                    FolderViewMode.grid => FolderViewMode.list,
-                  };
-                }
-              },
-              itemBuilder: (context) => [
-                if (currentMusic != null)
-                  PopupMenuItem(
-                    value: 'locate',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.my_location_rounded, size: 20),
-                        const SizedBox(width: 12),
-                        Text(l10n.locateCurrentSong),
-                      ],
-                    ),
-                  ),
-                PopupMenuItem(
-                  value: 'sort',
-                  child: Row(
-                    children: [
-                      Icon(
-                        widget.isSortActive ? Icons.check_rounded : Icons.sort,
-                        size: 20,
-                        color: widget.isSortActive
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        l10n.sort,
-                        style: widget.isSortActive
-                            ? TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              )
-                            : null,
-                      ),
-                    ],
-                  ),
+            ),
+          PopupMenuItem(
+            value: 'sort',
+            child: Row(
+              children: [
+                Icon(
+                  isSortActive ? Icons.check_rounded : Icons.sort,
+                  size: 20,
+                  color: isSortActive
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                 ),
-                PopupMenuItem(
-                  value: 'view_mode',
-                  child: Row(
-                    children: [
-                      Icon(
-                        switch (settings.folderViewMode) {
-                          FolderViewMode.list => Icons.grid_view_rounded,
-                          FolderViewMode.hybrid => Icons.view_module_rounded,
-                          FolderViewMode.grid => Icons.view_list_rounded,
-                        },
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        switch (settings.folderViewMode) {
-                          FolderViewMode.list => l10n.hybridView,
-                          FolderViewMode.hybrid => l10n.gridView,
-                          FolderViewMode.grid => l10n.listView,
-                        },
-                      ),
-                    ],
-                  ),
+                const SizedBox(width: 12),
+                Text(
+                  l10n.sort,
+                  style: isSortActive
+                      ? TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        )
+                      : null,
                 ),
               ],
-            )
-          else ...[
-            if (currentMusic != null) ...[
-              IconButton(
-                tooltip: l10n.locateCurrentSong,
-                icon: Icon(
-                  Icons.my_location_rounded,
-                  size: 20,
-                  color: iconColor,
-                  shadows: shadows,
-                ),
-                onPressed: _handleLocate,
-              ),
-            ],
-            IconButton(
-              tooltip: switch (settings.folderViewMode) {
-                FolderViewMode.list => l10n.hybridView,
-                FolderViewMode.hybrid => l10n.gridView,
-                FolderViewMode.grid => l10n.listView,
-              },
-              icon: Icon(
-                switch (settings.folderViewMode) {
-                  FolderViewMode.list => Icons.grid_view_rounded,
-                  FolderViewMode.hybrid => Icons.view_module_rounded,
-                  FolderViewMode.grid => Icons.view_list_rounded,
-                },
-                size: 20,
-                color: iconColor,
-                shadows: shadows,
-              ),
-              onPressed: () {
-                settings.folderViewMode = switch (settings.folderViewMode) {
-                  FolderViewMode.list => FolderViewMode.hybrid,
-                  FolderViewMode.hybrid => FolderViewMode.grid,
-                  FolderViewMode.grid => FolderViewMode.list,
-                };
-              },
             ),
+          ),
+          PopupMenuItem(
+            value: 'view_mode',
+            child: Row(
+              children: [
+                Icon(
+                  switch (settings.folderViewMode) {
+                    FolderViewMode.list => Icons.grid_view_rounded,
+                    FolderViewMode.hybrid => Icons.view_module_rounded,
+                    FolderViewMode.grid => Icons.view_list_rounded,
+                  },
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  switch (settings.folderViewMode) {
+                    FolderViewMode.list => l10n.hybridView,
+                    FolderViewMode.hybrid => l10n.gridView,
+                    FolderViewMode.grid => l10n.listView,
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (currentMusic != null) ...[
             IconButton(
-              tooltip: l10n.sort,
-              style: widget.isSortActive
-                  ? IconButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primaryContainer,
-                    )
-                  : null,
+              tooltip: l10n.locateCurrentSong,
               icon: Icon(
-                widget.isSortActive ? Icons.check_rounded : Icons.sort,
+                Icons.my_location_rounded,
                 size: 20,
-                color: widget.isSortActive
-                    ? Theme.of(context).colorScheme.primary
-                    : iconColor,
-                shadows: widget.isSortActive ? null : shadows,
+                color: style.iconColor,
+                shadows: style.shadows,
               ),
-              onPressed: widget.onSortPressed,
+              onPressed: () => _handleLocate(ref, context),
             ),
           ],
-        ],
-      ),
+          IconButton(
+            tooltip: switch (settings.folderViewMode) {
+              FolderViewMode.list => l10n.hybridView,
+              FolderViewMode.hybrid => l10n.gridView,
+              FolderViewMode.grid => l10n.listView,
+            },
+            icon: Icon(
+              switch (settings.folderViewMode) {
+                FolderViewMode.list => Icons.grid_view_rounded,
+                FolderViewMode.hybrid => Icons.view_module_rounded,
+                FolderViewMode.grid => Icons.view_list_rounded,
+              },
+              size: 20,
+              color: style.iconColor,
+              shadows: style.shadows,
+            ),
+            onPressed: () {
+              settings.folderViewMode = switch (settings.folderViewMode) {
+                FolderViewMode.list => FolderViewMode.hybrid,
+                FolderViewMode.hybrid => FolderViewMode.grid,
+                FolderViewMode.grid => FolderViewMode.list,
+              };
+            },
           ),
-        ),
-      ),
-    );
-      },
+          IconButton(
+            tooltip: l10n.sort,
+            style: isSortActive
+                ? IconButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  )
+                : null,
+            icon: Icon(
+              isSortActive ? Icons.check_rounded : Icons.sort,
+              size: 20,
+              color: isSortActive
+                  ? Theme.of(context).colorScheme.primary
+                  : style.iconColor,
+              shadows: isSortActive ? null : style.shadows,
+            ),
+            onPressed: onSortPressed,
+          ),
+        ],
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return FolderNavBarScaffold(
+      isOverlay: isOverlay,
+      scrollProgress: scrollProgress,
+      onGoBack: onGoBack,
+      scrollController: scrollController,
+      breadcrumbItemsBuilder: (context, style) =>
+          _buildBreadcrumbItems(context, ref, style, l10n),
+      actionsBuilder: (context, style) =>
+          _buildActions(context, ref, style, l10n),
     );
   }
 }

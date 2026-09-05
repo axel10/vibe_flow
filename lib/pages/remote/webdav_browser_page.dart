@@ -35,7 +35,7 @@ import 'remote_download_manager_page.dart';
 import 'widgets/webdav_content_slivers.dart';
 import '../../utils/selection_utils.dart';
 import '../../utils/song_locator_helper.dart';
-
+import '../../widgets/folder_nav_bar_scaffold.dart';
 
 class WebDavBrowserPage extends ConsumerStatefulWidget {
   final RemoteServer server;
@@ -59,8 +59,7 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
   ConsumerState<WebDavBrowserPage> createState() => _WebDavBrowserPageState();
 }
 
-class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage>
-    with SingleTickerProviderStateMixin {
+class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   late final WebDavClient _client;
   late String _rootPath;
   late String _currentPath;
@@ -83,8 +82,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage>
   final ScrollController _scrollController = ScrollController();
   final ScrollController _breadcrumbsScrollController = ScrollController();
   final ValueNotifier<double> _scrollProgress = ValueNotifier<double>(0.0);
-  late final AnimationController _headerAnimController;
-  late final Animation<double> _headerAnimation;
   bool _isCoverVisible = true;
   bool _isSearching = false;
   String _searchQuery = '';
@@ -94,18 +91,6 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage>
   @override
   void initState() {
     super.initState();
-    final isScrolled = _scrollProgress.value > 0.03;
-    _headerAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 260),
-      value: isScrolled ? 1.0 : 0.0,
-    );
-    _headerAnimation = CurvedAnimation(
-      parent: _headerAnimController,
-      curve: Curves.easeInOutCubic,
-    );
-    _scrollProgress.addListener(_onHeaderScrollProgressChanged);
-
     _selectionScopeNotifier =
         ref.read(librarySelectionScopeProvider.notifier);
     _searchController = TextEditingController();
@@ -182,30 +167,13 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage>
     return false;
   }
 
-  void _onHeaderScrollProgressChanged() {
-    final isScrolled = _scrollProgress.value > 0.03;
-    if (isScrolled) {
-      if (_headerAnimController.status != AnimationStatus.forward &&
-          _headerAnimController.value < 1.0) {
-        _headerAnimController.forward();
-      }
-    } else {
-      if (_headerAnimController.status != AnimationStatus.reverse &&
-          _headerAnimController.value > 0.0) {
-        _headerAnimController.reverse();
-      }
-    }
-  }
-
   @override
   void dispose() {
     _highlightTimer?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
-    _scrollProgress.removeListener(_onHeaderScrollProgressChanged);
     _scrollProgress.dispose();
-    _headerAnimController.dispose();
     Future.microtask(() {
       _selectionScopeNotifier.clear();
     });
@@ -1922,456 +1890,329 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage>
     );
   }
 
-  Widget _buildHeaderNavBar(BuildContext context, {bool isOverlay = true}) {
-    final currentMusic = ref.watch(audioCurrentMusicProvider);
-    final settings = ref.watch(settingsServiceProvider);
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
-    final activeDownloadsCount = ref.watch(activeDownloadsCountProvider);
+  List<Widget> _buildBreadcrumbItems(FolderNavBarStyle style) {
+    final List<Widget> items = [];
+    final segments = _pathSegments;
 
-    return AnimatedBuilder(
-      animation: _headerAnimation,
-      builder: (context, child) {
-        final progress = _headerAnimation.value;
+    // Server root (Icon + Name)
+    final rootContent = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.cloud_queue_rounded,
+          size: 18,
+          color: style.iconColor,
+          shadows: style.shadows,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          widget.server.name,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: segments.isEmpty ? FontWeight.bold : FontWeight.w500,
+            color: style.folderTextColor,
+            shadows: style.shadows,
+          ),
+        ),
+      ],
+    );
 
-        final targetSurface = theme.colorScheme.surface;
-        final navBackgroundColor = isOverlay
-            ? Color.lerp(
-                targetSurface.withValues(alpha: 0.0), targetSurface, progress)!
-            : theme.scaffoldBackgroundColor;
-
-        final overlayIconColor = isDark
-            ? Colors.white
-            : theme.colorScheme.onSurface.withValues(alpha: 0.85);
-        final solidIconColor =
-            theme.colorScheme.onSurface.withValues(alpha: 0.85);
-        final iconColor = isOverlay
-            ? (Color.lerp(overlayIconColor, solidIconColor, progress) ??
-                solidIconColor)
-            : solidIconColor;
-
-        final overlayChevronColor = isDark
-            ? Colors.white.withValues(alpha: 0.6)
-            : theme.colorScheme.onSurface.withValues(alpha: 0.4);
-        final solidChevronColor =
-            theme.colorScheme.onSurface.withValues(alpha: 0.4);
-        final chevronColor = isOverlay
-            ? (Color.lerp(overlayChevronColor, solidChevronColor, progress) ??
-                solidChevronColor)
-            : solidChevronColor;
-
-        final overlayFolderTextColor = isDark
-            ? Colors.white.withValues(alpha: 0.9)
-            : theme.colorScheme.onSurface.withValues(alpha: 0.85);
-        final solidFolderTextColor =
-            theme.colorScheme.onSurface.withValues(alpha: 0.85);
-        final folderTextColor = isOverlay
-            ? (Color.lerp(
-                    overlayFolderTextColor, solidFolderTextColor, progress) ??
-                solidFolderTextColor)
-            : solidFolderTextColor;
-
-        final shadowAlpha = 1.0 - progress;
-        final shadows = (isOverlay && isDark && shadowAlpha > 0.05)
-            ? [
-                Shadow(
-                  offset: const Offset(0, 1),
-                  blurRadius: 4,
-                  color: Colors.black.withValues(alpha: 0.87 * shadowAlpha),
-                ),
-              ]
-            : null;
-
-        final backButton = Material(
+    if (segments.isEmpty) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+          child: rootContent,
+        ),
+      );
+    } else {
+      items.add(
+        Material(
           color: Colors.transparent,
-          child: InkResponse(
-            radius: 18,
-            highlightShape: BoxShape.circle,
-            onTap: _handleGoBack,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => _navigateToBreadcrumb(-1),
             child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                Icons.arrow_back_rounded,
-                size: 20,
-                color: iconColor,
-                shadows: shadows,
-              ),
-            ),
-          ),
-        );
-
-        final backChevron = Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Icon(
-            Icons.chevron_right_rounded,
-            size: 16,
-            color: chevronColor,
-            shadows: shadows,
-          ),
-        );
-
-        final List<Widget> breadcrumbItems = [];
-        final segments = _pathSegments;
-
-        // Server root (Icon + Name)
-        final rootContent = Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.cloud_queue_rounded,
-              size: 18,
-              color: iconColor,
-              shadows: shadows,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              widget.server.name,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight:
-                    segments.isEmpty ? FontWeight.bold : FontWeight.w500,
-                color: folderTextColor,
-                shadows: shadows,
-              ),
-            ),
-          ],
-        );
-
-        if (segments.isEmpty) {
-          breadcrumbItems.add(
-            Padding(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
               child: rootContent,
             ),
+          ),
+        ),
+      );
+
+      for (int i = 0; i < segments.length; i++) {
+        final isLast = i == segments.length - 1;
+        items.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Icon(
+              Icons.chevron_right_rounded,
+              size: 16,
+              color: style.chevronColor,
+              shadows: style.shadows,
+            ),
+          ),
+        );
+
+        if (isLast) {
+          items.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+              child: Text(
+                segments[i],
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: style.folderTextColor,
+                  shadows: style.shadows,
+                ),
+              ),
+            ),
           );
         } else {
-          breadcrumbItems.add(
+          items.add(
             Material(
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () => _navigateToBreadcrumb(-1),
+                onTap: () => _navigateToBreadcrumb(i),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-                  child: rootContent,
-                ),
-              ),
-            ),
-          );
-
-          for (int i = 0; i < segments.length; i++) {
-            final isLast = i == segments.length - 1;
-            breadcrumbItems.add(
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  size: 16,
-                  color: chevronColor,
-                  shadows: shadows,
-                ),
-              ),
-            );
-
-            if (isLast) {
-              breadcrumbItems.add(
-                Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
                   child: Text(
                     segments[i],
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: folderTextColor,
-                      shadows: shadows,
+                      fontWeight: FontWeight.w500,
+                      color: style.folderTextColor,
+                      shadows: style.shadows,
                     ),
                   ),
                 ),
-              );
-            } else {
-              breadcrumbItems.add(
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => _navigateToBreadcrumb(i),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 6, horizontal: 6),
-                      child: Text(
-                        segments[i],
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: folderTextColor,
-                          shadows: shadows,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-          }
-        }
-
-        final statusBarHeight = MediaQuery.of(context).padding.top;
-        final isDesktop =
-            Platform.isMacOS || Platform.isWindows || Platform.isLinux;
-        final topPadding = statusBarHeight > 0
-            ? statusBarHeight + 8
-            : (isDesktop ? 44.0 : 8.0);
-
-        return Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: navBackgroundColor,
-            border: Border(
-              bottom: BorderSide(
-                color: isOverlay
-                    ? theme.dividerColor.withValues(alpha: 0.12 * progress)
-                    : theme.dividerColor.withValues(alpha: 0.05),
               ),
             ),
-            boxShadow: isOverlay && progress > 0.05
-                ? [
-                    BoxShadow(
-                      color: (isDark ? Colors.black : theme.colorScheme.shadow)
-                          .withValues(alpha: 0.1 * progress),
-                      blurRadius: 8 * progress,
-                      offset: Offset(0, 2 * progress),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: folderPageMaxWidth),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  top: topPadding,
-                  bottom: 8,
-                  left: isPortrait ? 8 : 16,
-                  right: isPortrait ? 16 : 24,
-                ),
-                child: Row(
-            children: [
-              backButton,
-              backChevron,
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      controller: _breadcrumbsScrollController,
-                      scrollDirection: Axis.horizontal,
-                      reverse: true,
-                      child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minWidth: constraints.maxWidth),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Row(children: breadcrumbItems),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+          );
+        }
+      }
+    }
+
+    return items;
+  }
+
+  Widget _buildHeaderActions(
+    BuildContext context,
+    FolderNavBarStyle style,
+    AppLocalizations l10n,
+    MusicFile? currentMusic,
+    SettingsService settings,
+    int activeDownloadsCount,
+  ) {
+    if (style.isPortrait) {
+      return PopupMenuButton<String>(
+        icon: Icon(
+          Icons.more_vert_rounded,
+          size: 20,
+          color: style.iconColor,
+          shadows: style.shadows,
+        ),
+        onSelected: (value) {
+          if (value == 'locate') {
+            _locateCurrentSong();
+          } else if (value == 'sort') {
+            _showSortDialog(context);
+          } else if (value == 'view_mode') {
+            settings.folderViewMode = switch (settings.folderViewMode) {
+              FolderViewMode.list => FolderViewMode.hybrid,
+              FolderViewMode.hybrid => FolderViewMode.grid,
+              FolderViewMode.grid => FolderViewMode.list,
+            };
+          } else if (value == 'refresh') {
+            _loadDirectory(_currentPath, forceRefresh: true);
+          } else if (value == 'downloads') {
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => const RemoteDownloadManagerPage(),
               ),
-              const SizedBox(width: 8),
-              if (isPortrait)
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert_rounded,
-                    size: 20,
-                    color: iconColor,
-                    shadows: shadows,
-                  ),
-                  onSelected: (value) {
-                    if (value == 'locate') {
-                      _locateCurrentSong();
-                    } else if (value == 'sort') {
-                      _showSortDialog(context);
-                    } else if (value == 'view_mode') {
-                      settings.folderViewMode =
-                          switch (settings.folderViewMode) {
-                        FolderViewMode.list => FolderViewMode.hybrid,
-                        FolderViewMode.hybrid => FolderViewMode.grid,
-                        FolderViewMode.grid => FolderViewMode.list,
-                      };
-                    } else if (value == 'refresh') {
-                      _loadDirectory(_currentPath, forceRefresh: true);
-                    } else if (value == 'downloads') {
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(
-                          builder: (_) => const RemoteDownloadManagerPage(),
-                        ),
-                      );
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (currentMusic != null)
-                      PopupMenuItem(
-                        value: 'locate',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.my_location_rounded, size: 20),
-                            const SizedBox(width: 12),
-                            Text(l10n.locateCurrentSong),
-                          ],
-                        ),
-                      ),
-                    PopupMenuItem(
-                      value: 'sort',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.sort_rounded, size: 20),
-                          const SizedBox(width: 12),
-                          Text(l10n.sortBy),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'view_mode',
-                      child: Row(
-                        children: [
-                          Icon(
-                            switch (settings.folderViewMode) {
-                              FolderViewMode.list => Icons.grid_view_rounded,
-                              FolderViewMode.hybrid =>
-                                Icons.view_module_rounded,
-                              FolderViewMode.grid => Icons.view_list_rounded,
-                            },
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            switch (settings.folderViewMode) {
-                              FolderViewMode.list => l10n.hybridView,
-                              FolderViewMode.hybrid => l10n.gridView,
-                              FolderViewMode.grid => l10n.listView,
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'refresh',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.refresh_rounded, size: 20),
-                          const SizedBox(width: 12),
-                          Text(l10n.refreshResults),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'downloads',
-                      child: Row(
-                        children: [
-                          Badge(
-                            isLabelVisible: activeDownloadsCount > 0,
-                            label: Text('$activeDownloadsCount'),
-                            child: const Icon(Icons.download_rounded, size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(l10n.downloadManager),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              else ...[
-                if (currentMusic != null) ...[
-                  IconButton(
-                    tooltip: l10n.locateCurrentSong,
-                    icon: Icon(
-                      Icons.my_location_rounded,
-                      size: 20,
-                      color: iconColor,
-                      shadows: shadows,
-                    ),
-                    onPressed: _locateCurrentSong,
-                  ),
+            );
+          }
+        },
+        itemBuilder: (context) => [
+          if (currentMusic != null)
+            PopupMenuItem(
+              value: 'locate',
+              child: Row(
+                children: [
+                  const Icon(Icons.my_location_rounded, size: 20),
+                  const SizedBox(width: 12),
+                  Text(l10n.locateCurrentSong),
                 ],
-                IconButton(
-                  tooltip: l10n.sortBy,
-                  icon: Icon(
-                    Icons.sort_rounded,
-                    size: 20,
-                    color: iconColor,
-                    shadows: shadows,
-                  ),
-                  onPressed: () => _showSortDialog(context),
+              ),
+            ),
+          PopupMenuItem(
+            value: 'sort',
+            child: Row(
+              children: [
+                const Icon(Icons.sort_rounded, size: 20),
+                const SizedBox(width: 12),
+                Text(l10n.sortBy),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'view_mode',
+            child: Row(
+              children: [
+                Icon(
+                  switch (settings.folderViewMode) {
+                    FolderViewMode.list => Icons.grid_view_rounded,
+                    FolderViewMode.hybrid => Icons.view_module_rounded,
+                    FolderViewMode.grid => Icons.view_list_rounded,
+                  },
+                  size: 20,
                 ),
-                IconButton(
-                  tooltip: switch (settings.folderViewMode) {
+                const SizedBox(width: 12),
+                Text(
+                  switch (settings.folderViewMode) {
                     FolderViewMode.list => l10n.hybridView,
                     FolderViewMode.hybrid => l10n.gridView,
                     FolderViewMode.grid => l10n.listView,
                   },
-                  icon: Icon(
-                    switch (settings.folderViewMode) {
-                      FolderViewMode.list => Icons.grid_view_rounded,
-                      FolderViewMode.hybrid => Icons.view_module_rounded,
-                      FolderViewMode.grid => Icons.view_list_rounded,
-                    },
-                    size: 20,
-                    color: iconColor,
-                    shadows: shadows,
-                  ),
-                  onPressed: () {
-                    settings.folderViewMode =
-                        switch (settings.folderViewMode) {
-                      FolderViewMode.list => FolderViewMode.hybrid,
-                      FolderViewMode.hybrid => FolderViewMode.grid,
-                      FolderViewMode.grid => FolderViewMode.list,
-                    };
-                  },
-                ),
-                IconButton(
-                  tooltip: l10n.refreshResults,
-                  icon: Icon(
-                    Icons.refresh_rounded,
-                    size: 20,
-                    color: iconColor,
-                    shadows: shadows,
-                  ),
-                  onPressed: () =>
-                      _loadDirectory(_currentPath, forceRefresh: true),
-                ),
-                IconButton(
-                  tooltip: l10n.downloadManager,
-                  icon: Badge(
-                    isLabelVisible: activeDownloadsCount > 0,
-                    label: Text('$activeDownloadsCount'),
-                    child: Icon(
-                      Icons.download_rounded,
-                      size: 20,
-                      color: iconColor,
-                      shadows: shadows,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).push(
-                      MaterialPageRoute(
-                        builder: (_) => const RemoteDownloadManagerPage(),
-                      ),
-                    );
-                  },
                 ),
               ],
-            ],
-          ),
-              ),
             ),
           ),
-        );
-      },
+          PopupMenuItem(
+            value: 'refresh',
+            child: Row(
+              children: [
+                const Icon(Icons.refresh_rounded, size: 20),
+                const SizedBox(width: 12),
+                Text(l10n.refreshResults),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'downloads',
+            child: Row(
+              children: [
+                Badge(
+                  isLabelVisible: activeDownloadsCount > 0,
+                  label: Text('$activeDownloadsCount'),
+                  child: const Icon(Icons.download_rounded, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Text(l10n.downloadManager),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (currentMusic != null) ...[
+            IconButton(
+              tooltip: l10n.locateCurrentSong,
+              icon: Icon(
+                Icons.my_location_rounded,
+                size: 20,
+                color: style.iconColor,
+                shadows: style.shadows,
+              ),
+              onPressed: _locateCurrentSong,
+            ),
+          ],
+          IconButton(
+            tooltip: l10n.sortBy,
+            icon: Icon(
+              Icons.sort_rounded,
+              size: 20,
+              color: style.iconColor,
+              shadows: style.shadows,
+            ),
+            onPressed: () => _showSortDialog(context),
+          ),
+          IconButton(
+            tooltip: switch (settings.folderViewMode) {
+              FolderViewMode.list => l10n.hybridView,
+              FolderViewMode.hybrid => l10n.gridView,
+              FolderViewMode.grid => l10n.listView,
+            },
+            icon: Icon(
+              switch (settings.folderViewMode) {
+                FolderViewMode.list => Icons.grid_view_rounded,
+                FolderViewMode.hybrid => Icons.view_module_rounded,
+                FolderViewMode.grid => Icons.view_list_rounded,
+              },
+              size: 20,
+              color: style.iconColor,
+              shadows: style.shadows,
+            ),
+            onPressed: () {
+              settings.folderViewMode = switch (settings.folderViewMode) {
+                FolderViewMode.list => FolderViewMode.hybrid,
+                FolderViewMode.hybrid => FolderViewMode.grid,
+                FolderViewMode.grid => FolderViewMode.list,
+              };
+            },
+          ),
+          IconButton(
+            tooltip: l10n.refreshResults,
+            icon: Icon(
+              Icons.refresh_rounded,
+              size: 20,
+              color: style.iconColor,
+              shadows: style.shadows,
+            ),
+            onPressed: () =>
+                _loadDirectory(_currentPath, forceRefresh: true),
+          ),
+          IconButton(
+            tooltip: l10n.downloadManager,
+            icon: Badge(
+              isLabelVisible: activeDownloadsCount > 0,
+              label: Text('$activeDownloadsCount'),
+              child: Icon(
+                Icons.download_rounded,
+                size: 20,
+                color: style.iconColor,
+                shadows: style.shadows,
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (_) => const RemoteDownloadManagerPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildHeaderNavBar(BuildContext context, {bool isOverlay = true}) {
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final settings = ref.watch(settingsServiceProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final activeDownloadsCount = ref.watch(activeDownloadsCountProvider);
+
+    return FolderNavBarScaffold(
+      isOverlay: isOverlay,
+      scrollProgress: _scrollProgress,
+      onGoBack: _handleGoBack,
+      scrollController: _breadcrumbsScrollController,
+      breadcrumbItemsBuilder: (context, style) =>
+          _buildBreadcrumbItems(style),
+      actionsBuilder: (context, style) => _buildHeaderActions(
+        context,
+        style,
+        l10n,
+        currentMusic,
+        settings,
+        activeDownloadsCount,
+      ),
     );
   }
 }
