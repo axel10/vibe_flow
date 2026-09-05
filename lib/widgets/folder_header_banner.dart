@@ -558,53 +558,15 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                   // Wide or Square cover extending across full width
                   if (isWideOrSquare && hasImage) ...[
                     Positioned.fill(
-                      child: (heroTag != null && !isWideScreen)
-                          ? HeroMode(
-                              enabled: isHeroModeEnabled,
-                              child: Hero(
-                                tag: heroTag!,
-                                // Explicit fastOutSlowIn curve for portrait hero backdrop expansion
-                                createRectTween: (begin, end) => SmoothRectTween(
-                                  begin: begin,
-                                  end: end,
-                                  curve: Curves.fastOutSlowIn,
-                                ),
-                                flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
-                                  return _buildHeroFlightShuttle(
-                                    flightContext: flightContext,
-                                    animation: animation,
-                                    theme: theme,
-                                    l10n: l10n,
-                                    screenWidth: screenWidth,
-                                    durationText: durationText,
-                                    hasImage: hasImage,
-                                    coverFile: coverFile,
-                                    statusBarTop: statusBarTop,
-                                    desktopTitleBarHeight: desktopTitleBarHeight,
-                                    hasTopHeader: hasTopHeader,
-                                    isLowEndDevice: isLowEndDevice,
-                                  );
-                                },
-                                child: Opacity(
-                                  opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
-                                  child: Image.file(
-                                    coverFile!,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Opacity(
-                              opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
-                              child: Image.file(
-                                coverFile!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
+                      child: Opacity(
+                        opacity: isDark ? 1.0 : _kLightModeCoverOpacity,
+                        child: Image.file(
+                          coverFile!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      ),
                     ),
                   ],
                   // Gradient overlay for text readability (Dark mode: dark gradient, Light mode: light surface gradient)
@@ -804,36 +766,15 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: heroTag != null
-                                ? HeroMode(
-                                    enabled: isHeroModeEnabled,
-                                    child: Hero(
-                                      tag: heroTag!,
-                                      createRectTween: (begin, end) => SmoothRectTween(
-                                        begin: begin,
-                                        end: end,
-                                        curve: Curves.fastOutSlowIn,
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: hasImage
-                                            ? Image.file(
-                                                coverFile!,
-                                                fit: BoxFit.contain,
-                                              )
-                                            : coverWidget,
-                                      ),
-                                    ),
-                                  )
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: hasImage
-                                        ? Image.file(
-                                            coverFile!,
-                                            fit: BoxFit.contain,
-                                          )
-                                        : coverWidget,
-                                  ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: hasImage
+                                  ? Image.file(
+                                      coverFile!,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : coverWidget,
+                            ),
                           ),
                         ),
                       ],
@@ -916,171 +857,6 @@ class _FolderPortraitHeaderBanner extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeroFlightShuttle({
-    required BuildContext flightContext,
-    required Animation<double> animation,
-    required ThemeData theme,
-    required AppLocalizations l10n,
-    required double screenWidth,
-    required String durationText,
-    required bool hasImage,
-    required File? coverFile,
-    required double statusBarTop,
-    required double desktopTitleBarHeight,
-    required bool hasTopHeader,
-    required bool isLowEndDevice,
-  }) {
-    final isDark = theme.brightness == Brightness.dark;
-
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        final double progress = animation.value;
-        final double radiusTop = lerpDouble(8.0, 0.0, progress) ?? 0.0;
-        final double radiusBottom = lerpDouble(8.0, 20.0, progress) ?? 20.0;
-
-        final double darkOpacity = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOut,
-        ).value;
-
-        // On high-end/desktop devices (isLowEndDevice == false), retain full rich Hero animation with foreground items.
-        // On low-end devices, apply smooth fade-in curve (from 20% to 100% progress) so components smoothly fade in without popping up abruptly.
-        final double fgOpacity = CurvedAnimation(
-          parent: animation,
-          curve: isLowEndDevice
-              ? const Interval(0.20, 1.0, curve: Curves.easeOutCubic)
-              : const Interval(0.15, 1.0, curve: Curves.easeOutCubic),
-        ).value;
-
-        final double fgOffsetY = 12.0 * (1.0 - fgOpacity);
-
-        return ClipRRect(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(radiusTop),
-            bottom: Radius.circular(radiusBottom),
-          ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // 0. Base surface background
-              Container(
-                color: isDark ? Colors.black : theme.colorScheme.surface,
-              ),
-              // 1. Cover Image Background
-              if (hasImage)
-                Opacity(
-                  opacity: isDark ? 1.0 : (lerpDouble(1.0, _kLightModeCoverOpacity, progress) ?? 1.0),
-                  child: Image.file(
-                    coverFile!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                ),
-
-              // 2. Gradient Overlay (Dark in dark mode, light surface gradient in light mode)
-              if (hasImage)
-                Opacity(
-                  opacity: darkOpacity,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: isDark
-                            ? [
-                                Colors.black.withValues(alpha: 0.35),
-                                Colors.black.withValues(alpha: 0.55),
-                                Colors.black.withValues(alpha: 0.85),
-                              ]
-                            : [
-                                theme.colorScheme.surface.withValues(alpha: 0.25),
-                                theme.colorScheme.surface.withValues(alpha: 0.60),
-                                theme.colorScheme.surface.withValues(alpha: 0.92),
-                              ],
-                        stops: const [0.0, 0.45, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-
-              // 3. Complete Foreground Layer (Rendered with smooth fade-in on both modes)
-              if (fgOpacity > 0.01)
-                Opacity(
-                  opacity: fgOpacity,
-                  child: Transform.translate(
-                    offset: Offset(0, fgOffsetY),
-                    child: OverflowBox(
-                      alignment: Alignment.topLeft,
-                      minWidth: screenWidth,
-                      maxWidth: screenWidth,
-                      minHeight: 0,
-                      maxHeight: double.infinity,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          top: hasTopHeader
-                              ? 0
-                              : (statusBarTop > 0
-                                  ? statusBarTop + desktopTitleBarHeight + 8
-                                  : desktopTitleBarHeight + 16),
-                          left: 16,
-                          right: 16,
-                          bottom: 16,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (hasTopHeader) topHeader!,
-                            if (hasTopHeader) const SizedBox(height: 8),
-
-                            _BannerInfoColumn(
-                              title: title,
-                              subtitle: subtitle,
-                              songsCount: songsCount,
-                              durationText: durationText,
-                              isOverlay: hasImage,
-                            ),
-
-                            const SizedBox(height: 14),
-
-                            Row(
-                              children: [
-                                if (actionButtonsScrollable)
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        children: actionButtons,
-                                      ),
-                                    ),
-                                  )
-                                else ...[
-                                  ...actionButtons,
-                                  const Spacer(),
-                                ],
-                                const SizedBox(width: 8),
-                                _BannerSearchIconButton(
-                                  onPressed: () {},
-                                  tooltip: l10n.search,
-                                  isWhite: hasImage && isDark,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
