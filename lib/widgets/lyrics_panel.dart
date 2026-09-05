@@ -139,6 +139,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
   bool? _lastBuiltIsEnteringFocusMode;
   bool? _lastBuiltIsSmallWin;
   bool? _lastBuiltIsGenerating;
+  bool? _lastBuiltIsTranslating;
   bool? _lastBuiltIsTransitioning;
   bool? _lastBuiltIsLowMidEnd;
 
@@ -1619,6 +1620,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
     final lyrics = displayLyrics;
     final hasTimedLyrics = _hasTimedLyrics(displayLines);
     final isGenerating = currentSongTaskState.isGenerationBusy;
+    final isTranslating = currentSongTaskState.isTranslationBusy;
     final effectiveLyricsStyle = lyricsStyle;
     final userFontScale = ref.watch(
       settingsServiceProvider.select((settings) =>
@@ -1922,6 +1924,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
             _firstVisibleIndex != _lastBuiltFirstVisibleIndex ||
             isSmallWin != _lastBuiltIsSmallWin ||
             isGenerating != _lastBuiltIsGenerating ||
+            isTranslating != _lastBuiltIsTranslating ||
             widget.isTransitioning != _lastBuiltIsTransitioning ||
             isLowMidEnd != _lastBuiltIsLowMidEnd;
 
@@ -1943,6 +1946,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
           _lastBuiltFirstVisibleIndex = _firstVisibleIndex;
           _lastBuiltIsSmallWin = isSmallWin;
           _lastBuiltIsGenerating = isGenerating;
+          _lastBuiltIsTranslating = isTranslating;
           _lastBuiltIsTransitioning = widget.isTransitioning;
           _lastBuiltIsLowMidEnd = isLowMidEnd;
 
@@ -2002,6 +2006,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
             isSmallWin: isSmallWin,
             maxWidth: constraints.maxWidth,
             isGenerating: isGenerating,
+            isTranslating: isTranslating,
             isTransitioning: widget.isTransitioning,
             isLowMidEnd: isLowMidEnd,
           );

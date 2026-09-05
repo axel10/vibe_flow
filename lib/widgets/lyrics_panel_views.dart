@@ -148,6 +148,7 @@ class LyricsPanelTimedLyricsView extends StatefulWidget {
     required this.isSmallWin,
     required this.maxWidth,
     required this.isGenerating,
+    this.isTranslating = false,
     required this.isTransitioning,
     required this.isLowMidEnd,
   });
@@ -181,6 +182,7 @@ class LyricsPanelTimedLyricsView extends StatefulWidget {
   final bool isSmallWin;
   final double maxWidth;
   final bool isGenerating;
+  final bool isTranslating;
   final bool isTransitioning;
   final bool isLowMidEnd;
 
@@ -398,35 +400,105 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                                 ),
                                 if (widget.hasTimedLyrics &&
                                     translated.isNotEmpty) ...[
-                                  SizedBox(height: translatedSpacing),
-                                  Padding(
-                                    padding: isLeftAligned
-                                        ? const EdgeInsets.only(right: 12)
-                                        : const EdgeInsets.symmetric(horizontal: 12),
-                                    child: AnimatedDefaultTextStyle(
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeOutCubic,
-                                      style: TextStyle(
-                                        color: (isActive &&
-                                                !(widget.lyricsStyle == LyricsStyle.apple &&
-                                                    line.words != null &&
-                                                    line.words!.isNotEmpty))
-                                            ? widget.secondaryTextColor.withValues(alpha: 1.0)
-                                            : (isHovered
-                                                ? widget.secondaryTextColor.withValues(alpha: 1.0)
-                                                : widget.secondaryTextColor),
-                                        fontSize: translationFontSize,
-                                        fontWeight: (isActive || widget.lyricsStyle == LyricsStyle.apple)
-                                            ? FontWeight.w700
-                                            : FontWeight.w400,
-                                        height: 1.3,
-                                        leadingDistribution:
-                                            TextLeadingDistribution.even,
-                                      ),
-                                      textAlign: isLeftAligned ? TextAlign.left : TextAlign.center,
-                                      child: Text(translated),
-                                    ),
-                                  ),
+                                  widget.lyricsStyle == LyricsStyle.apple
+                                      ? AppleLyricTranslationFadeIn(
+                                          key: ValueKey('apple_trans_${index}_$effectiveLang'),
+                                          animate: widget.isTranslating,
+                                          index: index,
+                                          isLeftAligned: isLeftAligned,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: isLeftAligned
+                                                ? CrossAxisAlignment.start
+                                                : CrossAxisAlignment.center,
+                                            children: [
+                                              SizedBox(height: translatedSpacing),
+                                              Row(
+                                                mainAxisAlignment: isLeftAligned
+                                                    ? MainAxisAlignment.start
+                                                    : MainAxisAlignment.center,
+                                                children: [
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding: isLeftAligned
+                                                          ? const EdgeInsets.only(right: 12)
+                                                          : const EdgeInsets.symmetric(horizontal: 12),
+                                                      child: AnimatedDefaultTextStyle(
+                                                        duration: const Duration(milliseconds: 300),
+                                                        curve: Curves.easeOutCubic,
+                                                        style: TextStyle(
+                                                          color: (isActive &&
+                                                                  !(widget.lyricsStyle == LyricsStyle.apple &&
+                                                                      line.words != null &&
+                                                                      line.words!.isNotEmpty))
+                                                              ? widget.secondaryTextColor.withValues(alpha: 1.0)
+                                                              : (isHovered
+                                                                  ? widget.secondaryTextColor.withValues(alpha: 1.0)
+                                                                  : widget.secondaryTextColor),
+                                                          fontSize: translationFontSize,
+                                                          fontWeight: (isActive || widget.lyricsStyle == LyricsStyle.apple)
+                                                              ? FontWeight.w700
+                                                              : FontWeight.w400,
+                                                          height: 1.3,
+                                                          leadingDistribution:
+                                                              TextLeadingDistribution.even,
+                                                        ),
+                                                        textAlign: isLeftAligned ? TextAlign.left : TextAlign.center,
+                                                        child: Text(translated),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      : Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: isLeftAligned
+                                              ? CrossAxisAlignment.start
+                                              : CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(height: translatedSpacing),
+                                            Row(
+                                              mainAxisAlignment: isLeftAligned
+                                                  ? MainAxisAlignment.start
+                                                  : MainAxisAlignment.center,
+                                              children: [
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding: isLeftAligned
+                                                        ? const EdgeInsets.only(right: 12)
+                                                        : const EdgeInsets.symmetric(horizontal: 12),
+                                                    child: AnimatedDefaultTextStyle(
+                                                      duration: const Duration(milliseconds: 300),
+                                                      curve: Curves.easeOutCubic,
+                                                      style: TextStyle(
+                                                        color: (isActive &&
+                                                                !(widget.lyricsStyle == LyricsStyle.apple &&
+                                                                    line.words != null &&
+                                                                    line.words!.isNotEmpty))
+                                                            ? widget.secondaryTextColor.withValues(alpha: 1.0)
+                                                            : (isHovered
+                                                                ? widget.secondaryTextColor.withValues(alpha: 1.0)
+                                                                : widget.secondaryTextColor),
+                                                        fontSize: translationFontSize,
+                                                        fontWeight: (isActive || widget.lyricsStyle == LyricsStyle.apple)
+                                                            ? FontWeight.w700
+                                                            : FontWeight.w400,
+                                                        height: 1.3,
+                                                        leadingDistribution:
+                                                            TextLeadingDistribution.even,
+                                                      ),
+                                                      textAlign: isLeftAligned ? TextAlign.left : TextAlign.center,
+                                                      child: Text(translated),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                 ],
                               ],
                             ),
@@ -440,8 +512,6 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                             ? (lineBottom >= viewTop && lineTop <= viewBottom)
                             : ((index - widget.activeIndex) >= -3 && (index - widget.activeIndex) <= 7);
 
-                        // 核心性能优化：仅对真正处于屏幕视口内的未聚焦歌词行套用 ImageFiltered 高斯模糊，
-                        // 滚出屏幕外的行直接跳过，杜绝数十个多余离屏 RenderTarget 纹理对显存和 GPU 的巨大占用。
                         final bool shouldBlur = widget.hasTimedLyrics &&
                             widget.lyricsStyle == LyricsStyle.apple &&
                             widget.isFocusMode &&
@@ -450,22 +520,25 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                             isVisibleInViewport &&
                             !widget.isTransitioning;
                         final Widget blurredChild;
-                        if (shouldBlur) {
-                          final int diff = index - widget.activeIndex;
-                          final double targetBlur = (PlaybackPageUiTuning.appleLyricsBaseBlurSigma +
-                                  diff * PlaybackPageUiTuning.appleLyricsBlurGradientFactor)
-                              .clamp(
-                              PlaybackPageUiTuning.appleLyricsMinBlurSigma,
-                              PlaybackPageUiTuning.appleLyricsMaxBlurSigma,
-                            );
+                        if (widget.lyricsStyle == LyricsStyle.apple) {
+                          final double targetBlur;
+                          if (shouldBlur) {
+                            final int diff = index - widget.activeIndex;
+                            targetBlur = (PlaybackPageUiTuning.appleLyricsBaseBlurSigma +
+                                    diff * PlaybackPageUiTuning.appleLyricsBlurGradientFactor)
+                                .clamp(
+                                PlaybackPageUiTuning.appleLyricsMinBlurSigma,
+                                PlaybackPageUiTuning.appleLyricsMaxBlurSigma,
+                              );
+                          } else {
+                            targetBlur = 0.0;
+                          }
+
                           blurredChild = TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: targetBlur, end: targetBlur),
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
                             builder: (context, blurSigma, child) {
-                              if (blurSigma <= 0.0) {
-                                return child!;
-                              }
                               return ImageFiltered(
                                 imageFilter: ui.ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
                                 child: child,
@@ -539,6 +612,12 @@ class _LyricsPanelTimedLyricsViewState extends State<LyricsPanelTimedLyricsView>
                             isEnteringFocusMode: widget.isEnteringFocusMode,
                             firstVisibleIndex: widget.firstVisibleIndex,
                             isTransitioning: widget.isTransitioning,
+                            child: wrappedItemWidget,
+                          );
+                        } else if (widget.lyricsStyle == LyricsStyle.apple && widget.isGenerating) {
+                          resultWidget = AppleLyricLineFadeIn(
+                            index: index,
+                            animate: true,
                             child: wrappedItemWidget,
                           );
                         } else {
@@ -999,6 +1078,213 @@ class WordHighlightText extends StatelessWidget {
       child: Text(
         text,
         style: style.copyWith(color: Colors.white),
+      ),
+    );
+  }
+}
+
+/// 苹果歌词面板在生成歌词时的整行淡入与微位移浮现动画组件
+class AppleLyricLineFadeIn extends StatefulWidget {
+  final Widget child;
+  final bool animate;
+  final int index;
+  final bool isStaggered;
+
+  const AppleLyricLineFadeIn({
+    super.key,
+    required this.child,
+    this.animate = true,
+    required this.index,
+    this.isStaggered = true,
+  });
+
+  @override
+  State<AppleLyricLineFadeIn> createState() => _AppleLyricLineFadeInState();
+}
+
+class _AppleLyricLineFadeInState extends State<AppleLyricLineFadeIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnimation;
+  late Animation<Offset> _slideAnimation;
+  Timer? _delayTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _opacityAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 6),
+      end: Offset.zero,
+    ).animate(_opacityAnimation);
+
+    if (widget.animate) {
+      if (widget.isStaggered) {
+        final delayMs = math.min(300, widget.index * 18);
+        if (delayMs > 0) {
+          _delayTimer = Timer(Duration(milliseconds: delayMs), () {
+            if (mounted) {
+              _controller.forward();
+            }
+          });
+        } else {
+          _controller.forward();
+        }
+      } else {
+        _controller.forward();
+      }
+    } else {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(AppleLyricLineFadeIn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.animate && !_controller.isCompleted) {
+      _delayTimer?.cancel();
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.animate || _controller.isCompleted) {
+      return widget.child;
+    }
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _opacityAnimation.value,
+          child: Transform.translate(
+            offset: _slideAnimation.value,
+            child: child,
+          ),
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// 苹果歌词面板在生成翻译时的逐行翻译淡入与微位移浮现动画组件
+class AppleLyricTranslationFadeIn extends StatefulWidget {
+  final Widget child;
+  final bool animate;
+  final int index;
+  final bool isLeftAligned;
+
+  const AppleLyricTranslationFadeIn({
+    super.key,
+    required this.child,
+    this.animate = true,
+    required this.index,
+    this.isLeftAligned = true,
+  });
+
+  @override
+  State<AppleLyricTranslationFadeIn> createState() =>
+      _AppleLyricTranslationFadeInState();
+}
+
+class _AppleLyricTranslationFadeInState
+    extends State<AppleLyricTranslationFadeIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _sizeAnimation;
+  late Animation<double> _opacityAnimation;
+  late Animation<Offset> _slideAnimation;
+  Timer? _delayTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _sizeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    _opacityAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.1, 1.0, curve: Curves.easeOutCubic),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 4),
+      end: Offset.zero,
+    ).animate(_opacityAnimation);
+
+    if (widget.animate) {
+      final delayMs = math.min(250, widget.index * 12);
+      if (delayMs > 0) {
+        _delayTimer = Timer(Duration(milliseconds: delayMs), () {
+          if (mounted) {
+            _controller.forward();
+          }
+        });
+      } else {
+        _controller.forward();
+      }
+    } else {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(AppleLyricTranslationFadeIn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animate != widget.animate) {
+      if (!widget.animate) {
+        _delayTimer?.cancel();
+        _controller.value = 1.0;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.animate || _controller.isCompleted) {
+      return widget.child;
+    }
+    return SizeTransition(
+      sizeFactor: _sizeAnimation,
+      alignment: widget.isLeftAligned ? Alignment.topLeft : Alignment.topCenter,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _opacityAnimation.value,
+            child: Transform.translate(
+              offset: _slideAnimation.value,
+              child: child,
+            ),
+          );
+        },
+        child: widget.child,
       ),
     );
   }

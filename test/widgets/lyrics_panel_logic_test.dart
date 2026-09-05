@@ -1,5 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vynody/widgets/lyrics_panel.dart';
+import 'package:vynody/widgets/lyrics_panel_views.dart';
 
 void main() {
   group('shouldShowGenerateLyricsButton', () {
@@ -34,6 +36,46 @@ void main() {
       );
 
       expect(top, isNull);
+    });
+  });
+
+  group('AppleLyricLineFadeIn & AppleLyricTranslationFadeIn', () {
+    testWidgets('AppleLyricLineFadeIn renders child and completes animation', (tester) async {
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: AppleLyricLineFadeIn(
+            index: 0,
+            animate: true,
+            child: Text('Lyric line'),
+          ),
+        ),
+      );
+
+      expect(find.text('Lyric line'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Lyric line'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Lyric line'), findsOneWidget);
+    });
+
+    testWidgets('AppleLyricTranslationFadeIn renders translation and completes animation', (tester) async {
+      await tester.pumpWidget(
+        const Directionality(
+          textDirection: TextDirection.ltr,
+          child: AppleLyricTranslationFadeIn(
+            index: 0,
+            animate: true,
+            child: Text('Translated line'),
+          ),
+        ),
+      );
+
+      expect(find.text('Translated line'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Translated line'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Translated line'), findsOneWidget);
     });
   });
 }
