@@ -743,7 +743,11 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     );
   }
 
-  Widget _buildCurrentPage(bool isDesktop, bool useSidebar) {
+  Widget _buildCurrentPage(
+    bool isDesktop,
+    bool useSidebar,
+    bool isCoverFlowImmersive,
+  ) {
     final bool isPlayback = _currentIndex == 1;
     final double leftPadding = (useSidebar && !isPlayback) ? 80.0 : 0.0;
 
@@ -760,7 +764,10 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         return const PlaybackPage();
       case 2:
         return Padding(
-          padding: EdgeInsets.only(top: isDesktop ? 32 : 0, left: leftPadding),
+          padding: EdgeInsets.only(
+            top: isDesktop ? (isCoverFlowImmersive ? 0 : 32) : 0,
+            left: leftPadding,
+          ),
           child: LibraryPage(
             initialTabIndex: widget.initialLibraryTabIndex,
             initialAlbums3DView: widget.initialAlbums3DView,
@@ -1258,7 +1265,6 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         !isSmallWin &&
         (MediaQuery.of(context).orientation == Orientation.landscape);
     final bool isCoverFlowImmersive =
-        !isDesktop &&
         isLandscape &&
         ref.watch(isCoverFlowImmersiveActiveProvider);
     final bool useSidebar = isLandscape && !isCoverFlowImmersive;
@@ -1414,7 +1420,11 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                   body: Stack(
                     children: [
                       Positioned.fill(
-                        child: _buildCurrentPage(isDesktop, useSidebar),
+                        child: _buildCurrentPage(
+                          isDesktop,
+                          useSidebar,
+                          isCoverFlowImmersive,
+                        ),
                       ),
                       if (useSidebar)
                         Positioned(

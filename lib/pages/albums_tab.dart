@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
 import 'package:vynody/models/album_summary.dart';
+import 'package:vynody/utils/folder_helpers.dart';
 import 'package:vynody/player/library/album_library.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
@@ -181,7 +183,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                 final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
                 final bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
                 final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-                final bool isMobileLandscape3D = !isDesktop && isLandscape && _is3DView;
+                final bool isCoverFlowImmersive = isLandscape && _is3DView;
 
                 final textScale = MediaQuery.textScalerOf(context).scale(10) / 10;
                 final clampedScale = textScale.clamp(1.0, 1.3);
@@ -190,7 +192,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                 final childAspectRatio = itemWidth / (itemWidth + textHeight);
 
                 final bottomPadding = 120.0 + (isSelectionMode ? 220.0 : 0.0);
-                final bottomOffset = isMobileLandscape3D
+                final bottomOffset = isCoverFlowImmersive
                     ? (isSelectionMode ? 120.0 : 0.0)
                     : ((currentMusic != null ? (isLandscape ? 96.0 : 140.0) : 40.0) + (isSelectionMode ? 220.0 : 0.0));
 
@@ -255,7 +257,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                   child: _is3DView
                       ? KeyedSubtree(
                           key: const ValueKey('album_3d_cover_flow_view'),
-                          child: isMobileLandscape3D
+                          child: isCoverFlowImmersive
                               ? Stack(
                                   fit: StackFit.expand,
                                   children: [
@@ -277,16 +279,23 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                                               isHeroEnabled: _is3DView,
                                               onToggleSelection: toggleSelection,
                                               onEnterSelectionMode: enterSelectionMode,
+                                              onExit3DView: () {
+                                                setState(() {
+                                                  _is3DView = false;
+                                                });
+                                                ref.read(isAlbum3DViewActiveProvider.notifier).set(false);
+                                              },
                                             ),
                                     ),
                                     Positioned(
-                                      top: MediaQuery.of(context).padding.top + 8,
-                                      left: 16,
-                                      right: 16,
+                                      top: MediaQuery.of(context).padding.top + (isDesktop ? 36 : 8),
+                                      left: isDesktop ? 80 : 16,
+                                      right: isDesktop ? 80 : 16,
                                       child: _FloatingCoverFlowToolbar(
                                         albumCount: visibleAlbums.length,
                                         sortField: _sortField,
                                         sortAscending: _sortAscending,
+                                        isDesktop: isDesktop,
                                         onViewModeToggled: () {
                                           setState(() {
                                             _is3DView = !_is3DView;
@@ -330,6 +339,12 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                                               isHeroEnabled: _is3DView,
                                               onToggleSelection: toggleSelection,
                                               onEnterSelectionMode: enterSelectionMode,
+                                              onExit3DView: () {
+                                                setState(() {
+                                                  _is3DView = false;
+                                                });
+                                                ref.read(isAlbum3DViewActiveProvider.notifier).set(false);
+                                              },
                                             ),
                                     ),
                                   ],
@@ -1166,6 +1181,7 @@ class _FloatingCoverFlowToolbar extends StatelessWidget {
     required this.onViewModeToggled,
     required this.onShufflePressed,
     required this.onSortChanged,
+    this.isDesktop = false,
   });
 
   final int albumCount;
@@ -1174,6 +1190,7 @@ class _FloatingCoverFlowToolbar extends StatelessWidget {
   final VoidCallback onViewModeToggled;
   final VoidCallback onShufflePressed;
   final void Function(AlbumSortField field, bool sortAscending) onSortChanged;
+  final bool isDesktop;
 
   @override
   Widget build(BuildContext context) {
@@ -1189,9 +1206,12 @@ class _FloatingCoverFlowToolbar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Left: Album badge
+        // Left: Album badge with back button
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: 3,
+          ),
           decoration: BoxDecoration(
             color: pillBg,
             borderRadius: BorderRadius.circular(20),
@@ -1207,6 +1227,14 @@ class _FloatingCoverFlowToolbar extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              IconButton(
+                tooltip: '${l10n.gridView} (ESC)',
+                iconSize: 18,
+                visualDensity: VisualDensity.compact,
+                onPressed: onViewModeToggled,
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+              const SizedBox(width: 2),
               Icon(
                 Icons.album_rounded,
                 size: 16,
@@ -1220,11 +1248,12 @@ class _FloatingCoverFlowToolbar extends StatelessWidget {
                   color: theme.colorScheme.onSurface,
                 ),
               ),
+              const SizedBox(width: 8),
             ],
           ),
         ),
 
-        // Right: Control buttons (Shuffle, Sort, Grid View)
+        // Right: Control buttons (Shuffle, Sort)
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           decoration: BoxDecoration(
@@ -1295,13 +1324,6 @@ class _FloatingCoverFlowToolbar extends StatelessWidget {
                 },
                 icon: const Icon(Icons.sort_rounded),
               ),
-              IconButton(
-                tooltip: l10n.gridView,
-                iconSize: 20,
-                visualDensity: VisualDensity.compact,
-                onPressed: onViewModeToggled,
-                icon: const Icon(Icons.grid_view_rounded),
-              ),
             ],
           ),
         ),
@@ -1321,6 +1343,7 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
     this.isHeroEnabled = true,
     required this.onToggleSelection,
     required this.onEnterSelectionMode,
+    this.onExit3DView,
   });
 
   final List<AlbumSummary> albums;
@@ -1331,6 +1354,7 @@ class _Album3DCoverFlowView extends ConsumerStatefulWidget {
   final bool isHeroEnabled;
   final ValueChanged<String> onToggleSelection;
   final ValueChanged<String> onEnterSelectionMode;
+  final VoidCallback? onExit3DView;
 
   @override
   ConsumerState<_Album3DCoverFlowView> createState() =>
@@ -1465,7 +1489,6 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
 
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final audio = ref.watch(audioServiceProvider);
 
     final activeIndex = _currentPage.round().clamp(0, widget.albums.length - 1);
     final activeAlbum = widget.albums[activeIndex];
@@ -1490,12 +1513,27 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
         final double availableHeight = (stageHeight - widget.bottomOffset).clamp(minAvailable, math.max(minAvailable, stageHeight));
         final isWide = stageWidth >= 780;
         final bool isImmersiveBottom = widget.bottomOffset <= 24.0;
+
+        // Target cover size dynamically scaling with available viewport dimensions
+        double targetCoverSize;
+        if (isWide && isImmersiveBottom) {
+          // On desktop / wide immersive view: scale smoothly from 220 up to 360 when space is ample
+          targetCoverSize = (availableHeight * 0.42).clamp(220.0, 360.0);
+        } else if (isWide) {
+          targetCoverSize = (availableHeight * 0.38).clamp(200.0, 310.0);
+        } else if (isImmersiveBottom) {
+          targetCoverSize = (availableHeight * 0.38).clamp(180.0, 270.0);
+        } else {
+          targetCoverSize = (availableHeight * 0.35).clamp(160.0, 240.0);
+        }
+
+        final double maxCoverByWidth = stageWidth * (isWide ? 0.35 : 0.65);
         final double maxCoverRatio = isImmersiveBottom
-            ? (availableHeight < 440.0 ? 0.48 : 0.52)
+            ? (availableHeight < 440.0 ? 0.46 : 0.50)
             : (availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.38 : 0.44));
-        final double maxAllowedCover = math.max(80.0, availableHeight * maxCoverRatio);
+        final double maxAllowedCover = math.min(maxCoverByWidth, math.max(80.0, availableHeight * maxCoverRatio));
         final double minAllowedCover = math.min(130.0, maxAllowedCover);
-        final double coverSize = (isWide ? 260.0 : (isImmersiveBottom ? 220.0 : 200.0)).clamp(minAllowedCover, maxAllowedCover);
+        final double coverSize = targetCoverSize.clamp(minAllowedCover, maxAllowedCover);
 
         final double shuffleVal = _shuffleAnimController.value;
         double gatherFactor = 0.0;
@@ -1522,15 +1560,17 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
           return distB.compareTo(distA);
         });
 
+        final double topSafeOffset = isImmersiveBottom ? (stageWidth >= 780 ? 84.0 : 64.0) : 16.0;
         final double centerRatio = isImmersiveBottom
-            ? 0.40
+            ? (availableHeight < 500.0 ? 0.37 : (availableHeight < 750.0 ? 0.39 : 0.40))
             : (availableHeight < 420.0 ? 0.34 : (availableHeight < 550.0 ? 0.36 : 0.38));
-        final double minY = coverSize * 0.52;
+        final double minY = topSafeOffset + coverSize * 0.5;
         final double maxY = math.max(minY, availableHeight * 0.46);
         final double stageCenterY = (availableHeight * centerRatio).clamp(minY, maxY);
-        final double infoBottomPadding = isImmersiveBottom
-            ? 12.0
-            : (((availableHeight - 300.0) / (600.0 - 300.0) * 52.0 + 8.0).clamp(8.0, 60.0));
+
+        // Reflection bottom reaches around stageCenterY + coverSize * 0.88
+        final double reflectionBottomY = stageCenterY + coverSize * 0.88;
+        final double lowerAreaTop = math.min(reflectionBottomY, math.max(0.0, availableHeight - 70.0));
         final bool isCompactHeight = availableHeight < 460.0;
 
         return Focus(
@@ -1544,6 +1584,17 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
               } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
                 _animateToPage(_targetIndex + 1);
                 return KeyEventResult.handled;
+              } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+                if (widget.onExit3DView != null) {
+                  widget.onExit3DView!();
+                  return KeyEventResult.handled;
+                }
+              } else if (event.logicalKey == LogicalKeyboardKey.enter ||
+                  event.logicalKey == LogicalKeyboardKey.space) {
+                if (widget.albums.isNotEmpty) {
+                  _showAlbumQuickDetailModal(context, ref, activeAlbum);
+                  return KeyEventResult.handled;
+                }
               }
             }
             return KeyEventResult.ignored;
@@ -1612,15 +1663,16 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
 
                     final double distFromCenter = xOffset.abs();
                     final double stageHalfWidth = stageWidth / 2;
-                    double opacity = 1.0;
+                    final double edgeFadeStart = stageHalfWidth - 80.0;
+                    final double edgeFadeEnd = stageHalfWidth + coverSize * 0.5;
 
-                    if (distFromCenter > stageHalfWidth + coverSize * 0.5) {
+                    double opacity = (1.0 - (absD - 1.0) * 0.05).clamp(0.55, 1.0);
+
+                    if (distFromCenter > edgeFadeEnd) {
                       opacity = 0.0;
-                    } else if (distFromCenter > stageHalfWidth - 80.0) {
-                      final fadeProgress = (stageHalfWidth + coverSize * 0.5 - distFromCenter) / (coverSize * 0.5 + 80.0);
-                      opacity = (fadeProgress * fadeProgress).clamp(0.0, 1.0);
-                    } else {
-                      opacity = (1.0 - (absD - 1.0) * 0.05).clamp(0.55, 1.0);
+                    } else if (distFromCenter > edgeFadeStart) {
+                      final fadeProgress = ((edgeFadeEnd - distFromCenter) / (edgeFadeEnd - edgeFadeStart)).clamp(0.0, 1.0);
+                      opacity *= (fadeProgress * fadeProgress);
                     }
 
                     if (opacity <= 0.001) {
@@ -1669,11 +1721,7 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                                 if (widget.isSelectionMode) {
                                   widget.onToggleSelection(album.id);
                                 } else {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => AlbumDetailPage(album: album),
-                                    ),
-                                  );
+                                  _showAlbumQuickDetailModal(context, ref, album);
                                 }
                               } else {
                                 _animateToPage(i);
@@ -1731,147 +1779,62 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
                   Positioned(
                     left: 24,
                     right: 24,
-                    bottom: widget.bottomOffset + infoBottomPadding,
+                    top: lowerAreaTop,
+                    bottom: widget.bottomOffset,
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 580),
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
-                          child: Column(
+                          child: MouseRegion(
                             key: ValueKey(activeAlbum.id),
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                activeAlbum.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: (isCompactHeight
-                                        ? theme.textTheme.titleMedium
-                                        : theme.textTheme.titleLarge)
-                                    ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: isCompactHeight ? 2 : 4),
-                              Text(
-                                '${activeAlbum.artist}  ·  ${l10n.songCount(activeAlbum.trackCount)}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: (isCompactHeight
-                                        ? theme.textTheme.bodySmall
-                                        : theme.textTheme.bodyMedium)
-                                    ?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              SizedBox(height: isCompactHeight ? 6 : 14),
-                              FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    FilledButton.icon(
-                                      style: isCompactHeight
-                                          ? FilledButton.styleFrom(
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                              padding: const EdgeInsets
-                                                  .symmetric(
-                                                horizontal: 12,
-                                                vertical: 0,
-                                              ),
-                                              textStyle: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                            )
-                                          : null,
-                                      onPressed: () {
-                                        audio.playPlaylist(
-                                          activeAlbum.songs,
-                                          source: PlaybackSource(
-                                            type: PlaybackSourceType.album,
-                                            id: activeAlbum.id,
-                                            name: activeAlbum.title,
-                                          ),
-                                        );
-                                      },
-                                      icon: Icon(
-                                        Icons.play_arrow_rounded,
-                                        size: isCompactHeight ? 18 : 24,
-                                      ),
-                                      label: Text(l10n.playAll),
+                            cursor: widget.isSelectionMode
+                                ? SystemMouseCursors.basic
+                                : SystemMouseCursors.click,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                if (widget.isSelectionMode) {
+                                  widget.onToggleSelection(activeAlbum.id);
+                                } else {
+                                  _showAlbumQuickDetailModal(
+                                    context,
+                                    ref,
+                                    activeAlbum,
+                                  );
+                                }
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    activeAlbum.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: (isCompactHeight
+                                            ? theme.textTheme.titleMedium
+                                            : theme.textTheme.titleLarge)
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    const SizedBox(width: 10),
-                                    FilledButton.tonalIcon(
-                                      style: isCompactHeight
-                                          ? FilledButton.styleFrom(
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                              padding: const EdgeInsets
-                                                  .symmetric(
-                                                horizontal: 12,
-                                                vertical: 0,
-                                              ),
-                                              textStyle: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                            )
-                                          : null,
-                                      onPressed: () {
-                                        audio.playPlaylist(
-                                          List.of(activeAlbum.songs)..shuffle(),
-                                          source: PlaybackSource(
-                                            type: PlaybackSourceType.album,
-                                            id: activeAlbum.id,
-                                            name: activeAlbum.title,
-                                          ),
-                                        );
-                                      },
-                                      icon: Icon(
-                                        Icons.shuffle_rounded,
-                                        size: isCompactHeight ? 18 : 24,
-                                      ),
-                                      label: Text(l10n.shufflePlay),
+                                  ),
+                                  SizedBox(height: isCompactHeight ? 2 : 4),
+                                  Text(
+                                    '${activeAlbum.artist}  ·  ${l10n.songCount(activeAlbum.trackCount)}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: (isCompactHeight
+                                            ? theme.textTheme.bodySmall
+                                            : theme.textTheme.bodyMedium)
+                                        ?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
-                                    if (stageWidth >= 550) ...[
-                                      const SizedBox(width: 10),
-                                      OutlinedButton.icon(
-                                        style: isCompactHeight
-                                            ? OutlinedButton.styleFrom(
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                                padding: const EdgeInsets
-                                                    .symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 0,
-                                                ),
-                                                textStyle: const TextStyle(
-                                                  fontSize: 12,
-                                                ),
-                                              )
-                                            : null,
-                                        onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute<void>(
-                                              builder: (_) =>
-                                                  AlbumDetailPage(album: activeAlbum),
-                                            ),
-                                          );
-                                        },
-                                        icon: Icon(
-                                          Icons.album_rounded,
-                                          size: isCompactHeight ? 18 : 24,
-                                        ),
-                                        label: Text(l10n.viewAlbumDetails),
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -2048,3 +2011,452 @@ class _Album3DCoverCard extends StatelessWidget {
     );
   }
 }
+
+Future<void> _showAlbumQuickDetailModal(
+  BuildContext context,
+  WidgetRef ref,
+  AlbumSummary album,
+) {
+  return showGeneralDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'Album Detail',
+    barrierColor: Colors.black.withValues(alpha: 0.55),
+    transitionDuration: const Duration(milliseconds: 260),
+    pageBuilder: (dialogContext, animation, secondaryAnimation) {
+      return _AlbumCoverFlowQuickDetailDialog(album: album);
+    },
+    transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: curved,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+class _AlbumCoverFlowQuickDetailDialog extends ConsumerWidget {
+  const _AlbumCoverFlowQuickDetailDialog({required this.album});
+
+  final AlbumSummary album;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = theme.brightness == Brightness.dark;
+    final audio = ref.read(audioServiceProvider);
+    final currentMusic = ref.watch(audioCurrentMusicProvider);
+    final isPlaying = ref.watch(audioIsPlayingProvider);
+
+    final size = MediaQuery.of(context).size;
+    final bool isNarrow = size.width < 560;
+    final double dialogWidth = math.min(680.0, size.width - (isNarrow ? 24.0 : 32.0));
+    final double dialogHeight = math.min(580.0, size.height - (isNarrow ? 48.0 : 64.0));
+
+    final dialogBg = isDark
+        ? const Color(0xFF1E1E24).withValues(alpha: 0.88)
+        : Colors.white.withValues(alpha: 0.92);
+    final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.35);
+
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+            child: Container(
+              width: dialogWidth,
+              height: dialogHeight,
+              decoration: BoxDecoration(
+                color: dialogBg,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: borderColor, width: 0.8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.18),
+                    blurRadius: 28,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isNarrow ? 14 : 20,
+                      isNarrow ? 14 : 20,
+                      isNarrow ? 14 : 20,
+                      isNarrow ? 12 : 20,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Album Artwork Thumbnail
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: SongThumbnail(
+                              path: album.representativeSong.path,
+                              id: album.representativeSong.id,
+                              bytes: album.representativeSong.artworkBytes,
+                              size: isNarrow ? 76 : 88,
+                              width: isNarrow ? 76 : 88,
+                              height: isNarrow ? 76 : 88,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: isNarrow ? 12 : 16),
+                        // Album Info & Buttons
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                album.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: (isNarrow
+                                        ? theme.textTheme.titleMedium
+                                        : theme.textTheme.titleLarge)
+                                    ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${album.artist}  ·  ${l10n.songCount(album.trackCount)}  ·  ${formatDurationMs(album.totalDurationMillis)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: (isNarrow
+                                        ? theme.textTheme.bodySmall
+                                        : theme.textTheme.bodyMedium)
+                                    ?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              SizedBox(height: isNarrow ? 8 : 12),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final bool showButtonLabels = constraints.maxWidth >= 380;
+                                  return Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      showButtonLabels
+                                          ? FilledButton.icon(
+                                              style: FilledButton.styleFrom(
+                                                visualDensity: VisualDensity.compact,
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 14,
+                                                  vertical: 8,
+                                                ),
+                                              ),
+                                              onPressed: () {
+                                                audio.playPlaylist(
+                                                  album.songs,
+                                                  source: PlaybackSource(
+                                                    type: PlaybackSourceType.album,
+                                                    id: album.id,
+                                                    name: album.title,
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                                              label: Text(l10n.playAll),
+                                            )
+                                          : IconButton.filled(
+                                              tooltip: l10n.playAll,
+                                              visualDensity: VisualDensity.compact,
+                                              onPressed: () {
+                                                audio.playPlaylist(
+                                                  album.songs,
+                                                  source: PlaybackSource(
+                                                    type: PlaybackSourceType.album,
+                                                    id: album.id,
+                                                    name: album.title,
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                                            ),
+                                      showButtonLabels
+                                          ? FilledButton.tonalIcon(
+                                              style: FilledButton.styleFrom(
+                                                visualDensity: VisualDensity.compact,
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 14,
+                                                  vertical: 8,
+                                                ),
+                                              ),
+                                              onPressed: () {
+                                                audio.playPlaylist(
+                                                  List.of(album.songs)..shuffle(),
+                                                  source: PlaybackSource(
+                                                    type: PlaybackSourceType.album,
+                                                    id: album.id,
+                                                    name: album.title,
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(Icons.shuffle_rounded, size: 18),
+                                              label: Text(l10n.shufflePlay),
+                                            )
+                                          : IconButton.filledTonal(
+                                              tooltip: l10n.shufflePlay,
+                                              visualDensity: VisualDensity.compact,
+                                              onPressed: () {
+                                                audio.playPlaylist(
+                                                  List.of(album.songs)..shuffle(),
+                                                  source: PlaybackSource(
+                                                    type: PlaybackSourceType.album,
+                                                    id: album.id,
+                                                    name: album.title,
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(Icons.shuffle_rounded, size: 18),
+                                            ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.surfaceContainerHighest.withValues(
+                                            alpha: isDark ? 0.45 : 0.65,
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: borderColor.withValues(alpha: 0.5),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              tooltip: l10n.previousTrack,
+                                              iconSize: 18,
+                                              visualDensity: VisualDensity.compact,
+                                              onPressed: () => audio.previous(),
+                                              icon: const Icon(Icons.skip_previous_rounded),
+                                            ),
+                                            IconButton(
+                                              tooltip: isPlaying ? l10n.pause : l10n.play,
+                                              iconSize: 20,
+                                              visualDensity: VisualDensity.compact,
+                                              onPressed: () {
+                                                if (currentMusic == null && album.songs.isNotEmpty) {
+                                                  audio.playPlaylist(
+                                                    album.songs,
+                                                    source: PlaybackSource(
+                                                      type: PlaybackSourceType.album,
+                                                      id: album.id,
+                                                      name: album.title,
+                                                    ),
+                                                  );
+                                                } else {
+                                                  audio.togglePlay();
+                                                }
+                                              },
+                                              icon: Icon(
+                                                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                                color: theme.colorScheme.primary,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              tooltip: l10n.nextTrack,
+                                              iconSize: 18,
+                                              visualDensity: VisualDensity.compact,
+                                              onPressed: () => audio.next(),
+                                              icon: const Icon(Icons.skip_next_rounded),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Close button
+                        IconButton(
+                          tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                          iconSize: 20,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(
+                    height: 1,
+                    thickness: 0.8,
+                    color: borderColor,
+                  ),
+                  // Songs List
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      itemCount: album.songs.length,
+                      itemBuilder: (context, index) {
+                        final song = album.songs[index];
+                        final isCurrent = currentMusic?.path == song.path;
+                        final trackNumberStr = (index + 1).toString().padLeft(2, '0');
+
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            audio.playPlaylist(
+                              album.songs,
+                              initialIndex: index,
+                              source: PlaybackSource(
+                                type: PlaybackSourceType.album,
+                                id: album.id,
+                                name: album.title,
+                              ),
+                            );
+                          },
+                          onSecondaryTapDown: (details) {
+                            showSongContextMenu(
+                              context,
+                              details.globalPosition,
+                              song: song,
+                              songs: [song],
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            child: Row(
+                              children: [
+                                // Track Number or Playing Icon
+                                SizedBox(
+                                  width: 32,
+                                  child: isCurrent
+                                      ? Icon(
+                                          isPlaying
+                                              ? Icons.volume_up_rounded
+                                              : Icons.pause_rounded,
+                                          size: 18,
+                                          color: theme.colorScheme.primary,
+                                        )
+                                      : Text(
+                                          trackNumberStr,
+                                          textAlign: TextAlign.center,
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Title & Artist
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        song.displayName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+                                          color: isCurrent
+                                              ? theme.colorScheme.primary
+                                              : theme.colorScheme.onSurface,
+                                        ),
+                                      ),
+                                      if (song.artist != null &&
+                                          song.artist!.trim().isNotEmpty &&
+                                          song.artist!.toLowerCase() != 'unknown' &&
+                                          song.artist != album.artist)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2),
+                                          child: Text(
+                                            song.artist!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // Duration
+                                Text(
+                                  formatDurationMs(song.durationMillis),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                // More button
+                                Builder(
+                                  builder: (btnContext) {
+                                    return IconButton(
+                                      iconSize: 18,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () {
+                                        final renderBox = btnContext.findRenderObject() as RenderBox?;
+                                        final position = renderBox != null
+                                            ? renderBox.localToGlobal(Offset.zero) + const Offset(0, 30)
+                                            : Offset.zero;
+                                        showSongContextMenu(
+                                          context,
+                                          position,
+                                          song: song,
+                                          songs: [song],
+                                        );
+                                      },
+                                      icon: const Icon(Icons.more_vert_rounded),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

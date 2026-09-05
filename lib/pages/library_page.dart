@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -67,11 +66,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-    final bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
     final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     final bool isCoverFlowImmersive =
-        !isDesktop && isLandscape && ref.watch(isCoverFlowImmersiveActiveProvider);
+        isLandscape && ref.watch(isCoverFlowImmersiveActiveProvider);
 
     return Scaffold(
       appBar: isCoverFlowImmersive
