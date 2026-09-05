@@ -59,7 +59,8 @@ class WebDavBrowserPage extends ConsumerStatefulWidget {
   ConsumerState<WebDavBrowserPage> createState() => _WebDavBrowserPageState();
 }
 
-class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
+class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage>
+    with SingleTickerProviderStateMixin {
   late final WebDavClient _client;
   late String _rootPath;
   late String _currentPath;
@@ -82,6 +83,8 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _breadcrumbsScrollController = ScrollController();
   final ValueNotifier<double> _scrollProgress = ValueNotifier<double>(0.0);
+  late final AnimationController _headerAnimController;
+  late final Animation<double> _headerAnimation;
   bool _isCoverVisible = true;
   bool _isSearching = false;
   String _searchQuery = '';
@@ -91,6 +94,18 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
   @override
   void initState() {
     super.initState();
+    final isScrolled = _scrollProgress.value > 0.03;
+    _headerAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+      value: isScrolled ? 1.0 : 0.0,
+    );
+    _headerAnimation = CurvedAnimation(
+      parent: _headerAnimController,
+      curve: Curves.easeInOutCubic,
+    );
+    _scrollProgress.addListener(_onHeaderScrollProgressChanged);
+
     _selectionScopeNotifier =
         ref.read(librarySelectionScopeProvider.notifier);
     _searchController = TextEditingController();
@@ -167,13 +182,30 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
     return false;
   }
 
+  void _onHeaderScrollProgressChanged() {
+    final isScrolled = _scrollProgress.value > 0.03;
+    if (isScrolled) {
+      if (_headerAnimController.status != AnimationStatus.forward &&
+          _headerAnimController.value < 1.0) {
+        _headerAnimController.forward();
+      }
+    } else {
+      if (_headerAnimController.status != AnimationStatus.reverse &&
+          _headerAnimController.value > 0.0) {
+        _headerAnimController.reverse();
+      }
+    }
+  }
+
   @override
   void dispose() {
     _highlightTimer?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     _breadcrumbsScrollController.dispose();
+    _scrollProgress.removeListener(_onHeaderScrollProgressChanged);
     _scrollProgress.dispose();
+    _headerAnimController.dispose();
     Future.microtask(() {
       _selectionScopeNotifier.clear();
     });
@@ -1900,10 +1932,10 @@ class _WebDavBrowserPageState extends ConsumerState<WebDavBrowserPage> {
         MediaQuery.of(context).orientation == Orientation.portrait;
     final activeDownloadsCount = ref.watch(activeDownloadsCountProvider);
 
-    return ValueListenableBuilder<double>(
-      valueListenable: _scrollProgress,
-      builder: (context, progressValue, child) {
-        final progress = progressValue.clamp(0.0, 1.0);
+    return AnimatedBuilder(
+      animation: _headerAnimation,
+      builder: (context, child) {
+        final progress = _headerAnimation.value;
 
         final targetSurface = theme.colorScheme.surface;
         final navBackgroundColor = isOverlay

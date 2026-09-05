@@ -39,8 +39,11 @@ class FolderHeaderNavBar extends ConsumerStatefulWidget {
   ConsumerState<FolderHeaderNavBar> createState() => _FolderHeaderNavBarState();
 }
 
-class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
+class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar>
+    with SingleTickerProviderStateMixin {
   ScrollController? _internalScrollController;
+  late final AnimationController _animController;
+  late final Animation<double> _animation;
 
   ScrollController get _activeScrollController =>
       widget.scrollController ?? (_internalScrollController ??= ScrollController());
@@ -54,7 +57,74 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    final isScrolled = widget.scrollProgress.value > 0.03;
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+      value: isScrolled ? 1.0 : 0.0,
+    );
+    _animation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOutCubic,
+    );
+
+    _animController.addListener(() {
+      debugPrint(
+        '🎨 [NavBar Anim] animVal: ${_animation.value.toStringAsFixed(3)} | '
+        'ctrlVal: ${_animController.value.toStringAsFixed(3)} | '
+        'scroll: ${widget.scrollProgress.value.toStringAsFixed(3)}',
+      );
+    });
+
+    _animController.addStatusListener((status) {
+      debugPrint('🎬 [NavBar Status Change] -> $status');
+    });
+
+    widget.scrollProgress.addListener(_onScrollProgressChanged);
+  }
+
+  void _onScrollProgressChanged() {
+    final isScrolled = widget.scrollProgress.value > 0.03;
+    // debugPrint('📜 [ScrollChanged] progress: ${widget.scrollProgress.value.toStringAsFixed(4)} -> isScrolled: $isScrolled');
+
+    if (isScrolled) {
+      if (_animController.status != AnimationStatus.forward && _animController.value < 1.0) {
+        // debugPrint('▶️ 触发 forward()');
+        _animController.forward();
+      }
+    } else {
+      if (_animController.status != AnimationStatus.reverse && _animController.value > 0.0) {
+        // debugPrint('◀️ 触发 reverse()');
+        _animController.reverse();
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(FolderHeaderNavBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.scrollProgress != widget.scrollProgress) {
+      oldWidget.scrollProgress.removeListener(_onScrollProgressChanged);
+      widget.scrollProgress.addListener(_onScrollProgressChanged);
+      final isScrolled = widget.scrollProgress.value > 0.03;
+      if (isScrolled) {
+        if (_animController.status != AnimationStatus.forward && _animController.value < 1.0) {
+          _animController.forward();
+        }
+      } else {
+        if (_animController.status != AnimationStatus.reverse && _animController.value > 0.0) {
+          _animController.reverse();
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    widget.scrollProgress.removeListener(_onScrollProgressChanged);
+    _animController.dispose();
     _internalScrollController?.dispose();
     super.dispose();
   }
@@ -64,13 +134,18 @@ class _FolderHeaderNavBarState extends ConsumerState<FolderHeaderNavBar> {
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final settings = ref.watch(settingsServiceProvider);
 
-    return ValueListenableBuilder<double>(
-      valueListenable: widget.scrollProgress,
-      builder: (context, progressValue, child) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final progress = _animation.value;
+        // debugPrint(
+        //   '🎨 [NavBar Frame] progress: ${progress.toStringAsFixed(3)} | '
+        //   'ctrl: ${_animController.value.toStringAsFixed(3)} | '
+        //   'status: ${_animController.status}',
+        // );
         final theme = Theme.of(context);
         final isDark = theme.brightness == Brightness.dark;
         final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
-        final progress = progressValue.clamp(0.0, 1.0);
         final l10n = AppLocalizations.of(context)!;
 
     final targetSurface = theme.colorScheme.surface;
