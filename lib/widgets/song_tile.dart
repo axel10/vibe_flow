@@ -49,11 +49,19 @@ class SongTile extends ConsumerWidget {
     final album = metadata?.album ?? song.album ?? l10n.unknownAlbum;
     final artistAlbumText = '$artist - $album';
 
-    // Format duration and file format
+    // Format track number, duration and file format
+    final trackNumber = metadata?.trackNumber ?? song.trackNumber;
+    final trackStr = (trackNumber != null && trackNumber > 0)
+        ? trackNumber.toString().padLeft(2, '0')
+        : null;
     final durationStr = _formatDuration(metadata?.duration ?? song.durationMillis);
     final ext = p.extension(song.path).replaceAll('.', '').toUpperCase();
     final formatStr = ext.isNotEmpty ? ext : 'UNKNOWN';
-    final durationFormatText = '$durationStr | $formatStr';
+    final durationFormatText = [
+      ?trackStr,
+      durationStr,
+      formatStr,
+    ].join(' | ');
 
     // Build leading widget (thumbnail + selection checkbox)
     final leadingWidget = SizedBox(
@@ -173,61 +181,72 @@ class SongTile extends ConsumerWidget {
                   leadingWidget,
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            if (isCurrent && !isMissing) ...[
-                              PlayingEqualizerIcon(
-                                color: theme.colorScheme.primary,
-                                size: 16,
-                                isPlaying: isPlaying,
+                    child: SizedBox(
+                      height: 56,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  if (isCurrent && !isMissing) ...[
+                                    PlayingEqualizerIcon(
+                                      color: theme.colorScheme.primary,
+                                      size: 16,
+                                      isPlaying: isPlaying,
+                                    ),
+                                    const SizedBox(width: 6),
+                                  ],
+                                  Expanded(
+                                    child: Text(
+                                      song.displayName,
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: textColor,
+                                        fontWeight: isCurrent && !isMissing ? FontWeight.bold : FontWeight.normal,
+                                        height: 1.2,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                            ],
-                            Expanded(
-                              child: Text(
-                                song.displayName,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: textColor,
-                                  fontWeight: isCurrent && !isMissing ? FontWeight.bold : FontWeight.normal,
+                              const SizedBox(height: 2),
+                              Text(
+                                artistAlbumText,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: 12,
+                                  height: 1.2,
+                                  color: isMissing
+                                      ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                                      : isCurrent
+                                          ? theme.colorScheme.primary.withValues(alpha: 0.8)
+                                          : theme.colorScheme.onSurfaceVariant,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                            ],
+                          ),
+                          Text(
+                            durationFormatText,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              height: 1.2,
+                              color: isMissing
+                                  ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
+                                  : isCurrent
+                                      ? theme.colorScheme.primary.withValues(alpha: 0.6)
+                                      : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          artistAlbumText,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 12,
-                            color: isMissing
-                                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                                : isCurrent
-                                    ? theme.colorScheme.primary.withValues(alpha: 0.8)
-                                    : theme.colorScheme.onSurfaceVariant,
+                            maxLines: 1,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          durationFormatText,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 11,
-                            color: isMissing
-                                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
-                                : isCurrent
-                                    ? theme.colorScheme.primary.withValues(alpha: 0.6)
-                                    : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                          ),
-                          maxLines: 1,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   if (trailingWidget != null) ...[
