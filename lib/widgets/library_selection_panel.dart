@@ -24,6 +24,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
     this.onImportLyrics,
     this.replaceFavoritesWithSongDetails = false,
     this.hideSongProperties = false,
+    this.hideSecondaryActions = false,
     this.onPlayNext,
     this.onAddToQueue,
     this.onAddToPlaylist,
@@ -46,6 +47,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
   final VoidCallback? onImportLyrics;
   final bool replaceFavoritesWithSongDetails;
   final bool hideSongProperties;
+  final bool hideSecondaryActions;
   final VoidCallback? onPlayNext;
   final VoidCallback? onAddToQueue;
   final VoidCallback? onAddToPlaylist;
@@ -83,7 +85,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     final List<Widget> secondaryActionRows = [];
-    {
+    if (!hideSecondaryActions) {
       final secondaryActions = <Widget>[];
 
       if (replaceFavoritesWithSongDetails) {
@@ -436,7 +438,7 @@ class LibrarySelectionPanel extends ConsumerWidget {
                           child: _buildSelectionActionButton(
                             context: context,
                             icon: Icons.playlist_add_rounded,
-                            label: l10n.playlist,
+                            label: l10n.addToPlaylist,
                             onPressed: isEmpty
                                 ? null
                                 : () async {
@@ -455,8 +457,10 @@ class LibrarySelectionPanel extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    ...secondaryActionRows,
+                    if (secondaryActionRows.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      ...secondaryActionRows,
+                    ],
                   ],
                 ),
               ),

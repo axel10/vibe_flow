@@ -207,11 +207,27 @@ class _AlbumCoverFlowQuickDetailDialogState
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 buildPanelButton(
-                  icon: Icons.queue_music_rounded,
-                  label: l10n.addToQueue,
+                  icon: isAllSelected
+                      ? Icons.deselect_rounded
+                      : Icons.select_all_rounded,
+                  label: isAllSelected ? l10n.deselectAll : l10n.selectAll,
+                  onTap: () {
+                    setState(() {
+                      if (isAllSelected) {
+                        _selectedSongPaths.clear();
+                      } else {
+                        _selectedSongPaths
+                            .addAll(widget.album.songs.map((s) => s.path));
+                      }
+                    });
+                  },
+                ),
+                buildPanelButton(
+                  icon: Icons.queue_play_next_rounded,
+                  label: l10n.playNext,
                   onTap: hasSelection
                       ? () async {
-                          await audio.appendToQueue(selectedList);
+                          await audio.enqueueNext(selectedList);
                           if (mounted) {
                             setState(() {
                               _isSelectionMode = false;
@@ -222,11 +238,11 @@ class _AlbumCoverFlowQuickDetailDialogState
                       : null,
                 ),
                 buildPanelButton(
-                  icon: Icons.queue_play_next_rounded,
-                  label: l10n.playNext,
+                  icon: Icons.queue_music_rounded,
+                  label: l10n.addToQueue,
                   onTap: hasSelection
                       ? () async {
-                          await audio.enqueueNext(selectedList);
+                          await audio.appendToQueue(selectedList);
                           if (mounted) {
                             setState(() {
                               _isSelectionMode = false;
@@ -254,22 +270,6 @@ class _AlbumCoverFlowQuickDetailDialogState
                           }
                         }
                       : null,
-                ),
-                buildPanelButton(
-                  icon: isAllSelected
-                      ? Icons.deselect_rounded
-                      : Icons.select_all_rounded,
-                  label: isAllSelected ? l10n.deselectAll : l10n.selectAll,
-                  onTap: () {
-                    setState(() {
-                      if (isAllSelected) {
-                        _selectedSongPaths.clear();
-                      } else {
-                        _selectedSongPaths
-                            .addAll(widget.album.songs.map((s) => s.path));
-                      }
-                    });
-                  },
                 ),
               ],
             ),

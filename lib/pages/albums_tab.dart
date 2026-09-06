@@ -211,10 +211,10 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                 final itemWidth = (constraints.maxWidth - 32 - (crossAxisCount - 1) * 16) / crossAxisCount;
                 final childAspectRatio = itemWidth / (itemWidth + textHeight);
 
-                final bottomPadding = 120.0 + (isSelectionMode ? 220.0 : 0.0);
+                final bottomPadding = 120.0 + (isSelectionMode ? 120.0 : 0.0);
                 final bottomOffset = isCoverFlowImmersive
-                    ? (isSelectionMode ? 120.0 : 0.0)
-                    : ((currentMusic != null ? (isLandscape ? 96.0 : 140.0) : 40.0) + (isSelectionMode ? 220.0 : 0.0));
+                    ? (isSelectionMode ? 100.0 : 0.0)
+                    : ((currentMusic != null ? (isLandscape ? 96.0 : 140.0) : 40.0) + (isSelectionMode ? 120.0 : 0.0));
 
                 final toolbar = _AlbumsToolbar(
                   searchController: _searchController,
@@ -456,6 +456,7 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                         selectedSongs: selectedSongs,
                         allSongs: allSongs,
                         title: l10n.selectedAlbumsCount(selectedCount),
+                        hideSecondaryActions: true,
                         onToggleSelectAll: () =>
                             toggleSelectAll(visibleAlbums.map((a) => a.id)),
                         onCancel: cancelSelection,
