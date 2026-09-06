@@ -105,31 +105,37 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    return albumsAsync.when(
-      loading: () => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(strokeWidth: 3),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-      error: (error, stackTrace) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            error.toString(),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
+    final albums = albumsAsync.value ?? _lastRawAlbums;
+    if (albums == null) {
+      if (albumsAsync.isLoading) {
+        return const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              SizedBox(height: 12),
+            ],
           ),
-        ),
-      ),
-      data: (albums) {
+        );
+      }
+      if (albumsAsync.hasError) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              albumsAsync.error.toString(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
         if (!identical(_lastRawAlbums, albums) ||
             _lastSearchQuery != _searchQuery ||
             _lastSortField != _sortField ||
@@ -463,8 +469,6 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
             ),
           ),
         );
-      },
-    );
   }
 
   void _onShufflePressed(List<AlbumSummary> albums) {
@@ -1591,6 +1595,22 @@ class _Album3DCoverFlowViewState extends ConsumerState<_Album3DCoverFlowView>
     if (widget.albums.isEmpty) {
       _currentPage = 0.0;
       _targetIndex = 0;
+    } else if (oldWidget.albums != widget.albums) {
+      final oldIndex = _currentPage.round().clamp(
+        0,
+        oldWidget.albums.isNotEmpty ? oldWidget.albums.length - 1 : 0,
+      );
+      final oldAlbumId = oldWidget.albums.isNotEmpty ? oldWidget.albums[oldIndex].id : null;
+      if (oldAlbumId != null) {
+        final newIndex = widget.albums.indexWhere((a) => a.id == oldAlbumId);
+        if (newIndex != -1) {
+          _currentPage = newIndex.toDouble();
+          _targetIndex = newIndex;
+        } else if (_targetIndex >= widget.albums.length) {
+          _targetIndex = widget.albums.length - 1;
+          _currentPage = _targetIndex.toDouble();
+        }
+      }
     } else if (_targetIndex >= widget.albums.length) {
       _targetIndex = widget.albums.length - 1;
       _animateToPage(_targetIndex);

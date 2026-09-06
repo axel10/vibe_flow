@@ -11,9 +11,13 @@ import 'package:vynody/player/metadata/metadata_database.dart';
 
 final artistLibraryProvider = StreamProvider<List<ArtistSummary>>((ref) async* {
   final repository = ArtistLibraryRepository();
-  final scanner = ref.watch(scannerServiceProvider);
+  final isReady = ref.watch(scannerServiceProvider.select((s) => s.isReady));
+  final rootPathsKey = ref.watch(
+    scannerServiceProvider.select((s) => s.rootPaths.join('|')),
+  );
+  final scanner = ref.read(scannerServiceProvider);
   yield* repository.watchArtistSummaries(
-    isPathAllowed: scanner.isReady && scanner.rootPaths.isNotEmpty
+    isPathAllowed: isReady && rootPathsKey.isNotEmpty
         ? scanner.isPathInActiveRoots
         : null,
   );

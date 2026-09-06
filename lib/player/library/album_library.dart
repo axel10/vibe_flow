@@ -8,9 +8,13 @@ import 'package:vynody/player/metadata/metadata_database.dart';
 
 final albumLibraryProvider = StreamProvider<List<AlbumSummary>>((ref) async* {
   final db = MetadataDatabase();
-  final scanner = ref.watch(scannerServiceProvider);
+  final isReady = ref.watch(scannerServiceProvider.select((s) => s.isReady));
+  final rootPathsKey = ref.watch(
+    scannerServiceProvider.select((s) => s.rootPaths.join('|')),
+  );
+  final scanner = ref.read(scannerServiceProvider);
   await for (final songs in db.watchAllSongMetadata()) {
-    final validSongs = scanner.isReady && scanner.rootPaths.isNotEmpty
+    final validSongs = isReady && rootPathsKey.isNotEmpty
         ? songs.where((s) => scanner.isPathInActiveRoots(s.path))
         : songs;
     yield buildAlbumSummaries(validSongs);
