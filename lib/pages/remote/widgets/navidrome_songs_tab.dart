@@ -529,9 +529,12 @@ class _NavidromeSongsViewState extends ConsumerState<NavidromeSongsView> {
           final isStarred = widget.starredSongIds.contains(trackId);
 
           String? coverId;
-          if (song.artworkPath != null) {
+          if (song.artworkPath != null && song.artworkPath!.isNotEmpty) {
             coverId = song.artworkPath!
                 .replaceFirst('subsonic-cover://${widget.server.id}/', '');
+          }
+          if (coverId == null || coverId.isEmpty) {
+            coverId = trackId.isNotEmpty ? trackId : null;
           }
 
           return Align(

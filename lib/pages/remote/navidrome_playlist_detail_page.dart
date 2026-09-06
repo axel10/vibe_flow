@@ -1071,9 +1071,12 @@ class _NavidromePlaylistDetailContentState
                         final isStarred = _starredSongIds.contains(trackId);
 
                         String? trackCoverId;
-                        if (song.artworkPath != null) {
+                        if (song.artworkPath != null && song.artworkPath!.isNotEmpty) {
                           trackCoverId = song.artworkPath!
                               .replaceFirst('subsonic-cover://${widget.server.id}/', '');
+                        }
+                        if (trackCoverId == null || trackCoverId.isEmpty) {
+                          trackCoverId = trackId.isNotEmpty ? trackId : null;
                         }
 
                         return Padding(

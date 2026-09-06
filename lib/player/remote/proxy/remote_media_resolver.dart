@@ -249,6 +249,10 @@ class RemoteMediaResolver {
     final coverArt = trackJson['coverArt'] as String?;
     final suffix = trackJson['suffix'] as String? ?? 'mp3';
 
+    final effectiveCoverArt = (coverArt != null && coverArt.isNotEmpty)
+        ? coverArt
+        : (trackId.isNotEmpty ? trackId : null);
+
     final uri = buildSubsonicUri(server.id, trackId);
     return MusicFile(
       path: uri,
@@ -258,7 +262,9 @@ class RemoteMediaResolver {
       album: album,
       trackNumber: trackNumber,
       durationMillis: durationSeconds * 1000,
-      artworkPath: coverArt != null ? 'subsonic-cover://${server.id}/$coverArt' : null,
+      artworkPath: effectiveCoverArt != null
+          ? 'subsonic-cover://${server.id}/$effectiveCoverArt'
+          : null,
       isMissing: false,
     );
   }
