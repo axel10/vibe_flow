@@ -394,6 +394,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     final bool isModified = matchedPreset == null && activePreset != null;
     final bool isCustomPreset =
         (matchedPreset?.isCustom ?? activePreset?.isCustom) ?? false;
+    final displayPreset = matchedPreset ?? activePreset;
 
     final String presetName;
     if (matchedPreset != null) {
@@ -450,16 +451,6 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                         color: accentColor,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '${l10n.eqPresets}:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? Colors.white60
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
                       Flexible(
                         child: Text(
                           presetName,
@@ -473,6 +464,25 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                           ),
                         ),
                       ),
+                      if (displayPreset != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            l10n.bandsCountOption(displayPreset.bandCount),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(width: 4),
                       Icon(
                         Icons.keyboard_arrow_down_rounded,
@@ -490,35 +500,29 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
           const SizedBox(width: 8),
           if (activePreset != null && activePreset.isCustom && isModified) ...[
             // Update current custom preset
-            FilledButton.icon(
+            IconButton(
               onPressed: () => _updateCurrentCustomPreset(
                 context,
                 activePreset!,
                 currentGains,
                 frequencies,
+                bandCount,
                 config.bassBoostDb,
                 config.preampDb,
                 l10n,
               ),
-              icon: const Icon(Icons.save_rounded, size: 15),
-              label: Text(
-                l10n.updatePreset,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: accentColor,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              icon: const Icon(Icons.save_rounded, size: 18),
+              color: accentColor,
+              style: IconButton.styleFrom(
+                backgroundColor: accentColor.withValues(alpha: 0.12),
+                minimumSize: const Size(36, 36),
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              tooltip: l10n.updatePreset,
             ),
             const SizedBox(width: 6),
             // Save as new preset option
@@ -527,16 +531,17 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                 context,
                 currentGains,
                 frequencies,
+                bandCount,
                 config.bassBoostDb,
                 config.preampDb,
                 l10n,
               ),
-              icon: const Icon(Icons.bookmark_add_outlined, size: 16),
+              icon: const Icon(Icons.bookmark_add_outlined, size: 18),
               color: accentColor,
               style: IconButton.styleFrom(
                 backgroundColor: accentColor.withValues(alpha: 0.12),
-                padding: const EdgeInsets.all(8),
-                minimumSize: Size.zero,
+                minimumSize: const Size(36, 36),
+                padding: EdgeInsets.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -546,32 +551,28 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
             ),
           ] else ...[
             // Save as preset action button
-            TextButton.icon(
+            IconButton(
               onPressed: () => _showSavePresetDialog(
                 context,
                 currentGains,
                 frequencies,
+                bandCount,
                 config.bassBoostDb,
                 config.preampDb,
                 l10n,
               ),
-              icon: const Icon(Icons.bookmark_add_outlined, size: 16),
-              label: Text(
-                l10n.saveAsPreset,
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: accentColor,
+              icon: const Icon(Icons.bookmark_add_outlined, size: 18),
+              color: accentColor,
+              style: IconButton.styleFrom(
                 backgroundColor: accentColor.withValues(alpha: 0.12),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                minimumSize: const Size(36, 36),
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              tooltip: l10n.saveAsPreset,
             ),
           ],
         ],
@@ -584,6 +585,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     EqPreset preset,
     List<double> currentGains,
     List<double> frequencies,
+    int bandCount,
     double bassBoost,
     double preamp,
     AppLocalizations l10n,
@@ -592,6 +594,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
       existing: preset,
       currentGains: currentGains,
       targetFreqs: frequencies,
+      sourceBandCount: bandCount,
       bassBoost: bassBoost,
       preamp: preamp,
     );
@@ -603,7 +606,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${l10n.presetUpdated}: ${updated.getLocalizedName(l10n)}',
+          '${l10n.presetUpdated}: ${updated.getLocalizedName(l10n)} (${l10n.bandsCountOption(updated.bandCount)})',
         ),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
@@ -641,6 +644,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
             context,
             currentGains,
             frequencies,
+            bandCount,
             config.bassBoostDb,
             config.preampDb,
             l10n,
@@ -658,6 +662,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
             preset,
             currentGains,
             frequencies,
+            bandCount,
             config.bassBoostDb,
             config.preampDb,
             l10n,
@@ -878,6 +883,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     BuildContext context,
     List<double> currentGains,
     List<double> frequencies,
+    int bandCount,
     double bassBoost,
     double preamp,
     AppLocalizations l10n,
@@ -938,7 +944,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.savePresetPrompt,
+                  '${l10n.savePresetPrompt} (${l10n.bandsCountOption(bandCount)})',
                   style: TextStyle(
                     fontSize: 13,
                     color: isDark
@@ -1041,6 +1047,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
         name: result,
         currentGains: currentGains,
         targetFreqs: frequencies,
+        sourceBandCount: bandCount,
         bassBoost: bassBoost,
         preamp: preamp,
       );
@@ -1661,6 +1668,32 @@ class _PresetPickerDialog extends ConsumerWidget {
                                   : (isDark
                                       ? Colors.white
                                       : theme.colorScheme.onSurface),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? accentColor.withValues(alpha: 0.22)
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : theme.colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.7)),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            l10n.bandsCountOption(preset.bandCount),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? accentColor
+                                  : (isDark
+                                      ? Colors.white60
+                                      : theme.colorScheme.onSurfaceVariant),
                             ),
                           ),
                         ),

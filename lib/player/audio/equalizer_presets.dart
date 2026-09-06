@@ -11,6 +11,7 @@ class EqPreset {
   final double? preamp;
   final bool isCustom;
   final int? createdAt;
+  final int? sourceBandCount;
 
   const EqPreset({
     required this.id,
@@ -21,7 +22,11 @@ class EqPreset {
     this.preamp,
     this.isCustom = false,
     this.createdAt,
+    this.sourceBandCount,
   });
+
+  /// The band count this preset was calibrated for or based upon (default 10 for standard reference).
+  int get bandCount => sourceBandCount ?? 10;
 
   String getLocalizedName(AppLocalizations l10n) {
     if (isCustom && customName != null && customName!.isNotEmpty) {
@@ -38,6 +43,7 @@ class EqPreset {
         if (preamp != null) 'preamp': preamp,
         'isCustom': isCustom,
         'createdAt': createdAt ?? DateTime.now().millisecondsSinceEpoch,
+        if (sourceBandCount != null) 'sourceBandCount': sourceBandCount,
       };
 
   EqPreset copyWith({
@@ -49,6 +55,7 @@ class EqPreset {
     double? preamp,
     bool? isCustom,
     int? createdAt,
+    int? sourceBandCount,
   }) =>
       EqPreset(
         id: id ?? this.id,
@@ -59,6 +66,7 @@ class EqPreset {
         preamp: preamp ?? this.preamp,
         isCustom: isCustom ?? this.isCustom,
         createdAt: createdAt ?? this.createdAt,
+        sourceBandCount: sourceBandCount ?? this.sourceBandCount,
       );
 
   factory EqPreset.fromJson(Map<String, dynamic> json) => EqPreset(
@@ -75,6 +83,7 @@ class EqPreset {
         preamp: (json['preamp'] as num?)?.toDouble(),
         isCustom: true,
         createdAt: json['createdAt'] as int?,
+        sourceBandCount: json['sourceBandCount'] as int?,
       );
 }
 
@@ -306,6 +315,7 @@ class EqualizerPresets {
     required String name,
     required List<double> currentGains,
     required List<double> targetFreqs,
+    int? sourceBandCount,
     String? id,
     double? bassBoost,
     double? preamp,
@@ -320,6 +330,7 @@ class EqualizerPresets {
       preamp: preamp,
       isCustom: true,
       createdAt: DateTime.now().millisecondsSinceEpoch,
+      sourceBandCount: sourceBandCount ?? currentGains.length,
     );
   }
 
@@ -328,6 +339,7 @@ class EqualizerPresets {
     required EqPreset existing,
     required List<double> currentGains,
     required List<double> targetFreqs,
+    int? sourceBandCount,
     double? bassBoost,
     double? preamp,
     String? newName,
@@ -340,6 +352,7 @@ class EqualizerPresets {
       referenceGains: refGains,
       bassBoost: bassBoost,
       preamp: preamp,
+      sourceBandCount: sourceBandCount ?? currentGains.length,
     );
   }
 

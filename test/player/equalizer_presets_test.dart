@@ -92,6 +92,7 @@ void main() {
         name: 'My Custom EQ',
         currentGains: customGains,
         targetFreqs: freqs,
+        sourceBandCount: 10,
         bassBoost: 25.0,
         preamp: 1.5,
       );
@@ -101,6 +102,9 @@ void main() {
       expect(customPreset.bassBoost, 25.0);
       expect(customPreset.preamp, 1.5);
       expect(customPreset.referenceGains, customGains);
+      expect(customPreset.sourceBandCount, 10);
+      expect(customPreset.bandCount, 10);
+      expect(EqualizerPresets.pop.bandCount, 10);
 
       // JSON serialization & deserialization
       final json = customPreset.toJson();
@@ -111,6 +115,8 @@ void main() {
       expect(revived.bassBoost, 25.0);
       expect(revived.preamp, 1.5);
       expect(revived.referenceGains, customGains);
+      expect(revived.sourceBandCount, 10);
+      expect(revived.bandCount, 10);
 
       // Matching with customPresets
       final matched = EqualizerPresets.findMatchingPreset(
