@@ -45,73 +45,76 @@ class VolumeSliderOverlay extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: isLandscape ? 100 : 160),
                   child: GestureDetector(
                     onTap: () {}, // Prevent dismissal
-                    child: Container(
-                      width: 280,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Content and background blur (clipped)
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                                child: Container(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      final width = constraints.maxWidth;
-                                      final height = constraints.maxHeight;
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Container(
+                        width: 280,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            // Content and background blur (clipped)
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                  child: Container(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final width = constraints.maxWidth;
+                                        final height = constraints.maxHeight;
 
-                                      final percent = isMuted ? 0.0 : (volume / 100.0).clamp(0.0, 1.0);
-                                      final fillWidth = percent * width;
+                                        final percent = isMuted ? 0.0 : (volume / 100.0).clamp(0.0, 1.0);
+                                        final fillWidth = percent * width;
 
-                                      Widget buildContent({required Color color}) {
-                                        return SizedBox(
-                                          width: width,
-                                          height: height,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                GestureDetector(
-                                                  behavior: HitTestBehavior.opaque,
-                                                  onTap: () {
-                                                    onInteraction();
-                                                    onToggleMute?.call();
-                                                  },
-                                                  child: Icon(
-                                                    isMuted ? Icons.volume_off : getVolumeIcon(volume),
-                                                    color: color,
-                                                    size: 20,
+                                        Widget buildContent({required Color color}) {
+                                          return SizedBox(
+                                            width: width,
+                                            height: height,
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  GestureDetector(
+                                                    behavior: HitTestBehavior.opaque,
+                                                    onTap: () {
+                                                      onInteraction();
+                                                      onToggleMute?.call();
+                                                    },
+                                                    child: Icon(
+                                                      isMuted ? Icons.volume_off : getVolumeIcon(volume),
+                                                      color: color,
+                                                      size: 20,
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  isMuted ? '0%' : '${volume.round()}%',
-                                                  style: TextStyle(
-                                                    color: color,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
-                                                    letterSpacing: 0.5,
+                                                  Text(
+                                                    isMuted ? '0%' : '${volume.round()}%',
+                                                    style: TextStyle(
+                                                      color: color,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14,
+                                                      letterSpacing: 0.5,
+                                                      decoration: TextDecoration.none,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      }
+                                          );
+                                        }
 
                                       return Listener(
                                         onPointerSignal: (pointerSignal) {
@@ -194,8 +197,9 @@ class VolumeSliderOverlay extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
           ),
         ),
       ),
