@@ -87,6 +87,11 @@ class QueueBackgroundProcessor {
           if (needsDbSync) {
             final existing = await db.getSongMetadata(song.path);
             if (existing != null) {
+              String? newTitle = song.title;
+              String? newArtist = song.artist;
+              String? newAlbum = song.album;
+              int? newTrackNumber = song.trackNumber;
+              int? newDuration = song.durationMillis;
               Uint8List? newWaveformBlob = song.waveformBlob;
               String? newThumbnailPath = song.thumbnailPath;
               String? newArtworkPath = song.artworkPath;
@@ -94,6 +99,25 @@ class QueueBackgroundProcessor {
               int? newArtworkHeight = song.artworkHeight;
               Uint8List? newThemeColorsBlob = song.themeColorsBlob;
 
+              if (song.title == null && existing.title.isNotEmpty) {
+                newTitle = existing.title;
+              }
+              if ((song.artist == null || song.artist == 'Unknown Artist') &&
+                  existing.artist.isNotEmpty &&
+                  existing.artist != 'Unknown Artist') {
+                newArtist = existing.artist;
+              }
+              if ((song.album == null || song.album == 'Unknown Album') &&
+                  existing.album.isNotEmpty &&
+                  existing.album != 'Unknown Album') {
+                newAlbum = existing.album;
+              }
+              if (song.trackNumber == null && existing.trackNumber != null) {
+                newTrackNumber = existing.trackNumber;
+              }
+              if (song.durationMillis == null && existing.duration != null) {
+                newDuration = existing.duration;
+              }
               if (inWaveform && song.waveformBlob == null) {
                 newWaveformBlob = existing.waveformBlob;
               }
@@ -115,6 +139,11 @@ class QueueBackgroundProcessor {
 
               if (i < queue.length && queue[i].path == song.path) {
                 queue[i] = queue[i].copyWith(
+                  title: newTitle,
+                  artist: newArtist,
+                  album: newAlbum,
+                  trackNumber: newTrackNumber,
+                  durationMillis: newDuration,
                   waveformBlob: newWaveformBlob,
                   thumbnailPath: newThumbnailPath,
                   artworkPath: newArtworkPath,

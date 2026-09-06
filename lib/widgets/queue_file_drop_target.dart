@@ -9,6 +9,7 @@ import 'package:vynody/l10n/app_localizations.dart';
 import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/library/music_file_utils.dart';
+import 'package:vynody/player/metadata/metadata_database.dart';
 import 'package:vynody/utils/layout_constants.dart';
 
 class QueueFileDropTarget extends ConsumerStatefulWidget {
@@ -186,6 +187,31 @@ class _QueueFileDropTargetState extends ConsumerState<QueueFileDropTarget> {
     if (newSongs.isEmpty) {
       _clearDropPreview();
       return;
+    }
+
+    final db = MetadataDatabase();
+    final cachedMap =
+        await db.getSongMetadataByPaths(newSongs.map((s) => s.path));
+    for (var i = 0; i < newSongs.length; i++) {
+      final s = newSongs[i];
+      final cached = cachedMap[s.path];
+      if (cached != null) {
+        newSongs[i] = newSongs[i].copyWith(
+          title: cached.title,
+          artist: cached.artist,
+          albumArtist: cached.albumArtist,
+          album: cached.album,
+          trackNumber: cached.trackNumber,
+          durationMillis: cached.duration,
+          thumbnailPath: cached.thumbnailPath,
+          artworkPath: cached.artworkPath,
+          artworkWidth: cached.artworkWidth,
+          artworkHeight: cached.artworkHeight,
+          themeColorsBlob: cached.themeColorsBlob,
+          waveformBlob: cached.waveformBlob,
+          lastModifiedTime: cached.lastModifiedTime,
+        );
+      }
     }
 
     final preview = widget.showPreview

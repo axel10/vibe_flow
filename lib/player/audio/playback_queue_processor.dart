@@ -192,7 +192,39 @@ class PlaybackQueueProcessor {
         }());
       }
 
-      // Phase 1: FAST PASS - Immediately load HD artwork for prioritized songs (prev 1, current, next 1)
+      // Phase 1: Fast Metadata & Thumbnail Pass
+      // Immediately process basic tags (title, artist, duration) and thumbnails for all songs
+      // in the queue that are missing them, prioritizing the current song and upcoming songs.
+      for (final song in sortedList) {
+        if (_disposed || myId != _currentProcessId) {
+          debugPrint(
+            'Background process $myId superseded by $_currentProcessId, exiting.',
+          );
+          return;
+        }
+
+        final isRemote = RemoteMediaResolver.isRemoteUri(song.path);
+        if (song.isMissing ||
+            song.path.isEmpty ||
+            (!isRemote && !File(song.path).existsSync())) {
+          continue;
+        }
+
+        final bool needsMetaOrThumb = song.title == null ||
+            song.durationMillis == null ||
+            song.thumbnailPath == null;
+
+        if (needsMetaOrThumb) {
+          await _processSongMetadataAndThumbnail(
+            song: song,
+            onUpdate: onUpdate,
+            myId: myId,
+          );
+          await Future.delayed(Duration.zero);
+        }
+      }
+
+      // Phase 1.5: Load HD artwork for prioritized songs (prev 1, current, next 1)
       // This ensures that when skipping fast, covers are already in memory.
       final List<MusicFile> artworkPrioritySongs = [];
       if (currentFilePath != null && currentIndex != -1) {
@@ -261,6 +293,117 @@ class PlaybackQueueProcessor {
         },
       );
       debugPrint('Background queue processing finished');
+    }
+  }
+
+  Future<void> _processSongMetadataAndThumbnail({
+    required MusicFile song,
+    required Function(String path, Map<String, dynamic> updates) onUpdate,
+    required int myId,
+  }) async {
+    if (_disposed || myId != _currentProcessId) return;
+
+    final isRemote = RemoteMediaResolver.isRemoteUri(song.path);
+    if (song.isMissing ||
+        song.path.isEmpty ||
+        (!isRemote && !File(song.path).existsSync())) {
+      return;
+    }
+
+    try {
+      final existing = await db.getSongMetadata(song.path);
+      if (existing != null) {
+        final Map<String, dynamic> updates = {};
+        if (existing.title.isNotEmpty && song.title != existing.title) {
+          updates['title'] = existing.title;
+        }
+        if (existing.artist.isNotEmpty &&
+            existing.artist != 'Unknown Artist' &&
+            song.artist != existing.artist) {
+          updates['artist'] = existing.artist;
+        }
+        if (existing.album.isNotEmpty &&
+            existing.album != 'Unknown Album' &&
+            song.album != existing.album) {
+          updates['album'] = existing.album;
+        }
+        if (existing.trackNumber != null &&
+            song.trackNumber != existing.trackNumber) {
+          updates['trackNumber'] = existing.trackNumber;
+        }
+        if (existing.duration != null &&
+            song.durationMillis != existing.duration) {
+          updates['durationMillis'] = existing.duration;
+        }
+        if (existing.thumbnailPath != null &&
+            song.thumbnailPath != existing.thumbnailPath) {
+          updates['thumbnailPath'] = existing.thumbnailPath;
+        }
+        if (existing.artworkPath != null &&
+            song.artworkPath != existing.artworkPath) {
+          updates['artworkPath'] = existing.artworkPath;
+        }
+        if (existing.artworkWidth != null &&
+            song.artworkWidth != existing.artworkWidth) {
+          updates['artworkWidth'] = existing.artworkWidth;
+        }
+        if (existing.artworkHeight != null &&
+            song.artworkHeight != existing.artworkHeight) {
+          updates['artworkHeight'] = existing.artworkHeight;
+        }
+        if (existing.themeColorsBlob != null &&
+            song.themeColorsBlob != existing.themeColorsBlob) {
+          updates['themeColorsBlob'] = existing.themeColorsBlob;
+          updates['themeColors'] =
+              ThemeColorHelper.blobToColors(existing.themeColorsBlob!);
+        }
+
+        if (updates.isNotEmpty) {
+          onUpdate(song.path, updates);
+        }
+
+        // If thumbnail was already scanned (present or marked as absent), we are done
+        if (existing.thumbnailPath != null ||
+            existing.metadataImgScanned != null) {
+          return;
+        }
+      }
+
+      if (!isRemote) {
+        final result = await MetadataHelper.processMetadata(
+          song.path,
+          generateThumbnail: true,
+          sourceFlags: SongSourceFlags.external,
+        );
+        if (_disposed || myId != _currentProcessId) return;
+
+        final m = result?.$1;
+        if (m != null) {
+          final Map<String, dynamic> updates = {
+            if (m.title.isNotEmpty) 'title': m.title,
+            if (m.artist.isNotEmpty && m.artist != 'Unknown Artist')
+              'artist': m.artist,
+            if (m.album.isNotEmpty && m.album != 'Unknown Album')
+              'album': m.album,
+            if (m.trackNumber != null) 'trackNumber': m.trackNumber,
+            if (m.duration != null) 'durationMillis': m.duration,
+            if (m.thumbnailPath != null) 'thumbnailPath': m.thumbnailPath,
+            if (m.artworkPath != null) 'artworkPath': m.artworkPath,
+            if (m.artworkWidth != null) 'artworkWidth': m.artworkWidth,
+            if (m.artworkHeight != null) 'artworkHeight': m.artworkHeight,
+          };
+          if (m.themeColorsBlob != null) {
+            updates['themeColorsBlob'] = m.themeColorsBlob;
+            updates['themeColors'] =
+                ThemeColorHelper.blobToColors(m.themeColorsBlob!);
+          }
+          if (updates.isNotEmpty) {
+            onUpdate(song.path, updates);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error processing metadata & thumbnail for ${song.path}: $e');
     }
   }
 
@@ -361,10 +504,31 @@ class PlaybackQueueProcessor {
           if (!isRemote) {
             final result = await MetadataHelper.processMetadata(
               song.path,
-              generateThumbnail: false,
+              generateThumbnail: true,
             );
             if (_disposed || myId != _currentProcessId) return;
             m = result?.$1;
+            if (m != null && existing == null) {
+              final initialUpdates = <String, dynamic>{
+                if (m.title.isNotEmpty) 'title': m.title,
+                if (m.artist.isNotEmpty && m.artist != 'Unknown Artist')
+                  'artist': m.artist,
+                if (m.album.isNotEmpty && m.album != 'Unknown Album')
+                  'album': m.album,
+                if (m.trackNumber != null) 'trackNumber': m.trackNumber,
+                if (m.duration != null) 'durationMillis': m.duration,
+                if (m.thumbnailPath != null) 'thumbnailPath': m.thumbnailPath,
+                if (m.artworkPath != null) 'artworkPath': m.artworkPath,
+                if (m.artworkWidth != null) 'artworkWidth': m.artworkWidth,
+                if (m.artworkHeight != null) 'artworkHeight': m.artworkHeight,
+              };
+              if (m.themeColorsBlob != null) {
+                initialUpdates['themeColorsBlob'] = m.themeColorsBlob;
+                initialUpdates['themeColors'] =
+                    ThemeColorHelper.blobToColors(m.themeColorsBlob!);
+              }
+              onUpdate(song.path, initialUpdates);
+            }
           } else {
             // Check if track is cached in streamCacheManager
             final info = RemoteMediaResolver.parseUri(song.path);
