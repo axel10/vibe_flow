@@ -1502,7 +1502,8 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                           bottom:
                               (!isPlayback &&
                                   currentMusic != null &&
-                                  !hideMiniPlayerForSelection)
+                                  !hideMiniPlayerForSelection &&
+                                  !isCoverFlowImmersive)
                               ? (20.0 +
                                     MediaQuery.of(context).padding.bottom +
                                     uiState.snackBarOffset +
@@ -1517,93 +1518,101 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                               : -120.0,
                           left: railWidth,
                           right: 0,
-                          child: Center(
-                            child: !isPlayback && currentMusic != null
-                                ? Builder(
-                                    builder: (context) {
-                                      final audio = ref.read(
-                                        audioServiceProvider,
-                                      );
-                                      final isLandscape =
-                                          MediaQuery.of(context).orientation ==
-                                          Orientation.landscape;
-                                      final availableWidth =
-                                          MediaQuery.of(context).size.width -
-                                          railWidth;
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            opacity: isCoverFlowImmersive ? 0.0 : 1.0,
+                            child: IgnorePointer(
+                              ignoring: isCoverFlowImmersive,
+                              child: Center(
+                                child: !isPlayback && currentMusic != null
+                                    ? Builder(
+                                        builder: (context) {
+                                          final audio = ref.read(
+                                            audioServiceProvider,
+                                          );
+                                          final isLandscape =
+                                              MediaQuery.of(context).orientation ==
+                                              Orientation.landscape;
+                                          final availableWidth =
+                                              MediaQuery.of(context).size.width -
+                                              railWidth;
 
-                                      return Container(
-                                        key: const ValueKey('dynamic-island'),
-                                        constraints: BoxConstraints(
-                                          maxWidth: availableWidth * 0.9,
-                                        ),
-                                        child: PlaybackHeroCard(
-                                          isMini: true,
-                                          isLandscape: isLandscape,
-                                          showMiniVolumeSlider:
-                                              _showMiniVolumeSlider,
-                                          onMiniTap: () =>
-                                              _onDestinationSelected(1),
-                                          onPrevious: audio.previous,
-                                          onPlayPause: audio.togglePlay,
-                                          onNext: audio.next,
-                                          onScrubbing: (val) {
-                                            // 迷你播放器内部会处理局部 UI 状态
-                                          },
-                                          onSeek: (val) {
-                                            audio.seek(
-                                              Duration(
-                                                milliseconds:
-                                                    (audio
-                                                                .duration
-                                                                .inMilliseconds *
-                                                            val)
-                                                        .toInt(),
-                                              ),
-                                            );
-                                          },
-                                          onVolumeTap: () {
-                                            ref
-                                                .read(settingsServiceProvider)
-                                                .resetInactivity();
-                                            final nextVisible =
-                                                !_showMiniVolumeSlider;
-                                            setState(() {
-                                              _showMiniVolumeSlider = nextVisible;
-                                            });
-                                          },
-                                          onMiniMouseExit: () {
-                                            if (!_showMiniVolumeSlider) return;
-                                            setState(() {
-                                              _showMiniVolumeSlider = false;
-                                            });
-                                          },
-                                          onVolumeChanged: (value) {
-                                            ref
-                                                .read(settingsServiceProvider)
-                                                .resetInactivity();
-                                            _ui.setVolumeHudVisible(true);
-                                            audio.setVolume(
-                                              value.roundToDouble(),
-                                            );
-                                          },
-                                          onVolumeScroll: (deltaY) {
-                                            ref
-                                                .read(settingsServiceProvider)
-                                                .resetInactivity();
-                                            _ui.setVolumeHudVisible(true);
-                                            audio.setVolume(
-                                              (audio.volume - deltaY * 0.1)
-                                                  .clamp(0.0, 100.0)
-                                                  .roundToDouble(),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : const SizedBox.shrink(
-                                    key: ValueKey('empty-island'),
-                                  ),
+                                          return Container(
+                                            key: const ValueKey('dynamic-island'),
+                                            constraints: BoxConstraints(
+                                              maxWidth: availableWidth * 0.9,
+                                            ),
+                                            child: PlaybackHeroCard(
+                                              isMini: true,
+                                              isLandscape: isLandscape,
+                                              showMiniVolumeSlider:
+                                                  _showMiniVolumeSlider,
+                                              onMiniTap: () =>
+                                                  _onDestinationSelected(1),
+                                              onPrevious: audio.previous,
+                                              onPlayPause: audio.togglePlay,
+                                              onNext: audio.next,
+                                              onScrubbing: (val) {
+                                                // 迷你播放器内部会处理局部 UI 状态
+                                              },
+                                              onSeek: (val) {
+                                                audio.seek(
+                                                  Duration(
+                                                    milliseconds:
+                                                        (audio
+                                                                    .duration
+                                                                    .inMilliseconds *
+                                                                val)
+                                                            .toInt(),
+                                                  ),
+                                                );
+                                              },
+                                              onVolumeTap: () {
+                                                ref
+                                                    .read(settingsServiceProvider)
+                                                    .resetInactivity();
+                                                final nextVisible =
+                                                    !_showMiniVolumeSlider;
+                                                setState(() {
+                                                  _showMiniVolumeSlider = nextVisible;
+                                                });
+                                              },
+                                              onMiniMouseExit: () {
+                                                if (!_showMiniVolumeSlider) return;
+                                                setState(() {
+                                                  _showMiniVolumeSlider = false;
+                                                });
+                                              },
+                                              onVolumeChanged: (value) {
+                                                ref
+                                                    .read(settingsServiceProvider)
+                                                    .resetInactivity();
+                                                _ui.setVolumeHudVisible(true);
+                                                audio.setVolume(
+                                                  value.roundToDouble(),
+                                                );
+                                              },
+                                              onVolumeScroll: (deltaY) {
+                                                ref
+                                                    .read(settingsServiceProvider)
+                                                    .resetInactivity();
+                                                _ui.setVolumeHudVisible(true);
+                                                audio.setVolume(
+                                                  (audio.volume - deltaY * 0.1)
+                                                      .clamp(0.0, 100.0)
+                                                      .roundToDouble(),
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : const SizedBox.shrink(
+                                        key: ValueKey('empty-island'),
+                                      ),
+                              ),
+                            ),
                           ),
                         ),
                       if (uiState.showVolumeHud)

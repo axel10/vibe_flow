@@ -73,7 +73,9 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
     final bool isCoverFlowImmersive =
         isLandscape && ref.watch(isCoverFlowImmersiveActiveProvider);
     final double leftPadding = isLandscape ? 80.0 : 0.0;
-    final double topPadding = (isDesktop ? 32.0 : 0.0) + kToolbarHeight;
+    final double safeTopPadding =
+        isDesktop ? 32.0 : MediaQuery.of(context).padding.top;
+    final double topPadding = safeTopPadding + kToolbarHeight;
 
     return Scaffold(
       body: Stack(
@@ -126,7 +128,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
             ],
           ),
           Positioned(
-            top: isDesktop ? 32.0 : 0.0,
+            top: safeTopPadding,
             left: leftPadding,
             right: 0,
             height: kToolbarHeight,
