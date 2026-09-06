@@ -649,6 +649,9 @@ class AudioService extends Notifier<AudioSnapshot> {
   }
 
   void setSongMissingStateByPath(String path, bool isMissing) {
+    if (isMissing) {
+      unawaited(_db.deleteSongByPath(path));
+    }
     var changed = false;
     for (var i = 0; i < _queue.length; i++) {
       final song = _queue[i];

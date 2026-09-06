@@ -1559,14 +1559,11 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
             .getSingleOrNull();
     if (row == null) return;
 
-    await customStatement(
-      '''
-      UPDATE songs
-      SET deletedAt = ?,
-          thumbnailPath = NULL
-      WHERE path = ?
-      ''',
-      <Object>[DateTime.now().millisecondsSinceEpoch, normalizedPath],
+    await (update(songs)..where((t) => t.path.equals(normalizedPath))).write(
+      SongsCompanion(
+        deletedAt: Value(DateTime.now().millisecondsSinceEpoch),
+        thumbnailPath: const Value(null),
+      ),
     );
     await _deleteThumbnailFile(row.thumbnailPath);
   }
@@ -1643,6 +1640,7 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
         );
       }
     });
+    notifyUpdates({TableUpdate.onTable(songs)});
   }
 
   Future<int> syncSongSourcePresence({
@@ -1754,14 +1752,11 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
         }
 
         if (_isWithinAnyRoot(path, normalizedActiveRoots)) {
-          await customStatement(
-            '''
-            UPDATE songs
-            SET deletedAt = $deletedAtMillis,
-                thumbnailPath = NULL
-            WHERE path = ?
-            ''',
-            <Object>[path],
+          await (update(songs)..where((t) => t.path.equals(path))).write(
+            SongsCompanion(
+              deletedAt: Value(deletedAtMillis),
+              thumbnailPath: const Value(null),
+            ),
           );
           softDeletedPaths.add(path);
           thumbnailPathsToDelete.add(thumbnailPath);
@@ -1773,14 +1768,11 @@ class MetadataDriftDatabase extends _$MetadataDriftDatabase {
           thumbnailPathsToDelete.add(thumbnailPath);
           await (delete(songs)..where((t) => t.path.equals(path))).go();
         } else {
-          await customStatement(
-            '''
-            UPDATE songs
-            SET sourceFlags = ?,
-                deletedAt = NULL
-            WHERE path = ?
-            ''',
-            <Object>[nextFlags, path],
+          await (update(songs)..where((t) => t.path.equals(path))).write(
+            SongsCompanion(
+              sourceFlags: Value(nextFlags),
+              deletedAt: const Value(null),
+            ),
           );
         }
         deletedPaths.add(path);

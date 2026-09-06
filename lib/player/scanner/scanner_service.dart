@@ -482,6 +482,7 @@ class ScannerService extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> get ready => _readyCompleter.future;
+  bool get isReady => _readyCompleter.isCompleted;
 
   ScannerService({
     bool autoInitialize = true,

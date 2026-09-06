@@ -3,12 +3,17 @@ import 'package:path/path.dart' as p;
 
 import 'package:vynody/models/album_summary.dart';
 import 'package:vynody/models/music_file.dart';
+import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 
 final albumLibraryProvider = StreamProvider<List<AlbumSummary>>((ref) async* {
   final db = MetadataDatabase();
+  final scanner = ref.watch(scannerServiceProvider);
   await for (final songs in db.watchAllSongMetadata()) {
-    yield buildAlbumSummaries(songs);
+    final validSongs = scanner.isReady && scanner.rootPaths.isNotEmpty
+        ? songs.where((s) => scanner.isPathInActiveRoots(s.path))
+        : songs;
+    yield buildAlbumSummaries(validSongs);
   }
 });
 

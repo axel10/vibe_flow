@@ -6,11 +6,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:vynody/models/artist_summary.dart';
 import 'package:vynody/models/music_file.dart';
+import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/metadata/metadata_database.dart';
 
 final artistLibraryProvider = StreamProvider<List<ArtistSummary>>((ref) async* {
   final repository = ArtistLibraryRepository();
-  yield* repository.watchArtistSummaries();
+  final scanner = ref.watch(scannerServiceProvider);
+  yield* repository.watchArtistSummaries(
+    isPathAllowed: scanner.isReady && scanner.rootPaths.isNotEmpty
+        ? scanner.isPathInActiveRoots
+        : null,
+  );
 });
 
 int _artistLibrarySessionSeq = 0;
@@ -26,14 +32,18 @@ class ArtistLibraryRepository {
 
   final MetadataDatabase _database;
 
-  Stream<List<ArtistSummary>> watchArtistSummaries() async* {
+  Stream<List<ArtistSummary>> watchArtistSummaries({
+    bool Function(String path)? isPathAllowed,
+  }) async* {
     final sessionId = ++_artistLibrarySessionSeq;
     _artistLibraryLog('session#$sessionId start');
 
     await for (final songs in _database.watchAllSongMetadata()) {
       final filteredSongs = songs.where((song) {
         final flags = song.sourceFlags ?? 0;
-        return (flags & SongSourceFlags.external) == 0;
+        if ((flags & SongSourceFlags.external) != 0) return false;
+        if (isPathAllowed != null && !isPathAllowed(song.path)) return false;
+        return true;
       }).toList(growable: false);
       final groups = _groupSongsByArtist(filteredSongs);
 
