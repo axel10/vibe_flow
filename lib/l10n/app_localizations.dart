@@ -7641,6 +7641,42 @@ abstract class AppLocalizations {
   /// **'筛选专辑...'**
   String get filterAlbums;
 
+  /// No description provided for @filterSongs.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选歌曲...'**
+  String get filterSongs;
+
+  /// No description provided for @noSongsOnServer.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务端未找到歌曲'**
+  String get noSongsOnServer;
+
+  /// No description provided for @noMatchingSongs.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有匹配的歌曲'**
+  String get noMatchingSongs;
+
+  /// Error text when loading songs fails
+  ///
+  /// In zh, this message translates to:
+  /// **'加载歌曲失败: {error}'**
+  String errorLoadingSongs(String error);
+
+  /// No description provided for @starredSongsOnly.
+  ///
+  /// In zh, this message translates to:
+  /// **'已收藏'**
+  String get starredSongsOnly;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'加载更多'**
+  String get loadMore;
+
   /// No description provided for @filterArtists.
   ///
   /// In zh, this message translates to:

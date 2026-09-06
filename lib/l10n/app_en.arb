@@ -1739,6 +1739,20 @@
   "sortStarred": "Starred",
   "sortRandom": "Random",
   "filterAlbums": "Filter albums...",
+  "filterSongs": "Filter songs...",
+  "noSongsOnServer": "No songs found on server",
+  "noMatchingSongs": "No matching songs",
+  "errorLoadingSongs": "Error loading songs: {error}",
+  "@errorLoadingSongs": {
+    "description": "Error text when loading songs fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "starredSongsOnly": "Starred",
+  "loadMore": "Load more",
   "closeSearch": "Close search",
   "filterArtists": "Filter artists...",
   "searchPlaylists": "Search playlists...",

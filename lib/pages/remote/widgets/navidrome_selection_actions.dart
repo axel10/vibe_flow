@@ -86,7 +86,8 @@ class NavidromeSelectionActions {
     required Set<String> selectedArtistIds,
     required Set<String> selectedPlaylistIds,
     required Set<String> selectedSongPaths,
-    required List<MusicFile> searchedSongs,
+    List<MusicFile> searchedSongs = const [],
+    List<MusicFile>? songs,
   }) async {
     final client = SubsonicClient(
       server: server,
@@ -112,7 +113,8 @@ class NavidromeSelectionActions {
         allSongs.addAll(tracks);
       }
     } else if (isSongSelectionMode) {
-      for (final song in searchedSongs) {
+      final pool = songs ?? searchedSongs;
+      for (final song in pool) {
         if (selectedSongPaths.contains(song.path)) {
           allSongs.add(song);
         }

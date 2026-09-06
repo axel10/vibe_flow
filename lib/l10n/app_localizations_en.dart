@@ -4287,6 +4287,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterAlbums => 'Filter albums...';
 
   @override
+  String get filterSongs => 'Filter songs...';
+
+  @override
+  String get noSongsOnServer => 'No songs found on server';
+
+  @override
+  String get noMatchingSongs => 'No matching songs';
+
+  @override
+  String errorLoadingSongs(String error) {
+    return 'Error loading songs: $error';
+  }
+
+  @override
+  String get starredSongsOnly => 'Starred';
+
+  @override
+  String get loadMore => 'Load more';
+
+  @override
   String get filterArtists => 'Filter artists...';
 
   @override

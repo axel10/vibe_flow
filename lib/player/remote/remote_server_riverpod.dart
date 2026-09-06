@@ -198,6 +198,10 @@ class ActiveRemoteSession {
   final List<MusicFile>? navidromeSearchedSongs;
   final List<Map<String, dynamic>>? navidromeSearchedAlbums;
   final List<Map<String, dynamic>>? navidromeSearchedArtists;
+  final List<MusicFile>? navidromeSongs;
+  final Set<String>? navidromeStarredSongIds;
+  final bool? navidromeHasMoreSongs;
+  final int? navidromeSongOffset;
   final List<NavidromeDetailRoute> navidromeDetailStack;
   final String? webDavHighlightedSongPath;
 
@@ -223,6 +227,10 @@ class ActiveRemoteSession {
     this.navidromeSearchedSongs,
     this.navidromeSearchedAlbums,
     this.navidromeSearchedArtists,
+    this.navidromeSongs,
+    this.navidromeStarredSongIds,
+    this.navidromeHasMoreSongs,
+    this.navidromeSongOffset,
     this.navidromeDetailStack = const [],
     this.webDavHighlightedSongPath,
   });
@@ -290,6 +298,10 @@ class ActiveRemoteSession {
     List<MusicFile>? navidromeSearchedSongs,
     List<Map<String, dynamic>>? navidromeSearchedAlbums,
     List<Map<String, dynamic>>? navidromeSearchedArtists,
+    List<MusicFile>? navidromeSongs,
+    Set<String>? navidromeStarredSongIds,
+    bool? navidromeHasMoreSongs,
+    int? navidromeSongOffset,
     List<NavidromeDetailRoute>? navidromeDetailStack,
     String? webDavHighlightedSongPath,
   }) {
@@ -324,6 +336,12 @@ class ActiveRemoteSession {
           navidromeSearchedAlbums ?? this.navidromeSearchedAlbums,
       navidromeSearchedArtists:
           navidromeSearchedArtists ?? this.navidromeSearchedArtists,
+      navidromeSongs: navidromeSongs ?? this.navidromeSongs,
+      navidromeStarredSongIds:
+          navidromeStarredSongIds ?? this.navidromeStarredSongIds,
+      navidromeHasMoreSongs:
+          navidromeHasMoreSongs ?? this.navidromeHasMoreSongs,
+      navidromeSongOffset: navidromeSongOffset ?? this.navidromeSongOffset,
       navidromeDetailStack: navidromeDetailStack ?? this.navidromeDetailStack,
       webDavHighlightedSongPath:
           webDavHighlightedSongPath ?? this.webDavHighlightedSongPath,
@@ -465,6 +483,23 @@ class ActiveRemoteSessionNotifier extends Notifier<ActiveRemoteSession?> {
         navidromeSearchedSongs: songs,
         navidromeSearchedAlbums: albums,
         navidromeSearchedArtists: artists,
+      );
+    }
+  }
+
+  void updateNavidromeSongs({
+    List<MusicFile>? songs,
+    Set<String>? starredSongIds,
+    bool? hasMore,
+    int? songOffset,
+  }) {
+    if (state != null) {
+      state = state!.copyWith(
+        navidromeSongs: songs ?? state!.navidromeSongs,
+        navidromeStarredSongIds:
+            starredSongIds ?? state!.navidromeStarredSongIds,
+        navidromeHasMoreSongs: hasMore ?? state!.navidromeHasMoreSongs,
+        navidromeSongOffset: songOffset ?? state!.navidromeSongOffset,
       );
     }
   }

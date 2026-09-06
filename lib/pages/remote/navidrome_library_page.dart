@@ -20,6 +20,7 @@ import 'widgets/navidrome_header_bottom.dart';
 import 'widgets/navidrome_selection_actions.dart';
 import 'widgets/navidrome_albums_tab.dart';
 import 'widgets/navidrome_artists_tab.dart';
+import 'widgets/navidrome_songs_tab.dart';
 import 'widgets/navidrome_playlists_tab.dart';
 import 'widgets/navidrome_search_tab.dart';
 import '../../utils/song_locator_helper.dart';
@@ -69,6 +70,20 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   String _artistSortField = 'name'; // 'name' or 'albumCount'
   bool _artistStarredOnly = false;
   final Set<String> _starredArtistIds = {};
+
+  // Songs state
+  bool _isLoadingSongs = false;
+  bool _isLoadingMoreSongs = false;
+  bool _hasMoreSongs = true;
+  int _songOffset = 0;
+  List<MusicFile> _songs = [];
+  final Set<String> _starredSongIds = {};
+  String? _songsError;
+  final TextEditingController _songSearchController = TextEditingController();
+  String _songSearchQuery = '';
+  bool _songStarredOnly = false;
+  String _songSortField = 'title'; // 'title', 'artist', 'album', 'duration'
+  bool _songSortAsc = true;
 
   // Playlists state
   static const String _starredPlaylistId =
@@ -322,6 +337,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   Future<List<MusicFile>> _fetchSelectedSongs() {
+    final songsSource = _tabController.index == 4 ? _searchedSongs : _songs;
     return NavidromeSelectionActions.fetchSelectedSongs(
       server: widget.server,
       password: widget.password,
@@ -333,8 +349,56 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       selectedArtistIds: _selectedArtistIds,
       selectedPlaylistIds: _selectedPlaylistIds,
       selectedSongPaths: _selectedSongPaths,
-      searchedSongs: _searchedSongs,
+      searchedSongs: songsSource,
+      songs: songsSource,
     );
+  }
+
+  List<MusicFile> _getFilteredSongs() {
+    var result = _songs.where((song) {
+      if (_songSearchQuery.isEmpty) return true;
+      final q = _songSearchQuery.toLowerCase();
+      final title = (song.title ?? song.name).toLowerCase();
+      final artist = (song.artist ?? '').toLowerCase();
+      final album = (song.album ?? '').toLowerCase();
+      return title.contains(q) || artist.contains(q) || album.contains(q);
+    }).toList();
+
+    if (_songStarredOnly) {
+      result = result.where((song) {
+        final trackId = RemoteMediaResolver.extractSubsonicTrackId(song) ??
+            (song.id != null && song.id! > 0 ? song.id.toString() : '');
+        return _starredSongIds.contains(trackId);
+      }).toList();
+    }
+
+    result.sort((a, b) {
+      int cmp = 0;
+      switch (_songSortField) {
+        case 'artist':
+          cmp = (a.artist ?? '').compareTo(b.artist ?? '');
+          if (cmp == 0) {
+            cmp = (a.title ?? a.name).compareTo(b.title ?? b.name);
+          }
+          break;
+        case 'album':
+          cmp = (a.album ?? '').compareTo(b.album ?? '');
+          if (cmp == 0) {
+            cmp = (a.trackNumber ?? 0).compareTo(b.trackNumber ?? 0);
+          }
+          break;
+        case 'duration':
+          cmp = (a.durationMillis ?? 0).compareTo(b.durationMillis ?? 0);
+          break;
+        case 'title':
+        default:
+          cmp = (a.title ?? a.name).compareTo(b.title ?? b.name);
+          break;
+      }
+      return _songSortAsc ? cmp : -cmp;
+    });
+
+    return result;
   }
 
   List<Map<String, dynamic>> _getFilteredAlbums() {
@@ -388,11 +452,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     super.initState();
     final initialIndex = (widget.initialTabIndex != null &&
             widget.initialTabIndex! >= 0 &&
-            widget.initialTabIndex! < 4)
+            widget.initialTabIndex! < 5)
         ? widget.initialTabIndex!
         : 0;
     _tabController = TabController(
-      length: 4,
+      length: 5,
       vsync: this,
       initialIndex: initialIndex,
     );
@@ -423,8 +487,11 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     _albumSortType = settings.navidromeAlbumSortType;
     _artistSortField = settings.navidromeArtistSortField;
     _artistSortAsc = settings.navidromeArtistSortAscending;
+    _songSortField = settings.navidromeSongSortField;
+    _songSortAsc = settings.navidromeSongSortAscending;
     _loadAlbums();
     _loadArtists();
+    _loadSongs();
     _loadPlaylists();
   }
 
@@ -458,6 +525,22 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
   }
 
   @override
+  void reassemble() {
+    super.reassemble();
+    if (_tabController.length != 5) {
+      final oldIndex = _tabController.index.clamp(0, 4);
+      _tabController.removeListener(_handleTabChanged);
+      _tabController.dispose();
+      _tabController = TabController(
+        length: 5,
+        vsync: this,
+        initialIndex: oldIndex,
+      );
+      _tabController.addListener(_handleTabChanged);
+    }
+  }
+
+  @override
   void dispose() {
     if (_isSelectionMode) {
       final controller = _selectionScopeController;
@@ -470,6 +553,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     _albumSearchController.dispose();
     _albumSearchFocusNode.dispose();
     _artistSearchController.dispose();
+    _songSearchController.dispose();
     _playlistSearchController.dispose();
     _searchController.dispose();
     _searchDebounce?.cancel();
@@ -600,6 +684,158 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     } catch (_) {}
   }
 
+  Future<void> _loadSongs({bool forceRefresh = false, bool loadMore = false}) async {
+    final session = ref.read(activeRemoteSessionProvider);
+    final isSameServer =
+        session != null && session.server.id == widget.server.id;
+
+    if (!forceRefresh && !loadMore && isSameServer && session.navidromeSongs != null) {
+      setState(() {
+        _songs = session.navidromeSongs!;
+        _starredSongIds
+          ..clear()
+          ..addAll(session.navidromeStarredSongIds ?? {});
+        _hasMoreSongs = session.navidromeHasMoreSongs ?? false;
+        _songOffset = session.navidromeSongOffset ?? _songs.length;
+        _isLoadingSongs = false;
+        _songsError = null;
+        _connectionError = null;
+      });
+      return;
+    }
+
+    if (loadMore) {
+      if (_isLoadingMoreSongs || !_hasMoreSongs) return;
+      setState(() {
+        _isLoadingMoreSongs = true;
+      });
+    } else {
+      setState(() {
+        _isLoadingSongs = true;
+        _songsError = null;
+        if (forceRefresh) {
+          _songOffset = 0;
+        }
+      });
+    }
+
+    final targetOffset = loadMore ? _songOffset : 0;
+    const pageSize = 500;
+
+    try {
+      final rawSongs = await _client.getSongs(
+        count: pageSize,
+        offset: targetOffset,
+      );
+
+      final newParsedSongs = <MusicFile>[];
+      final newStarred = <String>{};
+      for (final raw in rawSongs) {
+        final song = RemoteMediaResolver.buildMusicFileFromSubsonic(
+          raw,
+          widget.server,
+        );
+        newParsedSongs.add(song);
+        if (raw['starred'] != null) {
+          final id = raw['id']?.toString() ?? song.id.toString();
+          newStarred.add(id);
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (loadMore) {
+          _songs = [..._songs, ...newParsedSongs];
+          _songOffset += newParsedSongs.length;
+          _isLoadingMoreSongs = false;
+        } else {
+          _songs = newParsedSongs;
+          _songOffset = newParsedSongs.length;
+          _isLoadingSongs = false;
+        }
+        _starredSongIds.addAll(newStarred);
+        _hasMoreSongs = newParsedSongs.length >= pageSize;
+        _connectionError = null;
+      });
+
+      _fetchStarredSongs();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(activeRemoteSessionProvider.notifier).updateNavidromeSongs(
+              songs: _songs,
+              starredSongIds: _starredSongIds,
+              hasMore: _hasMoreSongs,
+              songOffset: _songOffset,
+            );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _songsError = e.toString();
+        _isLoadingSongs = false;
+        _isLoadingMoreSongs = false;
+        if (_albums.isEmpty && _artists.isEmpty && _songs.isEmpty) {
+          _connectionError ??= e.toString();
+        }
+      });
+    }
+  }
+
+  Future<void> _fetchStarredSongs() async {
+    try {
+      final starredList = await _client.getStarredSongs();
+      final ids = starredList
+          .map((e) => e['id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      if (mounted && ids.isNotEmpty) {
+        setState(() {
+          _starredSongIds.addAll(ids);
+        });
+        ref.read(activeRemoteSessionProvider.notifier).updateNavidromeSongs(
+              starredSongIds: _starredSongIds,
+            );
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleSongStar(MusicFile song) async {
+    final trackId = RemoteMediaResolver.extractSubsonicTrackId(song) ??
+        (song.id != null && song.id! > 0 ? song.id.toString() : '');
+    if (trackId.isEmpty) return;
+
+    final isCurrentlyStarred = _starredSongIds.contains(trackId);
+    setState(() {
+      if (isCurrentlyStarred) {
+        _starredSongIds.remove(trackId);
+      } else {
+        _starredSongIds.add(trackId);
+      }
+    });
+
+    ref.read(activeRemoteSessionProvider.notifier).updateNavidromeSongs(
+          starredSongIds: _starredSongIds,
+        );
+
+    final success = isCurrentlyStarred
+        ? await _client.unstar(id: trackId)
+        : await _client.star(id: trackId);
+
+    if (!success && mounted) {
+      setState(() {
+        if (isCurrentlyStarred) {
+          _starredSongIds.add(trackId);
+        } else {
+          _starredSongIds.remove(trackId);
+        }
+      });
+      ref.read(activeRemoteSessionProvider.notifier).updateNavidromeSongs(
+            starredSongIds: _starredSongIds,
+          );
+    }
+  }
+
   Future<void> _loadPlaylists({bool forceRefresh = false}) async {
     final session = ref.read(activeRemoteSessionProvider);
     final isSameServer =
@@ -656,11 +892,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       _isRetrying = true;
       _albumsError = null;
       _artistsError = null;
+      _songsError = null;
       _playlistsError = null;
     });
     await Future.wait([
       _loadAlbums(forceRefresh: true),
       _loadArtists(forceRefresh: true),
+      _loadSongs(forceRefresh: true),
       _loadPlaylists(forceRefresh: true),
     ]);
     if (mounted) {
@@ -789,7 +1027,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     String? panelDeleteLabel;
 
     if (_isAlbumSelectionMode) {
-      final filteredAlbums = _tabController.index == 3
+      final filteredAlbums = _tabController.index == 4
           ? _searchedAlbums
           : _getFilteredAlbums();
       panelTitle = l10n.selectedAlbumsCount(_selectedAlbumIds.length);
@@ -797,7 +1035,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
       panelIsAllSelected = _selectedAlbumIds.length == filteredAlbums.length &&
           filteredAlbums.isNotEmpty;
     } else if (_isArtistSelectionMode) {
-      final filteredArtists = _tabController.index == 3
+      final filteredArtists = _tabController.index == 4
           ? _searchedArtists
           : _getFilteredArtists();
       panelTitle = l10n.selectedArtistsCount(_selectedArtistIds.length);
@@ -822,7 +1060,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           );
       panelDeleteLabel = l10n.deletePlaylist;
     } else if (_isSongSelectionMode) {
-      final songs = _searchedSongs;
+      final songs =
+          _tabController.index == 4 ? _searchedSongs : _getFilteredSongs();
       panelTitle = l10n.selectedSongs(_selectedSongPaths.length);
       panelToggleSelectAll = () => _toggleSelectAllSongs(songs);
       panelIsAllSelected =
@@ -832,6 +1071,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
     final bool hasConnectionError = _connectionError != null &&
         _albums.isEmpty &&
         _artists.isEmpty &&
+        _songs.isEmpty &&
         _playlists.isEmpty;
 
     Widget content;
@@ -997,9 +1237,12 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                                 _loadArtists(forceRefresh: true);
                                 break;
                               case 2:
-                                _loadPlaylists(forceRefresh: true);
+                                _loadSongs(forceRefresh: true);
                                 break;
                               case 3:
+                                _loadPlaylists(forceRefresh: true);
+                                break;
+                              case 4:
                                 if (_searchController.text.isNotEmpty) {
                                   _onSearchChanged(_searchController.text);
                                 }
@@ -1036,6 +1279,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                           tabs: [
                             Tab(icon: const Icon(Icons.album_rounded), text: l10n.albums),
                             Tab(icon: const Icon(Icons.person_rounded), text: l10n.artists),
+                            Tab(icon: const Icon(Icons.music_note_rounded), text: l10n.songs),
                             Tab(
                               icon: const Icon(Icons.playlist_play_rounded),
                               text: l10n.playlists,
@@ -1105,6 +1349,29 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       onUpdateAnchor: (a) =>
                           setState(() => _lastArtistAnchorIndex = a),
                     ),
+                    NavidromeSongsView(
+                      server: widget.server,
+                      password: widget.password,
+                      songs: _getFilteredSongs(),
+                      totalServerSongsCount: _songs.length,
+                      starredSongIds: _starredSongIds,
+                      isLoading: _isLoadingSongs,
+                      isLoadingMore: _isLoadingMoreSongs,
+                      hasMore: _hasMoreSongs,
+                      error: _songsError,
+                      onRefresh: () => _loadSongs(forceRefresh: true),
+                      onLoadMore: () => _loadSongs(loadMore: true),
+                      searchQuery: _songSearchQuery,
+                      bottomOffset: bottomOffset,
+                      isSelectionMode: _isSongSelectionMode,
+                      selectedSongPaths: _selectedSongPaths,
+                      lastSongAnchorIndex: _lastSongAnchorIndex,
+                      onSetSelection: _setSongSelection,
+                      onToggleSelection: _toggleSongSelection,
+                      onUpdateAnchor: (a) =>
+                          setState(() => _lastSongAnchorIndex = a),
+                      onToggleStar: _toggleSongStar,
+                    ),
                     NavidromePlaylistsView(
                       server: widget.server,
                       password: widget.password,
@@ -1166,11 +1433,13 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                   'navidrome-library-selection-panel-${_tabController.index}',
                 ),
                 selectedSongs: _isSongSelectionMode
-                    ? _searchedSongs
+                    ? (_tabController.index == 4 ? _searchedSongs : _songs)
                         .where((s) => _selectedSongPaths.contains(s.path))
                         .toList()
                     : const [],
-                allSongs: _isSongSelectionMode ? _searchedSongs : const [],
+                allSongs: _isSongSelectionMode
+                    ? (_tabController.index == 4 ? _searchedSongs : _songs)
+                    : const [],
                 title: panelTitle,
                 isSelectionEmpty: !_isSelectionMode,
                 isAllSelected: panelIsAllSelected,
@@ -1320,6 +1589,42 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           },
         );
       case 2:
+        return NavidromeSongsToolbar(
+          searchController: _songSearchController,
+          searchQuery: _songSearchQuery,
+          starredOnly: _songStarredOnly,
+          sortAsc: _songSortAsc,
+          sortField: _songSortField,
+          onSearchChanged: (val) {
+            setState(() {
+              _songSearchQuery = val.trim();
+            });
+          },
+          onClearSearch: () {
+            _songSearchController.clear();
+            setState(() {
+              _songSearchQuery = '';
+            });
+          },
+          onToggleStarredOnly: (selected) {
+            setState(() {
+              _songStarredOnly = selected;
+            });
+            if (selected && _starredSongIds.isEmpty) {
+              _fetchStarredSongs();
+            }
+          },
+          onSortChanged: (field, asc) {
+            setState(() {
+              _songSortField = field;
+              _songSortAsc = asc;
+            });
+            final settings = ref.read(settingsServiceProvider);
+            settings.navidromeSongSortField = field;
+            settings.navidromeSongSortAscending = asc;
+          },
+        );
+      case 3:
         return NavidromePlaylistsToolbar(
           searchController: _playlistSearchController,
           onSearchChanged: (val) {
@@ -1367,7 +1672,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           ),
           onRefresh: () => _loadPlaylists(forceRefresh: true),
         );
-      case 3:
+      case 4:
         return NavidromeSearchToolbar(
           searchController: _searchController,
           isSearching: _isSearching,

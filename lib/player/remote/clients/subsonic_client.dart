@@ -467,6 +467,56 @@ class SubsonicClient {
     return const {};
   }
 
+  /// Fetches songs (using search3 with empty query by default, optimized in Navidrome/Subsonic).
+  Future<List<Map<String, dynamic>>> getSongs({
+    String query = '',
+    int count = 500,
+    int offset = 0,
+  }) async {
+    try {
+      final subsonic = await _getSubsonicData('search3.view', {
+        'query': query,
+        'artistCount': 0,
+        'albumCount': 0,
+        'songCount': count,
+        'songOffset': offset,
+      });
+      final searchResult =
+          subsonic['searchResult3'] ?? subsonic['searchResult2'];
+      if (searchResult is Map<String, dynamic>) {
+        final songs = searchResult['song'];
+        if (songs is List) {
+          return songs.whereType<Map<String, dynamic>>().toList();
+        } else if (songs is Map<String, dynamic>) {
+          return [songs];
+        }
+      }
+    } catch (_) {
+      if (offset == 0 && query.isEmpty) {
+        return getRandomSongs(size: count);
+      }
+      rethrow;
+    }
+    return const [];
+  }
+
+  /// Fetches random songs from the server.
+  Future<List<Map<String, dynamic>>> getRandomSongs({int size = 500}) async {
+    final subsonic = await _getSubsonicData('getRandomSongs.view', {
+      'size': size,
+    });
+    final randomSongs = subsonic['randomSongs'];
+    if (randomSongs is Map<String, dynamic>) {
+      final songs = randomSongs['song'];
+      if (songs is List) {
+        return songs.whereType<Map<String, dynamic>>().toList();
+      } else if (songs is Map<String, dynamic>) {
+        return [songs];
+      }
+    }
+    return const [];
+  }
+
   /// Fetches lyrics for a song (by artist & title or id).
   Future<String?> getLyrics({String? artist, String? title, String? id}) async {
     try {

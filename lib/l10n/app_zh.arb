@@ -2480,6 +2480,20 @@
   "sortStarred": "已收藏",
   "sortRandom": "随机",
   "filterAlbums": "筛选专辑...",
+  "filterSongs": "筛选歌曲...",
+  "noSongsOnServer": "服务端未找到歌曲",
+  "noMatchingSongs": "没有匹配的歌曲",
+  "errorLoadingSongs": "加载歌曲失败: {error}",
+  "@errorLoadingSongs": {
+    "description": "Error text when loading songs fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "starredSongsOnly": "已收藏",
+  "loadMore": "加载更多",
   "closeSearch": "关闭搜索",
   "filterArtists": "筛选艺术家...",
   "searchPlaylists": "搜索歌单...",

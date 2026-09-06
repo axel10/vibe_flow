@@ -548,6 +548,9 @@ class SettingsService extends ChangeNotifier {
       'navidrome_artist_sort_field';
   static const String _keyNavidromeArtistSortAscending =
       'navidrome_artist_sort_ascending';
+  static const String _keyNavidromeSongSortField = 'navidrome_song_sort_field';
+  static const String _keyNavidromeSongSortAscending =
+      'navidrome_song_sort_ascending';
   static const String _keyWebDavSortCriteria = 'webdav_sort_criteria';
   static const String _keyWebDavSortOrder = 'webdav_sort_order';
 
@@ -701,6 +704,20 @@ class SettingsService extends ChangeNotifier {
 
   late final _navidromeArtistSortAscendingProperty = SettingProperty<bool>(
     key: _keyNavidromeArtistSortAscending,
+    defaultValue: true,
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _navidromeSongSortFieldProperty = SettingProperty<String>(
+    key: _keyNavidromeSongSortField,
+    defaultValue: 'title',
+    prefs: _prefs,
+    onChanged: notifyListeners,
+  );
+
+  late final _navidromeSongSortAscendingProperty = SettingProperty<bool>(
+    key: _keyNavidromeSongSortAscending,
     defaultValue: true,
     prefs: _prefs,
     onChanged: notifyListeners,
@@ -2544,6 +2561,15 @@ class SettingsService extends ChangeNotifier {
       _navidromeArtistSortAscendingProperty.value;
   set navidromeArtistSortAscending(bool value) =>
       _navidromeArtistSortAscendingProperty.value = value;
+
+  String get navidromeSongSortField => _navidromeSongSortFieldProperty.value;
+  set navidromeSongSortField(String value) =>
+      _navidromeSongSortFieldProperty.value = value;
+
+  bool get navidromeSongSortAscending =>
+      _navidromeSongSortAscendingProperty.value;
+  set navidromeSongSortAscending(bool value) =>
+      _navidromeSongSortAscendingProperty.value = value;
 
   SortCriteria get webDavSortCriteria => _webDavSortCriteriaProperty.value;
   set webDavSortCriteria(SortCriteria value) =>
