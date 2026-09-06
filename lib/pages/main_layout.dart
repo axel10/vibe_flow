@@ -770,10 +770,7 @@ class _MainLayoutState extends ConsumerState<MainLayout>
         return const PlaybackPage();
       case 2:
         return Padding(
-          padding: EdgeInsets.only(
-            top: isDesktop ? (isCoverFlowImmersive ? 0 : 32) : 0,
-            left: leftPadding,
-          ),
+          padding: const EdgeInsets.only(top: 0, left: 0),
           child: LibraryPage(
             initialTabIndex: widget.initialLibraryTabIndex,
             initialAlbums3DView: widget.initialAlbums3DView,
@@ -1273,16 +1270,18 @@ class _MainLayoutState extends ConsumerState<MainLayout>
     final bool isCoverFlowImmersive =
         isLandscape &&
         ref.watch(isCoverFlowImmersiveActiveProvider);
-    final bool useSidebar = isLandscape && !isCoverFlowImmersive;
-    final bool hideImmersiveTabBar =
-        isDesktop &&
-        isPlayback &&
-        settings.isImmersiveTabBarEnabled &&
-        !uiState.showImmersiveTabBar;
+    final bool useSidebar = isLandscape;
+    final bool isSidebarHidden =
+        (isDesktop &&
+            isPlayback &&
+            settings.isImmersiveTabBarEnabled &&
+            !uiState.showImmersiveTabBar) ||
+        isCoverFlowImmersive;
+    final bool hideImmersiveTabBar = isSidebarHidden;
     final bool hideBottomBar =
         (isPlayback && isSmallWin) || isCoverFlowImmersive;
 
-    final double railWidth = (useSidebar && !hideImmersiveTabBar) ? 80.0 : 0.0;
+    final double railWidth = (useSidebar && !isSidebarHidden) ? 80.0 : 0.0;
 
     _shortcutManager.shortcuts = _buildShortcutMap(settings);
 
@@ -1437,51 +1436,46 @@ class _MainLayoutState extends ConsumerState<MainLayout>
                           left: 0,
                           top: 0,
                           bottom: 0,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            width: hideImmersiveTabBar ? 0.0 : 80.0,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const NeverScrollableScrollPhysics(),
-                              child: SizedBox(
-                                width: 80,
-                                child: AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 500),
-                                  opacity: hideImmersiveTabBar ? 0.0 : 1.0,
-                                  child: TweenAnimationBuilder<double>(
-                                    duration: const Duration(milliseconds: 120),
-                                    curve: Curves.easeOut,
-                                    tween: Tween<double>(
-                                      begin: navBgOpacityTarget,
-                                      end: navBgOpacityTarget,
-                                    ),
-                                    builder: (context, animatedOpacity, child) {
-                                      return NavigationRail(
-                                        leading: isDesktop
-                                            ? const SizedBox(height: 32)
-                                            : null,
-                                        backgroundColor: Color.lerp(
-                                          navBgBaseColor.withValues(alpha: 0.0),
-                                          navBgBaseColor,
-                                          animatedOpacity,
-                                        ),
-                                        selectedIndex: _currentIndex,
-                                        onDestinationSelected:
-                                            _onDestinationSelected,
-                                        labelType: NavigationRailLabelType.none,
-                                        indicatorColor: Color.lerp(
-                                          navIndicatorBaseColor.withValues(alpha: 0.0),
-                                          navIndicatorBaseColor,
-                                          animatedOpacity,
-                                        ),
-                                        destinations: _buildRailDestinations(
-                                          context,
-                                          isPlayback,
-                                        ),
-                                      );
-                                    },
+                          child: SizedBox(
+                            width: 80,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              opacity: hideImmersiveTabBar ? 0.0 : 1.0,
+                              child: IgnorePointer(
+                                ignoring: hideImmersiveTabBar,
+                                child: TweenAnimationBuilder<double>(
+                                  duration: const Duration(milliseconds: 120),
+                                  curve: Curves.easeOut,
+                                  tween: Tween<double>(
+                                    begin: navBgOpacityTarget,
+                                    end: navBgOpacityTarget,
                                   ),
+                                  builder: (context, animatedOpacity, child) {
+                                    return NavigationRail(
+                                      leading: isDesktop
+                                          ? const SizedBox(height: 32)
+                                          : null,
+                                      backgroundColor: Color.lerp(
+                                        navBgBaseColor.withValues(alpha: 0.0),
+                                        navBgBaseColor,
+                                        animatedOpacity,
+                                      ),
+                                      selectedIndex: _currentIndex,
+                                      onDestinationSelected:
+                                          _onDestinationSelected,
+                                      labelType: NavigationRailLabelType.none,
+                                      indicatorColor: Color.lerp(
+                                        navIndicatorBaseColor.withValues(alpha: 0.0),
+                                        navIndicatorBaseColor,
+                                        animatedOpacity,
+                                      ),
+                                      destinations: _buildRailDestinations(
+                                        context,
+                                        isPlayback,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),

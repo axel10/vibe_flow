@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -67,45 +69,95 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
     final bool isCoverFlowImmersive =
         isLandscape && ref.watch(isCoverFlowImmersiveActiveProvider);
+    final double leftPadding = isLandscape ? 80.0 : 0.0;
+    final double topPadding = (isDesktop ? 32.0 : 0.0) + kToolbarHeight;
 
     return Scaffold(
-      appBar: isCoverFlowImmersive
-          ? null
-          : AppBar(
-              scrolledUnderElevation: 0,
-              surfaceTintColor: Colors.transparent,
-              notificationPredicate: (_) => false,
-              title: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.center,
-                tabs: [
-                  Tab(text: l10n.playlist),
-                  Tab(text: l10n.recentlyPlayed),
-                  Tab(text: l10n.mostPlayed),
-                  Tab(text: l10n.recentlyAdded),
-                  Tab(text: l10n.albums),
-                  Tab(text: l10n.artists),
-                ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          TabBarView(
+            controller: _tabController,
+            physics: isCoverFlowImmersive
+                ? const NeverScrollableScrollPhysics()
+                : null,
+            children: [
+              KeepAliveWrapper(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topPadding, left: leftPadding),
+                  child: const PlaylistTab(),
+                ),
+              ),
+              KeepAliveWrapper(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topPadding, left: leftPadding),
+                  child: const RecentlyPlayedTab(),
+                ),
+              ),
+              KeepAliveWrapper(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topPadding, left: leftPadding),
+                  child: const MostPlayedTab(),
+                ),
+              ),
+              KeepAliveWrapper(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topPadding, left: leftPadding),
+                  child: const RecentlyAddedTab(),
+                ),
+              ),
+              KeepAliveWrapper(
+                child: AlbumsTab(
+                  initial3DView: widget.initialAlbums3DView,
+                  initial3DIndex: widget.initialAlbums3DIndex,
+                  contentTopPadding: topPadding,
+                  contentLeftPadding: leftPadding,
+                ),
+              ),
+              KeepAliveWrapper(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topPadding, left: leftPadding),
+                  child: const ArtistsTab(),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: isDesktop ? 32.0 : 0.0,
+            left: leftPadding,
+            right: 0,
+            height: kToolbarHeight,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              opacity: isCoverFlowImmersive ? 0.0 : 1.0,
+              child: IgnorePointer(
+                ignoring: isCoverFlowImmersive,
+                child: AppBar(
+                  primary: false,
+                  scrolledUnderElevation: 0,
+                  surfaceTintColor: Colors.transparent,
+                  notificationPredicate: (_) => false,
+                  title: TabBar(
+                    controller: _tabController,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    tabs: [
+                      Tab(text: l10n.playlist),
+                      Tab(text: l10n.recentlyPlayed),
+                      Tab(text: l10n.mostPlayed),
+                      Tab(text: l10n.recentlyAdded),
+                      Tab(text: l10n.albums),
+                      Tab(text: l10n.artists),
+                    ],
+                  ),
+                ),
               ),
             ),
-      body: TabBarView(
-        controller: _tabController,
-        physics: isCoverFlowImmersive ? const NeverScrollableScrollPhysics() : null,
-        children: [
-          const KeepAliveWrapper(child: PlaylistTab()),
-          const KeepAliveWrapper(child: RecentlyPlayedTab()),
-          const KeepAliveWrapper(child: MostPlayedTab()),
-          const KeepAliveWrapper(child: RecentlyAddedTab()),
-          KeepAliveWrapper(
-            child: AlbumsTab(
-              initial3DView: widget.initialAlbums3DView,
-              initial3DIndex: widget.initialAlbums3DIndex,
-            ),
           ),
-          const KeepAliveWrapper(child: ArtistsTab()),
         ],
       ),
     );

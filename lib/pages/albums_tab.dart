@@ -32,10 +32,14 @@ class AlbumsTab extends ConsumerStatefulWidget {
     super.key,
     this.initial3DView = false,
     this.initial3DIndex = 0,
+    this.contentTopPadding = 0.0,
+    this.contentLeftPadding = 0.0,
   });
 
   final bool initial3DView;
   final int initial3DIndex;
+  final double contentTopPadding;
+  final double contentLeftPadding;
 
   @override
   ConsumerState<AlbumsTab> createState() => _AlbumsTabState();
@@ -345,83 +349,95 @@ class _AlbumsTabState extends ConsumerState<AlbumsTab>
                                     ),
                                   ],
                                 )
-                              : Column(
-                                  children: [
-                                    toolbar,
-                                    Expanded(
-                                      child: visibleAlbums.isEmpty
-                                          ? Center(
-                                              child: Text(
-                                                l10n.noAlbums,
-                                                style: Theme.of(context).textTheme.titleMedium,
+                              : Padding(
+                                  padding: EdgeInsets.only(
+                                    top: widget.contentTopPadding,
+                                    left: widget.contentLeftPadding,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      toolbar,
+                                      Expanded(
+                                        child: visibleAlbums.isEmpty
+                                            ? Center(
+                                                child: Text(
+                                                  l10n.noAlbums,
+                                                  style: Theme.of(context).textTheme.titleMedium,
+                                                ),
+                                              )
+                                            : _Album3DCoverFlowView(
+                                                key: _coverFlowKey,
+                                                albums: visibleAlbums,
+                                                initialIndex: widget.initial3DIndex,
+                                                isSelectionMode: isSelectionMode,
+                                                selectedAlbumIds: selectedKeys,
+                                                bottomOffset: bottomOffset,
+                                                isHeroEnabled: _is3DView,
+                                                onToggleSelection: toggleSelection,
+                                                onEnterSelectionMode: enterSelectionMode,
+                                                onExit3DView: () {
+                                                  setState(() {
+                                                    _is3DView = false;
+                                                  });
+                                                  ref.read(isAlbum3DViewActiveProvider.notifier).set(false);
+                                                },
                                               ),
-                                            )
-                                          : _Album3DCoverFlowView(
-                                              key: _coverFlowKey,
-                                              albums: visibleAlbums,
-                                              initialIndex: widget.initial3DIndex,
-                                              isSelectionMode: isSelectionMode,
-                                              selectedAlbumIds: selectedKeys,
-                                              bottomOffset: bottomOffset,
-                                              isHeroEnabled: _is3DView,
-                                              onToggleSelection: toggleSelection,
-                                              onEnterSelectionMode: enterSelectionMode,
-                                              onExit3DView: () {
-                                                setState(() {
-                                                  _is3DView = false;
-                                                });
-                                                ref.read(isAlbum3DViewActiveProvider.notifier).set(false);
-                                              },
-                                            ),
-                                    ),
-                                  ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                         )
-                      : ScrollToTopWrapper(
-                          key: const ValueKey('album_grid_view'),
-                          scrollController: _scrollController,
-                          bottomOffset: bottomOffset,
-                          child: CustomScrollView(
-                            controller: _scrollController,
-                            cacheExtent: 1000,
-                            slivers: [
-                              SliverToBoxAdapter(child: toolbar),
-                              if (visibleAlbums.isEmpty)
-                                SliverFillRemaining(
-                                  hasScrollBody: false,
-                                  child: Center(
-                                    child: Text(
-                                      l10n.noAlbums,
-                                      style: Theme.of(context).textTheme.titleMedium,
+                      : Padding(
+                          padding: EdgeInsets.only(
+                            top: widget.contentTopPadding,
+                            left: widget.contentLeftPadding,
+                          ),
+                          child: ScrollToTopWrapper(
+                            key: const ValueKey('album_grid_view'),
+                            scrollController: _scrollController,
+                            bottomOffset: bottomOffset,
+                            child: CustomScrollView(
+                              controller: _scrollController,
+                              cacheExtent: 1000,
+                              slivers: [
+                                SliverToBoxAdapter(child: toolbar),
+                                if (visibleAlbums.isEmpty)
+                                  SliverFillRemaining(
+                                    hasScrollBody: false,
+                                    child: Center(
+                                      child: Text(
+                                        l10n.noAlbums,
+                                        style: Theme.of(context).textTheme.titleMedium,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              else ...[
-                                if (knownAlbums.isNotEmpty) ...[
-                                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
-                                  ..._albumSectionSlivers(
-                                    title: "",
-                                    albums: knownAlbums,
-                                    crossAxisCount: crossAxisCount,
-                                    childAspectRatio: childAspectRatio,
-                                    isSelectionMode: isSelectionMode,
-                                    isHeroEnabled: !_is3DView,
-                                  ),
+                                  )
+                                else ...[
+                                  if (knownAlbums.isNotEmpty) ...[
+                                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                                    ..._albumSectionSlivers(
+                                      title: "",
+                                      albums: knownAlbums,
+                                      crossAxisCount: crossAxisCount,
+                                      childAspectRatio: childAspectRatio,
+                                      isSelectionMode: isSelectionMode,
+                                      isHeroEnabled: !_is3DView,
+                                    ),
+                                  ],
+                                  if (knownAlbums.isNotEmpty && unknownAlbums.isNotEmpty)
+                                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                                  if (unknownAlbums.isNotEmpty)
+                                    ..._albumSectionSlivers(
+                                      title: l10n.unknownAlbum,
+                                      albums: unknownAlbums,
+                                      crossAxisCount: crossAxisCount,
+                                      childAspectRatio: childAspectRatio,
+                                      isSelectionMode: isSelectionMode,
+                                      isHeroEnabled: !_is3DView,
+                                    ),
+                                  SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
                                 ],
-                                if (knownAlbums.isNotEmpty && unknownAlbums.isNotEmpty)
-                                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                                if (unknownAlbums.isNotEmpty)
-                                  ..._albumSectionSlivers(
-                                    title: l10n.unknownAlbum,
-                                    albums: unknownAlbums,
-                                    crossAxisCount: crossAxisCount,
-                                    childAspectRatio: childAspectRatio,
-                                    isSelectionMode: isSelectionMode,
-                                    isHeroEnabled: !_is3DView,
-                                  ),
-                                SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
                               ],
-                            ],
+                            ),
                           ),
                         ),
                 );
@@ -2754,7 +2770,9 @@ class _AlbumCoverFlowQuickDetailDialogState
                             constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                             onPressed: () => audio.toggleMute(),
                             icon: Icon(
-                              getVolumeIcon(volume, isMuted: isMuted),
+                              isMuted
+                                  ? Icons.volume_off_rounded
+                                  : Icons.volume_mute_rounded,
                               color: isMuted
                                   ? theme.colorScheme.error
                                   : theme.colorScheme.onSurfaceVariant,
