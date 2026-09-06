@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
@@ -12,6 +13,16 @@ import 'package:vynody/widgets/queue_file_drop_target.dart';
 import '../widgets/library_selection_scope.dart';
 import '../widgets/library_selection_panel.dart';
 import 'package:vynody/utils/layout_constants.dart';
+import 'package:vynody/dialogs/sort_options_dialog.dart';
+
+enum QueueSortField {
+  title,
+  artist,
+  album,
+  duration,
+  filename,
+  trackNumber,
+}
 
 // 队列页面
 class QueuePage extends ConsumerStatefulWidget {
@@ -31,6 +42,8 @@ class _QueuePageState extends ConsumerState<QueuePage>
   late final ScrollController _scrollController;
   int? _highlightedIndex;
   Timer? _highlightTimer;
+  QueueSortField _sortField = QueueSortField.title;
+  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -183,6 +196,140 @@ class _QueuePageState extends ConsumerState<QueuePage>
     );
   }
 
+  Future<void> _showSortDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showDialog<SortResult<QueueSortField>>(
+      context: context,
+      builder: (context) => SortOptionsDialog<QueueSortField>(
+        title: l10n.sort,
+        currentField: _sortField,
+        sortAscending: _sortAscending,
+        options: [
+          SortOptionItem(
+            value: QueueSortField.title,
+            label: l10n.title,
+            icon: Icons.title_rounded,
+          ),
+          SortOptionItem(
+            value: QueueSortField.artist,
+            label: l10n.artists,
+            icon: Icons.person_rounded,
+          ),
+          SortOptionItem(
+            value: QueueSortField.album,
+            label: l10n.albums,
+            icon: Icons.album_rounded,
+          ),
+          SortOptionItem(
+            value: QueueSortField.duration,
+            label: l10n.sortDuration,
+            icon: Icons.schedule_rounded,
+          ),
+          SortOptionItem(
+            value: QueueSortField.filename,
+            label: l10n.fileName,
+            icon: Icons.insert_drive_file_outlined,
+          ),
+          SortOptionItem(
+            value: QueueSortField.trackNumber,
+            label: l10n.trackNumber,
+            icon: Icons.numbers_rounded,
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _sortField = result.field;
+        _sortAscending = result.sortAscending;
+      });
+      _applySort(result.field, result.sortAscending);
+    }
+  }
+
+  void _applySort(QueueSortField field, bool ascending) {
+    final currentQueue = ref.read(audioPlaybackQueueProvider);
+    if (currentQueue.isEmpty) return;
+
+    final sortedList = List<MusicFile>.from(currentQueue);
+    sortedList.sort((a, b) {
+      int cmp = 0;
+      switch (field) {
+        case QueueSortField.title:
+          cmp = compareNatural(
+            a.displayName.toLowerCase(),
+            b.displayName.toLowerCase(),
+          );
+          break;
+        case QueueSortField.artist:
+          cmp = compareNatural(
+            (a.artist ?? '').toLowerCase(),
+            (b.artist ?? '').toLowerCase(),
+          );
+          if (cmp == 0) {
+            cmp = compareNatural(
+              a.displayName.toLowerCase(),
+              b.displayName.toLowerCase(),
+            );
+          }
+          break;
+        case QueueSortField.album:
+          cmp = compareNatural(
+            (a.album ?? '').toLowerCase(),
+            (b.album ?? '').toLowerCase(),
+          );
+          if (cmp == 0) {
+            final aTrack = a.trackNumber ?? 0;
+            final bTrack = b.trackNumber ?? 0;
+            cmp = aTrack.compareTo(bTrack);
+            if (cmp == 0) {
+              cmp = compareNatural(
+                a.displayName.toLowerCase(),
+                b.displayName.toLowerCase(),
+              );
+            }
+          }
+          break;
+        case QueueSortField.duration:
+          final aDur = a.durationMillis ?? 0;
+          final bDur = b.durationMillis ?? 0;
+          cmp = aDur.compareTo(bDur);
+          if (cmp == 0) {
+            cmp = compareNatural(
+              a.displayName.toLowerCase(),
+              b.displayName.toLowerCase(),
+            );
+          }
+          break;
+        case QueueSortField.filename:
+          cmp = compareNatural(a.name.toLowerCase(), b.name.toLowerCase());
+          break;
+        case QueueSortField.trackNumber:
+          if (a.trackNumber != null && b.trackNumber != null) {
+            cmp = a.trackNumber!.compareTo(b.trackNumber!);
+          } else if (a.trackNumber != null) {
+            cmp = -1;
+          } else if (b.trackNumber != null) {
+            cmp = 1;
+          } else {
+            cmp = compareNatural(
+              a.displayName.toLowerCase(),
+              b.displayName.toLowerCase(),
+            );
+          }
+          break;
+      }
+      return ascending ? cmp : -cmp;
+    });
+
+    if (ref.read(librarySelectionScopeProvider) ==
+        LibrarySelectionScope.queue) {
+      cancelSelection();
+    }
+    ref.read(audioServiceProvider).updateQueue(sortedList);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -227,6 +374,8 @@ class _QueuePageState extends ConsumerState<QueuePage>
     final isPortrait =
         MediaQuery.of(context).orientation == Orientation.portrait;
     final headerHorizontalPadding = isPortrait ? 20.0 : 32.0;
+    final headerIconColor =
+        theme.colorScheme.onSurface.withValues(alpha: 0.85);
 
     if (queue.isEmpty) {
       return Scaffold(
@@ -258,11 +407,53 @@ class _QueuePageState extends ConsumerState<QueuePage>
                     ),
                     Positioned(
                       right: 0,
-                      child: IconButton(
-                        icon: const Icon(Icons.delete_sweep),
-                        onPressed: null,
-                        tooltip: AppLocalizations.of(context)!.queueEmpty,
-                      ),
+                      child: isPortrait
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.more_vert_rounded,
+                                size: 20,
+                                color: headerIconColor.withValues(alpha: 0.38),
+                              ),
+                              onPressed: null,
+                            )
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.sort_rounded,
+                                    size: 20,
+                                    color:
+                                        headerIconColor.withValues(alpha: 0.38),
+                                  ),
+                                  onPressed: null,
+                                  tooltip: AppLocalizations.of(context)!.sort,
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.my_location_rounded,
+                                    size: 20,
+                                    color:
+                                        headerIconColor.withValues(alpha: 0.38),
+                                  ),
+                                  onPressed: null,
+                                  tooltip: AppLocalizations.of(
+                                    context,
+                                  )!.locateCurrentSong,
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete_sweep_rounded,
+                                    size: 20,
+                                    color:
+                                        headerIconColor.withValues(alpha: 0.38),
+                                  ),
+                                  onPressed: null,
+                                  tooltip:
+                                      AppLocalizations.of(context)!.queueEmpty,
+                                ),
+                              ],
+                            ),
                     ),
                   ],
                 ),
@@ -336,23 +527,108 @@ class _QueuePageState extends ConsumerState<QueuePage>
                   ),
                   Positioned(
                     right: 0,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.my_location),
-                          onPressed: _scrollToCurrentPlay,
-                          tooltip: AppLocalizations.of(
-                            context,
-                          )!.locateCurrentSong,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_sweep),
-                          onPressed: () => _showClearQueueDialog(context),
-                          tooltip: AppLocalizations.of(context)!.clearQueue,
-                        ),
-                      ],
-                    ),
+                    child: isPortrait
+                        ? PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert_rounded,
+                              size: 20,
+                              color: headerIconColor,
+                            ),
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).moreButtonTooltip,
+                            onSelected: (value) {
+                              if (value == 'sort') {
+                                _showSortDialog(context);
+                              } else if (value == 'locate') {
+                                _scrollToCurrentPlay();
+                              } else if (value == 'clear') {
+                                _showClearQueueDialog(context);
+                              }
+                            },
+                            itemBuilder: (context) {
+                              final l10n = AppLocalizations.of(context)!;
+                              return [
+                                PopupMenuItem(
+                                  value: 'sort',
+                                  enabled: _viewIndex == 0,
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.sort_rounded, size: 20),
+                                      const SizedBox(width: 12),
+                                      Text(l10n.sort),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'locate',
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.my_location_rounded,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(l10n.locateCurrentSong),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'clear',
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.delete_sweep_rounded,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(l10n.clearQueue),
+                                    ],
+                                  ),
+                                ),
+                              ];
+                            },
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.sort_rounded,
+                                  size: 20,
+                                  color: _viewIndex == 0
+                                      ? headerIconColor
+                                      : headerIconColor.withValues(alpha: 0.38),
+                                ),
+                                onPressed: _viewIndex == 0
+                                    ? () => _showSortDialog(context)
+                                    : null,
+                                tooltip: AppLocalizations.of(context)!.sort,
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.my_location_rounded,
+                                  size: 20,
+                                  color: headerIconColor,
+                                ),
+                                onPressed: _scrollToCurrentPlay,
+                                tooltip: AppLocalizations.of(
+                                  context,
+                                )!.locateCurrentSong,
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete_sweep_rounded,
+                                  size: 20,
+                                  color: headerIconColor,
+                                ),
+                                onPressed: () => _showClearQueueDialog(context),
+                                tooltip: AppLocalizations.of(
+                                  context,
+                                )!.clearQueue,
+                              ),
+                            ],
+                          ),
                   ),
                 ],
               ),

@@ -42,7 +42,6 @@ import 'package:vynody/player/audio/playback_session_manager.dart';
 import 'package:vynody/player/audio/queue_background_processor.dart';
 import 'package:vynody/player/library/library_insights_service.dart';
 import 'package:vynody/player/lyrics/lyrics_riverpod.dart';
-import 'package:on_audio_query/on_audio_query.dart';
 import 'package:vynody/player/remote/remote_server_riverpod.dart';
 import 'package:vynody/player/remote/proxy/remote_media_resolver.dart';
 
@@ -1538,6 +1537,29 @@ class AudioService extends Notifier<AudioSnapshot> {
       }
     }
 
+    _startQueueBackgroundProcessing();
+    notifyListeners();
+    unawaited(_persistPlaybackSession());
+  }
+
+  Future<void> updateQueue(List<MusicFile> newQueue) async {
+    _queue.clear();
+    _queue.addAll(newQueue);
+    if (currentMusic?.path != null) {
+      final updatedIndex = _queue.indexWhere(
+        (song) => song.path == currentMusic?.path,
+      );
+      if (updatedIndex != -1) {
+        _currentIndex = updatedIndex;
+      }
+    }
+    final tracks = _queue.map(_audioTrackForSong).toList(growable: false);
+    final activePlaylistId =
+        _player.playlist.activePlaylistId ?? _player.playlist.queuePlaylistId;
+    await _player.playlist.updatePlaylistTracks(
+      activePlaylistId,
+      tracks,
+    );
     _startQueueBackgroundProcessing();
     notifyListeners();
     unawaited(_persistPlaybackSession());
