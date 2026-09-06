@@ -742,6 +742,7 @@ class _SharingPageState extends ConsumerState<SharingPage>
       },
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           centerTitle: true,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,

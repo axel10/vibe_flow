@@ -139,6 +139,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage>
               child: IgnorePointer(
                 ignoring: isCoverFlowImmersive,
                 child: AppBar(
+                  automaticallyImplyLeading: false,
                   primary: false,
                   scrolledUnderElevation: 0,
                   surfaceTintColor: Colors.transparent,

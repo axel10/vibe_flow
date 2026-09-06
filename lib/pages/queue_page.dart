@@ -26,7 +26,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
   @override
   LibrarySelectionScope get selectionScope => LibrarySelectionScope.queue;
 
-  final Map<String, GlobalKey> _songTileKeys = {};
+  final Map<int, GlobalKey> _songTileKeys = {};
   int _viewIndex = 0; // 0: Normal Queue, 1: Random History, 2: Random Queue
   late final ScrollController _scrollController;
   int? _highlightedIndex;
@@ -42,6 +42,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
   void dispose() {
     _scrollController.dispose();
     _highlightTimer?.cancel();
+    _songTileKeys.clear();
     super.dispose();
   }
 
@@ -140,10 +141,10 @@ class _QueuePageState extends ConsumerState<QueuePage>
     }
   }
 
-  GlobalKey _songTileKeyFor(MusicFile song) {
+  GlobalKey _songTileKeyFor(int index, [MusicFile? song]) {
     return _songTileKeys.putIfAbsent(
-      song.path,
-      () => GlobalKey(debugLabel: 'queue-song-${song.path}'),
+      index,
+      () => GlobalKey(debugLabel: 'queue-tile-$index'),
     );
   }
 
@@ -230,6 +231,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
     if (queue.isEmpty) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           notificationPredicate: (_) => false,
@@ -272,7 +274,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
           enabled: true,
           displayQueue: displayQueue,
           queueSongs: queue,
-          itemKeyBuilder: (index, song) => _songTileKeyFor(song),
+          itemKeyBuilder: _songTileKeyFor,
           showPreview: showPreview,
           child: Center(
             child: ConstrainedBox(
@@ -300,6 +302,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         notificationPredicate: (_) => false,
@@ -361,7 +364,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
         enabled: true,
         displayQueue: displayQueue,
         queueSongs: queue,
-        itemKeyBuilder: (index, song) => _songTileKeyFor(song),
+        itemKeyBuilder: _songTileKeyFor,
         showPreview: showPreview,
         child: Stack(
           children: [
@@ -454,7 +457,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
                             }
 
                             return Align(
-                              key: _songTileKeyFor(song),
+                              key: _songTileKeyFor(index, song),
                               alignment: Alignment.center,
                               child: ConstrainedBox(
                                 constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
