@@ -642,13 +642,14 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
           icon: Icons.copy_rounded,
           context: context,
         ),
-      buildContextMenuItem<String>(
-        value: 'search_online_lyrics',
-        enabled: hasCurrentSong,
-        label: l10n.selectOnlineLyrics,
-        icon: Icons.cloud_download_rounded,
-        context: context,
-      ),
+      if (!Platform.isIOS)
+        buildContextMenuItem<String>(
+          value: 'search_online_lyrics',
+          enabled: hasCurrentSong,
+          label: l10n.selectOnlineLyrics,
+          icon: Icons.cloud_download_rounded,
+          context: context,
+        ),
       if (!requeryOnly)
         buildContextMenuItem<String>(
           value: 'clear_lyrics_cache',
@@ -686,7 +687,7 @@ class _LyricsPanelState extends rpod.ConsumerState<LyricsPanel> {
           icon: Icons.source_rounded,
           context: context,
         ),
-      if (requeryOnly)
+      if (requeryOnly && !Platform.isIOS)
         buildContextMenuItem<String>(
           value: 'requery',
           enabled:

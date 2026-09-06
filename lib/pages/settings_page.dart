@@ -2545,8 +2545,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         const SizedBox(height: 16),
         _buildLyricsStyleSection(context, settings),
         const SizedBox(height: 16),
-        _buildOnlineLyricsApiSection(context, settings),
-        const SizedBox(height: 16),
+        if (!Platform.isIOS) ...[
+          _buildOnlineLyricsApiSection(context, settings),
+          const SizedBox(height: 16),
+        ],
         _buildSectionHeader(l10n.lyricsImportExportHeader),
         _buildLyricsImportExportSection(context, settings),
         _buildSectionHeader(l10n.platformApiKeysSectionTitle),

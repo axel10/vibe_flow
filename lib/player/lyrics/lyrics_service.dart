@@ -164,8 +164,10 @@ class LyricsService {
   bool get hasConfiguredApi => _resolveSearchEndpoint() != null;
 
   String? _resolveSearchEndpoint() {
-    final rawBase = _getApiBaseUrl?.call() ??
-        (defaultTargetPlatform == TargetPlatform.iOS ? '' : 'https://lrclib.net');
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return null;
+    }
+    final rawBase = _getApiBaseUrl?.call() ?? 'https://lrclib.net';
     final trimmed = rawBase.trim();
     if (trimmed.isEmpty) return null;
 
