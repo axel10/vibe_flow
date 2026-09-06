@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vynody/models/album_summary.dart';
+import 'package:vynody/models/music_file.dart';
 import 'package:vynody/player/audio/audio_riverpod.dart';
 import 'package:vynody/player/audio/playback_source.dart';
 import 'package:vynody/utils/folder_helpers.dart';
@@ -61,6 +62,11 @@ class _AlbumCoverFlowQuickDetailDialogState
   bool _showVolumeSlider = false;
   Timer? _volumeSliderTimer;
   double? _dragPositionMs;
+  bool _isSelectionMode = false;
+  final Set<String> _selectedSongPaths = <String>{};
+
+  List<MusicFile> get _selectedSongs =>
+      widget.album.songs.where((s) => _selectedSongPaths.contains(s.path)).toList();
 
   void _startVolumeSliderTimer() {
     _volumeSliderTimer?.cancel();
@@ -91,6 +97,7 @@ class _AlbumCoverFlowQuickDetailDialogState
     final l10n = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
     final audio = ref.read(audioServiceProvider);
+    final playlistService = ref.read(playlistServiceProvider);
     final currentMusic = ref.watch(audioCurrentMusicProvider);
     final isPlaying = ref.watch(audioIsPlayingProvider);
     final volume = ref.watch(audioVolumeProvider);
@@ -117,124 +124,326 @@ class _AlbumCoverFlowQuickDetailDialogState
         : Colors.white.withValues(alpha: 0.92);
     final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.35);
 
+    Widget buildSelectionPanel() {
+      final selectedList = _selectedSongs;
+      final hasSelection = selectedList.isNotEmpty;
+      final isAllSelected = widget.album.songs.isNotEmpty &&
+          _selectedSongPaths.length == widget.album.songs.length;
+
+      Widget buildPanelButton({
+        required IconData icon,
+        required String label,
+        required VoidCallback? onTap,
+      }) {
+        final isEnabled = onTap != null;
+        return Expanded(
+          child: Tooltip(
+            message: label,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 20,
+                        color: isEnabled
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: isEnabled
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF26262E).withValues(alpha: 0.92)
+                  : Colors.white.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: borderColor.withValues(alpha: 0.6),
+                width: 0.9,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                buildPanelButton(
+                  icon: Icons.queue_music_rounded,
+                  label: l10n.addToQueue,
+                  onTap: hasSelection
+                      ? () async {
+                          await audio.appendToQueue(selectedList);
+                          if (mounted) {
+                            setState(() {
+                              _isSelectionMode = false;
+                              _selectedSongPaths.clear();
+                            });
+                          }
+                        }
+                      : null,
+                ),
+                buildPanelButton(
+                  icon: Icons.queue_play_next_rounded,
+                  label: l10n.playNext,
+                  onTap: hasSelection
+                      ? () async {
+                          await audio.enqueueNext(selectedList);
+                          if (mounted) {
+                            setState(() {
+                              _isSelectionMode = false;
+                              _selectedSongPaths.clear();
+                            });
+                          }
+                        }
+                      : null,
+                ),
+                buildPanelButton(
+                  icon: Icons.playlist_add_rounded,
+                  label: l10n.addToPlaylist,
+                  onTap: hasSelection
+                      ? () async {
+                          await showAddSongsToPlaylistDialog(
+                            context,
+                            playlistService,
+                            selectedList,
+                          );
+                          if (mounted) {
+                            setState(() {
+                              _isSelectionMode = false;
+                              _selectedSongPaths.clear();
+                            });
+                          }
+                        }
+                      : null,
+                ),
+                buildPanelButton(
+                  icon: isAllSelected
+                      ? Icons.deselect_rounded
+                      : Icons.select_all_rounded,
+                  label: isAllSelected ? l10n.deselectAll : l10n.selectAll,
+                  onTap: () {
+                    setState(() {
+                      if (isAllSelected) {
+                        _selectedSongPaths.clear();
+                      } else {
+                        _selectedSongPaths
+                            .addAll(widget.album.songs.map((s) => s.path));
+                      }
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     Widget buildSongList({EdgeInsets? padding}) {
+      final effectivePadding = (padding ??
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 6))
+          .copyWith(
+        bottom: _isSelectionMode ? 76.0 : (padding?.bottom ?? 6.0),
+      );
+
       return ListView.builder(
-        padding: padding ?? const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: effectivePadding,
         itemCount: album.songs.length,
         itemBuilder: (context, index) {
           final song = album.songs[index];
           final isCurrent = currentMusic?.path == song.path;
+          final isSelected = _selectedSongPaths.contains(song.path);
           final trackNumberStr = (index + 1).toString().padLeft(2, '0');
 
-          return InkWell(
+          return Material(
+            color: isSelected
+                ? theme.colorScheme.primary.withValues(alpha: isDark ? 0.22 : 0.12)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
-            onTap: () {
-              audio.playPlaylist(
-                album.songs,
-                initialIndex: index,
-                source: PlaybackSource(
-                  type: PlaybackSourceType.album,
-                  id: album.id,
-                  name: album.title,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () {
+                if (_isSelectionMode) {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedSongPaths.remove(song.path);
+                    } else {
+                      _selectedSongPaths.add(song.path);
+                    }
+                  });
+                } else {
+                  audio.playPlaylist(
+                    album.songs,
+                    initialIndex: index,
+                    source: PlaybackSource(
+                      type: PlaybackSourceType.album,
+                      id: album.id,
+                      name: album.title,
+                    ),
+                  );
+                }
+              },
+              onLongPress: () {
+                if (!_isSelectionMode) {
+                  setState(() {
+                    _isSelectionMode = true;
+                    _selectedSongPaths.add(song.path);
+                  });
+                }
+              },
+              onSecondaryTapDown: (details) {
+                showSongContextMenu(
+                  context,
+                  details.globalPosition,
+                  song: song,
+                  songs: [song],
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 6,
                 ),
-              );
-            },
-            onSecondaryTapDown: (details) {
-              showSongContextMenu(
-                context,
-                details.globalPosition,
-                song: song,
-                songs: [song],
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 6,
-              ),
-              child: Row(
-                children: [
-                  // Track Number or Playing Icon
-                  SizedBox(
-                    width: 28,
-                    child: isCurrent
-                        ? Icon(
-                            isPlaying
-                                ? Icons.volume_up_rounded
-                                : Icons.pause_rounded,
-                            size: 18,
-                            color: theme.colorScheme.primary,
-                          )
-                        : Text(
-                            trackNumberStr,
-                            textAlign: TextAlign.center,
+                child: Row(
+                  children: [
+                    // Track Number, Playing Icon, or Selection Checkbox
+                    SizedBox(
+                      width: 28,
+                      child: _isSelectionMode
+                          ? Icon(
+                              isSelected
+                                  ? Icons.check_circle_rounded
+                                  : Icons.radio_button_unchecked_rounded,
+                              size: 20,
+                              color: isSelected
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.45),
+                            )
+                          : (isCurrent
+                              ? Icon(
+                                  isPlaying
+                                      ? Icons.volume_up_rounded
+                                      : Icons.pause_rounded,
+                                  size: 18,
+                                  color: theme.colorScheme.primary,
+                                )
+                              : Text(
+                                  trackNumberStr,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.7),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                )),
+                    ),
+                    const SizedBox(width: 8),
+                    // Title & Artist
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.title ?? song.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                              fontWeight: FontWeight.w500,
+                              fontWeight:
+                                  isCurrent ? FontWeight.bold : FontWeight.w500,
+                              color: isCurrent
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurface,
                             ),
                           ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Title & Artist
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          song.title ?? song.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
-                            color: isCurrent
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface,
+                          const SizedBox(height: 2),
+                          Text(
+                            song.artist ?? l10n.unknownArtist,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          song.artist ?? l10n.unknownArtist,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  // Duration
-                  Text(
-                    formatDurationMs(song.durationMillis),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    const SizedBox(width: 10),
+                    // Duration
+                    Text(
+                      formatDurationMs(song.durationMillis),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  // More button
-                  Builder(
-                    builder: (btnContext) {
-                      return IconButton(
-                        iconSize: 18,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          final renderBox = btnContext.findRenderObject() as RenderBox?;
-                          final position = renderBox != null
-                              ? renderBox.localToGlobal(Offset.zero) + const Offset(0, 30)
-                              : Offset.zero;
-                          showSongContextMenu(
-                            context,
-                            position,
-                            song: song,
-                            songs: [song],
+                    if (!_isSelectionMode) ...[
+                      const SizedBox(width: 4),
+                      // More button
+                      Builder(
+                        builder: (btnContext) {
+                          return IconButton(
+                            iconSize: 18,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {
+                              final renderBox =
+                                  btnContext.findRenderObject() as RenderBox?;
+                              final position = renderBox != null
+                                  ? renderBox.localToGlobal(Offset.zero) +
+                                      const Offset(0, 30)
+                                  : Offset.zero;
+                              showSongContextMenu(
+                                context,
+                                position,
+                                song: song,
+                                songs: [song],
+                              );
+                            },
+                            icon: const Icon(Icons.more_vert_rounded),
                           );
                         },
-                        icon: const Icon(Icons.more_vert_rounded),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           );
@@ -659,22 +868,48 @@ class _AlbumCoverFlowQuickDetailDialogState
                   child: Row(
                     children: [
                       Text(
-                        '${l10n.songCount(album.trackCount)} · ${formatDurationMs(album.totalDurationMillis)}',
+                        _isSelectionMode
+                            ? l10n.selectedSongs(_selectedSongPaths.length)
+                            : '${l10n.songCount(album.trackCount)} · ${formatDurationMs(album.totalDurationMillis)}',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: _isSelectionMode
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const Spacer(),
                       IconButton(
-                        tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                        tooltip: _isSelectionMode ? l10n.cancel : l10n.selectAll,
                         iconSize: 18,
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () {
+                          setState(() {
+                            _isSelectionMode = !_isSelectionMode;
+                            if (!_isSelectionMode) {
+                              _selectedSongPaths.clear();
+                            }
+                          });
+                        },
+                        icon: Icon(
+                          _isSelectionMode ? Icons.close_rounded : Icons.checklist_rounded,
+                          color: _isSelectionMode ? theme.colorScheme.primary : null,
+                        ),
                       ),
+                      if (!_isSelectionMode) ...[
+                        const SizedBox(width: 4),
+                        IconButton(
+                          tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                          iconSize: 18,
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -684,7 +919,20 @@ class _AlbumCoverFlowQuickDetailDialogState
                   color: borderColor,
                 ),
                 Expanded(
-                  child: buildSongList(),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: buildSongList(),
+                      ),
+                      if (_isSelectionMode)
+                        Positioned(
+                          left: 8,
+                          right: 8,
+                          bottom: 8,
+                          child: buildSelectionPanel(),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -767,31 +1015,68 @@ class _AlbumCoverFlowQuickDetailDialogState
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  '${album.artist}  ·  ${l10n.songCount(album.trackCount)}  ·  ${formatDurationMs(album.totalDurationMillis)}',
+                                  _isSelectionMode
+                                      ? l10n.selectedSongs(_selectedSongPaths.length)
+                                      : '${album.artist}  ·  ${l10n.songCount(album.trackCount)}  ·  ${formatDurationMs(album.totalDurationMillis)}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: (isNarrow
-                                          ? theme.textTheme.bodySmall
-                                          : theme.textTheme.bodyMedium)
-                                      ?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    height: 1.2,
-                                  ),
+                                  style: (_isSelectionMode
+                                          ? (isNarrow
+                                                  ? theme.textTheme.bodySmall
+                                                  : theme.textTheme.bodyMedium)
+                                              ?.copyWith(
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.2,
+                                            )
+                                          : (isNarrow
+                                                  ? theme.textTheme.bodySmall
+                                                  : theme.textTheme.bodyMedium)
+                                              ?.copyWith(
+                                              color: theme.colorScheme.onSurfaceVariant,
+                                              height: 1.2,
+                                            )),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Close button
-                          IconButton(
-                            tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                            iconSize: 20,
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                            alignment: Alignment.topRight,
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(Icons.close_rounded),
+                          // Selection & Close buttons
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: _isSelectionMode ? l10n.cancel : l10n.selectAll,
+                                iconSize: 20,
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                alignment: Alignment.topRight,
+                                onPressed: () {
+                                  setState(() {
+                                    _isSelectionMode = !_isSelectionMode;
+                                    if (!_isSelectionMode) {
+                                      _selectedSongPaths.clear();
+                                    }
+                                  });
+                                },
+                                icon: Icon(
+                                  _isSelectionMode ? Icons.close_rounded : Icons.checklist_rounded,
+                                  color: _isSelectionMode ? theme.colorScheme.primary : null,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                tooltip: MaterialLocalizations.of(context).closeButtonLabel,
+                                iconSize: 20,
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                                alignment: Alignment.topRight,
+                                onPressed: () => Navigator.of(context).pop(),
+                                icon: const Icon(Icons.close_rounded),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1049,7 +1334,20 @@ class _AlbumCoverFlowQuickDetailDialogState
         ),
         // Songs List
         Expanded(
-          child: buildSongList(),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: buildSongList(),
+              ),
+              if (_isSelectionMode)
+                Positioned(
+                  left: 10,
+                  right: 10,
+                  bottom: 10,
+                  child: buildSelectionPanel(),
+                ),
+            ],
+          ),
         ),
       ],
     );
