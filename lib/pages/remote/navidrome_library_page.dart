@@ -1412,6 +1412,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       searchedSongs: _searchedSongs,
                       searchedAlbums: _searchedAlbums,
                       searchedArtists: _searchedArtists,
+                      isSearching: _isSearching,
                       bottomOffset: bottomOffset,
                       isArtistSelectionMode: _isArtistSelectionMode,
                       isAlbumSelectionMode: _isAlbumSelectionMode,

@@ -72,6 +72,7 @@ class NavidromeSearchView extends ConsumerWidget {
   final List<MusicFile> searchedSongs;
   final List<Map<String, dynamic>> searchedAlbums;
   final List<Map<String, dynamic>> searchedArtists;
+  final bool isSearching;
   final double bottomOffset;
   final bool isArtistSelectionMode;
   final bool isAlbumSelectionMode;
@@ -94,6 +95,7 @@ class NavidromeSearchView extends ConsumerWidget {
     required this.searchedSongs,
     required this.searchedAlbums,
     required this.searchedArtists,
+    this.isSearching = false,
     required this.bottomOffset,
     required this.isArtistSelectionMode,
     required this.isAlbumSelectionMode,
@@ -130,6 +132,11 @@ class NavidromeSearchView extends ConsumerWidget {
     if (searchedSongs.isEmpty &&
         searchedAlbums.isEmpty &&
         searchedArtists.isEmpty) {
+      if (isSearching) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
       return Center(
         child: Text(
           searchController.text.trim().isEmpty
