@@ -1189,9 +1189,12 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
           body: Stack(
             children: [
               Positioned.fill(
-                child: NestedScrollView(
-                  floatHeaderSlivers: true,
-                  headerSliverBuilder: (context, innerBoxIsScrolled) {
+                child: ScrollConfiguration(
+                  behavior:
+                      ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                  child: NestedScrollView(
+                    floatHeaderSlivers: true,
+                    headerSliverBuilder: (context, innerBoxIsScrolled) {
                     return [
                       SliverAppBar(
                         floating: true,
@@ -1426,6 +1429,7 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                 ),
               ),
             ),
+          ),
             AnimatedSelectionPanel(
               isVisible: _isSelectionMode,
               child: LibrarySelectionPanel(

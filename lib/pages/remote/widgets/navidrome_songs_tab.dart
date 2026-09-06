@@ -272,31 +272,6 @@ class NavidromeSongsView extends ConsumerStatefulWidget {
 }
 
 class _NavidromeSongsViewState extends ConsumerState<NavidromeSongsView> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-    if (maxScroll - currentScroll <= 300) {
-      if (widget.hasMore && !widget.isLoadingMore && !widget.isLoading) {
-        widget.onLoadMore?.call();
-      }
-    }
-  }
 
   String _formatTrackDuration(int? seconds) {
     if (seconds == null || seconds <= 0) return '--:--';
@@ -425,12 +400,21 @@ class _NavidromeSongsViewState extends ConsumerState<NavidromeSongsView> {
 
     final totalDurationStr = _formatTotalDuration(widget.songs);
 
-    return RefreshIndicator(
-      onRefresh: widget.onRefresh,
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(16, 8, 16, widget.bottomOffset),
+    return NotificationListener<ScrollNotification>(
+      onNotification: (scrollInfo) {
+        if (scrollInfo.metrics.pixels >=
+            scrollInfo.metrics.maxScrollExtent - 300) {
+          if (widget.hasMore && !widget.isLoadingMore && !widget.isLoading) {
+            widget.onLoadMore?.call();
+          }
+        }
+        return false;
+      },
+      child: RefreshIndicator(
+        onRefresh: widget.onRefresh,
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(16, 8, 16, widget.bottomOffset),
         itemCount: widget.songs.length + 1 + (widget.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           // Header action bar
@@ -814,6 +798,7 @@ class _NavidromeSongsViewState extends ConsumerState<NavidromeSongsView> {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 }
