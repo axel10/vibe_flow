@@ -105,19 +105,22 @@ class _AlbumCoverFlowQuickDetailDialogState
     final position = ref.watch(audioPositionProvider);
     final duration = ref.watch(audioDurationProvider);
 
-    final size = MediaQuery.of(context).size;
+    final mediaQuery = MediaQuery.of(context);
+    final safePadding = mediaQuery.padding;
+    final usableWidth = mediaQuery.size.width - safePadding.horizontal;
+    final usableHeight = mediaQuery.size.height - safePadding.vertical;
     final bool isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
+        mediaQuery.orientation == Orientation.landscape;
     final bool useTwoColumn =
-        (isLandscape && size.width >= 480) || (size.width >= 560 && size.height < 520);
-    final bool isNarrow = size.width < 600 || size.height < 520;
+        (isLandscape && usableWidth >= 480) || (usableWidth >= 560 && usableHeight < 520);
+    final bool isNarrow = usableWidth < 600 || usableHeight < 520;
 
     final double dialogWidth = useTwoColumn
-        ? math.min(760.0, size.width - 24.0)
-        : math.min(680.0, size.width - (isNarrow ? 24.0 : 32.0));
+        ? math.min(760.0, usableWidth - 24.0)
+        : math.min(680.0, usableWidth - (isNarrow ? 24.0 : 32.0));
     final double dialogHeight = useTwoColumn
-        ? math.min(520.0, size.height - 24.0)
-        : math.min(580.0, size.height - (isNarrow ? 36.0 : 64.0));
+        ? math.min(520.0, usableHeight - 24.0)
+        : math.min(580.0, usableHeight - (isNarrow ? 24.0 : 48.0));
 
     final dialogBg = isDark
         ? const Color(0xFF1E1E24).withValues(alpha: 0.88)
@@ -454,7 +457,7 @@ class _AlbumCoverFlowQuickDetailDialogState
     Widget buildLandscapeLayout() {
       final double leftWidth = (dialogWidth * 0.38).clamp(240.0, 285.0);
       final double coverSize = (dialogHeight * 0.36).clamp(80.0, 140.0);
-      final bool isTight = dialogHeight < 390;
+      final bool isTight = dialogHeight < 420;
       final double actionGroupWidth = (leftWidth - 44).clamp(185.0, 215.0);
 
       final int totalDurationMs = (duration.inMilliseconds > 0)
@@ -545,90 +548,92 @@ class _AlbumCoverFlowQuickDetailDialogState
                             fontSize: isTight ? 11.5 : 12.0,
                           ),
                         ),
-                        SizedBox(height: isTight ? 10 : 14),
-                        // Quick Action Buttons (Play All & Shuffle) - width aligned with bottom volume bar
-                        Center(
-                          child: SizedBox(
-                            width: actionGroupWidth,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      minimumSize: Size(0, isTight ? 28 : 31),
-                                      fixedSize: Size.fromHeight(isTight ? 28 : 31),
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                                      side: BorderSide(
-                                        color: theme.colorScheme.outline.withValues(alpha: 0.35),
-                                        width: 0.9,
-                                      ),
-                                      shape: const StadiumBorder(),
-                                      foregroundColor: theme.colorScheme.onSurface,
-                                    ),
-                                    onPressed: () {
-                                      audio.playPlaylist(
-                                        album.songs,
-                                        source: PlaybackSource(
-                                          type: PlaybackSourceType.album,
-                                          id: album.id,
-                                          name: album.title,
+                        if (!isTight) ...[
+                          SizedBox(height: isTight ? 10 : 14),
+                          // Quick Action Buttons (Play All & Shuffle) - width aligned with bottom volume bar
+                          Center(
+                            child: SizedBox(
+                              width: actionGroupWidth,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: Size(0, isTight ? 28 : 31),
+                                        fixedSize: Size.fromHeight(isTight ? 28 : 31),
+                                        visualDensity: VisualDensity.compact,
+                                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                                        side: BorderSide(
+                                          color: theme.colorScheme.outline.withValues(alpha: 0.35),
+                                          width: 0.9,
                                         ),
-                                      );
-                                    },
-                                    icon: Icon(Icons.play_arrow_rounded, size: 16, color: theme.colorScheme.primary),
-                                    label: Text(
-                                      l10n.playAll,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: isTight ? 11.5 : 12.0,
-                                        fontWeight: FontWeight.w600,
+                                        shape: const StadiumBorder(),
+                                        foregroundColor: theme.colorScheme.onSurface,
+                                      ),
+                                      onPressed: () {
+                                        audio.playPlaylist(
+                                          album.songs,
+                                          source: PlaybackSource(
+                                            type: PlaybackSourceType.album,
+                                            id: album.id,
+                                            name: album.title,
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(Icons.play_arrow_rounded, size: 16, color: theme.colorScheme.primary),
+                                      label: Text(
+                                        l10n.playAll,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: isTight ? 11.5 : 12.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      minimumSize: Size(0, isTight ? 28 : 31),
-                                      fixedSize: Size.fromHeight(isTight ? 28 : 31),
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                                      side: BorderSide(
-                                        color: theme.colorScheme.outline.withValues(alpha: 0.35),
-                                        width: 0.9,
-                                      ),
-                                      shape: const StadiumBorder(),
-                                      foregroundColor: theme.colorScheme.onSurface,
-                                    ),
-                                    onPressed: () {
-                                      audio.playPlaylist(
-                                        List.of(album.songs)..shuffle(),
-                                        source: PlaybackSource(
-                                          type: PlaybackSourceType.album,
-                                          id: album.id,
-                                          name: album.title,
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        minimumSize: Size(0, isTight ? 28 : 31),
+                                        fixedSize: Size.fromHeight(isTight ? 28 : 31),
+                                        visualDensity: VisualDensity.compact,
+                                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                                        side: BorderSide(
+                                          color: theme.colorScheme.outline.withValues(alpha: 0.35),
+                                          width: 0.9,
                                         ),
-                                      );
-                                    },
-                                    icon: Icon(Icons.shuffle_rounded, size: 14, color: theme.colorScheme.primary),
-                                    label: Text(
-                                      l10n.shufflePlay,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: isTight ? 11.5 : 12.0,
-                                        fontWeight: FontWeight.w600,
+                                        shape: const StadiumBorder(),
+                                        foregroundColor: theme.colorScheme.onSurface,
+                                      ),
+                                      onPressed: () {
+                                        audio.playPlaylist(
+                                          List.of(album.songs)..shuffle(),
+                                          source: PlaybackSource(
+                                            type: PlaybackSourceType.album,
+                                            id: album.id,
+                                            name: album.title,
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(Icons.shuffle_rounded, size: 14, color: theme.colorScheme.primary),
+                                      label: Text(
+                                        l10n.shufflePlay,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: isTight ? 11.5 : 12.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -879,37 +884,94 @@ class _AlbumCoverFlowQuickDetailDialogState
                         ),
                       ),
                       const Spacer(),
+                      if (isTight) ...[
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 28),
+                            fixedSize: const Size.fromHeight(28),
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            side: BorderSide(
+                              color: theme.colorScheme.outline.withValues(alpha: 0.35),
+                              width: 0.9,
+                            ),
+                            shape: const StadiumBorder(),
+                            foregroundColor: theme.colorScheme.onSurface,
+                          ),
+                          onPressed: () {
+                            audio.playPlaylist(
+                              album.songs,
+                              source: PlaybackSource(
+                                type: PlaybackSourceType.album,
+                                id: album.id,
+                                name: album.title,
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.play_arrow_rounded, size: 16, color: theme.colorScheme.primary),
+                          label: Text(
+                            l10n.playAll,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, 28),
+                            fixedSize: const Size.fromHeight(28),
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            side: BorderSide(
+                              color: theme.colorScheme.outline.withValues(alpha: 0.35),
+                              width: 0.9,
+                            ),
+                            shape: const StadiumBorder(),
+                            foregroundColor: theme.colorScheme.onSurface,
+                          ),
+                          onPressed: () {
+                            audio.playPlaylist(
+                              List.of(album.songs)..shuffle(),
+                              source: PlaybackSource(
+                                type: PlaybackSourceType.album,
+                                id: album.id,
+                                name: album.title,
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.shuffle_rounded, size: 14, color: theme.colorScheme.primary),
+                          label: Text(
+                            l10n.shufflePlay,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       IconButton(
-                        tooltip: _isSelectionMode ? l10n.cancel : l10n.selectAll,
+                        tooltip: _isSelectionMode
+                            ? l10n.cancel
+                            : MaterialLocalizations.of(context).closeButtonLabel,
                         iconSize: 18,
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                         onPressed: () {
-                          setState(() {
-                            _isSelectionMode = !_isSelectionMode;
-                            if (!_isSelectionMode) {
+                          if (_isSelectionMode) {
+                            setState(() {
+                              _isSelectionMode = false;
                               _selectedSongPaths.clear();
-                            }
-                          });
+                            });
+                          } else {
+                            Navigator.of(context).pop();
+                          }
                         },
-                        icon: Icon(
-                          _isSelectionMode ? Icons.close_rounded : Icons.checklist_rounded,
-                          color: _isSelectionMode ? theme.colorScheme.primary : null,
-                        ),
+                        icon: const Icon(Icons.close_rounded),
                       ),
-                      if (!_isSelectionMode) ...[
-                        const SizedBox(width: 4),
-                        IconButton(
-                          tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                          iconSize: 18,
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -1041,42 +1103,26 @@ class _AlbumCoverFlowQuickDetailDialogState
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Selection & Close buttons
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: _isSelectionMode ? l10n.cancel : l10n.selectAll,
-                                iconSize: 20,
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                alignment: Alignment.topRight,
-                                onPressed: () {
-                                  setState(() {
-                                    _isSelectionMode = !_isSelectionMode;
-                                    if (!_isSelectionMode) {
-                                      _selectedSongPaths.clear();
-                                    }
-                                  });
-                                },
-                                icon: Icon(
-                                  _isSelectionMode ? Icons.close_rounded : Icons.checklist_rounded,
-                                  color: _isSelectionMode ? theme.colorScheme.primary : null,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              IconButton(
-                                tooltip: MaterialLocalizations.of(context).closeButtonLabel,
-                                iconSize: 20,
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                alignment: Alignment.topRight,
-                                onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.close_rounded),
-                              ),
-                            ],
+                          IconButton(
+                            tooltip: _isSelectionMode
+                                ? l10n.cancel
+                                : MaterialLocalizations.of(context).closeButtonLabel,
+                            iconSize: 20,
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                            alignment: Alignment.topRight,
+                            onPressed: () {
+                              if (_isSelectionMode) {
+                                setState(() {
+                                  _isSelectionMode = false;
+                                  _selectedSongPaths.clear();
+                                });
+                              } else {
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            icon: const Icon(Icons.close_rounded),
                           ),
                         ],
                       ),
@@ -1353,74 +1399,76 @@ class _AlbumCoverFlowQuickDetailDialogState
     );
   }
 
-  return Stack(
-    children: [
-      Center(
-        child: Material(
-          color: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: Container(
-                width: dialogWidth,
-                height: dialogHeight,
-                decoration: BoxDecoration(
-                  color: dialogBg,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: borderColor, width: 0.8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.18),
-                      blurRadius: 28,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+  return SafeArea(
+    child: Stack(
+      children: [
+        Center(
+          child: Material(
+            color: Colors.transparent,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                child: Container(
+                  width: dialogWidth,
+                  height: dialogHeight,
+                  decoration: BoxDecoration(
+                    color: dialogBg,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: borderColor, width: 0.8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.18),
+                        blurRadius: 28,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: useTwoColumn ? buildLandscapeLayout() : buildPortraitLayout(),
                 ),
-                child: useTwoColumn ? buildLandscapeLayout() : buildPortraitLayout(),
               ),
             ),
           ),
         ),
-      ),
-      if (_showVolumeSlider)
-        VolumeSliderOverlay(
-          volume: volume,
-          isMuted: isMuted,
-          onToggleMute: () {
-            _startVolumeSliderTimer();
-            audio.toggleMute();
-          },
-          onVolumeChanged: (val) {
-            _startVolumeSliderTimer();
-            audio.setVolume(
-              val.roundToDouble(),
-              showVolumeHud: false,
-            );
-          },
-          onDismiss: () {
-            _cancelVolumeSliderTimer();
-            setState(() => _showVolumeSlider = false);
-          },
-          isLandscape: isLandscape,
-          getVolumeIcon: getVolumeIcon,
-          onDrag: (delta) {
-            _startVolumeSliderTimer();
-            audio.setVolume(
-              (audio.volume - delta * 0.2).roundToDouble(),
-              showVolumeHud: false,
-            );
-          },
-          onScroll: (deltaY) {
-            _startVolumeSliderTimer();
-            audio.setVolume(
-              (audio.volume - deltaY * 0.1).roundToDouble(),
-              showVolumeHud: false,
-            );
-          },
-          onInteraction: _startVolumeSliderTimer,
-        ),
-    ],
+        if (_showVolumeSlider)
+          VolumeSliderOverlay(
+            volume: volume,
+            isMuted: isMuted,
+            onToggleMute: () {
+              _startVolumeSliderTimer();
+              audio.toggleMute();
+            },
+            onVolumeChanged: (val) {
+              _startVolumeSliderTimer();
+              audio.setVolume(
+                val.roundToDouble(),
+                showVolumeHud: false,
+              );
+            },
+            onDismiss: () {
+              _cancelVolumeSliderTimer();
+              setState(() => _showVolumeSlider = false);
+            },
+            isLandscape: isLandscape,
+            getVolumeIcon: getVolumeIcon,
+            onDrag: (delta) {
+              _startVolumeSliderTimer();
+              audio.setVolume(
+                (audio.volume - delta * 0.2).roundToDouble(),
+                showVolumeHud: false,
+              );
+            },
+            onScroll: (deltaY) {
+              _startVolumeSliderTimer();
+              audio.setVolume(
+                (audio.volume - deltaY * 0.1).roundToDouble(),
+                showVolumeHud: false,
+              );
+            },
+            onInteraction: _startVolumeSliderTimer,
+          ),
+      ],
+    ),
   );
 }
 }
