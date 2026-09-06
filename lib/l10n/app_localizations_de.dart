@@ -4335,24 +4335,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get filterAlbums => 'Alben filtern...';
 
   @override
-  String get filterSongs => '筛选歌曲...';
+  String get filterSongs => 'Titel filtern...';
 
   @override
-  String get noSongsOnServer => '服务端未找到歌曲';
+  String get noSongsOnServer => 'Keine Titel auf dem Server gefunden';
 
   @override
-  String get noMatchingSongs => '没有匹配的歌曲';
+  String get noMatchingSongs => 'Keine passenden Titel';
 
   @override
   String errorLoadingSongs(String error) {
-    return '加载歌曲失败: $error';
+    return 'Fehler beim Laden der Titel: $error';
   }
 
   @override
-  String get starredSongsOnly => '已收藏';
+  String get starredSongsOnly => 'Favorisiert';
 
   @override
-  String get loadMore => '加载更多';
+  String get loadMore => 'Mehr laden';
 
   @override
   String get filterArtists => 'Künstler filtern...';

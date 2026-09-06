@@ -4344,24 +4344,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filterAlbums => 'Filtrer les albums...';
 
   @override
-  String get filterSongs => '筛选歌曲...';
+  String get filterSongs => 'Filtrer les morceaux...';
 
   @override
-  String get noSongsOnServer => '服务端未找到歌曲';
+  String get noSongsOnServer => 'Aucun morceau trouvé sur le serveur';
 
   @override
-  String get noMatchingSongs => '没有匹配的歌曲';
+  String get noMatchingSongs => 'Aucun morceau correspondant';
 
   @override
   String errorLoadingSongs(String error) {
-    return '加载歌曲失败: $error';
+    return 'Erreur lors du chargement des morceaux : $error';
   }
 
   @override
-  String get starredSongsOnly => '已收藏';
+  String get starredSongsOnly => 'Favoris';
 
   @override
-  String get loadMore => '加载更多';
+  String get loadMore => 'Charger plus';
 
   @override
   String get filterArtists => 'Filtrer les artistes...';

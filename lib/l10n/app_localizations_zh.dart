@@ -8498,6 +8498,26 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get filterAlbums => '篩選專輯...';
 
   @override
+  String get filterSongs => '篩選歌曲...';
+
+  @override
+  String get noSongsOnServer => '伺服端未找到歌曲';
+
+  @override
+  String get noMatchingSongs => '沒有匹配的歌曲';
+
+  @override
+  String errorLoadingSongs(String error) {
+    return '載入歌曲失敗: $error';
+  }
+
+  @override
+  String get starredSongsOnly => '已收藏';
+
+  @override
+  String get loadMore => '載入更多';
+
+  @override
   String get filterArtists => '篩選藝術家...';
 
   @override

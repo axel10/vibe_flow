@@ -4138,24 +4138,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filterAlbums => '앨범 필터링...';
 
   @override
-  String get filterSongs => '筛选歌曲...';
+  String get filterSongs => '노래 필터링...';
 
   @override
-  String get noSongsOnServer => '服务端未找到歌曲';
+  String get noSongsOnServer => '서버에서 노래를 찾을 수 없습니다';
 
   @override
-  String get noMatchingSongs => '没有匹配的歌曲';
+  String get noMatchingSongs => '일치하는 노래가 없습니다';
 
   @override
   String errorLoadingSongs(String error) {
-    return '加载歌曲失败: $error';
+    return '노래 로드 실패: $error';
   }
 
   @override
-  String get starredSongsOnly => '已收藏';
+  String get starredSongsOnly => '즐겨찾기';
 
   @override
-  String get loadMore => '加载更多';
+  String get loadMore => '더 보기';
 
   @override
   String get filterArtists => '아티스트 필터링...';
