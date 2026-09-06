@@ -279,23 +279,32 @@ class AudioSection extends ConsumerWidget {
                         ),
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: SegmentedButton<int>(
-                      segments: [
-                        ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
-                        ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
-                        ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
-                        ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
-                      ],
-                      selected: {settings.equalizerBandCount},
-                      onSelectionChanged: (Set<int> selected) {
-                        if (selected.isNotEmpty) {
-                          settings.equalizerBandCount = selected.first;
-                        }
-                      },
-                      showSelectedIcon: false,
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final button = SegmentedButton<int>(
+                        segments: [
+                          ButtonSegment<int>(value: 5, label: Text(l10n.bandsCountOption(5))),
+                          ButtonSegment<int>(value: 10, label: Text(l10n.bandsCountOption(10))),
+                          ButtonSegment<int>(value: 15, label: Text(l10n.bandsCountOption(15))),
+                          ButtonSegment<int>(value: 20, label: Text(l10n.bandsCountOption(20))),
+                          ButtonSegment<int>(value: 31, label: Text(l10n.bandsCountOption(31))),
+                        ],
+                        selected: {settings.equalizerBandCount},
+                        onSelectionChanged: (Set<int> selected) {
+                          if (selected.isNotEmpty) {
+                            settings.equalizerBandCount = selected.first;
+                          }
+                        },
+                        showSelectedIcon: false,
+                      );
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                          child: button,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

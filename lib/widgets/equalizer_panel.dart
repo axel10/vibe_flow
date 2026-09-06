@@ -1298,9 +1298,19 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
 
   String _formatFreq(double hz) {
     if (hz >= 1000) {
-      return '${(hz / 1000).toInt()}k';
+      final khz = hz / 1000.0;
+      if (khz == khz.roundToDouble()) {
+        return '${khz.toInt()}k';
+      } else if ((khz * 10) == (khz * 10).roundToDouble()) {
+        return '${khz.toStringAsFixed(1)}k';
+      } else {
+        return '${khz.toStringAsFixed(2)}k';
+      }
     }
-    return hz.toInt().toString();
+    if (hz == hz.roundToDouble()) {
+      return hz.toInt().toString();
+    }
+    return hz.toStringAsFixed(1);
   }
 }
 

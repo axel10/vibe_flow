@@ -131,5 +131,23 @@ void main() {
       expect(ref10.first, 6.0);
       expect(ref10.last, -6.0);
     });
+
+    test('31-band ISO 266 calculation and reverse interpolation', () {
+      final freqs31 = EqualizerPresets.standard31Frequencies;
+      expect(freqs31.length, 31);
+      expect(freqs31.first, 20.0);
+      expect(freqs31.last, 20000.0);
+
+      final rock = EqualizerPresets.rock;
+      final gains31 = EqualizerPresets.calculateGainsForBands(rock, freqs31);
+      expect(gains31.length, 31);
+      for (final g in gains31) {
+        expect(g, inInclusiveRange(-12.0, 12.0));
+      }
+
+      // Preserves matching
+      final matched = EqualizerPresets.findMatchingPreset(gains31, freqs31);
+      expect(matched?.id, 'rock');
+    });
   });
 }
