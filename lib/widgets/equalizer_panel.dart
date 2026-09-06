@@ -1081,7 +1081,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
     const double minItemWidth = 48.0;
 
     return SizedBox(
-      height: 224,
+      height: 236,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final totalWidthNeeded = minItemWidth * bandCount;
@@ -1094,6 +1094,43 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
 
             final sliderItem = Column(
               children: [
+                SizedBox(
+                  height: 18,
+                  child: Center(
+                    child: InkWell(
+                      onTap: () => audio.setEqualizerBandGain(index, 0.0),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 3, vertical: 1),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _formatGain(gain),
+                            style: TextStyle(
+                              color: gain.abs() < 0.05
+                                  ? (isDark
+                                      ? Colors.white.withValues(alpha: 0.4)
+                                      : theme.colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.5))
+                                  : (isDark
+                                      ? Colors.white
+                                      : theme.colorScheme.onSurface),
+                              fontSize: 10,
+                              fontWeight: gain.abs() < 0.05
+                                  ? FontWeight.normal
+                                  : FontWeight.w600,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Expanded(
                   child: _VerticalEqSlider(
                     value: gain,
@@ -1103,7 +1140,7 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
                     onChanged: (val) => audio.setEqualizerBandGain(index, val),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 2),
                   child: Text(
@@ -1318,6 +1355,14 @@ class _EqualizerPanelState extends ConsumerState<EqualizerPanel> {
       return hz.toInt().toString();
     }
     return hz.toStringAsFixed(1);
+  }
+
+  String _formatGain(double gain) {
+    if (gain.abs() < 0.05) {
+      return '0 dB';
+    }
+    final prefix = gain > 0 ? '+' : '';
+    return '$prefix${gain.toStringAsFixed(1)} dB';
   }
 }
 
