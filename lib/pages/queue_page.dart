@@ -390,13 +390,16 @@ class _QueuePageState extends ConsumerState<QueuePage>
             alignment: Alignment.center,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: headerHorizontalPadding,
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
+              child: SizedBox(
+                height: kToolbarHeight,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: headerHorizontalPadding,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
                     Center(
                       child: Text(
                         AppLocalizations.of(context)!.queue,
@@ -460,6 +463,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
               ),
             ),
           ),
+          ),
         ),
         body: QueueFileDropTarget(
           enabled: true,
@@ -503,13 +507,16 @@ class _QueuePageState extends ConsumerState<QueuePage>
           alignment: Alignment.center,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: headerHorizontalPadding,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
+            child: SizedBox(
+              height: kToolbarHeight,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: headerHorizontalPadding,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
                   Center(
                     child: isRandomMode
                         ? _buildViewSelector(
@@ -634,6 +641,7 @@ class _QueuePageState extends ConsumerState<QueuePage>
               ),
             ),
           ),
+        ),
         ),
       ),
       body: QueueFileDropTarget(
