@@ -5,6 +5,7 @@ import '../../../models/music_file.dart';
 import '../../../player/audio/audio_riverpod.dart';
 import '../../../player/remote/navidrome_navigation.dart';
 import '../../../player/remote/remote_server_models.dart';
+import '../../../utils/layout_constants.dart';
 import '../../../utils/remote_context_menu_utils.dart';
 import '../../../utils/selection_utils.dart';
 import '../../../widgets/remote_artwork_widget.dart';
@@ -139,9 +140,14 @@ class NavidromeSearchView extends ConsumerWidget {
       );
     }
 
-    return ListView(
-      padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
-      children: [
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints:
+            const BoxConstraints(maxWidth: kSingleColumnContentMaxWidth),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, bottomOffset),
+          children: [
         if (searchedArtists.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -518,6 +524,8 @@ class NavidromeSearchView extends ConsumerWidget {
           }(),
         ],
       ],
+        ),
+      ),
     );
   }
 }

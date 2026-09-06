@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/layout_constants.dart';
 
 class NavidromeHeaderBottom extends StatelessWidget
     implements PreferredSizeWidget {
@@ -26,7 +27,14 @@ class NavidromeHeaderBottom extends StatelessWidget
         if (toolbar != null)
           SizedBox(
             height: 52.0,
-            child: toolbar!,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: kSingleColumnContentMaxWidth,
+                ),
+                child: toolbar!,
+              ),
+            ),
           ),
       ],
     );

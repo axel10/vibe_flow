@@ -1279,6 +1279,8 @@ class _NavidromeLibraryPageState extends ConsumerState<NavidromeLibraryPage>
                       bottom: NavidromeHeaderBottom(
                         tabBar: TabBar(
                           controller: _tabController,
+                          isScrollable: true,
+                          tabAlignment: TabAlignment.center,
                           tabs: [
                             Tab(icon: const Icon(Icons.album_rounded), text: l10n.albums),
                             Tab(icon: const Icon(Icons.person_rounded), text: l10n.artists),
