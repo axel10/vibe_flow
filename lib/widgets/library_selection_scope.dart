@@ -159,6 +159,7 @@ class LibrarySelectionController extends Notifier<LibrarySelectionState> {
   }
 
   void clear() {
+    if (!ref.mounted) return;
     if (state.isActive ||
         state.selectedKeys.isNotEmpty ||
         state.scope != LibrarySelectionScope.none) {
@@ -167,6 +168,7 @@ class LibrarySelectionController extends Notifier<LibrarySelectionState> {
   }
 
   void clearIfScope(LibrarySelectionScope scope) {
+    if (!ref.mounted) return;
     if (state.scope == scope) {
       clear();
     }
@@ -323,7 +325,6 @@ mixin SelectionStateMixin<T extends ConsumerStatefulWidget, K>
     if (controller != null) {
       Future.microtask(() {
         try {
-          if (!controller.ref.mounted) return;
           controller.clearIfScope(selectionScope);
         } catch (_) {}
       });
